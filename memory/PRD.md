@@ -27,7 +27,8 @@ Application mobile React Native (Expo) tout-en-un pour l'entraînement : import 
 - Onglet Progrès → Mesures.
 - Saisie : date, poids (kg), tour de taille (cm), tour de cuisse (cm), tour de poitrine (cm), notes.
 - **Photo de comparaison** : caméra ou galerie, stockée en base64 local.
-- Graphique linéaire du poids dans le temps (dès 2 mesures).
+- **Graphiques multi-métriques** : chips au-dessus du graphique pour switcher entre Poids / Taille / Poitrine / Cuisse. Chaque graphique affiche un chip de delta (▲/▼ + valeur) en tête.
+- **Comparateur avant / après** : dès ≥ 2 mesures avec photo, un bouton ouvre `/compare` — photos côte à côte, sélecteur de photos avant / après (bottom sheet grid), bouton swap, delta card avec évolution de chaque métrique (vert = amélioration, rouge = régression, selon la logique "poids/taille bas = mieux, poitrine/cuisse haut = mieux").
 
 ### 5. Records personnels + calculateur %
 - Onglet Progrès → Records.
