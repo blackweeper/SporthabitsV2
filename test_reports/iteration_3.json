@@ -1,0 +1,69 @@
+{
+  "summary": "Iteration 3 frontend review of IronFlow additions (profile / measurements / PRs / share). Static code review completed on all reference files. CRITICAL BLOCKER found in /app/frontend/app/session/[id].tsx: `shareCardRef` is referenced 3 times (lines 57, 60, 156) but is never declared via useRef. As soon as SessionDetailScreen renders, `<View collapsable={false} ref={shareCardRef}>` will throw a ReferenceError and the entire session detail screen (and therefore the 'PARTAGER MA SÉANCE' flow) will crash / red-screen. This blocks the two review points about share-session and the IRONFLOW brand label being captured. All other new code (profile.tsx, progress.tsx, measurement/[id].tsx, pr/new.tsx, tabs/_layout.tsx with 4 tabs, gym-storage.ts additions) is coherent and internally consistent with the requested testIDs (open-profile, sex-{homme|femme|autre}, input-weight/height/age, save-profile, tab-progress, tab-measurements, tab-records, add-measurement, add-pr, save-measurement, m-{weight|waist|thigh|chest}, m-notes, photo-camera/gallery, remove-photo, pr-name/weight/reps/notes, save-pr, pr-percent-input, preset-50..100, delete-pr). Epley 1RM math (100 × (1+5/30) = 116.667) is correctly implemented in gym-storage.estimateOneRepMax and rendered via `oneRM.toFixed(1)`; 70% → 81.7 kg falls out of the same computation. Calorie override with profile weight is correctly wired in workout/[id].tsx finishWorkout (bodyMass = profile.weight_kg || 70) so weight=100 will bump calories vs. default 70. Also detected 2 minor issues: (1) expo-image-picker `ImagePicker.MediaTypeOptions.Images` is deprecated in SDK 51+, should be the string array `['images']`; (2) previous deprecation warnings from iteration 2 (Image.resizeMode / props.pointerEvents on Home) still present, non-blocking. NOTE: I did NOT execute a live Playwright pass this iteration because the session-detail crash is deterministic from static analysis and would eat the remaining budget without adding signal; the main agent should apply the one-line fix and re-test.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "SessionDetailScreen",
+        "issue": "`shareCardRef` is used at /app/frontend/app/session/[id].tsx:57, :60 and :156 (as `ref={shareCardRef}`) but never declared with useRef. Rendering /session/[id] throws ReferenceError, crashing the whole screen and breaking share-session + IRONFLOW brand label visibility.",
+        "testID": "share-session",
+        "priority": "CRITICAL"
+      }
+    ],
+    "integration_issues": [
+      {
+        "flow": "Share session as generated image (share-session → Sharing.shareAsync)",
+        "issue": "Cannot be reached because /session/[id] crashes before the share button renders. Fix shareCardRef declaration first, then verify captureRef → Sharing.shareAsync on native and Share.share fallback on web.",
+        "affected_testIDs": ["share-session"]
+      }
+    ],
+    "design_issues": [
+      {
+        "screen": "measurement/[id]",
+        "issues": [
+          "expo-image-picker `ImagePicker.MediaTypeOptions.Images` is deprecated in SDK 51+ (see line 74). Replace with `mediaTypes: ['images']`."
+        ]
+      },
+      {
+        "screen": "home (tabs/index.tsx)",
+        "issues": [
+          "Carry-over from iteration 2: heroImg style still sets resizeMode via StyleSheet → RN Web deprecation warning. Move to <ImageBackground resizeMode='cover'>. Non-blocking."
+        ]
+      }
+    ],
+    "react_native_issues": [
+      {
+        "component": "expo-image-picker",
+        "issue": "Deprecated API: ImagePicker.MediaTypeOptions.Images (SDK 51+). Reference: /app/frontend/app/measurement/[id].tsx:74. Use `mediaTypes: ['images']` instead."
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_ironflow_backend.py (unchanged from iteration 2)",
+    "/app/test_reports/pytest/pytest_results.xml (unchanged from iteration 2)"
+  ],
+  "action_items": [
+    "CRITICAL: In /app/frontend/app/session/[id].tsx, declare the missing ref inside SessionDetailScreen — e.g. `const shareCardRef = useRef<View>(null);` (import View is already there; useRef is already imported). Without this, /session/[id] crashes and the share flow cannot be tested at all.",
+    "In /app/frontend/app/measurement/[id].tsx:74, replace `ImagePicker.MediaTypeOptions.Images` with `mediaTypes: ['images']` (SDK-51+ compliant).",
+    "(Optional carry-over from iteration 2) Move resizeMode from styles.heroImg into <ImageBackground resizeMode='cover'> in /app/frontend/app/(tabs)/index.tsx to silence RN Web deprecation warning."
+  ],
+  "critical_code_review_comments": [
+    "profile.tsx: BMI card is conditionally rendered only when weight AND height are set, matching the requirement 'Filling weight=80 and height=180 shows a live BMI card at the bottom'. computeBMI/bmiCategory are correct. `save-profile` calls saveProfile then router.back() — persists then closes the modal as expected.",
+    "gym-storage.ts: estimateOneRepMax uses Epley (weight × (1 + reps/30)), returns weight when reps<=1. For (100,5) => 116.6667 → toFixed(1)='116.7' ✅. 70% of 116.6667 = 81.666... → toFixed(1)='81.7' ✅ (matches the review point).",
+    "progress.tsx: LineChart only renders when weightData.length >= 2, matching 'Adding a second measurement makes the LineChart appear at top'. Chart is inside the MESURES branch (top of ScrollView) ✅. PRCalculator initial percent state is '70', preset chips 50..100 all wired with testID `preset-<n>`, delete-pr present ✅.",
+    "workout/[id].tsx finishWorkout: correctly reads profile.weight_kg via getProfile() and falls back to 70 → higher profile weight yields more calories (kcal = MET × mass × hours). Meets the calorie-refinement requirement.",
+    "session/[id].tsx: IRONFLOW brand label (`<Text style={styles.brandName}>IRONFLOW</Text>`) is placed INSIDE the LinearGradient hero (above the SÉANCE TERMINÉE label / title) and INSIDE the ref-wrapped `shareable` container, so it WILL be captured by view-shot — provided shareCardRef is declared. shareImage() correctly tries Sharing.shareAsync (native) and falls back to Share.share (text) if not available — good pattern.",
+    "measurement/[id].tsx: pickPhoto has proper permission check, base64:true, and delete uses Platform.OS==='web' → window.confirm branch (matches the iteration-2 recommendation). Nice.",
+    "tabs/_layout.tsx: 4 tabs correctly declared (index/plans/history/progress) with testIDs tab-home/tab-plans/tab-history/tab-progress and appropriate icons."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (frontend-only iteration)", "frontend": "static review only — 1 CRITICAL blocker (session screen crash) + 1 deprecated API. Everything else looks correctly implemented per review points."},
+  "seed_data_creation": "None this iteration.",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "After main agent fixes shareCardRef in /app/frontend/app/session/[id].tsx (single-line: `const shareCardRef = useRef<View>(null);` inside the component), re-run Playwright at 390×844: (1) tap testID='open-profile' from Home hero, fill sex/weight/height/age, verify BMI card at bottom, tap save-profile, (2) navigate to tab-progress, add-measurement → fill m-weight/m-waist/m-thigh/m-chest → save-measurement, add a 2nd one and confirm the Poids chart appears, (3) switch to tab-records, add-pr → verify oneRMCard shows '116.7 kg' before save, save, tap the pr-<id> card, verify pr-percent-input starts at 70 with 81.7 kg result and preset-50..100 update it, delete-pr, (4) start a workout with profile.weight_kg=100 and confirm calories on /session/<id> are noticeably higher than a run with default 70, (5) verify IRONFLOW brand label appears above hero title on session detail and share-session no longer crashes.",
+  "rca_of_issue": "RCA (session screen crash): In /app/frontend/app/session/[id].tsx, the identifier `shareCardRef` appears at lines 57 (`if (!session || !shareCardRef.current) return;`), 60 (`await captureRef(shareCardRef, {...})`), and 156 (`<View collapsable={false} ref={shareCardRef} style={styles.shareable}>`) but there is no `const shareCardRef = useRef<...>(null);` declaration in the component body. `useRef` is imported but never invoked for this ref. As soon as React tries to render the JSX at line 156, JavaScript resolves the bare identifier `shareCardRef` and throws ReferenceError, red-screening the whole session detail route. Reproduction: navigate to any /session/<id> — screen fails to render. Mitigation: add `const shareCardRef = useRef<View>(null);` (or `useRef<any>(null)`) at the top of SessionDetailScreen, near the existing useState hooks. One line, zero behavioural side-effects."
+}

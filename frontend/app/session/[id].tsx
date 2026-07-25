@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -7,12 +7,15 @@ import {
   Pressable,
   Share,
   Alert,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
+import { captureRef } from "react-native-view-shot";
+import * as Sharing from "expo-sharing";
 import { colors, radius, spacing } from "@/src/theme";
 import {
   deleteSession,
@@ -50,9 +53,32 @@ export default function SessionDetailScreen() {
     0,
   );
 
-  async function share() {
-    if (!session) return;
+  async function shareImage() {
+    if (!session || !shareCardRef.current) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    try {
+      const uri = await captureRef(shareCardRef, {
+        format: "png",
+        quality: 1,
+        result: "tmpfile",
+      });
+      const canShareFile = await Sharing.isAvailableAsync();
+      if (canShareFile) {
+        await Sharing.shareAsync(uri, {
+          mimeType: "image/png",
+          dialogTitle: `IronFlow — ${session.planTitle}`,
+        });
+      } else {
+        await shareText();
+      }
+    } catch (e: any) {
+      // Fallback to text share
+      await shareText();
+    }
+  }
+
+  async function shareText() {
+    if (!session) return;
     const lines: string[] = [];
     lines.push(`🔥 IronFlow — ${session.planTitle}`);
     lines.push("");
@@ -91,19 +117,20 @@ export default function SessionDetailScreen() {
   }
 
   function remove() {
+    const doDelete = async () => {
+      await deleteSession(session!.id);
+      router.back();
+    };
+    if (Platform.OS === "web") {
+      if (window.confirm("Supprimer cette séance ? Action irréversible.")) doDelete();
+      return;
+    }
     Alert.alert(
       "Supprimer cette séance ?",
       "Cette action est irréversible.",
       [
         { text: "Annuler", style: "cancel" },
-        {
-          text: "Supprimer",
-          style: "destructive",
-          onPress: async () => {
-            await deleteSession(session.id);
-            router.back();
-          },
-        },
+        { text: "Supprimer", style: "destructive", onPress: doDelete },
       ],
     );
   }
@@ -125,42 +152,48 @@ export default function SessionDetailScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        {/* Hero card */}
-        <LinearGradient
-          colors={[colors.brand, "#B02A00"]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.heroCard}
-        >
-          <Text style={styles.heroLabel}>SÉANCE TERMINÉE</Text>
-          <Text style={styles.heroTitle} numberOfLines={2}>
-            {session.planTitle}
-          </Text>
-          <Text style={styles.heroDate}>{formatDate(session.startedAt)}</Text>
+        {/* Shareable card (wrapped for view-shot capture) */}
+        <View collapsable={false} ref={shareCardRef} style={styles.shareable}>
+          <LinearGradient
+            colors={[colors.brand, "#B02A00"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.heroCard}
+          >
+            <View style={styles.brandRow}>
+              <Ionicons name="flame" size={16} color="#fff" />
+              <Text style={styles.brandName}>IRONFLOW</Text>
+            </View>
+            <Text style={styles.heroLabel}>SÉANCE TERMINÉE</Text>
+            <Text style={styles.heroTitle} numberOfLines={2}>
+              {session.planTitle}
+            </Text>
+            <Text style={styles.heroDate}>{formatDate(session.startedAt)}</Text>
 
-          <View style={styles.heroKpiRow}>
-            <View style={styles.heroKpi}>
-              <Text style={styles.heroKpiValue}>{durationText}</Text>
-              <Text style={styles.heroKpiLabel}>DURÉE</Text>
+            <View style={styles.heroKpiRow}>
+              <View style={styles.heroKpi}>
+                <Text style={styles.heroKpiValue}>{durationText}</Text>
+                <Text style={styles.heroKpiLabel}>DURÉE</Text>
+              </View>
+              <View style={styles.heroDivider} />
+              <View style={styles.heroKpi}>
+                <Text style={styles.heroKpiValue} testID="kpi-calories">
+                  {session.caloriesBurned}
+                </Text>
+                <Text style={styles.heroKpiLabel}>KCAL ~</Text>
+              </View>
+              <View style={styles.heroDivider} />
+              <View style={styles.heroKpi}>
+                <Text style={styles.heroKpiValue}>{totalSetsDone}</Text>
+                <Text style={styles.heroKpiLabel}>SÉRIES</Text>
+              </View>
             </View>
-            <View style={styles.heroDivider} />
-            <View style={styles.heroKpi}>
-              <Text style={styles.heroKpiValue} testID="kpi-calories">
-                {session.caloriesBurned}
-              </Text>
-              <Text style={styles.heroKpiLabel}>KCAL ~</Text>
-            </View>
-            <View style={styles.heroDivider} />
-            <View style={styles.heroKpi}>
-              <Text style={styles.heroKpiValue}>{totalSetsDone}</Text>
-              <Text style={styles.heroKpiLabel}>SÉRIES</Text>
-            </View>
+          </LinearGradient>
+
+          <View style={styles.subKpiRow}>
+            <SubKpi label="Effort actif" value={activeText} />
+            <SubKpi label="Temps de pause" value={restText} />
           </View>
-        </LinearGradient>
-
-        <View style={styles.subKpiRow}>
-          <SubKpi label="Effort actif" value={activeText} />
-          <SubKpi label="Temps de pause" value={restText} />
         </View>
 
         {/* Exercises */}
@@ -219,7 +252,7 @@ export default function SessionDetailScreen() {
         <Pressable
           testID="share-session"
           style={styles.shareBtn}
-          onPress={share}
+          onPress={shareImage}
         >
           <Ionicons name="share-social" size={20} color="#fff" />
           <Text style={styles.shareText}>PARTAGER MA SÉANCE</Text>
@@ -279,6 +312,24 @@ const styles = StyleSheet.create({
   },
   headerTitle: { color: colors.onSurface, fontSize: 16, fontWeight: "700" },
   scroll: { padding: spacing.lg, gap: spacing.md },
+  shareable: {
+    gap: spacing.md,
+    backgroundColor: colors.surface,
+    padding: 2,
+    borderRadius: radius.lg,
+  },
+  brandRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    marginBottom: spacing.sm,
+  },
+  brandName: {
+    color: "#fff",
+    fontWeight: "800",
+    letterSpacing: 2,
+    fontSize: 11,
+  },
   heroCard: {
     padding: spacing.xl,
     borderRadius: radius.lg,

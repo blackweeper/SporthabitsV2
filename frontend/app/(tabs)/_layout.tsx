@@ -54,6 +54,16 @@ export default function TabsLayout() {
           tabBarButtonTestID: "tab-history",
         }}
       />
+      <Tabs.Screen
+        name="progress"
+        options={{
+          title: "Progrès",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="trending-up" color={color} size={size} />
+          ),
+          tabBarButtonTestID: "tab-progress",
+        }}
+      />
     </Tabs>
   );
 }

@@ -19,6 +19,7 @@ import { colors, radius, spacing } from "@/src/theme";
 import {
   estimateCalories,
   getPlan,
+  getProfile,
   Plan,
   saveSession,
   SessionExerciseLog,
@@ -251,6 +252,8 @@ export default function WorkoutScreen() {
       const restTotalFinal =
         totalRest +
         (overlay === "rest" ? overlayTotal - overlayRemaining : 0);
+      const profile = await getProfile();
+      const bodyMass = profile.weight_kg && profile.weight_kg > 0 ? profile.weight_kg : 70;
       const session: WorkoutSession = {
         id: uid(),
         planId: plan.id,
@@ -260,7 +263,7 @@ export default function WorkoutScreen() {
         endedAt,
         durationSeconds,
         totalRestSeconds: restTotalFinal,
-        caloriesBurned: estimateCalories(plan.type, durationSeconds),
+        caloriesBurned: estimateCalories(plan.type, durationSeconds, bodyMass),
         exercises: logs,
       };
       await saveSession(session);

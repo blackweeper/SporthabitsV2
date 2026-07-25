@@ -74,6 +74,17 @@ export default function HomeScreen() {
             colors={["rgba(14,14,14,0.2)", "rgba(14,14,14,0.98)"]}
             style={StyleSheet.absoluteFill}
           />
+          <View style={styles.heroTopBar}>
+            <View style={{ flex: 1 }} />
+            <Pressable
+              testID="open-profile"
+              style={styles.profileBtn}
+              onPress={() => router.push("/profile")}
+              hitSlop={8}
+            >
+              <Ionicons name="person" size={18} color="#fff" />
+            </Pressable>
+          </View>
           <View style={styles.heroContent}>
             <Text style={styles.heroLabel}>IRONFLOW</Text>
             <Text style={styles.heroTitle}>
@@ -211,6 +222,25 @@ const styles = StyleSheet.create({
   hero: {
     height: 320,
     justifyContent: "flex-end",
+  },
+  heroTopBar: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    flexDirection: "row",
+    padding: spacing.md,
+    alignItems: "center",
+  },
+  profileBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(0,0,0,0.55)",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.2)",
   },
   heroImg: { resizeMode: "cover" },
   heroContent: {

@@ -76,6 +76,122 @@ export function estimateCalories(
 
 const PLANS_KEY = '@ironflow/plans';
 const SESSIONS_KEY = '@ironflow/sessions';
+const PROFILE_KEY = '@ironflow/profile';
+const MEASUREMENTS_KEY = '@ironflow/measurements';
+const PRS_KEY = '@ironflow/prs';
+
+// ---------- Profile ----------
+export type Sex = 'homme' | 'femme' | 'autre';
+
+export type UserProfile = {
+  weight_kg: number | null;
+  height_cm: number | null;
+  sex: Sex | null;
+  age: number | null;
+};
+
+export async function getProfile(): Promise<UserProfile> {
+  const raw = await AsyncStorage.getItem(PROFILE_KEY);
+  if (!raw) return { weight_kg: null, height_cm: null, sex: null, age: null };
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return { weight_kg: null, height_cm: null, sex: null, age: null };
+  }
+}
+
+export async function saveProfile(profile: UserProfile): Promise<void> {
+  await AsyncStorage.setItem(PROFILE_KEY, JSON.stringify(profile));
+}
+
+// ---------- Measurements ----------
+export type Measurement = {
+  id: string;
+  date: string; // ISO
+  weight_kg: number | null;
+  waist_cm: number | null;
+  thigh_cm: number | null;
+  chest_cm: number | null;
+  photoBase64: string | null; // just the base64 payload, no prefix
+  notes: string | null;
+};
+
+export async function getMeasurements(): Promise<Measurement[]> {
+  const raw = await AsyncStorage.getItem(MEASUREMENTS_KEY);
+  if (!raw) return [];
+  try {
+    const arr = JSON.parse(raw) as Measurement[];
+    // sort desc by date
+    return arr.sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+    );
+  } catch {
+    return [];
+  }
+}
+
+export async function saveMeasurement(m: Measurement): Promise<void> {
+  const list = await getMeasurements();
+  const idx = list.findIndex((x) => x.id === m.id);
+  if (idx >= 0) list[idx] = m;
+  else list.unshift(m);
+  await AsyncStorage.setItem(MEASUREMENTS_KEY, JSON.stringify(list));
+}
+
+export async function deleteMeasurement(id: string): Promise<void> {
+  const list = await getMeasurements();
+  await AsyncStorage.setItem(
+    MEASUREMENTS_KEY,
+    JSON.stringify(list.filter((m) => m.id !== id)),
+  );
+}
+
+export async function getMeasurement(id: string): Promise<Measurement | null> {
+  const list = await getMeasurements();
+  return list.find((m) => m.id === id) ?? null;
+}
+
+// ---------- Personal Records ----------
+export type PersonalRecord = {
+  id: string;
+  exerciseName: string;
+  weight_kg: number;
+  reps: number;
+  date: string;
+  notes: string | null;
+};
+
+export async function getPRs(): Promise<PersonalRecord[]> {
+  const raw = await AsyncStorage.getItem(PRS_KEY);
+  if (!raw) return [];
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
+}
+
+export async function savePR(pr: PersonalRecord): Promise<void> {
+  const list = await getPRs();
+  const idx = list.findIndex((x) => x.id === pr.id);
+  if (idx >= 0) list[idx] = pr;
+  else list.unshift(pr);
+  await AsyncStorage.setItem(PRS_KEY, JSON.stringify(list));
+}
+
+export async function deletePR(id: string): Promise<void> {
+  const list = await getPRs();
+  await AsyncStorage.setItem(
+    PRS_KEY,
+    JSON.stringify(list.filter((p) => p.id !== id)),
+  );
+}
+
+// Epley formula for estimated 1RM
+export function estimateOneRepMax(weight: number, reps: number): number {
+  if (reps <= 1) return weight;
+  return weight * (1 + reps / 30);
+}
 
 // ---------- Plans ----------
 function normalizeExercise(ex: any): Exercise {
