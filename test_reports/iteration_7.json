@@ -1,0 +1,28 @@
+{
+  "summary": "Iteration 7 frontend testing complete. All 5 bottom tabs render (tab-home/program/plans/history/progress). Programme tab empty state shows both CTAs. /programs modal shows CRÉER MON PROGRAMME dashed card + PROGRAMMES INCLUS (3 bundled). Custom program editor works end-to-end: meta fields, level chips, emoji/color picker, duration +/- resizes day list, day picker chips, toggle-rest flips to SÉANCE, add-session creates a 2nd session on same day with sess-label-0/1 and sess-title-0/1 fields, save-cp persists. Saved custom program appears under MES PROGRAMMES with PERSO tag. Starting bundled fullbody-30 makes Home show today-session-0 with start-today-0 button, and Programme tab renders active hero + upcoming-1-session-0 pressables. No red screen, no crashes, migration path from legacy completedDayIndexes present in gym-storage.normalizeActive.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": [
+      {"component": "react-native-web (transitively via expo-router / Pressable / Ionicons)", "issue": "Console warning: 'props.pointerEvents is deprecated. Use style.pointerEvents'. Not from app code directly; ensure library versions are up to date. Reference: bundled dependency."}
+    ]
+  },
+  "test_report_links": ["/tmp/prog_empty.png", "/tmp/programs_list.png", "/tmp/editor.png", "/tmp/after_save.png", "/tmp/home_today.png", "/tmp/program_tab_active.png"],
+  "action_items": [
+    "None functional. Optional: silence or upgrade lib emitting deprecated pointerEvents warning."
+  ],
+  "critical_code_review_comments": [
+    "normalizeActive migration correctly maps completedDayIndexes -> completedSessions[{dayIndex,sessionIndex:0}] preserving backward compat.",
+    "findOrCreateProgramPlan keys by (programId, dayIndex, sessionIndex) — multi-session plans stay separate.",
+    "gym-storage.ts is nearing 450 lines; still readable but consider splitting programs vs plans vs sessions modules if it keeps growing.",
+    "programs.tsx uses <> React.Fragment inside ScrollView content — fine, but consider migrating to explicit <View> for RN parity."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A", "frontend": "100%"},
+  "seed_data_creation": "Test custom program created via UI: title 'TEST Programme Multi', 25 days, 2 sessions on day 1 (Matin/Cardio + Aprem/Muscu). Persisted to AsyncStorage during test only (browser localStorage-backed).",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All iteration 7 testIDs verified: tab-program, empty-browse, empty-create, create-program, cp-title/goal/desc, cp-level-*, cp-emoji-*, cp-color-*, dec-dur, inc-dur, day-pick-1, toggle-rest, add-session, sess-label-0/1, sess-title-0/1, save-cp, cancel-cp, upcoming-1-session-0, today-session-0, start-today-0, open-active-program, program-card-{fullbody-30,hiit-30,mass-30}, start-program. Multi-session per day flow works end-to-end and persistence + PERSO tagging verified."
+}

@@ -26,7 +26,7 @@ import {
   estimateCalories,
   getPlan,
   getProfile,
-  markProgramDayCompleted,
+  markProgramSessionCompleted,
   Plan,
   saveSession,
   SessionExerciseLog,
@@ -316,7 +316,10 @@ export default function WorkoutScreen() {
       await saveSession(session);
       // If this was a program day, mark it completed
       if (plan.programSource) {
-        await markProgramDayCompleted(plan.programSource.dayIndex);
+        await markProgramSessionCompleted(
+          plan.programSource.dayIndex,
+          plan.programSource.sessionIndex ?? 0,
+        );
       }
       router.replace(`/session/${session.id}`);
     };

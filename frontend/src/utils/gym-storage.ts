@@ -23,6 +23,7 @@ export type Plan = {
   programSource?: {
     programId: string;
     dayIndex: number;
+    sessionIndex: number;
   };
 };
 
@@ -199,18 +200,38 @@ export function estimateOneRepMax(weight: number, reps: number): number {
 
 // ---------- Program subscription (single active program) ----------
 const ACTIVE_PROGRAM_KEY = '@ironflow/activeProgram';
+const CUSTOM_PROGRAMS_KEY = '@ironflow/customPrograms';
+
+export type CompletedSessionRef = { dayIndex: number; sessionIndex: number };
 
 export type ActiveProgram = {
   programId: string;
   startedAt: string; // ISO date
-  completedDayIndexes: number[]; // 1-indexed
+  completedSessions: CompletedSessionRef[];
+  /** Legacy field kept only for migration */
+  completedDayIndexes?: number[];
 };
+
+function normalizeActive(raw: any): ActiveProgram {
+  if (Array.isArray(raw.completedSessions)) return raw as ActiveProgram;
+  const migrated: CompletedSessionRef[] = Array.isArray(raw.completedDayIndexes)
+    ? raw.completedDayIndexes.map((d: number) => ({
+        dayIndex: d,
+        sessionIndex: 0,
+      }))
+    : [];
+  return {
+    programId: raw.programId,
+    startedAt: raw.startedAt,
+    completedSessions: migrated,
+  };
+}
 
 export async function getActiveProgram(): Promise<ActiveProgram | null> {
   const raw = await AsyncStorage.getItem(ACTIVE_PROGRAM_KEY);
   if (!raw) return null;
   try {
-    return JSON.parse(raw);
+    return normalizeActive(JSON.parse(raw));
   } catch {
     return null;
   }
@@ -224,20 +245,30 @@ export async function setActiveProgram(p: ActiveProgram | null): Promise<void> {
   }
 }
 
-export async function markProgramDayCompleted(dayIndex: number): Promise<void> {
+export async function markProgramSessionCompleted(
+  dayIndex: number,
+  sessionIndex: number,
+): Promise<void> {
   const active = await getActiveProgram();
   if (!active) return;
-  if (!active.completedDayIndexes.includes(dayIndex)) {
-    active.completedDayIndexes.push(dayIndex);
+  const exists = active.completedSessions.some(
+    (s) => s.dayIndex === dayIndex && s.sessionIndex === sessionIndex,
+  );
+  if (!exists) {
+    active.completedSessions.push({ dayIndex, sessionIndex });
     await setActiveProgram(active);
   }
 }
 
-/**
- * Given an active program, returns which day (1-indexed) the user should be on today
- * based on startedAt.
- */
-export function currentDayIndex(active: ActiveProgram, totalDays: number): number {
+// Legacy alias kept for existing call sites
+export async function markProgramDayCompleted(dayIndex: number): Promise<void> {
+  return markProgramSessionCompleted(dayIndex, 0);
+}
+
+export function currentDayIndex(
+  active: ActiveProgram,
+  totalDays: number,
+): number {
   const start = new Date(active.startedAt);
   start.setHours(0, 0, 0, 0);
   const today = new Date();
@@ -246,6 +277,37 @@ export function currentDayIndex(active: ActiveProgram, totalDays: number): numbe
     (today.getTime() - start.getTime()) / (1000 * 60 * 60 * 24),
   );
   return Math.max(1, Math.min(totalDays, days + 1));
+}
+
+// ---------- Custom programs storage ----------
+/**
+ * Programs created by the user. We store the FULL program object (same shape
+ * as bundled programs) so they can be handled uniformly.
+ */
+export async function getCustomPrograms(): Promise<any[]> {
+  const raw = await AsyncStorage.getItem(CUSTOM_PROGRAMS_KEY);
+  if (!raw) return [];
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
+}
+
+export async function saveCustomProgram(program: any): Promise<void> {
+  const list = await getCustomPrograms();
+  const idx = list.findIndex((p) => p.id === program.id);
+  if (idx >= 0) list[idx] = program;
+  else list.unshift(program);
+  await AsyncStorage.setItem(CUSTOM_PROGRAMS_KEY, JSON.stringify(list));
+}
+
+export async function deleteCustomProgram(id: string): Promise<void> {
+  const list = await getCustomPrograms();
+  await AsyncStorage.setItem(
+    CUSTOM_PROGRAMS_KEY,
+    JSON.stringify(list.filter((p) => p.id !== id)),
+  );
 }
 
 // ---------- Plans ----------
@@ -304,13 +366,15 @@ export async function getAllPlansIncludingProgram(): Promise<Plan[]> {
 export async function findOrCreateProgramPlan(
   programId: string,
   dayIndex: number,
+  sessionIndex: number,
   build: () => Omit<Plan, 'id'>,
 ): Promise<Plan> {
   const all = await getAllPlansIncludingProgram();
   const existing = all.find(
     (p) =>
       p.programSource?.programId === programId &&
-      p.programSource.dayIndex === dayIndex,
+      p.programSource.dayIndex === dayIndex &&
+      (p.programSource.sessionIndex ?? 0) === sessionIndex,
   );
   if (existing) return existing;
   const plan: Plan = { id: uid(), ...build() };

@@ -1,12 +1,28 @@
+import { useCallback, useState } from "react";
 import { View, Text, StyleSheet, ScrollView, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing } from "@/src/theme";
-import { PROGRAMS, LEVEL_LABEL, Program } from "@/src/data/programs";
+import {
+  BUNDLED_PROGRAMS,
+  LEVEL_LABEL,
+  Program,
+} from "@/src/data/programs";
+import { getCustomPrograms } from "@/src/utils/gym-storage";
 
 export default function ProgramsScreen() {
   const router = useRouter();
+  const [customs, setCustoms] = useState<Program[]>([]);
+
+  useFocusEffect(
+    useCallback(() => {
+      (async () => {
+        setCustoms((await getCustomPrograms()) as Program[]);
+      })();
+    }, []),
+  );
+
   return (
     <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
       <View style={styles.header}>
@@ -24,10 +40,38 @@ export default function ProgramsScreen() {
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.intro}>
-          Choisis un programme structuré à suivre jour par jour. Un programme = 30 jours de séances déjà pensées pour toi.
-        </Text>
-        {PROGRAMS.map((p) => (
+        <Pressable
+          testID="create-program"
+          style={styles.createCard}
+          onPress={() => router.push("/custom-program/new")}
+        >
+          <View style={styles.createIcon}>
+            <Ionicons name="add" size={28} color={colors.brand} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.createTitle}>Créer mon programme</Text>
+            <Text style={styles.createSub}>
+              Programme personnalisé avec 1 ou plusieurs séances par jour
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={colors.brand} />
+        </Pressable>
+
+        {customs.length > 0 && (
+          <>
+            <Text style={styles.sectionLabel}>MES PROGRAMMES</Text>
+            {customs.map((p) => (
+              <ProgramCard
+                key={p.id}
+                program={p}
+                onPress={() => router.push(`/program/${p.id}`)}
+              />
+            ))}
+          </>
+        )}
+
+        <Text style={styles.sectionLabel}>PROGRAMMES INCLUS</Text>
+        {BUNDLED_PROGRAMS.map((p) => (
           <ProgramCard
             key={p.id}
             program={p}
@@ -47,11 +91,15 @@ function ProgramCard({
   program: Program;
   onPress: () => void;
 }) {
-  const sessions = program.days.filter((d) => !d.rest).length;
+  const sessions = program.days.reduce(
+    (a, d) => a + (d.rest ? 0 : d.sessions.length),
+    0,
+  );
+  const rests = program.days.filter((d) => d.rest).length;
   return (
     <Pressable
       testID={`program-card-${program.id}`}
-      style={[styles.card, { borderColor: program.color }]}
+      style={[styles.card, { borderLeftColor: program.color }]}
       onPress={onPress}
     >
       <View style={[styles.coverEmoji, { backgroundColor: `${program.color}22` }]}>
@@ -67,11 +115,16 @@ function ProgramCard({
               {program.durationDays} jours
             </Text>
           </View>
+          {program.isCustom && (
+            <View style={styles.tagOutline}>
+              <Text style={styles.tagOutlineText}>PERSO</Text>
+            </View>
+          )}
         </View>
         <Text style={styles.cardTitle}>{program.title}</Text>
         <Text style={styles.cardGoal}>{program.goal}</Text>
         <Text style={styles.cardMeta}>
-          {sessions} séances · {program.days.length - sessions} jours de repos
+          {sessions} séances · {rests} jours de repos
         </Text>
       </View>
       <Ionicons name="chevron-forward" size={20} color={colors.onSurfaceTertiary} />
@@ -92,11 +145,39 @@ const styles = StyleSheet.create({
   },
   title: { color: colors.onSurface, fontSize: 17, fontWeight: "700" },
   scroll: { padding: spacing.lg, gap: spacing.md },
-  intro: {
+  createCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    backgroundColor: colors.surfaceSecondary,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.brand,
+    borderStyle: "dashed",
+  },
+  createIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: radius.md,
+    backgroundColor: colors.brandTertiary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  createTitle: { color: colors.onSurface, fontSize: 15, fontWeight: "800" },
+  createSub: {
     color: colors.onSurfaceTertiary,
-    lineHeight: 18,
-    fontSize: 13,
-    marginBottom: spacing.md,
+    fontSize: 11,
+    marginTop: 2,
+    lineHeight: 15,
+  },
+  sectionLabel: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 10,
+    letterSpacing: 1.5,
+    fontWeight: "800",
+    marginTop: spacing.md,
+    marginBottom: 2,
   },
   card: {
     flexDirection: "row",
@@ -112,14 +193,14 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
   },
   coverEmoji: {
-    width: 64,
-    height: 64,
+    width: 60,
+    height: 60,
     borderRadius: radius.md,
     alignItems: "center",
     justifyContent: "center",
   },
-  emojiText: { fontSize: 32 },
-  tagRow: { flexDirection: "row", gap: 6, marginBottom: 2 },
+  emojiText: { fontSize: 30 },
+  tagRow: { flexDirection: "row", gap: 6, flexWrap: "wrap" },
   tag: {
     paddingHorizontal: 8,
     paddingVertical: 2,
@@ -142,7 +223,6 @@ const styles = StyleSheet.create({
     color: colors.onSurfaceTertiary,
     fontSize: 9,
     fontWeight: "700",
-    letterSpacing: 0.4,
   },
   cardTitle: { color: colors.onSurface, fontSize: 15, fontWeight: "800" },
   cardGoal: { color: colors.brand, fontSize: 12, fontWeight: "600" },

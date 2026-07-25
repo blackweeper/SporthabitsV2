@@ -18,9 +18,9 @@ export default function TabsLayout() {
         tabBarActiveTintColor: colors.brand,
         tabBarInactiveTintColor: colors.onSurfaceTertiary,
         tabBarLabelStyle: {
-          fontSize: 11,
+          fontSize: 10,
           fontWeight: "600",
-          letterSpacing: 0.3,
+          letterSpacing: 0.2,
         },
       }}
     >
@@ -32,6 +32,16 @@ export default function TabsLayout() {
             <Ionicons name="flame" color={color} size={size} />
           ),
           tabBarButtonTestID: "tab-home",
+        }}
+      />
+      <Tabs.Screen
+        name="program"
+        options={{
+          title: "Programme",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="calendar" color={color} size={size} />
+          ),
+          tabBarButtonTestID: "tab-program",
         }}
       />
       <Tabs.Screen

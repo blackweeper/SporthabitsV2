@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   View,
   Text,
@@ -13,13 +13,16 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing } from "@/src/theme";
 import {
-  getProgram,
   LEVEL_LABEL,
+  Program,
   ProgramDay,
+  ProgramSession,
 } from "@/src/data/programs";
+import { findProgram, isBundled } from "@/src/utils/programs";
 import {
   ActiveProgram,
   currentDayIndex,
+  deleteCustomProgram,
   findOrCreateProgramPlan,
   getActiveProgram,
   setActiveProgram,
@@ -29,12 +32,15 @@ import {
 export default function ProgramDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const program = getProgram(id!);
+  const [program, setProgram] = useState<Program | null>(null);
   const [active, setActive] = useState<ActiveProgram | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
+    setProgram(await findProgram(id!));
     setActive(await getActiveProgram());
-  }, []);
+    setLoading(false);
+  }, [id]);
 
   useFocusEffect(
     useCallback(() => {
@@ -42,6 +48,13 @@ export default function ProgramDetailScreen() {
     }, [load]),
   );
 
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.loading}>Chargement…</Text>
+      </SafeAreaView>
+    );
+  }
   if (!program) {
     return (
       <SafeAreaView style={styles.container}>
@@ -52,19 +65,26 @@ export default function ProgramDetailScreen() {
 
   const isActive = active?.programId === program.id;
   const todayIdx = isActive ? currentDayIndex(active!, program.durationDays) : 1;
+  const editable = !isBundled(program.id);
+
+  const doneCount = active?.completedSessions.length ?? 0;
+  const totalSessions = program.days.reduce(
+    (a, d) => a + (d.rest ? 0 : d.sessions.length),
+    0,
+  );
+  const progress = totalSessions ? doneCount / totalSessions : 0;
 
   const start = async () => {
     const doStart = async () => {
       await setActiveProgram({
         programId: program.id,
         startedAt: new Date().toISOString(),
-        completedDayIndexes: [],
+        completedSessions: [],
       });
       load();
     };
     if (active && active.programId !== program.id) {
-      const msg =
-        "Tu as déjà un programme actif. Le remplacer par celui-ci ?";
+      const msg = "Tu as déjà un programme actif. Le remplacer ?";
       if (Platform.OS === "web") {
         if (window.confirm(msg)) await doStart();
         return;
@@ -79,7 +99,8 @@ export default function ProgramDetailScreen() {
   };
 
   const stop = async () => {
-    const msg = "Arrêter ce programme ? Tes séances déjà faites resteront dans l'historique.";
+    const msg =
+      "Arrêter ce programme ? Tes séances déjà faites resteront dans l'historique.";
     const doStop = async () => {
       await setActiveProgram(null);
       load();
@@ -94,18 +115,42 @@ export default function ProgramDetailScreen() {
     ]);
   };
 
-  async function launchDay(dayIndex: number) {
-    const day = program.days[dayIndex - 1];
-    if (day.rest) return;
+  const removeCustom = async () => {
+    const msg = "Supprimer définitivement ce programme personnalisé ?";
+    const doDel = async () => {
+      if (isActive) await setActiveProgram(null);
+      await deleteCustomProgram(program.id);
+      router.back();
+    };
+    if (Platform.OS === "web") {
+      if (window.confirm(msg)) await doDel();
+      return;
+    }
+    Alert.alert("Supprimer ?", msg, [
+      { text: "Annuler", style: "cancel" },
+      { text: "Supprimer", style: "destructive", onPress: doDel },
+    ]);
+  };
+
+  async function launchSession(
+    dayIndex: number,
+    sessionIndex: number,
+    session: ProgramSession,
+  ) {
     const plan = await findOrCreateProgramPlan(
-      program.id,
+      program!.id,
       dayIndex,
+      sessionIndex,
       () => ({
-        title: `${program.title} · J${dayIndex} — ${day.title}`,
-        type: 'mixte',
+        title: `${program!.title} · J${dayIndex}${session.label ? " · " + session.label : ""}`,
+        type: "mixte",
         createdAt: new Date().toISOString(),
-        programSource: { programId: program.id, dayIndex },
-        exercises: day.exercises.map((e) => ({ ...e, id: uid() })),
+        programSource: {
+          programId: program!.id,
+          dayIndex,
+          sessionIndex,
+        },
+        exercises: session.exercises.map((e) => ({ ...e, id: uid() })),
       }),
     );
     router.push(`/workout/${plan.id}`);
@@ -124,18 +169,25 @@ export default function ProgramDetailScreen() {
         <Text style={styles.headerTitle} numberOfLines={1}>
           {program.title}
         </Text>
-        <View style={{ width: 24 }} />
+        {editable ? (
+          <Pressable
+            testID="edit-program"
+            onPress={() => router.push(`/custom-program/${program.id}`)}
+            hitSlop={12}
+          >
+            <Ionicons name="pencil" size={20} color={colors.brand} />
+          </Pressable>
+        ) : (
+          <View style={{ width: 24 }} />
+        )}
       </View>
 
       <ScrollView
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
       >
-        {/* Program hero */}
-        <View style={[styles.hero, { borderColor: program.color }]}>
-          <View
-            style={[styles.emojiBox, { backgroundColor: `${program.color}30` }]}
-          >
+        <View style={[styles.hero, { borderLeftColor: program.color }]}>
+          <View style={[styles.emojiBox, { backgroundColor: `${program.color}30` }]}>
             <Text style={{ fontSize: 44 }}>{program.coverEmoji}</Text>
           </View>
           <View style={styles.heroTags}>
@@ -145,27 +197,36 @@ export default function ProgramDetailScreen() {
             <View style={styles.tag}>
               <Text style={styles.tagText}>{program.durationDays} JOURS</Text>
             </View>
+            {program.isCustom && (
+              <View style={styles.tag}>
+                <Text style={styles.tagText}>PERSO</Text>
+              </View>
+            )}
           </View>
           <Text style={styles.heroGoal}>{program.goal.toUpperCase()}</Text>
           <Text style={styles.heroDesc}>{program.description}</Text>
         </View>
 
-        {/* Active state banner */}
         {isActive ? (
           <View style={styles.activeBanner}>
             <Ionicons name="checkmark-circle" size={20} color={colors.success} />
             <View style={{ flex: 1 }}>
               <Text style={styles.activeTitle}>Programme en cours</Text>
               <Text style={styles.activeSub}>
-                Jour {todayIdx}/{program.durationDays} · {active!.completedDayIndexes.length} séances terminées
+                Jour {todayIdx}/{program.durationDays} · {doneCount}/{totalSessions}{" "}
+                séances
               </Text>
+              <View style={styles.progressTrack}>
+                <View
+                  style={[
+                    styles.progressFill,
+                    { width: `${progress * 100}%`, backgroundColor: program.color },
+                  ]}
+                />
+              </View>
             </View>
             <Pressable testID="stop-program" onPress={stop} hitSlop={10}>
-              <Ionicons
-                name="stop-circle"
-                size={22}
-                color={colors.error}
-              />
+              <Ionicons name="stop-circle" size={22} color={colors.error} />
             </Pressable>
           </View>
         ) : (
@@ -179,107 +240,150 @@ export default function ProgramDetailScreen() {
           </Pressable>
         )}
 
-        {/* Day list */}
-        <Text style={styles.sectionTitle}>Planning ({program.durationDays} jours)</Text>
+        <Text style={styles.sectionTitle}>
+          Planning ({program.durationDays} jours)
+        </Text>
         <View style={styles.daysList}>
-          {program.days.map((day, i) => {
-            const dayIndex = i + 1;
-            const done = active?.completedDayIndexes.includes(dayIndex);
-            const isToday = isActive && dayIndex === todayIdx;
-            return (
-              <ProgramDayRow
-                key={dayIndex}
-                dayIndex={dayIndex}
-                day={day}
-                done={!!done}
-                isToday={!!isToday}
-                onPress={() => launchDay(dayIndex)}
-                color={program.color}
-              />
-            );
-          })}
+          {program.days.map((day, i) => (
+            <ProgramDayCard
+              key={i}
+              dayIndex={i + 1}
+              day={day}
+              active={active}
+              isToday={isActive && i + 1 === todayIdx}
+              color={program.color}
+              onLaunch={launchSession}
+            />
+          ))}
         </View>
+
+        {editable && (
+          <Pressable style={styles.delBtn} onPress={removeCustom}>
+            <Ionicons name="trash" size={16} color={colors.error} />
+            <Text style={styles.delBtnText}>Supprimer ce programme</Text>
+          </Pressable>
+        )}
         <View style={{ height: 40 }} />
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-function ProgramDayRow({
+function ProgramDayCard({
   dayIndex,
   day,
-  done,
+  active,
   isToday,
-  onPress,
   color,
+  onLaunch,
 }: {
   dayIndex: number;
   day: ProgramDay;
-  done: boolean;
+  active: ActiveProgram | null;
   isToday: boolean;
-  onPress: () => void;
   color: string;
+  onLaunch: (di: number, si: number, s: ProgramSession) => void;
 }) {
-  return (
-    <Pressable
-      testID={`day-${dayIndex}`}
-      style={[
-        styles.dayRow,
-        isToday && { borderColor: color, borderWidth: 2 },
-        day.rest && styles.dayRowRest,
-      ]}
-      onPress={day.rest ? undefined : onPress}
-      disabled={day.rest}
-    >
+  const doneOf = (si: number) =>
+    active?.completedSessions.some(
+      (s) => s.dayIndex === dayIndex && s.sessionIndex === si,
+    ) ?? false;
+
+  if (day.rest) {
+    return (
       <View
-        style={[
-          styles.dayIndex,
-          done && { backgroundColor: colors.success },
-          isToday && !done && { backgroundColor: color },
-          day.rest && { backgroundColor: colors.surfaceTertiary },
-        ]}
+        style={[styles.dayCard, styles.dayCardRest]}
+        testID={`day-${dayIndex}`}
       >
-        {done ? (
-          <Ionicons name="checkmark" size={16} color="#fff" />
-        ) : (
-          <Text
-            style={[
-              styles.dayIndexText,
-              isToday && { color: "#fff" },
-              day.rest && { color: colors.onSurfaceTertiary },
-            ]}
-          >
-            {dayIndex}
-          </Text>
-        )}
+        <View style={styles.dayHead}>
+          <View style={[styles.dayIdx, { backgroundColor: colors.surfaceTertiary }]}>
+            <Text style={{ color: colors.onSurfaceTertiary, fontWeight: "800" }}>
+              {dayIndex}
+            </Text>
+          </View>
+          <Text style={styles.dayRestTitle}>{day.title}</Text>
+          <Ionicons name="bed" size={18} color={colors.onSurfaceTertiary} />
+        </View>
       </View>
-      <View style={{ flex: 1 }}>
-        <Text
+    );
+  }
+
+  const allDone = day.sessions.every((_, si) => doneOf(si));
+
+  return (
+    <View
+      style={[
+        styles.dayCard,
+        isToday && { borderColor: color, borderWidth: 2 },
+      ]}
+      testID={`day-${dayIndex}`}
+    >
+      <View style={styles.dayHead}>
+        <View
           style={[
-            styles.dayTitle,
-            day.rest && { color: colors.onSurfaceTertiary },
+            styles.dayIdx,
+            allDone && { backgroundColor: colors.success },
+            isToday && !allDone && { backgroundColor: color },
           ]}
-          numberOfLines={1}
         >
+          {allDone ? (
+            <Ionicons name="checkmark" size={14} color="#fff" />
+          ) : (
+            <Text
+              style={{
+                color: isToday ? "#fff" : colors.onSurface,
+                fontWeight: "800",
+                fontSize: 12,
+              }}
+            >
+              {dayIndex}
+            </Text>
+          )}
+        </View>
+        <Text style={styles.dayTitle} numberOfLines={1}>
           {day.title}
         </Text>
-        {!day.rest && (
-          <Text style={styles.daySub}>
-            {day.exercises.length} exercice
-            {day.exercises.length > 1 ? "s" : ""}
-          </Text>
-        )}
-        {isToday && !done && (
+        {isToday && (
           <Text style={[styles.todayLbl, { color }]}>AUJOURD&apos;HUI</Text>
         )}
       </View>
-      {!day.rest && (
-        <Ionicons name="play-circle" size={22} color={color} />
-      )}
-      {day.rest && (
-        <Ionicons name="bed" size={18} color={colors.onSurfaceTertiary} />
-      )}
-    </Pressable>
+
+      {day.sessions.map((s, si) => {
+        const done = doneOf(si);
+        return (
+          <Pressable
+            key={si}
+            testID={`day-${dayIndex}-session-${si}`}
+            style={[styles.sessRow, done && styles.sessRowDone]}
+            onPress={() => onLaunch(dayIndex, si, s)}
+          >
+            <View style={styles.sessLeft}>
+              {s.label ? (
+                <View style={styles.sessLabel}>
+                  <Text style={styles.sessLabelText}>
+                    {s.label.toUpperCase()}
+                  </Text>
+                </View>
+              ) : null}
+              <View style={{ flex: 1 }}>
+                <Text style={styles.sessTitle} numberOfLines={1}>
+                  {s.title}
+                </Text>
+                <Text style={styles.sessMeta}>
+                  {s.exercises.length} exercice
+                  {s.exercises.length > 1 ? "s" : ""}
+                </Text>
+              </View>
+            </View>
+            {done ? (
+              <Ionicons name="checkmark-circle" size={22} color={colors.success} />
+            ) : (
+              <Ionicons name="play-circle" size={22} color={color} />
+            )}
+          </Pressable>
+        );
+      })}
+    </View>
   );
 }
 
@@ -325,7 +429,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  heroTags: { flexDirection: "row", gap: 6 },
+  heroTags: { flexDirection: "row", gap: 6, flexWrap: "wrap" },
   tag: {
     paddingHorizontal: 8,
     paddingVertical: 3,
@@ -345,7 +449,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 4,
   },
-  heroDesc: { color: colors.onSurfaceSecondary, fontSize: 13, lineHeight: 18 },
+  heroDesc: {
+    color: colors.onSurfaceSecondary,
+    fontSize: 13,
+    lineHeight: 18,
+  },
   activeBanner: {
     flexDirection: "row",
     alignItems: "center",
@@ -358,6 +466,14 @@ const styles = StyleSheet.create({
   },
   activeTitle: { color: colors.success, fontWeight: "700" },
   activeSub: { color: colors.onSurfaceSecondary, fontSize: 12, marginTop: 2 },
+  progressTrack: {
+    height: 4,
+    backgroundColor: colors.surfaceTertiary,
+    borderRadius: 2,
+    marginTop: 6,
+    overflow: "hidden",
+  },
+  progressFill: { height: "100%" },
   startBtn: {
     flexDirection: "row",
     justifyContent: "center",
@@ -366,11 +482,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     gap: spacing.sm,
   },
-  startText: {
-    color: "#fff",
-    fontWeight: "800",
-    letterSpacing: 1,
-  },
+  startText: { color: "#fff", fontWeight: "800", letterSpacing: 1 },
   sectionTitle: {
     color: colors.onSurface,
     fontSize: 14,
@@ -379,20 +491,21 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
   daysList: { gap: spacing.sm },
-  dayRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
+  dayCard: {
     backgroundColor: colors.surfaceSecondary,
     padding: spacing.md,
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.border,
+    gap: spacing.sm,
   },
-  dayRowRest: {
-    backgroundColor: colors.surface,
+  dayCardRest: { backgroundColor: colors.surface },
+  dayHead: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
   },
-  dayIndex: {
+  dayIdx: {
     width: 34,
     height: 34,
     borderRadius: 10,
@@ -400,17 +513,63 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  dayIndexText: { color: colors.onSurface, fontWeight: "800", fontSize: 13 },
-  dayTitle: { color: colors.onSurface, fontWeight: "600", fontSize: 13 },
-  daySub: {
-    color: colors.onSurfaceTertiary,
-    fontSize: 11,
-    marginTop: 2,
+  dayTitle: {
+    color: colors.onSurface,
+    fontWeight: "700",
+    fontSize: 13,
+    flex: 1,
   },
+  dayRestTitle: { color: colors.onSurfaceTertiary, flex: 1, fontSize: 13 },
   todayLbl: {
     fontSize: 10,
     letterSpacing: 1,
     fontWeight: "800",
-    marginTop: 3,
   },
+  sessRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: spacing.sm,
+    backgroundColor: colors.surfaceTertiary,
+    padding: spacing.sm,
+    borderRadius: radius.sm,
+    marginLeft: 42,
+  },
+  sessRowDone: { opacity: 0.7 },
+  sessLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    flex: 1,
+  },
+  sessLabel: {
+    backgroundColor: colors.brand,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  sessLabelText: {
+    color: "#fff",
+    fontSize: 9,
+    fontWeight: "800",
+    letterSpacing: 0.5,
+  },
+  sessTitle: {
+    color: colors.onSurface,
+    fontWeight: "600",
+    fontSize: 12,
+  },
+  sessMeta: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 10,
+    marginTop: 1,
+  },
+  delBtn: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: spacing.sm,
+    padding: spacing.md,
+    marginTop: spacing.lg,
+  },
+  delBtnText: { color: colors.error, fontWeight: "700", fontSize: 13 },
 });

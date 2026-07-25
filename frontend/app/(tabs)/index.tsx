@@ -23,7 +23,8 @@ import {
   uid,
   WorkoutSession,
 } from "@/src/utils/gym-storage";
-import { getProgram } from "@/src/data/programs";
+import { findProgram } from "@/src/utils/programs";
+import { Program, ProgramSession } from "@/src/data/programs";
 
 const HERO_BG =
   "https://images.unsplash.com/photo-1637430308606-86576d8fef3c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxODd8MHwxfHNlYXJjaHwxfHxkYXJrJTIwYXRtb3NwaGVyaWMlMjBneW0lMjBlcXVpcG1lbnR8ZW58MHx8fHwxNzg0OTgxNDQyfDA&ixlib=rb-4.1.0&q=85";
@@ -48,38 +49,51 @@ export default function HomeScreen() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [sessions, setSessions] = useState<WorkoutSession[]>([]);
   const [active, setActive] = useState<ActiveProgram | null>(null);
+  const [activeProgram, setActiveProgramState] = useState<Program | null>(null);
 
   useFocusEffect(
     useCallback(() => {
       (async () => {
         setPlans(await getPlans());
         setSessions(await getSessions());
-        setActive(await getActiveProgram());
+        const a = await getActiveProgram();
+        setActive(a);
+        setActiveProgramState(a ? await findProgram(a.programId) : null);
       })();
     }, []),
   );
 
-  const activeProgram = active ? getProgram(active.programId) : null;
   const todayIdx =
     active && activeProgram
       ? currentDayIndex(active, activeProgram.durationDays)
       : null;
   const todayDay =
     activeProgram && todayIdx ? activeProgram.days[todayIdx - 1] : null;
-  const todayDone =
-    active && todayIdx ? active.completedDayIndexes.includes(todayIdx) : false;
 
-  async function startTodaySession() {
-    if (!activeProgram || !todayDay || !todayIdx || todayDay.rest) return;
+  const isSessionDone = (si: number) =>
+    !!active?.completedSessions.some(
+      (s) => s.dayIndex === todayIdx && s.sessionIndex === si,
+    );
+
+  async function startTodaySession(
+    sessionIndex: number,
+    session: ProgramSession,
+  ) {
+    if (!activeProgram || !todayIdx) return;
     const plan = await findOrCreateProgramPlan(
       activeProgram.id,
       todayIdx,
+      sessionIndex,
       () => ({
-        title: `${activeProgram.title} · J${todayIdx} — ${todayDay.title}`,
-        type: 'mixte',
+        title: `${activeProgram.title} · J${todayIdx}${session.label ? " · " + session.label : ""}`,
+        type: "mixte",
         createdAt: new Date().toISOString(),
-        programSource: { programId: activeProgram.id, dayIndex: todayIdx },
-        exercises: todayDay.exercises.map((e) => ({ ...e, id: uid() })),
+        programSource: {
+          programId: activeProgram.id,
+          dayIndex: todayIdx,
+          sessionIndex,
+        },
+        exercises: session.exercises.map((e) => ({ ...e, id: uid() })),
       }),
     );
     router.push(`/workout/${plan.id}`);
@@ -193,7 +207,7 @@ export default function HomeScreen() {
           </Pressable>
         </View>
 
-        {/* Today's program session */}
+        {/* Today's program sessions */}
         {activeProgram && todayDay && todayIdx ? (
           <View style={styles.todayWrap}>
             <View style={styles.todayLabelRow}>
@@ -203,61 +217,86 @@ export default function HomeScreen() {
                 Jour {todayIdx}/{activeProgram.durationDays}
               </Text>
             </View>
-            <View
-              style={[
-                styles.todayCard,
-                todayDone && styles.todayCardDone,
-              ]}
-            >
-              <View style={styles.todayLeft}>
+            {todayDay.rest ? (
+              <View style={styles.todayCard}>
                 <View
                   style={[
                     styles.todayEmojiBox,
                     { backgroundColor: `${activeProgram.color}30` },
                   ]}
                 >
-                  <Text style={{ fontSize: 26 }}>{activeProgram.coverEmoji}</Text>
+                  <Text style={{ fontSize: 24 }}>😴</Text>
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.todayProgramName} numberOfLines={1}>
                     {activeProgram.title}
                   </Text>
-                  <Text style={styles.todayDayTitle} numberOfLines={2}>
-                    {todayDay.title}
-                  </Text>
-                  {todayDay.rest ? (
-                    <Text style={styles.todayRest}>Journée de repos 😴</Text>
-                  ) : (
-                    <Text style={styles.todayMeta}>
-                      {todayDay.exercises.length} exercice
-                      {todayDay.exercises.length > 1 ? "s" : ""}
-                    </Text>
-                  )}
+                  <Text style={styles.todayDayTitle}>Journée de repos</Text>
+                  <Text style={styles.todayRest}>Récupération 🙌</Text>
                 </View>
               </View>
-              {todayDone ? (
-                <View style={styles.doneChip}>
-                  <Ionicons
-                    name="checkmark-circle"
-                    size={16}
-                    color={colors.success}
-                  />
-                  <Text style={styles.doneChipText}>Fait</Text>
-                </View>
-              ) : todayDay.rest ? null : (
-                <Pressable
-                  testID="start-today"
-                  style={[
-                    styles.todayBtn,
-                    { backgroundColor: activeProgram.color },
-                  ]}
-                  onPress={startTodaySession}
-                >
-                  <Ionicons name="play" size={16} color="#fff" />
-                  <Text style={styles.todayBtnText}>C&apos;EST PARTI</Text>
-                </Pressable>
-              )}
-            </View>
+            ) : (
+              todayDay.sessions.map((s, si) => {
+                const done = isSessionDone(si);
+                return (
+                  <View
+                    key={si}
+                    style={[
+                      styles.todayCard,
+                      done && styles.todayCardDone,
+                    ]}
+                    testID={`today-session-${si}`}
+                  >
+                    <View style={styles.todayLeft}>
+                      <View
+                        style={[
+                          styles.todayEmojiBox,
+                          { backgroundColor: `${activeProgram.color}30` },
+                        ]}
+                      >
+                        <Text style={{ fontSize: 24 }}>
+                          {s.label ? s.label.charAt(0).toUpperCase() : activeProgram.coverEmoji}
+                        </Text>
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.todayProgramName} numberOfLines={1}>
+                          {s.label || activeProgram.title}
+                        </Text>
+                        <Text style={styles.todayDayTitle} numberOfLines={2}>
+                          {s.title}
+                        </Text>
+                        <Text style={styles.todayMeta}>
+                          {s.exercises.length} exercice
+                          {s.exercises.length > 1 ? "s" : ""}
+                        </Text>
+                      </View>
+                    </View>
+                    {done ? (
+                      <View style={styles.doneChip}>
+                        <Ionicons
+                          name="checkmark-circle"
+                          size={16}
+                          color={colors.success}
+                        />
+                        <Text style={styles.doneChipText}>Fait</Text>
+                      </View>
+                    ) : (
+                      <Pressable
+                        testID={`start-today-${si}`}
+                        style={[
+                          styles.todayBtn,
+                          { backgroundColor: activeProgram.color },
+                        ]}
+                        onPress={() => startTodaySession(si, s)}
+                      >
+                        <Ionicons name="play" size={16} color="#fff" />
+                        <Text style={styles.todayBtnText}>C&apos;EST PARTI</Text>
+                      </Pressable>
+                    )}
+                  </View>
+                );
+              })
+            )}
             <Pressable
               testID="open-program"
               onPress={() => router.push(`/program/${activeProgram.id}`)}
