@@ -53,10 +53,10 @@ export default function HomeScreen() {
 
   const totalSessions = sessions.length;
   const totalTime = sessions.reduce((a, s) => a + s.durationSeconds, 0);
-  const thisWeek = sessions.filter((s) => {
-    const t = new Date(s.startedAt).getTime();
-    return Date.now() - t < 7 * 24 * 3600 * 1000;
-  }).length;
+  const totalCalories = sessions.reduce(
+    (a, s) => a + (s.caloriesBurned ?? 0),
+    0,
+  );
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
@@ -102,10 +102,10 @@ export default function HomeScreen() {
             icon="checkmark-done"
           />
           <StatCard
-            testID="stat-week"
-            label="Cette semaine"
-            value={String(thisWeek)}
-            icon="calendar"
+            testID="stat-calories"
+            label="Calories"
+            value={`${totalCalories} kcal`}
+            icon="flame"
           />
           <StatCard
             testID="stat-time"
@@ -153,20 +153,28 @@ export default function HomeScreen() {
             </View>
           ) : (
             sessions.slice(0, 5).map((s) => (
-              <View key={s.id} style={styles.sessionRow} testID={`recent-session-${s.id}`}>
+              <Pressable
+                key={s.id}
+                style={styles.sessionRow}
+                testID={`recent-session-${s.id}`}
+                onPress={() => router.push(`/session/${s.id}`)}
+              >
                 <View style={styles.sessionIcon}>
                   <Ionicons name="flame" size={18} color={colors.brand} />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.sessionTitle}>{s.planTitle}</Text>
                   <Text style={styles.sessionMeta}>
-                    {daysAgo(s.startedAt)} · {formatDuration(s.durationSeconds)}
+                    {daysAgo(s.startedAt)} · {formatDuration(s.durationSeconds)} ·{" "}
+                    {s.caloriesBurned ?? 0} kcal
                   </Text>
                 </View>
-                <Text style={styles.sessionCount}>
-                  {s.exercises.length} ex.
-                </Text>
-              </View>
+                <Ionicons
+                  name="chevron-forward"
+                  size={18}
+                  color={colors.onSurfaceTertiary}
+                />
+              </Pressable>
             ))
           )}
         </View>

@@ -128,7 +128,7 @@ export default function ImportScreen() {
               IA analyse ton plan sportif
             </Text>
             <Text style={styles.instructionText}>
-              Prends une photo claire de ton plan (papier, écran, PDF). L'IA
+              Prends une photo claire de ton plan (papier, écran, PDF). L&apos;IA
               extrait automatiquement les exercices, séries, répétitions et
               temps de pause.
             </Text>
@@ -201,17 +201,47 @@ export default function ImportScreen() {
                   <Text style={styles.exBadgeText}>{i + 1}</Text>
                 </View>
                 <Text style={styles.exName}>{ex.name}</Text>
+                <View style={styles.modeTag}>
+                  <Text style={styles.modeTagText}>
+                    {ex.mode?.toUpperCase() ?? "REPS"}
+                  </Text>
+                </View>
               </View>
               <View style={styles.exMetaRow}>
-                <MetaChip label="Séries" value={String(ex.sets)} />
-                <MetaChip label="Reps" value={ex.reps} />
-                <MetaChip
-                  label="Repos"
-                  value={`${ex.rest_seconds}s`}
-                />
-                {ex.weight ? <MetaChip label="Poids" value={ex.weight} /> : null}
+                {ex.mode === "amrap" ? (
+                  <>
+                    <MetaChip
+                      label="Durée"
+                      value={formatSec(ex.duration_seconds ?? 0)}
+                    />
+                    {ex.notes ? <MetaChip label="Consigne" value={ex.notes} /> : null}
+                  </>
+                ) : ex.mode === "time" ? (
+                  <>
+                    <MetaChip label="Séries" value={String(ex.sets)} />
+                    <MetaChip
+                      label="Durée"
+                      value={formatSec(ex.duration_seconds ?? 0)}
+                    />
+                    {ex.rest_seconds ? (
+                      <MetaChip label="Repos" value={`${ex.rest_seconds}s`} />
+                    ) : null}
+                  </>
+                ) : (
+                  <>
+                    <MetaChip label="Séries" value={String(ex.sets)} />
+                    <MetaChip label="Reps" value={ex.reps} />
+                    <MetaChip
+                      label="Repos"
+                      value={`${ex.rest_seconds}s`}
+                    />
+                    {ex.weight ? <MetaChip label="Poids" value={ex.weight} /> : null}
+                  </>
+                )}
               </View>
-              {ex.notes && <Text style={styles.exNotes}>{ex.notes}</Text>}
+              {ex.notes && ex.mode !== "amrap" && (
+                <Text style={styles.exNotes}>{ex.notes}</Text>
+              )}
             </View>
           ))}
           <Pressable
@@ -246,6 +276,14 @@ function MetaChip({ label, value }: { label: string; value: string }) {
       <Text style={styles.chipVal}>{value}</Text>
     </View>
   );
+}
+
+function formatSec(sec: number) {
+  if (sec < 60) return `${sec}s`;
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  if (s === 0) return `${m}min`;
+  return `${m}min${s}s`;
 }
 
 const styles = StyleSheet.create({
@@ -390,6 +428,18 @@ const styles = StyleSheet.create({
   chipLabel: { color: colors.onSurfaceTertiary, fontSize: 10, letterSpacing: 0.5 },
   chipVal: { color: colors.onSurface, fontWeight: "700", fontSize: 13 },
   exNotes: { color: colors.onSurfaceTertiary, fontSize: 12, fontStyle: "italic" },
+  modeTag: {
+    backgroundColor: colors.brandTertiary,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
+  },
+  modeTagText: {
+    color: colors.brandSecondary,
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 1,
+  },
   linkBtn: { padding: spacing.md, alignItems: "center" },
   linkText: {
     color: colors.onSurfaceSecondary,

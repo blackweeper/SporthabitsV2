@@ -31,10 +31,12 @@ api_router = APIRouter(prefix="/api")
 # ---------- Models ----------
 class ExerciseSchema(BaseModel):
     name: str
+    mode: str = "reps"  # 'reps' | 'time' | 'amrap'
     sets: int = 3
     reps: str = "10"
     weight: Optional[str] = None
     rest_seconds: int = 60
+    duration_seconds: Optional[int] = None
     notes: Optional[str] = None
 
 
@@ -93,25 +95,31 @@ async def parse_plan(req: ParseRequest):
     prompt = (
         "Analyse cette image de plan sportif et retourne un JSON avec cette structure exacte :\n"
         "{\n"
-        '  "title": "nom du plan (ex: Jour 1 - Pectoraux)",\n'
+        '  "title": "nom du plan (ex: Jour 1 - Pectoraux, WOD Cardio)",\n'
         '  "exercises": [\n'
         "    {\n"
         '      "name": "nom de l\'exercice",\n'
+        '      "mode": "reps" | "time" | "amrap",\n'
         '      "sets": 4,\n'
         '      "reps": "8-12",\n'
         '      "weight": "40kg" ou null,\n'
         '      "rest_seconds": 60,\n'
+        '      "duration_seconds": 300 ou null,\n'
         '      "notes": "notes ou null"\n'
         "    }\n"
         "  ]\n"
         "}\n\n"
-        "Règles :\n"
-        "- reps est TOUJOURS une chaîne (string), même si c'est un nombre unique\n"
-        "- rest_seconds est TOUJOURS un entier en secondes (par défaut 60 si non spécifié)\n"
-        "- sets est TOUJOURS un entier (par défaut 3 si non spécifié)\n"
+        "Règles importantes :\n"
+        "- mode='reps' pour un exercice classique séries × répétitions (musculation)\n"
+        "- mode='time' pour un exercice chronométré (ex: 5 min de burpees, style WOD). Utilise duration_seconds pour la durée par série.\n"
+        "- mode='amrap' pour un AMRAP (As Many Rounds As Possible) : timer fixe où l'utilisateur fait un maximum de tours. duration_seconds = durée totale.\n"
+        "- reps est TOUJOURS une chaîne (string)\n"
+        "- rest_seconds et duration_seconds sont TOUJOURS des entiers en secondes\n"
+        "- sets est TOUJOURS un entier (1 pour un AMRAP unique)\n"
+        "- Pour 'AMRAP 12 min' → mode='amrap', sets=1, duration_seconds=720\n"
+        "- Pour '5 min burpees, 5 min corde à sauter' style WOD → mode='time', sets=1, duration_seconds=300 pour chaque\n"
+        "- Pour 'Tabata 30s effort / 15s repos × 8' → mode='time', sets=8, duration_seconds=30, rest_seconds=15\n"
         "- Utilise les noms d'exercices en français si l'image est en français\n"
-        "- Si tu vois 'Tabata', '30s effort / 15s repos', extrais correctement rest_seconds\n"
-        "- Pour HIIT/circuit, chaque exercice peut avoir reps='30s' avec rest_seconds=15\n"
         "- Retourne UNIQUEMENT le JSON, rien d'autre."
     )
 
@@ -145,12 +153,31 @@ async def parse_plan(req: ParseRequest):
     for ex in data["exercises"]:
         if not isinstance(ex, dict) or "name" not in ex:
             continue
+        mode = str(ex.get("mode") or "reps").lower()
+        if mode not in ("reps", "time", "amrap"):
+            mode = "reps"
+        duration = ex.get("duration_seconds")
+        try:
+            duration_val = int(duration) if duration not in (None, "", "null") else None
+        except (TypeError, ValueError):
+            duration_val = None
+        # sensible defaults for time-based modes
+        if mode in ("time", "amrap") and not duration_val:
+            duration_val = 300
+        default_sets = 1 if mode == "amrap" else 3
+        sets_val = ex.get("sets")
+        try:
+            sets_val = int(sets_val) if sets_val not in (None, "", "null") else default_sets
+        except (TypeError, ValueError):
+            sets_val = default_sets
         normalized_exercises.append({
             "name": str(ex.get("name", "Exercice")),
-            "sets": int(ex.get("sets") or 3),
-            "reps": str(ex.get("reps") or "10"),
+            "mode": mode,
+            "sets": sets_val,
+            "reps": str(ex.get("reps") or ("1" if mode == "amrap" else "10")),
             "weight": (str(ex["weight"]) if ex.get("weight") not in (None, "", "null") else None),
-            "rest_seconds": int(ex.get("rest_seconds") or 60),
+            "rest_seconds": int(ex.get("rest_seconds") or (0 if mode == "amrap" else 60)),
+            "duration_seconds": duration_val,
             "notes": (str(ex["notes"]) if ex.get("notes") not in (None, "", "null") else None),
         })
 

@@ -16,6 +16,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing } from "@/src/theme";
 import {
   Exercise,
+  ExerciseMode,
   getPlan,
   Plan,
   savePlan,
@@ -23,6 +24,11 @@ import {
 } from "@/src/utils/gym-storage";
 
 const TYPES: Plan["type"][] = ["musculation", "hiit", "cardio", "mixte"];
+const MODES: { key: ExerciseMode; label: string; hint: string }[] = [
+  { key: "reps", label: "REPS", hint: "Séries × répétitions" },
+  { key: "time", label: "TIME", hint: "X minutes / série (WOD)" },
+  { key: "amrap", label: "AMRAP", hint: "Tours max sur une durée" },
+];
 
 export default function PlanDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -73,10 +79,12 @@ export default function PlanDetailScreen() {
         {
           id: uid(),
           name: "Nouvel exercice",
+          mode: "reps",
           sets: 3,
           reps: "10",
           weight: null,
           rest_seconds: 60,
+          duration_seconds: null,
           notes: null,
         },
       ],
@@ -215,34 +223,132 @@ export default function PlanDetailScreen() {
                 placeholder="Nom de l'exercice"
                 placeholderTextColor={colors.onSurfaceTertiary}
               />
-              <View style={styles.fieldRow}>
-                <FieldNum
-                  label="Séries"
-                  value={ex.sets}
-                  onChange={(v) => updateExercise(ex.id, { sets: v })}
-                />
-                <FieldText
-                  label="Reps"
-                  value={ex.reps}
-                  onChange={(v) => updateExercise(ex.id, { reps: v })}
-                  placeholder="10 ou 8-12"
-                />
+
+              {/* Mode selector */}
+              <View style={styles.modeRow}>
+                {MODES.map((m) => {
+                  const active = ex.mode === m.key;
+                  return (
+                    <Pressable
+                      key={m.key}
+                      testID={`ex-mode-${ex.id}-${m.key}`}
+                      style={[
+                        styles.modeChip,
+                        active && styles.modeChipActive,
+                      ]}
+                      onPress={() =>
+                        updateExercise(ex.id, {
+                          mode: m.key,
+                          sets: m.key === "amrap" ? 1 : ex.sets || 3,
+                          duration_seconds:
+                            m.key === "reps" ? null : ex.duration_seconds || 300,
+                          rest_seconds:
+                            m.key === "amrap" ? 0 : ex.rest_seconds || 60,
+                        })
+                      }
+                    >
+                      <Text
+                        style={[
+                          styles.modeChipLabel,
+                          active && { color: "#fff" },
+                        ]}
+                      >
+                        {m.label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
               </View>
-              <View style={styles.fieldRow}>
-                <FieldNum
-                  label="Repos (s)"
-                  value={ex.rest_seconds}
-                  onChange={(v) => updateExercise(ex.id, { rest_seconds: v })}
-                />
-                <FieldText
-                  label="Poids"
-                  value={ex.weight || ""}
-                  onChange={(v) =>
-                    updateExercise(ex.id, { weight: v.trim() ? v : null })
-                  }
-                  placeholder="Ex: 40kg"
-                />
-              </View>
+              <Text style={styles.modeHint}>
+                {MODES.find((m) => m.key === ex.mode)?.hint}
+              </Text>
+
+              {ex.mode === "reps" && (
+                <>
+                  <View style={styles.fieldRow}>
+                    <FieldNum
+                      label="Séries"
+                      value={ex.sets}
+                      onChange={(v) => updateExercise(ex.id, { sets: v })}
+                    />
+                    <FieldText
+                      label="Reps"
+                      value={ex.reps}
+                      onChange={(v) => updateExercise(ex.id, { reps: v })}
+                      placeholder="10 ou 8-12"
+                    />
+                  </View>
+                  <View style={styles.fieldRow}>
+                    <FieldNum
+                      label="Repos (s)"
+                      value={ex.rest_seconds}
+                      onChange={(v) => updateExercise(ex.id, { rest_seconds: v })}
+                    />
+                    <FieldText
+                      label="Poids"
+                      value={ex.weight || ""}
+                      onChange={(v) =>
+                        updateExercise(ex.id, { weight: v.trim() ? v : null })
+                      }
+                      placeholder="Ex: 40kg"
+                    />
+                  </View>
+                </>
+              )}
+
+              {ex.mode === "time" && (
+                <>
+                  <View style={styles.fieldRow}>
+                    <FieldNum
+                      label="Séries"
+                      value={ex.sets}
+                      onChange={(v) => updateExercise(ex.id, { sets: v })}
+                    />
+                    <FieldNum
+                      label="Durée (s)"
+                      value={ex.duration_seconds ?? 300}
+                      onChange={(v) =>
+                        updateExercise(ex.id, { duration_seconds: v })
+                      }
+                    />
+                  </View>
+                  <View style={styles.fieldRow}>
+                    <FieldNum
+                      label="Repos (s)"
+                      value={ex.rest_seconds}
+                      onChange={(v) => updateExercise(ex.id, { rest_seconds: v })}
+                    />
+                    <FieldText
+                      label="Notes"
+                      value={ex.notes || ""}
+                      onChange={(v) =>
+                        updateExercise(ex.id, { notes: v.trim() ? v : null })
+                      }
+                      placeholder="Ex: Burpees"
+                    />
+                  </View>
+                </>
+              )}
+
+              {ex.mode === "amrap" && (
+                <View style={styles.fieldRow}>
+                  <FieldNum
+                    label="Durée totale (s)"
+                    value={ex.duration_seconds ?? 720}
+                    onChange={(v) =>
+                      updateExercise(ex.id, { duration_seconds: v })
+                    }
+                  />
+                  <FieldText
+                    label="Consigne"
+                    value={ex.notes || ""}
+                    onChange={(v) =>
+                      updateExercise(ex.id, { notes: v.trim() ? v : null })
+                    }
+                    placeholder="10 squats + 5 pompes…"
+                  />
+                </View>
+              )}
             </View>
           ))}
           <View style={{ height: 40 }} />
@@ -401,5 +507,33 @@ const styles = StyleSheet.create({
     padding: spacing.sm,
     color: colors.onSurface,
     fontSize: 14,
+  },
+  modeRow: {
+    flexDirection: "row",
+    gap: 4,
+    backgroundColor: colors.surfaceTertiary,
+    borderRadius: radius.sm,
+    padding: 3,
+    marginTop: 4,
+  },
+  modeChip: {
+    flex: 1,
+    paddingVertical: 8,
+    alignItems: "center",
+    borderRadius: 4,
+  },
+  modeChipActive: { backgroundColor: colors.brand },
+  modeChipLabel: {
+    color: colors.onSurfaceTertiary,
+    fontWeight: "800",
+    fontSize: 10,
+    letterSpacing: 1,
+  },
+  modeHint: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 11,
+    fontStyle: "italic",
+    marginTop: 2,
+    marginBottom: 4,
   },
 });

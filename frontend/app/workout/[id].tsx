@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -13,10 +13,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import { AudioPlayer, createAudioPlayer } from "expo-audio";
 import Svg, { Circle } from "react-native-svg";
 import { colors, radius, spacing } from "@/src/theme";
 import {
+  estimateCalories,
   getPlan,
   Plan,
   saveSession,
@@ -25,6 +25,8 @@ import {
   uid,
   WorkoutSession,
 } from "@/src/utils/gym-storage";
+
+type OverlayMode = null | "rest" | "work" | "amrap";
 
 export default function WorkoutScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -35,13 +37,14 @@ export default function WorkoutScreen() {
   const [startedAt] = useState(new Date().toISOString());
   const [totalRest, setTotalRest] = useState(0);
 
-  // rest timer
-  const [restOpen, setRestOpen] = useState(false);
-  const [restRemaining, setRestRemaining] = useState(0);
-  const [restTotal, setRestTotal] = useState(0);
+  // Overlay timer (rest / work / amrap)
+  const [overlay, setOverlay] = useState<OverlayMode>(null);
+  const [overlayRemaining, setOverlayRemaining] = useState(0);
+  const [overlayTotal, setOverlayTotal] = useState(0);
+  const [overlaySetIdx, setOverlaySetIdx] = useState<number | null>(null);
+  const [amrapRounds, setAmrapRounds] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // elapsed session timer
   const [elapsed, setElapsed] = useState(0);
 
   useEffect(() => {
@@ -57,12 +60,14 @@ export default function WorkoutScreen() {
         p.exercises.map((ex) => ({
           exerciseId: ex.id,
           name: ex.name,
+          mode: ex.mode,
           targetSets: ex.sets,
           targetReps: ex.reps,
           targetWeight: ex.weight,
           targetRestSeconds: ex.rest_seconds,
+          targetDurationSeconds: ex.duration_seconds,
           sets: Array.from({ length: ex.sets }, () => ({
-            reps: ex.reps,
+            reps: ex.mode === "amrap" ? "0" : ex.reps,
             weight: ex.weight ?? "",
             completed: false,
           })),
@@ -71,7 +76,6 @@ export default function WorkoutScreen() {
     })();
   }, [id]);
 
-  // session elapsed timer
   useEffect(() => {
     const int = setInterval(() => {
       setElapsed(Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000));
@@ -79,13 +83,12 @@ export default function WorkoutScreen() {
     return () => clearInterval(int);
   }, [startedAt]);
 
-  // rest timer tick
   useEffect(() => {
-    if (!restOpen) return;
+    if (!overlay) return;
     timerRef.current = setInterval(() => {
-      setRestRemaining((r) => {
+      setOverlayRemaining((r) => {
         if (r <= 1) {
-          onRestDone();
+          onOverlayComplete();
           return 0;
         }
         return r - 1;
@@ -94,13 +97,9 @@ export default function WorkoutScreen() {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [restOpen]);
+  }, [overlay]);
 
-  async function onRestDone() {
-    if (timerRef.current) clearInterval(timerRef.current);
-    setRestOpen(false);
-    setTotalRest((t) => t + restTotal);
-    // Triple haptic pulse to signal rest end
+  function haptic() {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setTimeout(
       () => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy),
@@ -112,33 +111,122 @@ export default function WorkoutScreen() {
     );
   }
 
+  function onOverlayComplete() {
+    if (timerRef.current) clearInterval(timerRef.current);
+    haptic();
+    if (overlay === "rest") {
+      setTotalRest((t) => t + overlayTotal);
+    } else if (overlay === "work" && overlaySetIdx !== null) {
+      // Mark set as completed after timed effort
+      setLogs((prev) => {
+        const copy = prev.map((l) => ({ ...l, sets: [...l.sets] }));
+        copy[exIdx].sets[overlaySetIdx] = {
+          ...copy[exIdx].sets[overlaySetIdx],
+          completed: true,
+        };
+        return copy;
+      });
+      // Chain rest if configured
+      const rest = logs[exIdx]?.targetRestSeconds || 0;
+      if (rest > 0) {
+        setOverlaySetIdx(null);
+        setOverlay("rest");
+        setOverlayTotal(rest);
+        setOverlayRemaining(rest);
+        return;
+      }
+    } else if (overlay === "amrap" && overlaySetIdx !== null) {
+      setLogs((prev) => {
+        const copy = prev.map((l) => ({ ...l, sets: [...l.sets] }));
+        copy[exIdx].sets[overlaySetIdx] = {
+          ...copy[exIdx].sets[overlaySetIdx],
+          reps: String(amrapRounds),
+          completed: true,
+        };
+        return copy;
+      });
+    }
+    setOverlay(null);
+    setOverlaySetIdx(null);
+    setAmrapRounds(0);
+  }
+
   function startRest(seconds: number) {
-    setRestTotal(seconds);
-    setRestRemaining(seconds);
-    setRestOpen(true);
+    setOverlayTotal(seconds);
+    setOverlayRemaining(seconds);
+    setOverlay("rest");
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
   }
 
-  function skipRest() {
+  function startWork(setIdx: number, seconds: number) {
+    setOverlaySetIdx(setIdx);
+    setOverlayTotal(seconds);
+    setOverlayRemaining(seconds);
+    setOverlay("work");
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+  }
+
+  function startAmrap(setIdx: number, seconds: number) {
+    setOverlaySetIdx(setIdx);
+    setOverlayTotal(seconds);
+    setOverlayRemaining(seconds);
+    setAmrapRounds(0);
+    setOverlay("amrap");
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+  }
+
+  function skipOverlay() {
     if (timerRef.current) clearInterval(timerRef.current);
-    setTotalRest((t) => t + (restTotal - restRemaining));
-    setRestOpen(false);
+    if (overlay === "rest") {
+      setTotalRest((t) => t + (overlayTotal - overlayRemaining));
+    } else if (
+      (overlay === "work" || overlay === "amrap") &&
+      overlaySetIdx !== null
+    ) {
+      // still mark the set as completed if user skips a work timer
+      setLogs((prev) => {
+        const copy = prev.map((l) => ({ ...l, sets: [...l.sets] }));
+        copy[exIdx].sets[overlaySetIdx] = {
+          ...copy[exIdx].sets[overlaySetIdx],
+          reps:
+            overlay === "amrap"
+              ? String(amrapRounds)
+              : copy[exIdx].sets[overlaySetIdx].reps,
+          completed: true,
+        };
+        return copy;
+      });
+    }
+    setOverlay(null);
+    setOverlaySetIdx(null);
+    setAmrapRounds(0);
   }
 
   function addTime(sec: number) {
-    setRestRemaining((r) => Math.max(1, r + sec));
-    setRestTotal((t) => t + sec);
+    setOverlayRemaining((r) => Math.max(1, r + sec));
+    setOverlayTotal((t) => t + sec);
   }
 
   function toggleSet(exI: number, setI: number) {
+    const ex = logs[exI];
+    if (!ex) return;
+    // For time/amrap, tapping the check button opens the timer instead of toggling directly
+    if (
+      !ex.sets[setI].completed &&
+      (ex.mode === "time" || ex.mode === "amrap")
+    ) {
+      const dur = ex.targetDurationSeconds || 300;
+      if (ex.mode === "time") startWork(setI, dur);
+      else startAmrap(setI, dur);
+      return;
+    }
     setLogs((prev) => {
       const copy = prev.map((l) => ({ ...l, sets: [...l.sets] }));
       const s = copy[exI].sets[setI];
       copy[exI].sets[setI] = { ...s, completed: !s.completed };
-      // if just completed → start rest timer
-      if (!s.completed) {
-        const rest = copy[exI].targetRestSeconds || 60;
-        startRest(rest);
+      if (!s.completed && ex.mode === "reps") {
+        const rest = ex.targetRestSeconds || 60;
+        if (rest > 0) startRest(rest);
       }
       return copy;
     });
@@ -164,18 +252,22 @@ export default function WorkoutScreen() {
           const durationSeconds = Math.floor(
             (new Date(endedAt).getTime() - new Date(startedAt).getTime()) / 1000,
           );
+          const restTotalFinal =
+            totalRest + (overlay === "rest" ? overlayTotal - overlayRemaining : 0);
           const session: WorkoutSession = {
             id: uid(),
             planId: plan.id,
             planTitle: plan.title,
+            planType: plan.type,
             startedAt,
             endedAt,
             durationSeconds,
-            totalRestSeconds: totalRest + (restOpen ? restTotal - restRemaining : 0),
+            totalRestSeconds: restTotalFinal,
+            caloriesBurned: estimateCalories(plan.type, durationSeconds),
             exercises: logs,
           };
           await saveSession(session);
-          router.replace("/(tabs)/history");
+          router.replace(`/session/${session.id}`);
         },
       },
     ]);
@@ -201,14 +293,17 @@ export default function WorkoutScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
-      {/* Header */}
       <View style={styles.header}>
         <Pressable
           testID="close-workout"
           onPress={() => {
             Alert.alert("Quitter la séance ?", "Progression non enregistrée.", [
               { text: "Rester", style: "cancel" },
-              { text: "Quitter", style: "destructive", onPress: () => router.back() },
+              {
+                text: "Quitter",
+                style: "destructive",
+                onPress: () => router.back(),
+              },
             ]);
           }}
           hitSlop={12}
@@ -226,12 +321,10 @@ export default function WorkoutScreen() {
         </Pressable>
       </View>
 
-      {/* Progress bar */}
       <View style={styles.progressBg}>
         <View style={[styles.progressFill, { width: `${progress * 100}%` }]} />
       </View>
 
-      {/* Exercise switcher */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -277,15 +370,21 @@ export default function WorkoutScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.exHeaderCard}>
+          <View style={styles.modeBadgeRow}>
+            <View style={styles.modeBadge}>
+              <Text style={styles.modeBadgeText}>
+                {currentEx.mode.toUpperCase()}
+              </Text>
+            </View>
+          </View>
           <Text style={styles.exNameBig}>{currentEx.name}</Text>
           <Text style={styles.exMeta}>
-            {currentEx.targetSets} séries × {currentEx.targetReps} reps · Repos{" "}
-            {currentEx.targetRestSeconds}s
-            {currentEx.targetWeight ? ` · ${currentEx.targetWeight}` : ""}
+            {describeTarget(currentEx)}
           </Text>
           <View style={styles.setProgressRow}>
             <Text style={styles.setProgressText}>
-              {completedSets}/{currentEx.sets.length} séries
+              {completedSets}/{currentEx.sets.length}{" "}
+              {currentEx.mode === "amrap" ? "AMRAP" : "séries"}
             </Text>
           </View>
         </View>
@@ -300,44 +399,88 @@ export default function WorkoutScreen() {
               <Text style={styles.setBadgeText}>{i + 1}</Text>
             </View>
             <View style={styles.setInputs}>
-              <View style={styles.setInputBlock}>
-                <Text style={styles.setInputLabel}>REPS</Text>
-                <TextInput
-                  testID={`set-reps-${i}`}
-                  style={styles.setInput}
-                  value={s.reps}
-                  onChangeText={(t) => updateSet(exIdx, i, { reps: t })}
-                  placeholder="—"
-                  placeholderTextColor={colors.onSurfaceTertiary}
-                />
-              </View>
-              <View style={styles.setInputBlock}>
-                <Text style={styles.setInputLabel}>POIDS</Text>
-                <TextInput
-                  testID={`set-weight-${i}`}
-                  style={styles.setInput}
-                  value={s.weight}
-                  onChangeText={(t) => updateSet(exIdx, i, { weight: t })}
-                  placeholder="—"
-                  placeholderTextColor={colors.onSurfaceTertiary}
-                />
-              </View>
+              {currentEx.mode === "reps" && (
+                <>
+                  <View style={styles.setInputBlock}>
+                    <Text style={styles.setInputLabel}>REPS</Text>
+                    <TextInput
+                      testID={`set-reps-${i}`}
+                      style={styles.setInput}
+                      value={s.reps}
+                      onChangeText={(t) => updateSet(exIdx, i, { reps: t })}
+                      placeholder="—"
+                      placeholderTextColor={colors.onSurfaceTertiary}
+                    />
+                  </View>
+                  <View style={styles.setInputBlock}>
+                    <Text style={styles.setInputLabel}>POIDS</Text>
+                    <TextInput
+                      testID={`set-weight-${i}`}
+                      style={styles.setInput}
+                      value={s.weight}
+                      onChangeText={(t) => updateSet(exIdx, i, { weight: t })}
+                      placeholder="—"
+                      placeholderTextColor={colors.onSurfaceTertiary}
+                    />
+                  </View>
+                </>
+              )}
+              {currentEx.mode === "time" && (
+                <View style={styles.setInputBlock}>
+                  <Text style={styles.setInputLabel}>DURÉE</Text>
+                  <Text style={styles.timeDisplay}>
+                    {formatDur(currentEx.targetDurationSeconds ?? 0)}
+                  </Text>
+                </View>
+              )}
+              {currentEx.mode === "amrap" && (
+                <>
+                  <View style={styles.setInputBlock}>
+                    <Text style={styles.setInputLabel}>DURÉE</Text>
+                    <Text style={styles.timeDisplay}>
+                      {formatDur(currentEx.targetDurationSeconds ?? 0)}
+                    </Text>
+                  </View>
+                  <View style={styles.setInputBlock}>
+                    <Text style={styles.setInputLabel}>TOURS</Text>
+                    <TextInput
+                      testID={`set-rounds-${i}`}
+                      style={styles.setInput}
+                      value={s.reps}
+                      keyboardType="number-pad"
+                      onChangeText={(t) => updateSet(exIdx, i, { reps: t })}
+                      placeholder="0"
+                      placeholderTextColor={colors.onSurfaceTertiary}
+                    />
+                  </View>
+                </>
+              )}
             </View>
             <Pressable
               testID={`toggle-set-${i}`}
               onPress={() => toggleSet(exIdx, i)}
               style={[styles.checkBtn, s.completed && styles.checkBtnDone]}
             >
-              <Ionicons
-                name={s.completed ? "checkmark" : "checkmark"}
-                size={22}
-                color={s.completed ? "#fff" : colors.onSurfaceTertiary}
-              />
+              {currentEx.mode !== "reps" && !s.completed ? (
+                <Ionicons name="play" size={20} color={colors.brand} />
+              ) : (
+                <Ionicons
+                  name="checkmark"
+                  size={22}
+                  color={s.completed ? "#fff" : colors.onSurfaceTertiary}
+                />
+              )}
             </Pressable>
           </View>
         ))}
 
-        {/* Next / Prev exercise */}
+        {currentEx.notes && (
+          <View style={styles.notesBox}>
+            <Ionicons name="information-circle" size={14} color={colors.brand} />
+            <Text style={styles.notesText}>{currentEx.notes}</Text>
+          </View>
+        )}
+
         <View style={styles.navRow}>
           <Pressable
             testID="prev-ex"
@@ -365,25 +508,69 @@ export default function WorkoutScreen() {
         <View style={{ height: 40 }} />
       </ScrollView>
 
-      {/* Rest timer modal */}
-      <Modal visible={restOpen} animationType="slide" transparent>
+      {/* Timer overlay: rest / work / amrap */}
+      <Modal visible={overlay !== null} animationType="slide" transparent>
         <View style={styles.restBackdrop}>
           <View style={styles.restSheet}>
-            <Text style={styles.restLabel}>TEMPS DE PAUSE</Text>
-            <RestCircle
-              remaining={restRemaining}
-              total={Math.max(1, restTotal)}
+            <Text
+              style={[
+                styles.restLabel,
+                overlay === "work" && { color: colors.success },
+                overlay === "amrap" && { color: colors.warning },
+              ]}
+            >
+              {overlay === "rest"
+                ? "TEMPS DE PAUSE"
+                : overlay === "work"
+                  ? `EFFORT · ${currentEx.name.toUpperCase()}`
+                  : `AMRAP · ${currentEx.name.toUpperCase()}`}
+            </Text>
+            <TimerCircle
+              remaining={overlayRemaining}
+              total={Math.max(1, overlayTotal)}
+              color={
+                overlay === "rest"
+                  ? colors.brand
+                  : overlay === "work"
+                    ? colors.success
+                    : colors.warning
+              }
             />
+            {overlay === "amrap" && (
+              <View style={styles.amrapCounter}>
+                <Pressable
+                  testID="amrap-minus"
+                  style={styles.roundBtn}
+                  onPress={() => setAmrapRounds((r) => Math.max(0, r - 1))}
+                >
+                  <Ionicons name="remove" size={22} color="#fff" />
+                </Pressable>
+                <View style={styles.amrapRoundsBox}>
+                  <Text style={styles.amrapRoundsBig}>{amrapRounds}</Text>
+                  <Text style={styles.amrapRoundsLbl}>TOURS</Text>
+                </View>
+                <Pressable
+                  testID="amrap-plus"
+                  style={[styles.roundBtn, styles.roundBtnPrimary]}
+                  onPress={() => {
+                    setAmrapRounds((r) => r + 1);
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  }}
+                >
+                  <Ionicons name="add" size={22} color="#fff" />
+                </Pressable>
+              </View>
+            )}
             <View style={styles.restBtnsRow}>
               <Pressable
-                testID="rest-minus"
+                testID="timer-minus"
                 style={styles.restCtl}
                 onPress={() => addTime(-15)}
               >
                 <Text style={styles.restCtlText}>-15s</Text>
               </Pressable>
               <Pressable
-                testID="rest-plus"
+                testID="timer-plus"
                 style={styles.restCtl}
                 onPress={() => addTime(15)}
               >
@@ -391,12 +578,20 @@ export default function WorkoutScreen() {
               </Pressable>
             </View>
             <Pressable
-              testID="rest-skip"
+              testID="timer-skip"
               style={styles.skipBtn}
-              onPress={skipRest}
+              onPress={skipOverlay}
             >
-              <Ionicons name="play-skip-forward" size={18} color="#fff" />
-              <Text style={styles.skipText}>PASSER LA PAUSE</Text>
+              <Ionicons
+                name={
+                  overlay === "rest" ? "play-skip-forward" : "checkmark-done"
+                }
+                size={18}
+                color="#fff"
+              />
+              <Text style={styles.skipText}>
+                {overlay === "rest" ? "PASSER LA PAUSE" : "TERMINER"}
+              </Text>
             </Pressable>
           </View>
         </View>
@@ -405,26 +600,45 @@ export default function WorkoutScreen() {
   );
 }
 
-function RestCircle({
+function describeTarget(ex: SessionExerciseLog) {
+  if (ex.mode === "reps") {
+    return `${ex.targetSets} séries × ${ex.targetReps} reps · Repos ${ex.targetRestSeconds}s${ex.targetWeight ? ` · ${ex.targetWeight}` : ""}`;
+  }
+  if (ex.mode === "time") {
+    return `${ex.targetSets} × ${formatDur(ex.targetDurationSeconds ?? 0)}${ex.targetRestSeconds ? ` · Repos ${ex.targetRestSeconds}s` : ""}`;
+  }
+  return `AMRAP · ${formatDur(ex.targetDurationSeconds ?? 0)}`;
+}
+
+function TimerCircle({
   remaining,
   total,
+  color,
 }: {
   remaining: number;
   total: number;
+  color: string;
 }) {
   const size = 240;
   const strokeWidth = 12;
-  const radius = (size - strokeWidth) / 2;
-  const circ = 2 * Math.PI * radius;
+  const r = (size - strokeWidth) / 2;
+  const circ = 2 * Math.PI * r;
   const pct = remaining / total;
   const offset = circ * (1 - pct);
   return (
-    <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>
+    <View
+      style={{
+        width: size,
+        height: size,
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
       <Svg width={size} height={size} style={{ position: "absolute" }}>
         <Circle
           cx={size / 2}
           cy={size / 2}
-          r={radius}
+          r={r}
           stroke={colors.surfaceTertiary}
           strokeWidth={strokeWidth}
           fill="none"
@@ -432,8 +646,8 @@ function RestCircle({
         <Circle
           cx={size / 2}
           cy={size / 2}
-          r={radius}
-          stroke={colors.brand}
+          r={r}
+          stroke={color}
           strokeWidth={strokeWidth}
           fill="none"
           strokeDasharray={`${circ},${circ}`}
@@ -442,8 +656,14 @@ function RestCircle({
           transform={`rotate(-90 ${size / 2} ${size / 2})`}
         />
       </Svg>
-      <Text style={styles.restBig}>{remaining}</Text>
-      <Text style={styles.restUnit}>SECONDES</Text>
+      <Text style={styles.restBig}>
+        {remaining >= 60
+          ? `${Math.floor(remaining / 60)}:${String(remaining % 60).padStart(2, "0")}`
+          : remaining}
+      </Text>
+      <Text style={styles.restUnit}>
+        {remaining >= 60 ? "MIN" : "SECONDES"}
+      </Text>
     </View>
   );
 }
@@ -452,6 +672,14 @@ function formatTime(seconds: number) {
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
   return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
+
+function formatDur(sec: number) {
+  if (sec < 60) return `${sec}s`;
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  if (s === 0) return `${m} min`;
+  return `${m}min${s}s`;
 }
 
 const styles = StyleSheet.create({
@@ -526,6 +754,19 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     gap: spacing.sm,
   },
+  modeBadgeRow: { flexDirection: "row" },
+  modeBadge: {
+    backgroundColor: colors.brandTertiary,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
+  },
+  modeBadgeText: {
+    color: colors.brandSecondary,
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 1,
+  },
   exNameBig: { color: colors.onSurface, fontSize: 24, fontWeight: "800" },
   exMeta: { color: colors.onSurfaceTertiary, fontSize: 12 },
   setProgressRow: { marginTop: 4 },
@@ -575,6 +816,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "600",
   },
+  timeDisplay: {
+    backgroundColor: colors.surfaceTertiary,
+    borderRadius: radius.sm,
+    padding: 8,
+    color: colors.brand,
+    fontSize: 15,
+    fontWeight: "800",
+    textAlign: "center",
+  },
   checkBtn: {
     width: 44,
     height: 44,
@@ -589,6 +839,15 @@ const styles = StyleSheet.create({
     backgroundColor: colors.success,
     borderColor: colors.success,
   },
+  notesBox: {
+    flexDirection: "row",
+    gap: 6,
+    backgroundColor: colors.brandTertiary,
+    padding: spacing.md,
+    borderRadius: radius.sm,
+    alignItems: "flex-start",
+  },
+  notesText: { color: colors.brandSecondary, flex: 1, fontSize: 12 },
   navRow: {
     flexDirection: "row",
     gap: spacing.md,
@@ -610,7 +869,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.brand,
     borderColor: colors.brand,
   },
-  navText: { color: "#fff", fontWeight: "800", fontSize: 12, letterSpacing: 0.8 },
+  navText: {
+    color: "#fff",
+    fontWeight: "800",
+    fontSize: 12,
+    letterSpacing: 0.8,
+  },
 
   restBackdrop: {
     flex: 1,
@@ -629,20 +893,50 @@ const styles = StyleSheet.create({
   restLabel: {
     color: colors.brand,
     fontWeight: "800",
-    letterSpacing: 3,
+    letterSpacing: 2,
     fontSize: 12,
   },
   restBig: {
     color: colors.onSurface,
-    fontSize: 84,
+    fontSize: 72,
     fontWeight: "800",
-    lineHeight: 90,
+    lineHeight: 78,
   },
   restUnit: {
     color: colors.onSurfaceTertiary,
     fontSize: 11,
     letterSpacing: 3,
     marginTop: 4,
+  },
+  amrapCounter: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.lg,
+  },
+  roundBtn: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: colors.surfaceTertiary,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  roundBtnPrimary: {
+    backgroundColor: colors.warning,
+    borderColor: colors.warning,
+  },
+  amrapRoundsBox: { alignItems: "center", minWidth: 90 },
+  amrapRoundsBig: {
+    color: colors.warning,
+    fontSize: 44,
+    fontWeight: "800",
+  },
+  amrapRoundsLbl: {
+    color: colors.onSurfaceTertiary,
+    letterSpacing: 2,
+    fontSize: 10,
   },
   restBtnsRow: {
     flexDirection: "row",

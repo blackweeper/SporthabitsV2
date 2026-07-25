@@ -75,6 +75,95 @@ def test_parse_plan_valid_image(api):
     assert isinstance(ex["rest_seconds"], int)
 
 
+def _make_wod_image_b64() -> str:
+    """Create a real JPEG describing a WOD (time-based)."""
+    W, H = 900, 600
+    img = Image.new("RGB", (W, H), (255, 245, 230))
+    d = ImageDraw.Draw(img)
+    try:
+        tf = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 34)
+        bf = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 26)
+    except Exception:
+        tf = bf = ImageFont.load_default()
+    for i in range(0, W + H, 22):
+        d.line([(i, 0), (0, i)], fill=(230, 220, 200), width=1)
+    d.rectangle([(30, 30), (W - 30, H - 30)], outline=(60, 30, 30), width=3)
+    d.text((60, 55), "WOD Cardio", fill=(20, 20, 20), font=tf)
+    for i, ln in enumerate([
+        "5 min burpees",
+        "5 min mountain climbers",
+        "5 min jumping jacks",
+    ]):
+        d.text((70, 150 + i * 70), ln, fill=(30, 30, 30), font=bf)
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG", quality=88)
+    return base64.b64encode(buf.getvalue()).decode()
+
+
+def _make_amrap_image_b64() -> str:
+    W, H = 900, 500
+    img = Image.new("RGB", (W, H), (240, 250, 255))
+    d = ImageDraw.Draw(img)
+    try:
+        tf = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 36)
+        bf = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 28)
+    except Exception:
+        tf = bf = ImageFont.load_default()
+    for i in range(0, W + H, 20):
+        d.line([(i, 0), (0, i)], fill=(220, 230, 240), width=1)
+    d.rectangle([(30, 30), (W - 30, H - 30)], outline=(30, 30, 60), width=3)
+    d.text((60, 55), "AMRAP 12 min", fill=(20, 20, 20), font=tf)
+    d.text((70, 180), "10 squats", fill=(30, 30, 30), font=bf)
+    d.text((70, 240), "+ 5 pompes", fill=(30, 30, 30), font=bf)
+    d.text((70, 330), "Autant de tours que possible", fill=(60, 60, 60), font=bf)
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG", quality=88)
+    return base64.b64encode(buf.getvalue()).decode()
+
+
+def test_parse_plan_wod_time_mode(api):
+    b64 = _make_wod_image_b64()
+    r = api.post(f"{BASE_URL}/api/parse-plan", json={"image_base64": b64}, timeout=90)
+    assert r.status_code == 200, f"Got {r.status_code}: {r.text[:400]}"
+    data = r.json()
+    assert isinstance(data.get("exercises"), list) and len(data["exercises"]) >= 1
+    # Every exercise must expose mode & duration_seconds fields (regression on schema)
+    for ex in data["exercises"]:
+        assert "mode" in ex
+        assert "duration_seconds" in ex
+    time_ex = [e for e in data["exercises"] if e["mode"] == "time"]
+    assert len(time_ex) >= 1, f"Expected at least 1 time-mode exercise, got: {data['exercises']}"
+    # duration should be reasonably close to 5 min (300s). Accept 60..600 for LLM leeway.
+    for e in time_ex:
+        assert isinstance(e["duration_seconds"], int)
+        assert 60 <= e["duration_seconds"] <= 900, f"duration out of range: {e}"
+
+
+def test_parse_plan_amrap_mode(api):
+    b64 = _make_amrap_image_b64()
+    r = api.post(f"{BASE_URL}/api/parse-plan", json={"image_base64": b64}, timeout=90)
+    assert r.status_code == 200, f"Got {r.status_code}: {r.text[:400]}"
+    data = r.json()
+    modes = [e.get("mode") for e in data["exercises"]]
+    assert "amrap" in modes, f"Expected an amrap exercise, got modes: {modes}"
+    amrap = [e for e in data["exercises"] if e["mode"] == "amrap"][0]
+    assert isinstance(amrap["duration_seconds"], int)
+    # 12 min = 720s. Allow 300..1200 for LLM variability.
+    assert 300 <= amrap["duration_seconds"] <= 1200, f"amrap duration: {amrap}"
+
+
+def test_parse_plan_classic_has_mode_and_duration_fields(api):
+    """Regression: classic musculation image response must still include mode + duration_seconds keys per exercise."""
+    b64 = _make_workout_image_b64()
+    r = api.post(f"{BASE_URL}/api/parse-plan", json={"image_base64": b64}, timeout=90)
+    assert r.status_code == 200
+    data = r.json()
+    for ex in data["exercises"]:
+        assert "mode" in ex
+        assert ex["mode"] in ("reps", "time", "amrap")
+        assert "duration_seconds" in ex  # may be null for reps
+
+
 def test_parse_plan_malformed_base64(api):
     r = api.post(f"{BASE_URL}/api/parse-plan", json={"image_base64": "!!!not-valid-base64!!!"}, timeout=60)
     # Should fail gracefully (not 200, not 5xx from Python crash without handler)

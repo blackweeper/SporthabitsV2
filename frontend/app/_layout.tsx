@@ -37,6 +37,7 @@ export default function RootLayout() {
           <Stack.Screen name="import" options={{ presentation: "modal" }} />
           <Stack.Screen name="plan/[id]" />
           <Stack.Screen name="workout/[id]" />
+          <Stack.Screen name="session/[id]" />
         </Stack>
       </SafeAreaProvider>
     </GestureHandlerRootView>

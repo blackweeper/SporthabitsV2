@@ -8,7 +8,7 @@ import {
   Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { BarChart } from "react-native-gifted-charts";
 import { colors, radius, spacing } from "@/src/theme";
@@ -33,6 +33,7 @@ function formatDate(iso: string) {
 }
 
 export default function HistoryScreen() {
+  const router = useRouter();
   const [sessions, setSessions] = useState<WorkoutSession[]>([]);
   const [tab, setTab] = useState<"history" | "stats">("history");
 
@@ -75,10 +76,14 @@ export default function HistoryScreen() {
     const totalRest = Math.round(
       sessions.reduce((a, s) => a + s.totalRestSeconds, 0) / 60,
     );
+    const totalCalories = sessions.reduce(
+      (a, s) => a + (s.caloriesBurned ?? 0),
+      0,
+    );
     const avgDuration = total
       ? Math.round(sessions.reduce((a, s) => a + s.durationSeconds, 0) / total / 60)
       : 0;
-    return { total, totalMin, totalRest, avgDuration };
+    return { total, totalMin, totalRest, avgDuration, totalCalories };
   }, [sessions]);
 
   const maxBar = Math.max(1, ...weekData.map((d) => d.value));
@@ -135,7 +140,12 @@ export default function HistoryScreen() {
             </View>
           ) : (
             sessions.map((s) => (
-              <View key={s.id} style={styles.sessionCard} testID={`session-${s.id}`}>
+              <Pressable
+                key={s.id}
+                style={styles.sessionCard}
+                testID={`session-${s.id}`}
+                onPress={() => router.push(`/session/${s.id}`)}
+              >
                 <View style={styles.sessionHeader}>
                   <Text style={styles.sessionTitle}>{s.planTitle}</Text>
                   <Text style={styles.sessionDate}>{formatDate(s.startedAt)}</Text>
@@ -148,9 +158,9 @@ export default function HistoryScreen() {
                     </Text>
                   </View>
                   <View style={styles.sessionStat}>
-                    <Ionicons name="pause" size={14} color={colors.brand} />
+                    <Ionicons name="flame" size={14} color={colors.brand} />
                     <Text style={styles.sessionStatVal}>
-                      {formatDuration(s.totalRestSeconds)} pause
+                      {s.caloriesBurned ?? 0} kcal
                     </Text>
                   </View>
                   <View style={styles.sessionStat}>
@@ -160,7 +170,10 @@ export default function HistoryScreen() {
                     </Text>
                   </View>
                 </View>
-              </View>
+                <View style={styles.sessionFoot}>
+                  <Text style={styles.sessionMore}>Voir le résumé →</Text>
+                </View>
+              </Pressable>
             ))
           )
         ) : (
@@ -168,14 +181,14 @@ export default function HistoryScreen() {
             {/* Totals */}
             <View style={styles.statsGrid}>
               <StatBox label="Séances" value={String(totals.total)} />
+              <StatBox
+                label="Calories brûlées"
+                value={`${totals.totalCalories}`}
+              />
               <StatBox label="Minutes totales" value={String(totals.totalMin)} />
               <StatBox
                 label="Durée moyenne"
                 value={`${totals.avgDuration} min`}
-              />
-              <StatBox
-                label="Repos cumulés"
-                value={`${totals.totalRest} min`}
               />
             </View>
             {/* Weekly chart */}
@@ -283,6 +296,18 @@ const styles = StyleSheet.create({
   sessionStats: { flexDirection: "row", gap: spacing.lg },
   sessionStat: { flexDirection: "row", alignItems: "center", gap: 4 },
   sessionStatVal: { color: colors.onSurfaceSecondary, fontSize: 12 },
+  sessionFoot: {
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    paddingTop: spacing.sm,
+    marginTop: spacing.xs,
+  },
+  sessionMore: {
+    color: colors.brand,
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: 0.5,
+  },
 
   statsGrid: {
     flexDirection: "row",
