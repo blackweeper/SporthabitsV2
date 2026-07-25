@@ -27,6 +27,7 @@ export default function SessionDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const [session, setSession] = useState<WorkoutSession | null>(null);
+  const shareCardRef = useRef<View>(null);
 
   useEffect(() => {
     (async () => {

@@ -71,7 +71,7 @@ export default function MeasurementEditScreen() {
           base64: true,
         })
       : await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          mediaTypes: ['images'],
           allowsEditing: false,
           quality: 0.5,
           base64: true,
