@@ -1,0 +1,35 @@
+{
+  "summary": "Frontend-only testing of the 30-day PROGRAM feature (iteration 6). All 9 checklist items verified end-to-end via Playwright on mobile viewport (390x844). Home quick-action row (quick-programs/import/create) works. /programs modal lists the 3 program cards (fullbody-30, hiit-30, mass-30). /program/[id] shows hero, planning with 30 day rows (rest days non-tappable with bed icon, session days with play icon and exercise count). start-program → active banner + stop-program + 'AUJOURD\\'HUI' label on day 1. Confirm-replace prompt when starting another program while one is active works (window.confirm on web). Home shows 'PROGRAMME EN COURS' section with green dot, 'Jour 1/30', today's session card, and start-today + open-program buttons. Tapping start-today creates a Plan via findOrCreateProgramPlan and navigates to /workout/{id}. Finishing the workout (FIN → window.confirm) saves the session, calls markProgramDayCompleted, and redirects to /session/{id}. After return, Home shows 'Fait' chip + sessions stat=1, and /program/[id] shows green checkmark on day 1 and '1 séances terminées'. Plans tab correctly hides programSource plans (empty state remained after program plan was created). Tapping day-2 on active program launches its workout. No red screens or blocking errors. Deprecated packages detected: none from the standard bad-list (no expo-av/expo-barcode-scanner/expo-background-fetch imports observed in reviewed files).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Home (programme en cours card)", "issues": ["When active program title is long (e.g. 'Full Body 30 jours'), the label 'Full Body 30 jours' wraps to two lines above the day title inside the small card; consider numberOfLines=1 on todayProgramName to preserve one-line meta look."]},
+      {"screen": "Home quick actions", "issues": ["'Programmes' label wraps to 2 lines on 390px viewport (see screenshot). Consider shorter label 'Progs' or tighter horizontal padding to keep single-line labels aligned with Importer/Créer."]}
+    ],
+    "react_native_issues": [
+      {"component": "ImageBackground (hero)", "issue": "Console warning: 'Image: style.resizeMode is deprecated. Please use props.resizeMode.' Reference: /app/frontend/app/(tabs)/index.tsx:365 (heroImg.resizeMode)"},
+      {"component": "Various Pressable/View", "issue": "Console warning: 'props.pointerEvents is deprecated. Use style.pointerEvents' (likely coming from a react-native-web internal or a dependency; not app-code blocker, but worth verifying)."}
+    ]
+  },
+  "test_report_links": ["/app/test_reports/iteration_6.json"],
+  "action_items": [
+    "(Design) Truncate 'todayProgramName' on Home to a single line (numberOfLines=1) so the today-session card stays compact when the program title is long.",
+    "(Design) Prevent 'Programmes' label from wrapping in the quick actions row (shorter label or reduce padding).",
+    "(Warning) Migrate hero ImageBackground: replace `imageStyle={{resizeMode:'cover'}}` with `resizeMode=\"cover\"` prop (index.tsx heroImg style) to silence the deprecation warning."
+  ],
+  "critical_code_review_comments": [
+    "Good: program-generated plans are correctly filtered by programSource in getPlans() while getAllPlansIncludingProgram()/getPlan() still expose them for the workout screen.",
+    "Good: markProgramDayCompleted is idempotent (checks includes before push).",
+    "Minor: currentDayIndex assumes local timezone Date math; DST or timezone-changed users could see off-by-one. Acceptable for MVP.",
+    "Minor: findOrCreateProgramPlan reads then writes PLANS_KEY without a lock — fine for single-user AsyncStorage but worth noting."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (not tested per request)", "frontend": "100% (9/9 checklist items pass)"},
+  "seed_data_creation": "None — used localStorage.clear() then created an active fullbody-30 program during tests. No backend seed.",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Modal→stack back-nav caveat: after starting a program from /program/[id] via the /programs modal, hitting router.back() goes back to the /programs modal, not to Home. To assert Home state after starting, navigate directly with router.push('/') or page.goto('/'). All testIDs are correct: quick-programs, quick-import, quick-create, program-card-{fullbody-30|hiit-30|mass-30}, start-program, stop-program, day-{n}, start-today, open-program, back-program, finish-workout. Note that FIN uses window.confirm on web — attach a page.on('dialog', lambda d: d.accept()) handler.",
+  "rca_of_issue": "N/A — no functional issue found. All acceptance criteria pass."
+}

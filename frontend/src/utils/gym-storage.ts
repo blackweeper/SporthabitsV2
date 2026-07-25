@@ -20,6 +20,10 @@ export type Plan = {
   type: 'musculation' | 'hiit' | 'cardio' | 'mixte';
   createdAt: string;
   exercises: Exercise[];
+  programSource?: {
+    programId: string;
+    dayIndex: number;
+  };
 };
 
 export type SetLog = {
@@ -193,6 +197,57 @@ export function estimateOneRepMax(weight: number, reps: number): number {
   return weight * (1 + reps / 30);
 }
 
+// ---------- Program subscription (single active program) ----------
+const ACTIVE_PROGRAM_KEY = '@ironflow/activeProgram';
+
+export type ActiveProgram = {
+  programId: string;
+  startedAt: string; // ISO date
+  completedDayIndexes: number[]; // 1-indexed
+};
+
+export async function getActiveProgram(): Promise<ActiveProgram | null> {
+  const raw = await AsyncStorage.getItem(ACTIVE_PROGRAM_KEY);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+export async function setActiveProgram(p: ActiveProgram | null): Promise<void> {
+  if (!p) {
+    await AsyncStorage.removeItem(ACTIVE_PROGRAM_KEY);
+  } else {
+    await AsyncStorage.setItem(ACTIVE_PROGRAM_KEY, JSON.stringify(p));
+  }
+}
+
+export async function markProgramDayCompleted(dayIndex: number): Promise<void> {
+  const active = await getActiveProgram();
+  if (!active) return;
+  if (!active.completedDayIndexes.includes(dayIndex)) {
+    active.completedDayIndexes.push(dayIndex);
+    await setActiveProgram(active);
+  }
+}
+
+/**
+ * Given an active program, returns which day (1-indexed) the user should be on today
+ * based on startedAt.
+ */
+export function currentDayIndex(active: ActiveProgram, totalDays: number): number {
+  const start = new Date(active.startedAt);
+  start.setHours(0, 0, 0, 0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const days = Math.floor(
+    (today.getTime() - start.getTime()) / (1000 * 60 * 60 * 24),
+  );
+  return Math.max(1, Math.min(totalDays, days + 1));
+}
+
 // ---------- Plans ----------
 function normalizeExercise(ex: any): Exercise {
   return {
@@ -221,6 +276,22 @@ export async function getPlans(): Promise<Plan[]> {
   if (!raw) return [];
   try {
     const parsed = JSON.parse(raw) as Plan[];
+    return parsed
+      .filter((p) => !p.programSource) // hide program-generated plans from user list
+      .map((p) => ({
+        ...p,
+        exercises: (p.exercises ?? []).map(normalizeExercise),
+      }));
+  } catch {
+    return [];
+  }
+}
+
+export async function getAllPlansIncludingProgram(): Promise<Plan[]> {
+  const raw = await AsyncStorage.getItem(PLANS_KEY);
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw) as Plan[];
     return parsed.map((p) => ({
       ...p,
       exercises: (p.exercises ?? []).map(normalizeExercise),
@@ -228,6 +299,26 @@ export async function getPlans(): Promise<Plan[]> {
   } catch {
     return [];
   }
+}
+
+export async function findOrCreateProgramPlan(
+  programId: string,
+  dayIndex: number,
+  build: () => Omit<Plan, 'id'>,
+): Promise<Plan> {
+  const all = await getAllPlansIncludingProgram();
+  const existing = all.find(
+    (p) =>
+      p.programSource?.programId === programId &&
+      p.programSource.dayIndex === dayIndex,
+  );
+  if (existing) return existing;
+  const plan: Plan = { id: uid(), ...build() };
+  const raw = await AsyncStorage.getItem(PLANS_KEY);
+  const list: Plan[] = raw ? JSON.parse(raw) : [];
+  list.unshift(plan);
+  await AsyncStorage.setItem(PLANS_KEY, JSON.stringify(list));
+  return plan;
 }
 
 export async function savePlan(plan: Plan): Promise<void> {
@@ -247,7 +338,7 @@ export async function deletePlan(id: string): Promise<void> {
 }
 
 export async function getPlan(id: string): Promise<Plan | null> {
-  const plans = await getPlans();
+  const plans = await getAllPlansIncludingProgram();
   return plans.find((p) => p.id === id) ?? null;
 }
 

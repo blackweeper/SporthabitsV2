@@ -13,11 +13,17 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing } from "@/src/theme";
 import {
+  ActiveProgram,
+  currentDayIndex,
+  findOrCreateProgramPlan,
+  getActiveProgram,
   getPlans,
   getSessions,
   Plan,
+  uid,
   WorkoutSession,
 } from "@/src/utils/gym-storage";
+import { getProgram } from "@/src/data/programs";
 
 const HERO_BG =
   "https://images.unsplash.com/photo-1637430308606-86576d8fef3c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxODd8MHwxfHNlYXJjaHwxfHxkYXJrJTIwYXRtb3NwaGVyaWMlMjBneW0lMjBlcXVpcG1lbnR8ZW58MHx8fHwxNzg0OTgxNDQyfDA&ixlib=rb-4.1.0&q=85";
@@ -41,15 +47,43 @@ export default function HomeScreen() {
   const router = useRouter();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [sessions, setSessions] = useState<WorkoutSession[]>([]);
+  const [active, setActive] = useState<ActiveProgram | null>(null);
 
   useFocusEffect(
     useCallback(() => {
       (async () => {
         setPlans(await getPlans());
         setSessions(await getSessions());
+        setActive(await getActiveProgram());
       })();
     }, []),
   );
+
+  const activeProgram = active ? getProgram(active.programId) : null;
+  const todayIdx =
+    active && activeProgram
+      ? currentDayIndex(active, activeProgram.durationDays)
+      : null;
+  const todayDay =
+    activeProgram && todayIdx ? activeProgram.days[todayIdx - 1] : null;
+  const todayDone =
+    active && todayIdx ? active.completedDayIndexes.includes(todayIdx) : false;
+
+  async function startTodaySession() {
+    if (!activeProgram || !todayDay || !todayIdx || todayDay.rest) return;
+    const plan = await findOrCreateProgramPlan(
+      activeProgram.id,
+      todayIdx,
+      () => ({
+        title: `${activeProgram.title} · J${todayIdx} — ${todayDay.title}`,
+        type: 'mixte',
+        createdAt: new Date().toISOString(),
+        programSource: { programId: activeProgram.id, dayIndex: todayIdx },
+        exercises: todayDay.exercises.map((e) => ({ ...e, id: uid() })),
+      }),
+    );
+    router.push(`/workout/${plan.id}`);
+  }
 
   const totalSessions = sessions.length;
   const totalTime = sessions.reduce((a, s) => a + s.durationSeconds, 0);
@@ -129,12 +163,21 @@ export default function HomeScreen() {
         {/* Quick actions */}
         <View style={styles.quickRow}>
           <Pressable
+            testID="quick-programs"
+            style={styles.quickBtn}
+            onPress={() => router.push("/programs")}
+          >
+            <Ionicons name="calendar" size={22} color={colors.brand} />
+            <Text style={styles.quickTitle}>Programmes</Text>
+            <Text style={styles.quickSub}>30 jours</Text>
+          </Pressable>
+          <Pressable
             testID="quick-import"
             style={styles.quickBtn}
             onPress={() => router.push("/import")}
           >
             <Ionicons name="camera" size={22} color={colors.brand} />
-            <Text style={styles.quickTitle}>Importer un plan</Text>
+            <Text style={styles.quickTitle}>Importer</Text>
             <Text style={styles.quickSub}>Photo → IA</Text>
           </Pressable>
           <Pressable
@@ -143,10 +186,87 @@ export default function HomeScreen() {
             onPress={() => router.push("/plan/new")}
           >
             <Ionicons name="add-circle" size={22} color={colors.brand} />
-            <Text style={styles.quickTitle}>Créer un plan</Text>
-            <Text style={styles.quickSub}>Manuellement</Text>
+            <Text style={styles.quickTitle}>Créer</Text>
+            <Text style={styles.quickSub}>Manuel</Text>
           </Pressable>
         </View>
+
+        {/* Today's program session */}
+        {activeProgram && todayDay && todayIdx ? (
+          <View style={styles.todayWrap}>
+            <View style={styles.todayLabelRow}>
+              <View style={styles.todayDot} />
+              <Text style={styles.todayLabel}>PROGRAMME EN COURS</Text>
+              <Text style={styles.todayProgress}>
+                Jour {todayIdx}/{activeProgram.durationDays}
+              </Text>
+            </View>
+            <View
+              style={[
+                styles.todayCard,
+                todayDone && styles.todayCardDone,
+              ]}
+            >
+              <View style={styles.todayLeft}>
+                <View
+                  style={[
+                    styles.todayEmojiBox,
+                    { backgroundColor: `${activeProgram.color}30` },
+                  ]}
+                >
+                  <Text style={{ fontSize: 26 }}>{activeProgram.coverEmoji}</Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.todayProgramName}>
+                    {activeProgram.title}
+                  </Text>
+                  <Text style={styles.todayDayTitle} numberOfLines={2}>
+                    {todayDay.title}
+                  </Text>
+                  {todayDay.rest ? (
+                    <Text style={styles.todayRest}>Journée de repos 😴</Text>
+                  ) : (
+                    <Text style={styles.todayMeta}>
+                      {todayDay.exercises.length} exercice
+                      {todayDay.exercises.length > 1 ? "s" : ""}
+                    </Text>
+                  )}
+                </View>
+              </View>
+              {todayDone ? (
+                <View style={styles.doneChip}>
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={16}
+                    color={colors.success}
+                  />
+                  <Text style={styles.doneChipText}>Fait</Text>
+                </View>
+              ) : todayDay.rest ? null : (
+                <Pressable
+                  testID="start-today"
+                  style={[
+                    styles.todayBtn,
+                    { backgroundColor: activeProgram.color },
+                  ]}
+                  onPress={startTodaySession}
+                >
+                  <Ionicons name="play" size={16} color="#fff" />
+                  <Text style={styles.todayBtnText}>C&apos;EST PARTI</Text>
+                </Pressable>
+              )}
+            </View>
+            <Pressable
+              testID="open-program"
+              onPress={() => router.push(`/program/${activeProgram.id}`)}
+              style={styles.todayFooter}
+            >
+              <Text style={styles.todayFooterText}>
+                Voir tout le programme →
+              </Text>
+            </Pressable>
+          </View>
+        ) : null}
 
         {/* Recent sessions */}
         <View style={styles.section}>
@@ -320,6 +440,111 @@ const styles = StyleSheet.create({
   },
   quickTitle: { color: colors.onSurface, fontWeight: "700", fontSize: 14 },
   quickSub: { color: colors.onSurfaceTertiary, fontSize: 11 },
+
+  todayWrap: {
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.lg,
+    gap: 6,
+  },
+  todayLabelRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  todayDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.success,
+  },
+  todayLabel: {
+    color: colors.success,
+    letterSpacing: 1.5,
+    fontSize: 10,
+    fontWeight: "800",
+    flex: 1,
+  },
+  todayProgress: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 10,
+    letterSpacing: 0.5,
+  },
+  todayCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: colors.surfaceSecondary,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.success,
+    gap: spacing.md,
+  },
+  todayCardDone: { opacity: 0.75, borderColor: colors.border },
+  todayLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    flex: 1,
+  },
+  todayEmojiBox: {
+    width: 52,
+    height: 52,
+    borderRadius: radius.md,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  todayProgramName: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 10,
+    letterSpacing: 0.4,
+    fontWeight: "700",
+  },
+  todayDayTitle: {
+    color: colors.onSurface,
+    fontSize: 14,
+    fontWeight: "700",
+    marginTop: 2,
+  },
+  todayMeta: {
+    color: colors.brand,
+    fontSize: 11,
+    marginTop: 2,
+    fontWeight: "600",
+  },
+  todayRest: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 11,
+    fontStyle: "italic",
+    marginTop: 2,
+  },
+  todayBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: radius.md,
+  },
+  todayBtnText: {
+    color: "#fff",
+    fontWeight: "800",
+    letterSpacing: 0.6,
+    fontSize: 11,
+  },
+  doneChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: radius.pill,
+    backgroundColor: "#0F2F1A",
+  },
+  doneChipText: { color: colors.success, fontWeight: "700", fontSize: 11 },
+  todayFooter: { padding: 6, alignSelf: "flex-end" },
+  todayFooterText: {
+    color: colors.brand,
+    fontWeight: "700",
+    fontSize: 11,
+    letterSpacing: 0.4,
+  },
   section: {
     marginTop: spacing.xl,
     paddingHorizontal: spacing.lg,

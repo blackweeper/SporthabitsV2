@@ -42,6 +42,8 @@ export default function RootLayout() {
           <Stack.Screen name="measurement/[id]" />
           <Stack.Screen name="pr/new" />
           <Stack.Screen name="compare" options={{ presentation: "modal" }} />
+          <Stack.Screen name="programs" options={{ presentation: "modal" }} />
+          <Stack.Screen name="program/[id]" />
         </Stack>
       </SafeAreaProvider>
     </GestureHandlerRootView>
