@@ -1,0 +1,159 @@
+{
+  "app_name": "IronFlow (Workout & Rest Tracker)",
+  "personality": "7 Dark-First Utility DARK",
+  "personality_one_liner": "A sharp, high-contrast operational command center for tracking workouts and resting, driven by oversized metrics and energetic ember-orange accents.",
+  "color": {
+    "surface": "#121212",
+    "onSurface": "#FFFFFF",
+    "surfaceSecondary": "#1E1E1E",
+    "onSurfaceSecondary": "#E0E0E0",
+    "surfaceTertiary": "#2A2A2A",
+    "onSurfaceTertiary": "#CCCCCC",
+    "surfaceInverse": "#F5F5F5",
+    "onSurfaceInverse": "#121212",
+    "brand": "#FF3D00",
+    "brandPrimary": "#FF3D00",
+    "onBrandPrimary": "#FFFFFF",
+    "brandSecondary": "#FF7A4D",
+    "onBrandSecondary": "#121212",
+    "brandTertiary": "#4D1200",
+    "onBrandTertiary": "#FF9E80",
+    "success": "#00E676",
+    "onSuccess": "#121212",
+    "warning": "#FFC400",
+    "onWarning": "#121212",
+    "error": "#FF1744",
+    "onError": "#FFFFFF",
+    "info": "#00B0FF",
+    "onInfo": "#FFFFFF",
+    "border": "#2A2A2A",
+    "borderStrong": "#424242",
+    "divider": "#1E1E1E"
+  },
+  "typography": {
+    "displayFontFamily": "BarlowCondensed_500Medium",
+    "textFontFamily": "Manrope_500Medium",
+    "scale": {
+      "sm": 12,
+      "base": 14,
+      "lg": 16,
+      "xl": 20,
+      "2xl": 24
+    }
+  },
+  "spacing": {
+    "rule": "Dense but legible. Generous paddings on main layout roots, but tighter tracking inside metric blocks to feel like a dashboard.",
+    "xs": 4,
+    "sm": 8,
+    "md": 12,
+    "lg": 16,
+    "xl": 24,
+    "2xl": 32,
+    "3xl": 48
+  },
+  "radius_tokens": {
+    "sm": 6,
+    "md": 12,
+    "lg": 20,
+    "pill": 999
+  },
+  "shadow_tier": 0,
+  "navigation": "bottom_tabs",
+  "icon_set": "Phosphor",
+  "glassmorphism": {
+    "enabled": false,
+    "do's": [
+      "Avoid glass entirely. Rely on solid surface hierarchy and dividers for a sharp, tactical feel."
+    ],
+    "dont's": [
+      "No blur over dark images, no translucent sheets. Everything should feel durable and solid."
+    ]
+  },
+  "platform_libraries": {
+    "glass": {
+      "ios": "expo-glass-effect",
+      "android": "expo-blur",
+      "low_end_android_fallback": "solid surfaceSecondary"
+    },
+    "image": "expo-image",
+    "blur": "expo-blur",
+    "bottom_sheet": "@gorhom/bottom-sheet",
+    "animation": "react-native-reanimated",
+    "gesture": "react-native-gesture-handler"
+  },
+  "screens": [
+    {
+      "name": "Home",
+      "purpose": "Current active plan, quick start session, and glanceable weekly progression.",
+      "states": {
+        "loading": "Centered brand-tinted spinner.",
+        "empty": "Onboarding CTA card for 'Import Plan'.",
+        "error": "Error reading local storage - retry."
+      },
+      "layout": "Top section: large greeting and 'Start Workout' sticky block with hero_workout_bg. Middle: horizontal stats cards (volume, hours this week) featuring thin charts. Bottom: List of recent workout sessions."
+    },
+    {
+      "name": "Import Plan",
+      "purpose": "Photo capture/upload flow and AI parsing visual state.",
+      "states": {
+        "loading": "Full screen ai_scanning_bg image with vertical linear gradient sweeping overlay representing AI extraction.",
+        "empty": "Upload or Camera choice.",
+        "error": "AI could not parse text. Retry button."
+      },
+      "layout": "Viewfinder UI over camera preview placeholder. Bottom block containing upload buttons. Once photo is taken, transitions to a scanning screen with overlay lines and progress percentage."
+    },
+    {
+      "name": "Active Workout",
+      "purpose": "Log current sets, weight, and reps.",
+      "states": {
+        "loading": "n/a",
+        "empty": "n/a",
+        "error": "n/a"
+      },
+      "layout": "Header: Current exercise name and large current set indicator. Body: List of sets (target vs actual reps, weight inputs) using surfaceTertiary cards. Bottom sticky: Large primary CTA 'Log Set & Rest'."
+    },
+    {
+      "name": "Rest Timer",
+      "purpose": "Full-screen or bottom-sheet countdown timer with sound alerts.",
+      "states": {
+        "loading": "n/a",
+        "empty": "n/a",
+        "error": "n/a"
+      },
+      "layout": "Presented as a modal/sheet. Center: Massive BarlowCondensed countdown numerals inside a circular progress ring (brand color). Below: Quick actions (+15s, Skip Rest). Bottom: 'Up Next' exercise preview."
+    },
+    {
+      "name": "Stats & History",
+      "purpose": "Visualize volume and frequency trends, list past sessions.",
+      "states": {
+        "loading": "Skeleton of charts.",
+        "empty": "empty_state image of dumbbells. 'Complete a workout to see stats.'",
+        "error": "Error loading charts."
+      },
+      "layout": "Top: Tabbed view (History / Stats). Stats view: bar/line charts using brand color with thin lines and no grid. History view: vertical list of past sessions showing duration and volume in compact rows."
+    }
+  ],
+  "images": {
+    "hero_workout_bg": {
+      "url": "https://images.unsplash.com/photo-1637430308606-86576d8fef3c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxODd8MHwxfHNlYXJjaHwxfHxkYXJrJTIwYXRtb3NwaGVyaWMlMjBneW0lMjBlcXVpcG1lbnR8ZW58MHx8fHwxNzg0OTgxNDQyfDA&ixlib=rb-4.1.0&q=85",
+      "alt": "dark atmospheric gym equipment"
+    },
+    "ai_scanning_bg": {
+      "url": "https://images.unsplash.com/photo-1673347765440-ce248bebc94d?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzF8MHwxfHNlYXJjaHwxfHxkYXJrJTIwYWJzdHJhY3QlMjBsaW5lcyUyMHNjYW5uaW5nfGVufDB8fHx8MTc4NDk4MTQ0Mnww&ixlib=rb-4.1.0&q=85",
+      "alt": "abstract red and blue lines scanning on black"
+    },
+    "empty_state": {
+      "url": "https://images.unsplash.com/photo-1638536532686-d610adfc8e5c?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2Njl8MHwxfHNlYXJjaHwxfHxkdW1iYmVsbCUyMGRhcmslMjBwaG90b2dyYXBoeXxlbnwwfHx8fDE3ODQ5ODE0NDJ8MA&ixlib=rb-4.1.0&q=85",
+      "alt": "black dumbbells stacked"
+    }
+  },
+  "instructions_to_main_agent": [
+    "Strictly adhere to the Dark-First Utility DARK guidelines. Do not use any blue, purple, or indigo tones anywhere. Ember Orange is the sole accent.",
+    "No glassmorphism. Use solid surface hierarchy (surface -> surfaceSecondary -> surfaceTertiary) and 1px dividers to segment content.",
+    "Typography: Use Barlow Condensed (500) for all large numbers, counters, and main headings. Use Manrope (500) for UI body text and labels. Do not exceed weight 500.",
+    "Image Scrims: Ensure that `hero_workout_bg` has a vertical linear gradient scrim (transparent to surfaceInverse) so overlaid text remains completely legible.",
+    "The Rest Timer screen needs to feel massive and glanceable. Use a very large font size (e.g., 80px+) for the countdown, wrapped in an SVG circular progress indicator.",
+    "Build the Import Plan 'scanning' state by overlaying an animated or stylized vertical line on `ai_scanning_bg` to simulate AI processing the photo.",
+    "All primary CTAs (like 'Start Workout' or 'Log Set') must be sticky at the bottom of the screen (respecting safe areas) so the user doesn't have to scroll for them."
+  ]
+}
