@@ -26,12 +26,22 @@ import {
 
 type SubTab = "measurements" | "records";
 
+type MetricKey = 'weight_kg' | 'waist_cm' | 'thigh_cm' | 'chest_cm';
+
+const METRICS: { key: MetricKey; label: string; unit: string }[] = [
+  { key: 'weight_kg', label: 'Poids', unit: 'kg' },
+  { key: 'waist_cm', label: 'Taille', unit: 'cm' },
+  { key: 'chest_cm', label: 'Poitrine', unit: 'cm' },
+  { key: 'thigh_cm', label: 'Cuisse', unit: 'cm' },
+];
+
 export default function ProgressScreen() {
   const router = useRouter();
   const [tab, setTab] = useState<SubTab>("measurements");
   const [measurements, setMeasurements] = useState<Measurement[]>([]);
   const [prs, setPrs] = useState<PersonalRecord[]>([]);
   const [selectedPR, setSelectedPR] = useState<PersonalRecord | null>(null);
+  const [metric, setMetric] = useState<MetricKey>('weight_kg');
 
   const load = useCallback(async () => {
     setMeasurements(await getMeasurements());
@@ -44,17 +54,23 @@ export default function ProgressScreen() {
     }, [load]),
   );
 
-  const weightData = useMemo(() => {
+  const chartData = useMemo(() => {
     const sorted = [...measurements]
-      .filter((m) => m.weight_kg != null)
+      .filter((m) => m[metric] != null)
       .sort(
         (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
       );
     return sorted.map((m) => ({
-      value: m.weight_kg!,
+      value: m[metric] as number,
       label: shortDate(m.date),
     }));
-  }, [measurements]);
+  }, [measurements, metric]);
+
+  const currentMetric = METRICS.find((m) => m.key === metric)!;
+  const withPhotos = useMemo(
+    () => measurements.filter((m) => !!m.photoBase64),
+    [measurements],
+  );
 
   const chartW = Dimensions.get("window").width - spacing.lg * 2 - 32;
 
@@ -101,11 +117,65 @@ export default function ProgressScreen() {
       >
         {tab === "measurements" ? (
           <>
-            {weightData.length >= 2 && (
+            {/* Metric selector chips */}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.metricChipsRow}
+            >
+              {METRICS.map((m) => {
+                const active = metric === m.key;
+                return (
+                  <Pressable
+                    key={m.key}
+                    testID={`metric-${m.key}`}
+                    style={[
+                      styles.metricChip,
+                      active && styles.metricChipActive,
+                    ]}
+                    onPress={() => setMetric(m.key)}
+                  >
+                    <Text
+                      style={[
+                        styles.metricChipText,
+                        active && { color: "#fff" },
+                      ]}
+                    >
+                      {m.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+
+            {chartData.length >= 2 ? (
               <View style={styles.chartCard}>
-                <Text style={styles.chartTitle}>Poids (kg)</Text>
+                <View style={styles.chartHeader}>
+                  <Text style={styles.chartTitle}>
+                    {currentMetric.label} ({currentMetric.unit})
+                  </Text>
+                  <View style={styles.chartDelta}>
+                    <Ionicons
+                      name={
+                        chartData[chartData.length - 1].value >=
+                        chartData[0].value
+                          ? "trending-up"
+                          : "trending-down"
+                      }
+                      size={14}
+                      color={colors.brand}
+                    />
+                    <Text style={styles.chartDeltaText}>
+                      {(
+                        chartData[chartData.length - 1].value -
+                        chartData[0].value
+                      ).toFixed(1)}{" "}
+                      {currentMetric.unit}
+                    </Text>
+                  </View>
+                </View>
                 <LineChart
-                  data={weightData}
+                  data={chartData}
                   color={colors.brand}
                   thickness={3}
                   hideDataPoints={false}
@@ -132,6 +202,41 @@ export default function ProgressScreen() {
                   curved
                 />
               </View>
+            ) : (
+              <View style={styles.chartHint}>
+                <Ionicons
+                  name="information-circle"
+                  size={14}
+                  color={colors.brand}
+                />
+                <Text style={styles.chartHintText}>
+                  Ajoute au moins 2 mesures pour voir le graphique de progression.
+                </Text>
+              </View>
+            )}
+
+            {/* Photo comparator button */}
+            {withPhotos.length >= 2 && (
+              <Pressable
+                testID="open-compare"
+                style={styles.compareBtn}
+                onPress={() => router.push("/compare")}
+              >
+                <Ionicons name="git-compare" size={18} color={colors.brand} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.compareTitle}>
+                    Comparer avant / après
+                  </Text>
+                  <Text style={styles.compareSub}>
+                    {withPhotos.length} photos disponibles
+                  </Text>
+                </View>
+                <Ionicons
+                  name="chevron-forward"
+                  size={18}
+                  color={colors.onSurfaceTertiary}
+                />
+              </Pressable>
             )}
 
             {measurements.length === 0 ? (
@@ -435,6 +540,87 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     padding: spacing.lg,
     marginBottom: spacing.sm,
+  },
+  chartHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: spacing.lg,
+  },
+  chartDelta: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: colors.brandTertiary,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: radius.sm,
+  },
+  chartDeltaText: {
+    color: colors.brandSecondary,
+    fontWeight: "700",
+    fontSize: 11,
+    letterSpacing: 0.4,
+  },
+  chartHint: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    backgroundColor: colors.brandTertiary,
+    padding: spacing.md,
+    borderRadius: radius.md,
+  },
+  chartHintText: {
+    color: colors.brandSecondary,
+    fontSize: 12,
+    flex: 1,
+    lineHeight: 16,
+  },
+  metricChipsRow: {
+    gap: spacing.sm,
+    paddingBottom: spacing.sm,
+  },
+  metricChip: {
+    flexShrink: 0,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 8,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceSecondary,
+    borderWidth: 1,
+    borderColor: colors.border,
+    height: 36,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  metricChipActive: {
+    backgroundColor: colors.brand,
+    borderColor: colors.brand,
+  },
+  metricChipText: {
+    color: colors.onSurfaceTertiary,
+    fontWeight: "700",
+    fontSize: 12,
+    letterSpacing: 0.3,
+  },
+  compareBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    backgroundColor: colors.surfaceSecondary,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  compareTitle: {
+    color: colors.onSurface,
+    fontWeight: "700",
+    fontSize: 14,
+  },
+  compareSub: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 11,
+    marginTop: 2,
   },
   chartTitle: {
     color: colors.onSurface,
