@@ -10,13 +10,15 @@ Application mobile React Native (Expo) tout-en-un pour l'entraînement : import 
 - Le poids utilisateur affine le calcul des calories brûlées (formule MET × masse × durée).
 
 ### 2. Plans & séances
-- 3 modes d'exercice par plan :
+- **4 modes d'exercice** par plan :
   - `REPS` — séries × répétitions classique.
   - `TIME` — chronométré (ex. 5 min de burpees).
   - `AMRAP` — timer fixe avec compteur de tours (+/-).
-- Import IA depuis photo (Gemini 3 Flash Vision).
-- Création manuelle avec segmented control REPS / TIME / AMRAP.
-- Timer plein écran (cercle SVG animé) : orange = repos, vert = effort, jaune = AMRAP. Retour haptique triple à la fin.
+  - `EMOM` — Every Minute On the Minute : X reps à faire au début de chaque minute pendant N minutes, auto-chaînage des rounds sans repos.
+- Import IA depuis photo (Gemini 3 Flash Vision) reconnaissant les 4 modes.
+- Création manuelle avec segmented control REPS / TIME / AMRAP / EMOM.
+- Timer plein écran (cercle SVG animé) : orange = repos, vert = effort TIME, jaune = AMRAP ou EMOM.
+- **Countdown vocal** (expo-speech) : « 10 secondes » à 10 s de la fin d'un timer d'effort, « 10 secondes, prochain exercice » à 10 s de la fin d'un repos, comptage 3-2-1, annonce « C'est parti ! » au démarrage de la séance. Retour haptique triple à la fin de chaque timer.
 
 ### 3. Résumé de séance + partage image
 - Page /session/[id] : hero gradient avec durée, calories, séries, effort actif vs pause, détail par exercice.
@@ -26,7 +28,7 @@ Application mobile React Native (Expo) tout-en-un pour l'entraînement : import 
 ### 4. Progression corporelle
 - Onglet Progrès → Mesures.
 - Saisie : date, poids (kg), tour de taille (cm), tour de cuisse (cm), tour de poitrine (cm), notes.
-- **Photo de comparaison** : caméra ou galerie, stockée en base64 local.
+- **Photo compressée automatiquement** via `expo-image-manipulator` (resize 900 px + JPEG 60 %) pour éviter que le stockage local n'explose.
 - **Graphiques multi-métriques** : chips au-dessus du graphique pour switcher entre Poids / Taille / Poitrine / Cuisse. Chaque graphique affiche un chip de delta (▲/▼ + valeur) en tête.
 - **Comparateur avant / après** : dès ≥ 2 mesures avec photo, un bouton ouvre `/compare` — photos côte à côte, sélecteur de photos avant / après (bottom sheet grid), bouton swap, delta card avec évolution de chaque métrique (vert = amélioration, rouge = régression, selon la logique "poids/taille bas = mieux, poitrine/cuisse haut = mieux").
 
