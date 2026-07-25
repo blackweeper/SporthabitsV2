@@ -8,6 +8,7 @@ import {
   TextInput,
   Alert,
   Modal,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -242,34 +243,41 @@ export default function WorkoutScreen() {
 
   async function finishWorkout() {
     if (!plan) return;
+    const doFinish = async () => {
+      const endedAt = new Date().toISOString();
+      const durationSeconds = Math.floor(
+        (new Date(endedAt).getTime() - new Date(startedAt).getTime()) / 1000,
+      );
+      const restTotalFinal =
+        totalRest +
+        (overlay === "rest" ? overlayTotal - overlayRemaining : 0);
+      const session: WorkoutSession = {
+        id: uid(),
+        planId: plan.id,
+        planTitle: plan.title,
+        planType: plan.type,
+        startedAt,
+        endedAt,
+        durationSeconds,
+        totalRestSeconds: restTotalFinal,
+        caloriesBurned: estimateCalories(plan.type, durationSeconds),
+        exercises: logs,
+      };
+      await saveSession(session);
+      router.replace(`/session/${session.id}`);
+    };
+    if (Platform.OS === "web") {
+      if (
+        typeof window !== "undefined" &&
+        window.confirm("Terminer la séance ? Ta séance sera enregistrée.")
+      ) {
+        await doFinish();
+      }
+      return;
+    }
     Alert.alert("Terminer la séance ?", "Ta séance sera enregistrée.", [
       { text: "Annuler", style: "cancel" },
-      {
-        text: "Terminer",
-        style: "destructive",
-        onPress: async () => {
-          const endedAt = new Date().toISOString();
-          const durationSeconds = Math.floor(
-            (new Date(endedAt).getTime() - new Date(startedAt).getTime()) / 1000,
-          );
-          const restTotalFinal =
-            totalRest + (overlay === "rest" ? overlayTotal - overlayRemaining : 0);
-          const session: WorkoutSession = {
-            id: uid(),
-            planId: plan.id,
-            planTitle: plan.title,
-            planType: plan.type,
-            startedAt,
-            endedAt,
-            durationSeconds,
-            totalRestSeconds: restTotalFinal,
-            caloriesBurned: estimateCalories(plan.type, durationSeconds),
-            exercises: logs,
-          };
-          await saveSession(session);
-          router.replace(`/session/${session.id}`);
-        },
-      },
+      { text: "Terminer", style: "destructive", onPress: doFinish },
     ]);
   }
 
@@ -297,12 +305,22 @@ export default function WorkoutScreen() {
         <Pressable
           testID="close-workout"
           onPress={() => {
+            const doQuit = () => router.back();
+            if (Platform.OS === "web") {
+              if (
+                typeof window !== "undefined" &&
+                window.confirm("Quitter la séance ? Progression non enregistrée.")
+              ) {
+                doQuit();
+              }
+              return;
+            }
             Alert.alert("Quitter la séance ?", "Progression non enregistrée.", [
               { text: "Rester", style: "cancel" },
               {
                 text: "Quitter",
                 style: "destructive",
-                onPress: () => router.back(),
+                onPress: doQuit,
               },
             ]);
           }}
