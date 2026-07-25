@@ -15,6 +15,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
+import * as ImageManipulator from "expo-image-manipulator";
 import { colors, radius, spacing } from "@/src/theme";
 import {
   deleteMeasurement,
@@ -67,18 +68,33 @@ export default function MeasurementEditScreen() {
     const res = fromCamera
       ? await ImagePicker.launchCameraAsync({
           allowsEditing: false,
-          quality: 0.5,
-          base64: true,
+          quality: 0.9,
         })
       : await ImagePicker.launchImageLibraryAsync({
           mediaTypes: ['images'],
           allowsEditing: false,
-          quality: 0.5,
-          base64: true,
+          quality: 0.9,
         });
     if (res.canceled || !res.assets?.length) return;
     const asset = res.assets[0];
-    if (asset.base64) set("photoBase64", asset.base64);
+    // Auto compress: resize to max 900px width + JPEG @ 60% quality → returns base64
+    try {
+      const manipulated = await ImageManipulator.manipulateAsync(
+        asset.uri,
+        [{ resize: { width: 900 } }],
+        {
+          compress: 0.6,
+          format: ImageManipulator.SaveFormat.JPEG,
+          base64: true,
+        },
+      );
+      if (manipulated.base64) set("photoBase64", manipulated.base64);
+    } catch {
+      Alert.alert(
+        "Erreur",
+        "Impossible de traiter cette image. Essaie une autre photo.",
+      );
+    }
   }
 
   const save = async () => {

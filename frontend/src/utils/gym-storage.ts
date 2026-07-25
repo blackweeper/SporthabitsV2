@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export type ExerciseMode = 'reps' | 'time' | 'amrap';
+export type ExerciseMode = 'reps' | 'time' | 'amrap' | 'emom';
 
 export type Exercise = {
   id: string;

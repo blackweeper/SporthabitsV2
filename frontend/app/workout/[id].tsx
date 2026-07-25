@@ -17,6 +17,12 @@ import * as Haptics from "expo-haptics";
 import Svg, { Circle } from "react-native-svg";
 import { colors, radius, spacing } from "@/src/theme";
 import {
+  speak,
+  speakGo,
+  speakNumber,
+  speakStop,
+} from "@/src/utils/audio";
+import {
   estimateCalories,
   getPlan,
   getProfile,
@@ -93,13 +99,34 @@ export default function WorkoutScreen() {
           onOverlayComplete();
           return 0;
         }
-        return r - 1;
+        const next = r - 1;
+        // Voice countdown cues
+        if (next === 10) {
+          if (overlay === "work") {
+            speak("10 secondes");
+          } else if (overlay === "rest") {
+            speak("10 secondes, prochain exercice");
+          } else if (overlay === "amrap") {
+            speak("10 secondes");
+          }
+        } else if (next > 0 && next <= 3) {
+          speakNumber(next);
+        }
+        return next;
       });
     }, 1000);
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
   }, [overlay]);
+
+  // Announce workout start once loaded
+  useEffect(() => {
+    if (plan && logs.length > 0 && elapsed === 0) {
+      speakGo("C'est parti !");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [plan?.id]);
 
   function haptic() {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -118,19 +145,35 @@ export default function WorkoutScreen() {
     haptic();
     if (overlay === "rest") {
       setTotalRest((t) => t + overlayTotal);
+      speak("Go");
     } else if (overlay === "work" && overlaySetIdx !== null) {
+      const currentLog = logs[exIdx];
       // Mark set as completed after timed effort
+      const nextSetIdx = overlaySetIdx + 1;
       setLogs((prev) => {
         const copy = prev.map((l) => ({ ...l, sets: [...l.sets] }));
-        copy[exIdx].sets[overlaySetIdx] = {
-          ...copy[exIdx].sets[overlaySetIdx],
+        copy[exIdx].sets[overlaySetIdx!] = {
+          ...copy[exIdx].sets[overlaySetIdx!],
           completed: true,
         };
         return copy;
       });
-      // Chain rest if configured
-      const rest = logs[exIdx]?.targetRestSeconds || 0;
-      if (rest > 0) {
+      // EMOM: auto-chain to next round without rest
+      if (
+        currentLog?.mode === "emom" &&
+        nextSetIdx < currentLog.sets.length
+      ) {
+        const dur = currentLog.targetDurationSeconds || 60;
+        speak(`Round ${nextSetIdx + 1}`);
+        setOverlaySetIdx(nextSetIdx);
+        setOverlayTotal(dur);
+        setOverlayRemaining(dur);
+        return;
+      }
+      // TIME mode: chain rest if configured
+      const rest = currentLog?.targetRestSeconds || 0;
+      if (rest > 0 && currentLog?.mode === "time") {
+        speak("Repos");
         setOverlaySetIdx(null);
         setOverlay("rest");
         setOverlayTotal(rest);
@@ -140,8 +183,8 @@ export default function WorkoutScreen() {
     } else if (overlay === "amrap" && overlaySetIdx !== null) {
       setLogs((prev) => {
         const copy = prev.map((l) => ({ ...l, sets: [...l.sets] }));
-        copy[exIdx].sets[overlaySetIdx] = {
-          ...copy[exIdx].sets[overlaySetIdx],
+        copy[exIdx].sets[overlaySetIdx!] = {
+          ...copy[exIdx].sets[overlaySetIdx!],
           reps: String(amrapRounds),
           completed: true,
         };
@@ -179,6 +222,7 @@ export default function WorkoutScreen() {
 
   function skipOverlay() {
     if (timerRef.current) clearInterval(timerRef.current);
+    speakStop();
     if (overlay === "rest") {
       setTotalRest((t) => t + (overlayTotal - overlayRemaining));
     } else if (
@@ -212,14 +256,16 @@ export default function WorkoutScreen() {
   function toggleSet(exI: number, setI: number) {
     const ex = logs[exI];
     if (!ex) return;
-    // For time/amrap, tapping the check button opens the timer instead of toggling directly
+    // For time/amrap/emom, tapping the check button opens the timer instead of toggling directly
     if (
       !ex.sets[setI].completed &&
-      (ex.mode === "time" || ex.mode === "amrap")
+      (ex.mode === "time" || ex.mode === "amrap" || ex.mode === "emom")
     ) {
-      const dur = ex.targetDurationSeconds || 300;
-      if (ex.mode === "time") startWork(setI, dur);
-      else startAmrap(setI, dur);
+      const dur = ex.targetDurationSeconds || (ex.mode === "emom" ? 60 : 300);
+      if (ex.mode === "time" || ex.mode === "emom") {
+        if (ex.mode === "emom") speak(`Round ${setI + 1}`);
+        startWork(setI, dur);
+      } else startAmrap(setI, dur);
       return;
     }
     setLogs((prev) => {
@@ -308,7 +354,10 @@ export default function WorkoutScreen() {
         <Pressable
           testID="close-workout"
           onPress={() => {
-            const doQuit = () => router.back();
+            const doQuit = () => {
+              speakStop();
+              router.back();
+            };
             if (Platform.OS === "web") {
               if (
                 typeof window !== "undefined" &&
@@ -454,6 +503,28 @@ export default function WorkoutScreen() {
                   </Text>
                 </View>
               )}
+              {currentEx.mode === "emom" && (
+                <>
+                  <View style={styles.setInputBlock}>
+                    <Text style={styles.setInputLabel}>ROUND</Text>
+                    <Text style={styles.timeDisplay}>
+                      {i + 1}/{currentEx.sets.length}
+                    </Text>
+                  </View>
+                  <View style={styles.setInputBlock}>
+                    <Text style={styles.setInputLabel}>REPS</Text>
+                    <TextInput
+                      testID={`emom-reps-${i}`}
+                      style={styles.setInput}
+                      value={s.reps}
+                      keyboardType="number-pad"
+                      onChangeText={(t) => updateSet(exIdx, i, { reps: t })}
+                      placeholder={currentEx.targetReps}
+                      placeholderTextColor={colors.onSurfaceTertiary}
+                    />
+                  </View>
+                </>
+              )}
               {currentEx.mode === "amrap" && (
                 <>
                   <View style={styles.setInputBlock}>
@@ -536,14 +607,19 @@ export default function WorkoutScreen() {
             <Text
               style={[
                 styles.restLabel,
-                overlay === "work" && { color: colors.success },
+                overlay === "work" &&
+                  currentEx.mode === "emom" && { color: colors.warning },
+                overlay === "work" &&
+                  currentEx.mode !== "emom" && { color: colors.success },
                 overlay === "amrap" && { color: colors.warning },
               ]}
             >
               {overlay === "rest"
                 ? "TEMPS DE PAUSE"
                 : overlay === "work"
-                  ? `EFFORT · ${currentEx.name.toUpperCase()}`
+                  ? currentEx.mode === "emom"
+                    ? `EMOM · ROUND ${(overlaySetIdx ?? 0) + 1}/${currentEx.sets.length}`
+                    : `EFFORT · ${currentEx.name.toUpperCase()}`
                   : `AMRAP · ${currentEx.name.toUpperCase()}`}
             </Text>
             <TimerCircle
@@ -553,7 +629,9 @@ export default function WorkoutScreen() {
                 overlay === "rest"
                   ? colors.brand
                   : overlay === "work"
-                    ? colors.success
+                    ? currentEx.mode === "emom"
+                      ? colors.warning
+                      : colors.success
                     : colors.warning
               }
             />
@@ -627,6 +705,9 @@ function describeTarget(ex: SessionExerciseLog) {
   }
   if (ex.mode === "time") {
     return `${ex.targetSets} × ${formatDur(ex.targetDurationSeconds ?? 0)}${ex.targetRestSeconds ? ` · Repos ${ex.targetRestSeconds}s` : ""}`;
+  }
+  if (ex.mode === "emom") {
+    return `EMOM · ${ex.targetSets} rounds × ${formatDur(ex.targetDurationSeconds ?? 60)} · ${ex.targetReps} reps`;
   }
   return `AMRAP · ${formatDur(ex.targetDurationSeconds ?? 0)}`;
 }

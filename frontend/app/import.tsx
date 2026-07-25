@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
+import * as ImageManipulator from "expo-image-manipulator";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing } from "@/src/theme";
@@ -49,24 +50,33 @@ export default function ImportScreen() {
     const result = fromCamera
       ? await ImagePicker.launchCameraAsync({
           allowsEditing: true,
-          quality: 0.7,
-          base64: true,
+          quality: 0.9,
         })
       : await ImagePicker.launchImageLibraryAsync({
           mediaTypes: ['images'],
           allowsEditing: true,
-          quality: 0.7,
-          base64: true,
+          quality: 0.9,
         });
 
     if (result.canceled || !result.assets?.length) return;
     const asset = result.assets[0];
-    if (!asset.base64) {
-      setError("Impossible de lire l'image");
-      return;
-    }
     setImageUri(asset.uri);
-    await sendToAI(asset.base64);
+    // Compress before sending to the AI
+    try {
+      const manipulated = await ImageManipulator.manipulateAsync(
+        asset.uri,
+        [{ resize: { width: 1200 } }],
+        {
+          compress: 0.7,
+          format: ImageManipulator.SaveFormat.JPEG,
+          base64: true,
+        },
+      );
+      if (!manipulated.base64) throw new Error("no base64");
+      await sendToAI(manipulated.base64);
+    } catch (e: any) {
+      setError(e.message || "Impossible de lire l'image");
+    }
   }
 
   async function sendToAI(base64: string) {
@@ -215,6 +225,15 @@ export default function ImportScreen() {
                       value={formatSec(ex.duration_seconds ?? 0)}
                     />
                     {ex.notes ? <MetaChip label="Consigne" value={ex.notes} /> : null}
+                  </>
+                ) : ex.mode === "emom" ? (
+                  <>
+                    <MetaChip label="Rounds" value={String(ex.sets)} />
+                    <MetaChip label="Reps" value={ex.reps} />
+                    <MetaChip
+                      label="Durée round"
+                      value={formatSec(ex.duration_seconds ?? 60)}
+                    />
                   </>
                 ) : ex.mode === "time" ? (
                   <>

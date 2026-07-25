@@ -99,7 +99,7 @@ async def parse_plan(req: ParseRequest):
         '  "exercises": [\n'
         "    {\n"
         '      "name": "nom de l\'exercice",\n'
-        '      "mode": "reps" | "time" | "amrap",\n'
+        '      "mode": "reps" | "time" | "amrap" | "emom",\n'
         '      "sets": 4,\n'
         '      "reps": "8-12",\n'
         '      "weight": "40kg" ou null,\n'
@@ -113,9 +113,11 @@ async def parse_plan(req: ParseRequest):
         "- mode='reps' pour un exercice classique séries × répétitions (musculation)\n"
         "- mode='time' pour un exercice chronométré (ex: 5 min de burpees, style WOD). Utilise duration_seconds pour la durée par série.\n"
         "- mode='amrap' pour un AMRAP (As Many Rounds As Possible) : timer fixe où l'utilisateur fait un maximum de tours. duration_seconds = durée totale.\n"
+        "- mode='emom' pour un EMOM (Every Minute On the Minute) : X répétitions à faire au début de chaque minute, repos jusqu'à la minute suivante. sets = nombre de rounds, reps = reps par round, duration_seconds = durée d'un round (60 par défaut).\n"
         "- reps est TOUJOURS une chaîne (string)\n"
         "- rest_seconds et duration_seconds sont TOUJOURS des entiers en secondes\n"
         "- sets est TOUJOURS un entier (1 pour un AMRAP unique)\n"
+        "- Pour 'EMOM 10 min: 10 pompes' → mode='emom', sets=10, reps='10', duration_seconds=60\n"
         "- Pour 'AMRAP 12 min' → mode='amrap', sets=1, duration_seconds=720\n"
         "- Pour '5 min burpees, 5 min corde à sauter' style WOD → mode='time', sets=1, duration_seconds=300 pour chaque\n"
         "- Pour 'Tabata 30s effort / 15s repos × 8' → mode='time', sets=8, duration_seconds=30, rest_seconds=15\n"
@@ -154,7 +156,7 @@ async def parse_plan(req: ParseRequest):
         if not isinstance(ex, dict) or "name" not in ex:
             continue
         mode = str(ex.get("mode") or "reps").lower()
-        if mode not in ("reps", "time", "amrap"):
+        if mode not in ("reps", "time", "amrap", "emom"):
             mode = "reps"
         duration = ex.get("duration_seconds")
         try:
@@ -162,9 +164,17 @@ async def parse_plan(req: ParseRequest):
         except (TypeError, ValueError):
             duration_val = None
         # sensible defaults for time-based modes
-        if mode in ("time", "amrap") and not duration_val:
+        if mode == "emom":
+            if not duration_val:
+                duration_val = 60
+        elif mode in ("time", "amrap") and not duration_val:
             duration_val = 300
-        default_sets = 1 if mode == "amrap" else 3
+        if mode == "amrap":
+            default_sets = 1
+        elif mode == "emom":
+            default_sets = 10
+        else:
+            default_sets = 3
         sets_val = ex.get("sets")
         try:
             sets_val = int(sets_val) if sets_val not in (None, "", "null") else default_sets

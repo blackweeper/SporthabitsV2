@@ -28,6 +28,7 @@ const MODES: { key: ExerciseMode; label: string; hint: string }[] = [
   { key: "reps", label: "REPS", hint: "Séries × répétitions" },
   { key: "time", label: "TIME", hint: "X minutes / série (WOD)" },
   { key: "amrap", label: "AMRAP", hint: "Tours max sur une durée" },
+  { key: "emom", label: "EMOM", hint: "X reps chaque minute pendant N minutes" },
 ];
 
 export default function PlanDetailScreen() {
@@ -239,11 +240,22 @@ export default function PlanDetailScreen() {
                       onPress={() =>
                         updateExercise(ex.id, {
                           mode: m.key,
-                          sets: m.key === "amrap" ? 1 : ex.sets || 3,
+                          sets:
+                            m.key === "amrap"
+                              ? 1
+                              : m.key === "emom"
+                                ? ex.sets || 10
+                                : ex.sets || 3,
                           duration_seconds:
-                            m.key === "reps" ? null : ex.duration_seconds || 300,
+                            m.key === "reps"
+                              ? null
+                              : m.key === "emom"
+                                ? 60
+                                : ex.duration_seconds || 300,
                           rest_seconds:
-                            m.key === "amrap" ? 0 : ex.rest_seconds || 60,
+                            m.key === "amrap" || m.key === "emom"
+                              ? 0
+                              : ex.rest_seconds || 60,
                         })
                       }
                     >
@@ -348,6 +360,41 @@ export default function PlanDetailScreen() {
                     placeholder="10 squats + 5 pompes…"
                   />
                 </View>
+              )}
+
+              {ex.mode === "emom" && (
+                <>
+                  <View style={styles.fieldRow}>
+                    <FieldNum
+                      label="Rounds (minutes)"
+                      value={ex.sets}
+                      onChange={(v) => updateExercise(ex.id, { sets: v })}
+                    />
+                    <FieldText
+                      label="Reps / round"
+                      value={ex.reps}
+                      onChange={(v) => updateExercise(ex.id, { reps: v })}
+                      placeholder="10"
+                    />
+                  </View>
+                  <View style={styles.fieldRow}>
+                    <FieldNum
+                      label="Durée round (s)"
+                      value={ex.duration_seconds ?? 60}
+                      onChange={(v) =>
+                        updateExercise(ex.id, { duration_seconds: v })
+                      }
+                    />
+                    <FieldText
+                      label="Notes"
+                      value={ex.notes || ""}
+                      onChange={(v) =>
+                        updateExercise(ex.id, { notes: v.trim() ? v : null })
+                      }
+                      placeholder="Ex: Pompes"
+                    />
+                  </View>
+                </>
               )}
             </View>
           ))}

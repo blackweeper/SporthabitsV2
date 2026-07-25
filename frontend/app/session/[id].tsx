@@ -98,6 +98,10 @@ export default function SessionDetailScreen() {
         lines.push(
           `• ${ex.name} — ${done}× ${formatDur(ex.targetDurationSeconds ?? 0)}`,
         );
+      } else if (ex.mode === "emom") {
+        lines.push(
+          `• EMOM ${ex.name} — ${done}/${ex.targetSets} rounds`,
+        );
       } else {
         const rounds = ex.sets[0]?.reps ?? "0";
         lines.push(
@@ -211,7 +215,11 @@ export default function SessionDetailScreen() {
                   <Text style={styles.exName}>{ex.name}</Text>
                   <Text style={styles.exMode}>
                     {ex.mode.toUpperCase()} · {done}/{ex.sets.length}{" "}
-                    {ex.mode === "amrap" ? "AMRAP" : "séries"}
+                    {ex.mode === "amrap"
+                      ? "AMRAP"
+                      : ex.mode === "emom"
+                        ? "rounds"
+                        : "séries"}
                   </Text>
                 </View>
               </View>
@@ -238,6 +246,12 @@ export default function SessionDetailScreen() {
               {ex.mode === "time" && (
                 <Text style={styles.exSummary}>
                   {done} × {formatDur(ex.targetDurationSeconds ?? 0)}
+                </Text>
+              )}
+              {ex.mode === "emom" && (
+                <Text style={styles.exSummary}>
+                  {done}/{ex.sets.length} rounds ·{" "}
+                  {formatDur(ex.targetDurationSeconds ?? 60)} par round
                 </Text>
               )}
               {ex.mode === "amrap" && (
