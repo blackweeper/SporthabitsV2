@@ -102,7 +102,7 @@ export default function HomeScreen() {
         <ImageBackground
           source={{ uri: HERO_BG }}
           style={styles.hero}
-          imageStyle={styles.heroImg}
+          resizeMode="cover"
         >
           <LinearGradient
             colors={["rgba(14,14,14,0.2)", "rgba(14,14,14,0.98)"]}
@@ -168,7 +168,9 @@ export default function HomeScreen() {
             onPress={() => router.push("/programs")}
           >
             <Ionicons name="calendar" size={22} color={colors.brand} />
-            <Text style={styles.quickTitle}>Programmes</Text>
+            <Text style={styles.quickTitle} numberOfLines={1}>
+              Programmes
+            </Text>
             <Text style={styles.quickSub}>30 jours</Text>
           </Pressable>
           <Pressable
@@ -217,7 +219,7 @@ export default function HomeScreen() {
                   <Text style={{ fontSize: 26 }}>{activeProgram.coverEmoji}</Text>
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.todayProgramName}>
+                  <Text style={styles.todayProgramName} numberOfLines={1}>
                     {activeProgram.title}
                   </Text>
                   <Text style={styles.todayDayTitle} numberOfLines={2}>
@@ -362,7 +364,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.2)",
   },
-  heroImg: { resizeMode: "cover" },
   heroContent: {
     padding: spacing.xl,
     gap: spacing.md,

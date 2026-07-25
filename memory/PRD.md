@@ -1,63 +1,69 @@
-# IronFlow — Suivi d'entraînement, mesures & records
+# IronFlow — Programme, entraînement, mesures & records
 
 ## Objectif
-Application mobile React Native (Expo) tout-en-un pour l'entraînement : import IA d'un plan (Gemini 3 Flash), suivi des séances (musculation, WOD/TIME, AMRAP), calories personnalisées, évolution corporelle (mesures + photos) et records personnels avec calculateur de pourcentages 1RM.
+Application mobile React Native (Expo) tout-en-un pour l'entraînement :
+- **Programmes 30 jours** pré-encodés à suivre jour par jour.
+- Import IA d'un plan (Gemini 3 Flash).
+- Séances chronométrées avec 4 modes (REPS / TIME / AMRAP / EMOM), voix française, calories personnalisées.
+- Évolution corporelle (mesures + photos compressées + comparateur avant/après).
+- Records personnels + calculateur de %.
 
 ## Fonctionnalités
+
 ### 1. Profil utilisateur
 - Sexe, poids, taille, âge — stocké local.
-- Calcul automatique de l'IMC + catégorie de corpulence.
-- Le poids utilisateur affine le calcul des calories brûlées (formule MET × masse × durée).
+- IMC calculé, poids utilisé pour affiner les calories.
 
-### 2. Plans & séances
-- **4 modes d'exercice** par plan :
-  - `REPS` — séries × répétitions classique.
-  - `TIME` — chronométré (ex. 5 min de burpees).
-  - `AMRAP` — timer fixe avec compteur de tours (+/-).
-  - `EMOM` — Every Minute On the Minute : X reps à faire au début de chaque minute pendant N minutes, auto-chaînage des rounds sans repos.
+### 2. Programmes 30 jours pré-encodés
+- **3 programmes bundle inclus** dans l'app (aucune donnée serveur requise) :
+  - **Full Body 30 jours** — débutant, remise en forme (25 séances + 5 repos).
+  - **HIIT Fat Burn 30 jours** — intermédiaire, perte de graisse (20 séances + 10 repos).
+  - **Prise de masse 30 jours** — avancé, musculation lourde split PPL+bras (24 séances + 6 repos).
+- Page `/programs` (modal) + détail `/program/[id]` avec planning des 30 jours, hero, description.
+- Un seul programme actif à la fois. Bouton "COMMENCER" enregistre `startedAt`.
+- Page **Home** affiche automatiquement la carte "PROGRAMME EN COURS · Jour X/30" avec la séance du jour et un bouton "C'EST PARTI".
+- Détection auto du jour actif (basé sur la date de début). Repos affiché avec icône 😴.
+- Séance terminée → jour marqué avec ✓ vert dans la liste + compteur "N séances terminées".
+
+### 3. Plans & séances
+- **4 modes d'exercice** : REPS / TIME / AMRAP / EMOM.
 - Import IA depuis photo (Gemini 3 Flash Vision) reconnaissant les 4 modes.
-- Création manuelle avec segmented control REPS / TIME / AMRAP / EMOM.
-- Timer plein écran (cercle SVG animé) : orange = repos, vert = effort TIME, jaune = AMRAP ou EMOM.
-- **Countdown vocal** (expo-speech) : « 10 secondes » à 10 s de la fin d'un timer d'effort, « 10 secondes, prochain exercice » à 10 s de la fin d'un repos, comptage 3-2-1, annonce « C'est parti ! » au démarrage de la séance. Retour haptique triple à la fin de chaque timer.
+- Timer plein écran avec cercle SVG animé et **countdown vocal (expo-speech)** : « C'est parti ! » au démarrage, « 10 secondes » à 10 s de la fin, comptage 3-2-1.
+- Enchaînement automatique des rounds EMOM sans repos.
 
-### 3. Résumé de séance + partage image
-- Page /session/[id] : hero gradient avec durée, calories, séries, effort actif vs pause, détail par exercice.
-- **Bouton PARTAGER MA SÉANCE** : utilise `react-native-view-shot` pour capturer la carte hero (avec branding IRONFLOW) et `expo-sharing.shareAsync()` pour partager comme **image PNG**. Fallback texte si l'appareil ne supporte pas.
-- Idéal pour l'acquisition organique (Instagram/Stories).
+### 4. Résumé + partage image
+- Page /session/[id] : hero gradient, durée, calories, séries, effort actif vs pause, détail par exercice.
+- **Bouton PARTAGER** : capture PNG via `react-native-view-shot` + `expo-sharing.shareAsync()`.
 
-### 4. Progression corporelle
-- Onglet Progrès → Mesures.
-- Saisie : date, poids (kg), tour de taille (cm), tour de cuisse (cm), tour de poitrine (cm), notes.
-- **Photo compressée automatiquement** via `expo-image-manipulator` (resize 900 px + JPEG 60 %) pour éviter que le stockage local n'explose.
-- **Graphiques multi-métriques** : chips au-dessus du graphique pour switcher entre Poids / Taille / Poitrine / Cuisse. Chaque graphique affiche un chip de delta (▲/▼ + valeur) en tête.
-- **Comparateur avant / après** : dès ≥ 2 mesures avec photo, un bouton ouvre `/compare` — photos côte à côte, sélecteur de photos avant / après (bottom sheet grid), bouton swap, delta card avec évolution de chaque métrique (vert = amélioration, rouge = régression, selon la logique "poids/taille bas = mieux, poitrine/cuisse haut = mieux").
+### 5. Progression corporelle
+- Onglet Progrès → Mesures : date, poids, tour de taille, cuisse, poitrine + photo.
+- **Photo compressée** auto via `expo-image-manipulator` (900 px + JPEG 60 %).
+- **Graphiques multi-métriques** : chips pour switcher entre Poids / Taille / Poitrine / Cuisse.
+- **Comparateur avant / après** : photos côte à côte, delta card colorée.
 
-### 5. Records personnels + calculateur %
-- Onglet Progrès → Records.
-- Saisir : nom d'exercice, poids max, répétitions.
-- **1RM estimé automatiquement** avec la formule d'Epley : `1RM = w × (1 + reps/30)`.
-- Bottom sheet **Calculateur de pourcentage** : chips 50 / 60 / 70 / 80 / 90 / 100 %, ou saisie manuelle → affiche le poids à charger pour le % du 1RM.
+### 6. Records & 1RM
+- Onglet Progrès → Records : nom, poids max, reps → **1RM auto (Epley)**.
+- Bottom sheet **Calculateur de %** avec presets 50/60/70/80/90/100 %.
 
 ## Stack
-- Frontend : Expo SDK 54, expo-router file-based, react-native-svg, react-native-gifted-charts, react-native-view-shot, expo-sharing, expo-image-picker, expo-haptics, expo-linear-gradient.
-- Backend : FastAPI + emergentintegrations (Gemini 3 Flash) — endpoints `/api/health` et `/api/parse-plan`.
-- Stockage : 100 % local via AsyncStorage (@ironflow/plans, /sessions, /profile, /measurements, /prs).
+- Frontend : Expo SDK 54, expo-router, react-native-svg, react-native-gifted-charts, react-native-view-shot, expo-sharing, expo-image-picker, expo-image-manipulator, expo-speech, expo-haptics, expo-linear-gradient.
+- Backend : FastAPI + emergentintegrations (Gemini 3 Flash).
+- Stockage : 100 % local via AsyncStorage.
 
-## Endpoints
-- `GET /api/health` — statut + config LLM.
-- `POST /api/parse-plan` — body `{ image_base64 }` → plan structuré avec modes reps/time/amrap.
+## Storage keys
+- `@ironflow/plans`, `/sessions`, `/profile`, `/measurements`, `/prs`, `/activeProgram`.
+
+## Endpoints backend
+- `GET /api/health`.
+- `POST /api/parse-plan`.
 
 ## Formules
-- **Calories** : `kcal = MET × poids × heures` avec MET = 5 (musculation) / 8 (HIIT) / 9 (cardio) / 7 (mixte).
-- **1RM** : Epley `w × (1 + reps/30)`.
-- **IMC** : `poids_kg / (taille_m)²`.
-
-## Design
-Dark energetic gym theme, Ember Orange #FF3D00, grille 8pt, cercles timer 240 pt, cards radius 12.
+- Calories : `kcal = MET × poids × heures` (MET 5/8/9/7).
+- 1RM : Epley `w × (1 + reps/30)`.
+- IMC : `poids_kg / (taille_m)²`.
 
 ## Prochaines évolutions
-- Assistant vocal (créer une séance rapide).
-- Import PDF multi-pages.
-- Comparateur photo côte à côte (avant/après).
-- Suivi mensuel avec objectifs.
-- Notifications de rappel (nécessite un build).
+- Programmes personnalisés créés par l'utilisateur.
+- Rappels quotidiens de séance (nécessite un build).
+- Slider "before/after" interactif dans le comparateur.
+- Choix de la voix TTS.
