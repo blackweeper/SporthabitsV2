@@ -12,7 +12,12 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { BarChart } from "react-native-gifted-charts";
 import { colors, radius, spacing } from "@/src/theme";
-import { getSessions, WorkoutSession } from "@/src/utils/gym-storage";
+import {
+  CARDIO_ACTIVITY_EMOJI,
+  CARDIO_ACTIVITY_LABEL,
+  getSessions,
+  WorkoutSession,
+} from "@/src/utils/gym-storage";
 
 function formatDuration(sec: number) {
   const m = Math.floor(sec / 60);
@@ -147,9 +152,27 @@ export default function HistoryScreen() {
                 onPress={() => router.push(`/session/${s.id}`)}
               >
                 <View style={styles.sessionHeader}>
-                  <Text style={styles.sessionTitle}>{s.planTitle}</Text>
+                  <View style={styles.sessionTitleRow}>
+                    {s.cardio_activity ? (
+                      <Text style={styles.sessionEmoji}>
+                        {CARDIO_ACTIVITY_EMOJI[s.cardio_activity]}
+                      </Text>
+                    ) : s.planType === "stretch" ? (
+                      <Text style={styles.sessionEmoji}>🧘</Text>
+                    ) : null}
+                    <Text style={styles.sessionTitle} numberOfLines={1}>
+                      {s.planTitle}
+                    </Text>
+                  </View>
                   <Text style={styles.sessionDate}>{formatDate(s.startedAt)}</Text>
                 </View>
+                {s.cardio_activity ? (
+                  <View style={styles.activityTag}>
+                    <Text style={styles.activityTagText}>
+                      {CARDIO_ACTIVITY_LABEL[s.cardio_activity]}
+                    </Text>
+                  </View>
+                ) : null}
                 <View style={styles.sessionStats}>
                   <View style={styles.sessionStat}>
                     <Ionicons name="time" size={14} color={colors.brand} />
@@ -291,7 +314,28 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
-  sessionTitle: { color: colors.onSurface, fontWeight: "700", fontSize: 15 },
+  sessionTitle: { color: colors.onSurface, fontWeight: "700", fontSize: 15, flex: 1 },
+  sessionTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    flex: 1,
+  },
+  sessionEmoji: { fontSize: 18 },
+  activityTag: {
+    alignSelf: "flex-start",
+    marginTop: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
+    backgroundColor: colors.brandTertiary,
+  },
+  activityTagText: {
+    color: colors.brandSecondary,
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 0.6,
+  },
   sessionDate: { color: colors.onSurfaceTertiary, fontSize: 11 },
   sessionStats: { flexDirection: "row", gap: spacing.lg },
   sessionStat: { flexDirection: "row", alignItems: "center", gap: 4 },

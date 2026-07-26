@@ -114,7 +114,13 @@ export default function StatsScreen() {
         </View>
 
         {stats.favoriteExercise && (
-          <View style={styles.highlightCard}>
+          <Pressable
+            testID="open-fav-exercise"
+            style={styles.highlightCard}
+            onPress={() =>
+              router.push(`/exercise/${encodeURIComponent(stats.favoriteExercise!)}`)
+            }
+          >
             <Ionicons name="star" size={18} color={colors.brand} />
             <View style={{ flex: 1 }}>
               <Text style={styles.highlightLabel}>Exercice préféré</Text>
@@ -122,10 +128,17 @@ export default function StatsScreen() {
                 {capitalize(stats.favoriteExercise)}
               </Text>
             </View>
-          </View>
+            <Ionicons name="chevron-forward" size={16} color={colors.brand} />
+          </Pressable>
         )}
         {stats.forgottenExercise && (
-          <View style={styles.highlightCardMuted}>
+          <Pressable
+            testID="open-forgotten-exercise"
+            style={styles.highlightCardMuted}
+            onPress={() =>
+              router.push(`/exercise/${encodeURIComponent(stats.forgottenExercise!)}`)
+            }
+          >
             <Ionicons name="alert-circle" size={18} color={colors.onSurfaceSecondary} />
             <View style={{ flex: 1 }}>
               <Text style={styles.highlightLabelMuted}>Exercice oublié</Text>
@@ -136,8 +149,19 @@ export default function StatsScreen() {
                 Fait il y a plus de 30 jours
               </Text>
             </View>
-          </View>
+            <Ionicons name="chevron-forward" size={16} color={colors.onSurfaceTertiary} />
+          </Pressable>
         )}
+
+        <Pressable
+          testID="open-all-exercises"
+          style={styles.allExBtn}
+          onPress={() => router.push("/exercise")}
+        >
+          <Ionicons name="list" size={16} color={colors.brand} />
+          <Text style={styles.allExBtnText}>Voir tous mes exercices</Text>
+          <Ionicons name="chevron-forward" size={16} color={colors.brand} />
+        </Pressable>
 
         {/* Calendar */}
         <Text style={styles.sectionTitle}>Calendrier</Text>
@@ -278,6 +302,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "800",
     marginTop: spacing.sm,
+    letterSpacing: 0.5,
+  },
+  allExBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    borderWidth: 1.5,
+    borderColor: colors.brand,
+    borderStyle: "dashed",
+  },
+  allExBtnText: {
+    flex: 1,
+    color: colors.brand,
+    fontWeight: "800",
+    fontSize: 13,
     letterSpacing: 0.5,
   },
 });

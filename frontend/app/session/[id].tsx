@@ -265,6 +265,23 @@ export default function SessionDetailScreen() {
         })}
 
         <Pressable
+          testID="open-journal"
+          style={styles.journalBtn}
+          onPress={() => router.push(`/journal/${session.id}`)}
+        >
+          <Ionicons name="book" size={18} color={colors.brand} />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.journalBtnTitle}>Journal & cardio</Text>
+            <Text style={styles.journalBtnSub}>
+              {session.journal || session.cardio_activity
+                ? "Modifier tes notes / ressenti"
+                : "Ajouter ressenti, sommeil, activité cardio…"}
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={16} color={colors.brand} />
+        </Pressable>
+
+        <Pressable
           testID="share-session"
           style={styles.shareBtn}
           onPress={shareImage}
@@ -458,6 +475,27 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
   shareText: { color: "#fff", fontWeight: "800", letterSpacing: 1 },
+  journalBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    borderWidth: 1.5,
+    borderColor: colors.brand,
+    borderStyle: "dashed",
+    marginTop: spacing.md,
+  },
+  journalBtnTitle: {
+    color: colors.onSurface,
+    fontWeight: "800",
+    fontSize: 14,
+  },
+  journalBtnSub: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 11,
+    marginTop: 2,
+  },
   disclaimer: {
     color: colors.onSurfaceTertiary,
     fontSize: 11,
