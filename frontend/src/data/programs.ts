@@ -27,6 +27,8 @@ export type Program = {
   color: string;
   days: ProgramDay[];
   isCustom?: boolean;
+  /** 'workout' (default) or 'stretch' — used to route to the right tab. */
+  category?: 'workout' | 'stretch';
 };
 
 // ---- Session template builders (reusable) ----
@@ -269,6 +271,104 @@ export const BUNDLED_PROGRAMS: Program[] = [
     coverEmoji: '🏋️',
     color: '#E53935',
     days: buildMass30(),
+  },
+];
+
+// ---- Stretching programs (category: 'stretch') ----
+const STRETCH_MORNING = day('Réveil du corps (10 min)', [
+  ex('Étirement du cou', 1, '30s par côté', 5, null, 'time', 30),
+  ex('Rotations d\'épaules', 1, '10 rotations', 5, null, 'time', 30),
+  ex('Étirement chat-vache', 1, '10 cycles', 5, null, 'time', 45),
+  ex('Étirement dos rond', 1, '30s', 5, null, 'time', 30),
+  ex('Étirement des ischios debout', 1, '30s par jambe', 5, null, 'time', 60),
+  ex('Étirement quadriceps', 1, '30s par jambe', 5, null, 'time', 60),
+  ex('Étirement hanches (papillon)', 1, '45s', 5, null, 'time', 45),
+]);
+const STRETCH_EVENING = day('Relaxation du soir (12 min)', [
+  ex('Respiration profonde', 1, '2 min', 0, null, 'time', 120),
+  ex('Étirement du dos allongé', 1, '45s', 5, null, 'time', 45),
+  ex('Torsion allongée', 1, '30s par côté', 5, null, 'time', 60),
+  ex('Étirement pigeon', 1, '45s par côté', 5, null, 'time', 90),
+  ex('Étirement papillon assis', 1, '60s', 5, null, 'time', 60),
+  ex('Étirement enfant (yoga)', 1, '90s', 5, null, 'time', 90),
+]);
+const STRETCH_MOBILITY = day('Mobilité articulaire (15 min)', [
+  ex('Rotations de nuque', 1, '30s', 5, null, 'time', 30),
+  ex('Rotations d\'épaules', 1, '10 cycles', 5, null, 'time', 45),
+  ex('Rotations bras complet', 1, '20 total', 5, null, 'time', 45),
+  ex('Rotations hanches', 1, '10 cycles', 5, null, 'time', 45),
+  ex('Squats profonds', 1, '10 lents', 5, null, 'time', 60),
+  ex('Étirement dynamique ischios', 1, '10 par jambe', 5, null, 'time', 60),
+  ex('Marches genoux haut', 1, '30 pas', 5, null, 'time', 30),
+]);
+const STRETCH_LOWER = day('Bas du corps (15 min)', [
+  ex('Étirement ischios (assis)', 1, '45s par jambe', 5, null, 'time', 90),
+  ex('Étirement quadriceps debout', 1, '45s par jambe', 5, null, 'time', 90),
+  ex('Étirement adducteurs', 1, '45s', 5, null, 'time', 45),
+  ex('Fente basse (hip flexor)', 1, '60s par côté', 5, null, 'time', 120),
+  ex('Étirement mollets contre mur', 1, '45s par jambe', 5, null, 'time', 90),
+  ex('Pigeon', 1, '60s par côté', 5, null, 'time', 120),
+]);
+const STRETCH_UPPER = day('Haut du corps (12 min)', [
+  ex('Étirement du cou', 1, '30s par côté', 5, null, 'time', 60),
+  ex('Étirement pectoraux au mur', 1, '45s par côté', 5, null, 'time', 90),
+  ex('Étirement triceps derrière la tête', 1, '30s par côté', 5, null, 'time', 60),
+  ex('Étirement biceps mur', 1, '30s par côté', 5, null, 'time', 60),
+  ex('Aigle (croiser les bras)', 1, '30s par côté', 5, null, 'time', 60),
+  ex('Cobra', 1, '30s', 5, null, 'time', 30),
+  ex('Torsions assises', 1, '30s par côté', 5, null, 'time', 60),
+]);
+
+const STRETCH_ROTATION_14 = [
+  STRETCH_MORNING,
+  STRETCH_LOWER,
+  STRETCH_EVENING,
+  STRETCH_UPPER,
+  STRETCH_MOBILITY,
+];
+const buildStretch14 = (): ProgramDay[] => {
+  const days: ProgramDay[] = [];
+  for (let d = 1; d <= 14; d++) {
+    days.push({ ...STRETCH_ROTATION_14[(d - 1) % STRETCH_ROTATION_14.length] });
+  }
+  return days;
+};
+
+const STRETCH_ROTATION_7 = [STRETCH_MORNING, STRETCH_LOWER, STRETCH_EVENING, STRETCH_UPPER];
+const buildStretch7 = (): ProgramDay[] => {
+  const days: ProgramDay[] = [];
+  for (let d = 1; d <= 7; d++) {
+    days.push({ ...STRETCH_ROTATION_7[(d - 1) % STRETCH_ROTATION_7.length] });
+  }
+  return days;
+};
+
+export const BUNDLED_STRETCH_PROGRAMS: Program[] = [
+  {
+    id: 'stretch-daily-14',
+    title: 'Étirements quotidiens · 14 jours',
+    description:
+      "Un programme d'étirements complet à faire chaque jour. Alterne réveil matinal, mobilité, bas du corps, haut du corps et relaxation.",
+    durationDays: 14,
+    level: 'debutant',
+    goal: 'Souplesse & récupération',
+    coverEmoji: '🧘',
+    color: '#00E676',
+    category: 'stretch',
+    days: buildStretch14(),
+  },
+  {
+    id: 'stretch-week-7',
+    title: 'Semaine mobilité · 7 jours',
+    description:
+      "Programme court d'une semaine pour retrouver de la mobilité. Idéal si tu débutes ou reprends après une pause.",
+    durationDays: 7,
+    level: 'debutant',
+    goal: 'Mobilité générale',
+    coverEmoji: '🌱',
+    color: '#00B0FF',
+    category: 'stretch',
+    days: buildStretch7(),
   },
 ];
 

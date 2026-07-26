@@ -1,11 +1,12 @@
 import { useCallback, useState } from "react";
 import { View, Text, StyleSheet, ScrollView, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useFocusEffect, useRouter } from "expo-router";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing } from "@/src/theme";
 import {
   BUNDLED_PROGRAMS,
+  BUNDLED_STRETCH_PROGRAMS,
   LEVEL_LABEL,
   Program,
 } from "@/src/data/programs";
@@ -13,15 +14,28 @@ import { getCustomPrograms } from "@/src/utils/gym-storage";
 
 export default function ProgramsScreen() {
   const router = useRouter();
+  const { category } = useLocalSearchParams<{ category?: string }>();
+  const isStretch = category === "stretch";
   const [customs, setCustoms] = useState<Program[]>([]);
 
   useFocusEffect(
     useCallback(() => {
       (async () => {
-        setCustoms((await getCustomPrograms()) as Program[]);
+        const all = (await getCustomPrograms()) as Program[];
+        setCustoms(
+          all.filter((p) =>
+            isStretch ? p.category === "stretch" : (p.category ?? "workout") === "workout",
+          ),
+        );
       })();
-    }, []),
+    }, [isStretch]),
   );
+
+  const bundled = isStretch ? BUNDLED_STRETCH_PROGRAMS : BUNDLED_PROGRAMS;
+  const createHref = isStretch
+    ? "/custom-program/new?category=stretch"
+    : "/custom-program/new";
+  const title = isStretch ? "Programmes d'étirement" : "Programmes";
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
@@ -33,7 +47,7 @@ export default function ProgramsScreen() {
         >
           <Ionicons name="close" size={26} color={colors.onSurface} />
         </Pressable>
-        <Text style={styles.title}>Programmes</Text>
+        <Text style={styles.title}>{title}</Text>
         <View style={{ width: 26 }} />
       </View>
       <ScrollView
@@ -43,15 +57,19 @@ export default function ProgramsScreen() {
         <Pressable
           testID="create-program"
           style={styles.createCard}
-          onPress={() => router.push("/custom-program/new")}
+          onPress={() => router.push(createHref as any)}
         >
           <View style={styles.createIcon}>
             <Ionicons name="add" size={28} color={colors.brand} />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.createTitle}>Créer mon programme</Text>
+            <Text style={styles.createTitle}>
+              {isStretch ? "Créer mon programme d'étirement" : "Créer mon programme"}
+            </Text>
             <Text style={styles.createSub}>
-              Programme personnalisé avec 1 ou plusieurs séances par jour
+              {isStretch
+                ? "Étirements sur mesure avec durées personnalisées"
+                : "Programme personnalisé avec 1 ou plusieurs séances par jour"}
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color={colors.brand} />
@@ -70,8 +88,10 @@ export default function ProgramsScreen() {
           </>
         )}
 
-        <Text style={styles.sectionLabel}>PROGRAMMES INCLUS</Text>
-        {BUNDLED_PROGRAMS.map((p) => (
+        <Text style={styles.sectionLabel}>
+          {isStretch ? "PROGRAMMES INCLUS" : "PROGRAMMES INCLUS"}
+        </Text>
+        {bundled.map((p) => (
           <ProgramCard
             key={p.id}
             program={p}
@@ -201,11 +221,7 @@ const styles = StyleSheet.create({
   },
   emojiText: { fontSize: 30 },
   tagRow: { flexDirection: "row", gap: 6, flexWrap: "wrap" },
-  tag: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: radius.sm,
-  },
+  tag: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: radius.sm },
   tagText: {
     color: "#fff",
     fontSize: 9,

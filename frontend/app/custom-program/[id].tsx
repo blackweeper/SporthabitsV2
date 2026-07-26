@@ -14,6 +14,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing } from "@/src/theme";
+import ExercisePicture from "@/src/components/ExercisePicture";
+import ExercisePicturePicker from "@/src/components/ExercisePicturePicker";
 import {
   COVER_COLORS,
   COVER_EMOJIS,
@@ -64,11 +66,13 @@ function newSession(): ProgramSession {
 }
 
 export default function CustomProgramEditor() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, category } = useLocalSearchParams<{ id: string; category?: string }>();
   const router = useRouter();
   const isNew = id === "new";
+  const isStretch = category === "stretch";
   const [program, setProgram] = useState<Program | null>(null);
   const [selectedDay, setSelectedDay] = useState(1);
+  const [pickingIdx, setPickingIdx] = useState<{ sessionIdx: number; exIdx: number } | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -77,13 +81,14 @@ export default function CustomProgramEditor() {
           id: uid(),
           title: "",
           description: "",
-          durationDays: 30,
-          level: "intermediaire",
-          goal: "",
-          coverEmoji: "💪",
-          color: COVER_COLORS[0],
-          days: Array.from({ length: 30 }, () => emptyDay()),
+          durationDays: isStretch ? 14 : 30,
+          level: "debutant",
+          goal: isStretch ? "Souplesse & mobilité" : "",
+          coverEmoji: isStretch ? "🧘" : "💪",
+          color: isStretch ? "#00E676" : COVER_COLORS[0],
+          days: Array.from({ length: isStretch ? 14 : 30 }, () => emptyDay()),
           isCustom: true,
+          category: isStretch ? "stretch" : "workout",
         });
       } else {
         const list = (await getCustomPrograms()) as Program[];
@@ -95,7 +100,7 @@ export default function CustomProgramEditor() {
         }
       }
     })();
-  }, [id, isNew]);
+  }, [id, isNew, isStretch]);
 
   const patch = useCallback(<K extends keyof Program>(k: K, v: Program[K]) => {
     setProgram((p) => (p ? { ...p, [k]: v } : p));
@@ -397,6 +402,9 @@ export default function CustomProgramEditor() {
                         sessions: d.sessions.filter((_, i) => i !== si),
                       }))
                     }
+                    onPickExercisePic={(exIdx) =>
+                      setPickingIdx({ sessionIdx: si, exIdx })
+                    }
                     index={si}
                   />
                 ))}
@@ -426,6 +434,40 @@ export default function CustomProgramEditor() {
           <View style={{ height: 40 }} />
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <ExercisePicturePicker
+        visible={pickingIdx !== null}
+        currentPhoto={
+          pickingIdx
+            ? ((program.days[selectedDay - 1]?.sessions[pickingIdx.sessionIdx]
+                ?.exercises[pickingIdx.exIdx] as any)?.photoBase64 ?? null)
+            : null
+        }
+        currentIconKey={
+          pickingIdx
+            ? ((program.days[selectedDay - 1]?.sessions[pickingIdx.sessionIdx]
+                ?.exercises[pickingIdx.exIdx] as any)?.iconKey ?? null)
+            : null
+        }
+        onClose={() => setPickingIdx(null)}
+        onPick={(payload) => {
+          if (!pickingIdx) return;
+          const { sessionIdx, exIdx } = pickingIdx;
+          updateDay(selectedDay, (d) => ({
+            ...d,
+            sessions: d.sessions.map((s, si) =>
+              si !== sessionIdx
+                ? s
+                : {
+                    ...s,
+                    exercises: s.exercises.map((ex, ei) =>
+                      ei !== exIdx ? ex : { ...ex, ...payload },
+                    ),
+                  },
+            ),
+          }));
+        }}
+      />
     </SafeAreaView>
   );
 }
@@ -434,11 +476,13 @@ function SessionEditor({
   session,
   onChange,
   onRemove,
+  onPickExercisePic,
   index,
 }: {
   session: ProgramSession;
   onChange: (p: Partial<ProgramSession>) => void;
   onRemove: () => void;
+  onPickExercisePic: (exIdx: number) => void;
   index: number;
 }) {
   return (
@@ -495,6 +539,7 @@ function SessionEditor({
               exercises: session.exercises.filter((_, i) => i !== ei),
             })
           }
+          onPickPic={() => onPickExercisePic(ei)}
         />
       ))}
       <Pressable
@@ -530,11 +575,13 @@ function ExerciseEditor({
   index,
   onChange,
   onRemove,
+  onPickPic,
 }: {
   exercise: ExerciseTemplate;
   index: number;
   onChange: (p: Partial<ExerciseTemplate>) => void;
   onRemove: () => void;
+  onPickPic: () => void;
 }) {
   const setMode = (m: ExerciseMode) => {
     const patch: Partial<ExerciseTemplate> = { mode: m };
@@ -561,6 +608,14 @@ function ExerciseEditor({
   return (
     <View style={styles.exCard} testID={`ex-editor-${index}`}>
       <View style={styles.exHead}>
+        <Pressable onPress={onPickPic} testID={`ex-pic-editor-${index}`}>
+          <ExercisePicture
+            photoBase64={(exercise as any).photoBase64}
+            iconKey={(exercise as any).iconKey}
+            name={exercise.name}
+            size={40}
+          />
+        </Pressable>
         <TextInput
           testID={`ex-name-${index}`}
           style={styles.exNameInput}

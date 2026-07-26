@@ -22,6 +22,8 @@ import {
   savePlan,
   uid,
 } from "@/src/utils/gym-storage";
+import ExercisePicture from "@/src/components/ExercisePicture";
+import ExercisePicturePicker from "@/src/components/ExercisePicturePicker";
 
 const TYPES: Plan["type"][] = ["musculation", "hiit", "cardio", "mixte"];
 const MODES: { key: ExerciseMode; label: string; hint: string }[] = [
@@ -37,6 +39,7 @@ export default function PlanDetailScreen() {
   const isNew = id === "new";
   const [plan, setPlan] = useState<Plan | null>(null);
   const [loading, setLoading] = useState(true);
+  const [pickingExerciseId, setPickingExerciseId] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -217,13 +220,30 @@ export default function PlanDetailScreen() {
                   />
                 </Pressable>
               </View>
-              <TextInput
-                style={[styles.input, styles.inputCompact]}
-                value={ex.name}
-                onChangeText={(t) => updateExercise(ex.id, { name: t })}
-                placeholder="Nom de l'exercice"
-                placeholderTextColor={colors.onSurfaceTertiary}
-              />
+              <View style={styles.exNameRow}>
+                <Pressable
+                  testID={`ex-pic-${ex.id}`}
+                  onPress={() => setPickingExerciseId(ex.id)}
+                  style={styles.exPicWrap}
+                >
+                  <ExercisePicture
+                    photoBase64={ex.photoBase64}
+                    iconKey={ex.iconKey}
+                    name={ex.name}
+                    size={48}
+                  />
+                  <View style={styles.exPicEdit}>
+                    <Ionicons name="pencil" size={10} color="#fff" />
+                  </View>
+                </Pressable>
+                <TextInput
+                  style={[styles.input, styles.inputCompact, { flex: 1 }]}
+                  value={ex.name}
+                  onChangeText={(t) => updateExercise(ex.id, { name: t })}
+                  placeholder="Nom de l'exercice"
+                  placeholderTextColor={colors.onSurfaceTertiary}
+                />
+              </View>
 
               {/* Mode selector */}
               <View style={styles.modeRow}>
@@ -401,6 +421,24 @@ export default function PlanDetailScreen() {
           <View style={{ height: 40 }} />
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <ExercisePicturePicker
+        visible={pickingExerciseId !== null}
+        currentPhoto={
+          pickingExerciseId
+            ? plan.exercises.find((e) => e.id === pickingExerciseId)?.photoBase64
+            : null
+        }
+        currentIconKey={
+          pickingExerciseId
+            ? plan.exercises.find((e) => e.id === pickingExerciseId)?.iconKey
+            : null
+        }
+        onClose={() => setPickingExerciseId(null)}
+        onPick={(payload) => {
+          if (pickingExerciseId) updateExercise(pickingExerciseId, payload);
+        }}
+      />
     </SafeAreaView>
   );
 }
@@ -484,6 +522,28 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   inputCompact: { marginBottom: spacing.sm },
+  exNameRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  exPicWrap: {
+    position: "relative",
+  },
+  exPicEdit: {
+    position: "absolute",
+    bottom: -4,
+    right: -4,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: colors.brand,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: colors.surface,
+  },
   typeRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
   typeChip: {
     paddingVertical: 8,

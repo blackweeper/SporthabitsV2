@@ -55,13 +55,13 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="history"
+        name="stretching"
         options={{
-          title: "Historique",
+          title: "Étirements",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="stats-chart" color={color} size={size} />
+            <Ionicons name="body" color={color} size={size} />
           ),
-          tabBarButtonTestID: "tab-history",
+          tabBarButtonTestID: "tab-stretching",
         }}
       />
       <Tabs.Screen
@@ -72,6 +72,12 @@ export default function TabsLayout() {
             <Ionicons name="trending-up" color={color} size={size} />
           ),
           tabBarButtonTestID: "tab-progress",
+        }}
+      />
+      <Tabs.Screen
+        name="history"
+        options={{
+          href: null,
         }}
       />
     </Tabs>

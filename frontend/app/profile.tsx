@@ -8,10 +8,14 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  Image,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
+import * as ImageManipulator from "expo-image-manipulator";
 import { colors, radius, spacing } from "@/src/theme";
 import {
   getProfile,
@@ -33,6 +37,7 @@ export default function ProfileScreen() {
     height_cm: null,
     sex: null,
     age: null,
+    photoBase64: null,
   });
   const [loading, setLoading] = useState(true);
 
@@ -45,6 +50,48 @@ export default function ProfileScreen() {
 
   const set = <K extends keyof UserProfile>(k: K, v: UserProfile[K]) =>
     setProfile((p) => ({ ...p, [k]: v }));
+
+  async function pickPhoto(fromCamera: boolean) {
+    const perm = fromCamera
+      ? await ImagePicker.requestCameraPermissionsAsync()
+      : await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) {
+      Alert.alert(
+        "Permission requise",
+        fromCamera
+          ? "Autorise l'accès à la caméra."
+          : "Autorise l'accès aux photos.",
+      );
+      return;
+    }
+    const res = fromCamera
+      ? await ImagePicker.launchCameraAsync({
+          allowsEditing: true,
+          aspect: [1, 1],
+          quality: 0.85,
+        })
+      : await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ["images"],
+          allowsEditing: true,
+          aspect: [1, 1],
+          quality: 0.85,
+        });
+    if (res.canceled || !res.assets?.length) return;
+    try {
+      const m = await ImageManipulator.manipulateAsync(
+        res.assets[0].uri,
+        [{ resize: { width: 480 } }],
+        {
+          compress: 0.7,
+          format: ImageManipulator.SaveFormat.JPEG,
+          base64: true,
+        },
+      );
+      if (m.base64) set("photoBase64", m.base64);
+    } catch {
+      Alert.alert("Erreur", "Impossible de traiter cette image.");
+    }
+  }
 
   const save = async () => {
     await saveProfile(profile);
@@ -83,10 +130,51 @@ export default function ProfileScreen() {
           contentContainerStyle={styles.scroll}
           keyboardShouldPersistTaps="handled"
         >
+          {/* Avatar block */}
+          <View style={styles.avatarWrap}>
+            <View style={styles.avatarCircle}>
+              {profile.photoBase64 ? (
+                <Image
+                  source={{ uri: `data:image/jpeg;base64,${profile.photoBase64}` }}
+                  style={styles.avatarImg}
+                />
+              ) : (
+                <Ionicons name="person" size={56} color={colors.onSurfaceTertiary} />
+              )}
+            </View>
+            <View style={styles.avatarActions}>
+              <Pressable
+                testID="avatar-camera"
+                style={styles.avatarBtn}
+                onPress={() => pickPhoto(true)}
+              >
+                <Ionicons name="camera" size={16} color={colors.brand} />
+                <Text style={styles.avatarBtnText}>Caméra</Text>
+              </Pressable>
+              <Pressable
+                testID="avatar-gallery"
+                style={styles.avatarBtn}
+                onPress={() => pickPhoto(false)}
+              >
+                <Ionicons name="images" size={16} color={colors.brand} />
+                <Text style={styles.avatarBtnText}>Galerie</Text>
+              </Pressable>
+              {profile.photoBase64 ? (
+                <Pressable
+                  testID="avatar-clear"
+                  style={styles.avatarBtnDanger}
+                  onPress={() => set("photoBase64", null)}
+                >
+                  <Ionicons name="trash" size={16} color={colors.error} />
+                </Pressable>
+              ) : null}
+            </View>
+          </View>
+
           <View style={styles.introCard}>
             <Ionicons name="body" size={22} color={colors.brand} />
             <Text style={styles.introText}>
-              Ces infos affinent le calcul des calories brûlées et sont utilisées pour le suivi de progression.
+              Ces infos affinent le calcul des calories brûlées et servent au suivi de progression (IMC, masse grasse).
             </Text>
           </View>
 
@@ -159,6 +247,22 @@ export default function ProfileScreen() {
               </Text>
             </View>
           ) : null}
+
+          {/* History shortcut (was a tab) */}
+          <Pressable
+            testID="open-history"
+            style={styles.linkRow}
+            onPress={() => router.push("/history")}
+          >
+            <View style={styles.linkIcon}>
+              <Ionicons name="time" size={18} color={colors.brand} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.linkTitle}>Historique des séances</Text>
+              <Text style={styles.linkSub}>Voir toutes tes séances passées</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={colors.onSurfaceTertiary} />
+          </Pressable>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -229,7 +333,47 @@ const styles = StyleSheet.create({
   },
   title: { color: colors.onSurface, fontSize: 17, fontWeight: "700" },
   saveText: { color: colors.brand, fontWeight: "800", letterSpacing: 0.8 },
-  scroll: { padding: spacing.lg, gap: spacing.md },
+  scroll: { padding: spacing.lg, gap: spacing.md, paddingBottom: 40 },
+  avatarWrap: { alignItems: "center", gap: spacing.md, marginBottom: spacing.sm },
+  avatarCircle: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: colors.surfaceSecondary,
+    borderWidth: 2,
+    borderColor: colors.brand,
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+  },
+  avatarImg: { width: 120, height: 120, borderRadius: 60 },
+  avatarActions: { flexDirection: "row", gap: spacing.sm },
+  avatarBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.brand,
+    backgroundColor: colors.surfaceSecondary,
+  },
+  avatarBtnDanger: {
+    padding: 10,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.error,
+    backgroundColor: colors.surfaceSecondary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  avatarBtnText: {
+    color: colors.brand,
+    fontWeight: "800",
+    fontSize: 12,
+    letterSpacing: 0.5,
+  },
   introCard: {
     backgroundColor: colors.surfaceSecondary,
     borderRadius: radius.md,
@@ -240,7 +384,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  introText: { color: colors.onSurfaceSecondary, flex: 1, fontSize: 13, lineHeight: 18 },
+  introText: {
+    color: colors.onSurfaceSecondary,
+    flex: 1,
+    fontSize: 13,
+    lineHeight: 18,
+  },
   label: {
     color: colors.onSurfaceTertiary,
     fontSize: 11,
@@ -303,4 +452,25 @@ const styles = StyleSheet.create({
   },
   bmiVal: { color: colors.onSurface, fontSize: 36, fontWeight: "800" },
   bmiHint: { color: colors.brandSecondary, fontSize: 12, fontWeight: "600" },
+  linkRow: {
+    marginTop: spacing.lg,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    backgroundColor: colors.surfaceSecondary,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  linkIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: colors.brandTertiary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  linkTitle: { color: colors.onSurface, fontWeight: "700", fontSize: 14 },
+  linkSub: { color: colors.onSurfaceTertiary, fontSize: 11, marginTop: 2 },
 });

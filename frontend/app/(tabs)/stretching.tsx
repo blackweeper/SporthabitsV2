@@ -22,21 +22,21 @@ import {
 
 type Loaded = { active: ActiveProgram; program: Program };
 
-export default function ProgramTabScreen() {
+export default function StretchingTabScreen() {
   const router = useRouter();
   const [loaded, setLoaded] = useState<Loaded[]>([]);
   const [ready, setReady] = useState(false);
 
   const load = useCallback(async () => {
     const actives = await getActivePrograms();
-    const workouts: Loaded[] = [];
+    const stretchList: Loaded[] = [];
     for (const a of actives) {
       const p = await findProgram(a.programId);
-      if (p && (p.category ?? "workout") === "workout") {
-        workouts.push({ active: a, program: p });
+      if (p && p.category === "stretch") {
+        stretchList.push({ active: a, program: p });
       }
     }
-    setLoaded(workouts);
+    setLoaded(stretchList);
     setReady(true);
   }, []);
 
@@ -50,7 +50,7 @@ export default function ProgramTabScreen() {
     return (
       <SafeAreaView style={styles.container} edges={["top"]}>
         <View style={styles.header}>
-          <Text style={styles.title}>Programme</Text>
+          <Text style={styles.title}>Étirements</Text>
         </View>
       </SafeAreaView>
     );
@@ -61,10 +61,10 @@ export default function ProgramTabScreen() {
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
       <View style={styles.header}>
-        <Text style={styles.title}>Programme</Text>
+        <Text style={styles.title}>Étirements</Text>
         <Pressable
-          testID="add-program-btn"
-          onPress={() => router.push("/programs")}
+          testID="add-stretch-btn"
+          onPress={() => router.push("/programs?category=stretch")}
           hitSlop={12}
         >
           <Ionicons name="add-circle" size={22} color={colors.brand} />
@@ -74,29 +74,8 @@ export default function ProgramTabScreen() {
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
       >
-        {loaded.length >= 2 ? (
-          <View style={styles.dualBanner}>
-            <Ionicons name="layers" size={14} color={colors.brand} />
-            <Text style={styles.dualText}>
-              Tu suis 2 programmes en parallèle
-            </Text>
-          </View>
-        ) : (
-          <Pressable
-            testID="parallel-invite"
-            style={styles.dualInvite}
-            onPress={() => router.push("/programs")}
-          >
-            <Ionicons name="add-circle-outline" size={16} color={colors.brand} />
-            <Text style={styles.dualInviteText}>
-              Suivre un 2ᵉ programme en parallèle
-            </Text>
-            <Ionicons name="chevron-forward" size={14} color={colors.brand} />
-          </Pressable>
-        )}
-
         {loaded.map(({ active, program }) => (
-          <ProgramTracker
+          <StretchTracker
             key={program.id}
             active={active}
             program={program}
@@ -110,7 +89,8 @@ export default function ProgramTabScreen() {
                   title: `${program.title} · J${dayIndex}${
                     session.label ? " · " + session.label : ""
                   }`,
-                  type: "mixte",
+                  type: "stretch",
+                  category: "stretch",
                   createdAt: new Date().toISOString(),
                   programSource: {
                     programId: program.id,
@@ -134,30 +114,30 @@ function EmptyState({ router }: { router: any }) {
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
       <View style={styles.header}>
-        <Text style={styles.title}>Programme</Text>
+        <Text style={styles.title}>Étirements</Text>
       </View>
       <ScrollView contentContainerStyle={styles.emptyScroll}>
         <View style={styles.emptyIcon}>
-          <Ionicons name="calendar" size={40} color={colors.brand} />
+          <Ionicons name="body" size={40} color="#00E676" />
         </View>
-        <Text style={styles.emptyTitle}>Aucun programme actif</Text>
+        <Text style={styles.emptyTitle}>Aucun programme d&apos;étirement actif</Text>
         <Text style={styles.emptyText}>
-          Choisis un programme parmi ceux inclus, ou crée le tien. Tu peux même suivre 2 programmes en parallèle.
+          Récupère mieux, gagne en souplesse et améliore ta mobilité. Choisis un programme inclus ou crée le tien.
         </Text>
         <Pressable
-          testID="empty-browse"
+          testID="empty-browse-stretch"
           style={styles.ctaBtn}
-          onPress={() => router.push("/programs")}
+          onPress={() => router.push("/programs?category=stretch")}
         >
           <Ionicons name="library" size={18} color="#fff" />
-          <Text style={styles.ctaText}>PARCOURIR LES PROGRAMMES</Text>
+          <Text style={styles.ctaText}>PARCOURIR LES ÉTIREMENTS</Text>
         </Pressable>
         <Pressable
-          testID="empty-create"
+          testID="empty-create-stretch"
           style={styles.ctaBtnSecondary}
-          onPress={() => router.push("/custom-program/new")}
+          onPress={() => router.push("/custom-program/new?category=stretch")}
         >
-          <Ionicons name="add-circle" size={18} color={colors.brand} />
+          <Ionicons name="add-circle" size={18} color="#00E676" />
           <Text style={styles.ctaTextSecondary}>CRÉER MON PROGRAMME</Text>
         </Pressable>
       </ScrollView>
@@ -165,7 +145,7 @@ function EmptyState({ router }: { router: any }) {
   );
 }
 
-function ProgramTracker({
+function StretchTracker({
   active,
   program,
   onOpen,
@@ -205,9 +185,7 @@ function ProgramTracker({
     <View style={styles.trackerWrap}>
       <Pressable onPress={onOpen}>
         <View style={[styles.hero, { borderLeftColor: program.color }]}>
-          <View
-            style={[styles.emojiBox, { backgroundColor: `${program.color}30` }]}
-          >
+          <View style={[styles.emojiBox, { backgroundColor: `${program.color}30` }]}>
             <Text style={{ fontSize: 38 }}>{program.coverEmoji}</Text>
           </View>
           <View style={{ flex: 1, gap: 4 }}>
@@ -236,8 +214,7 @@ function ProgramTracker({
               />
             </View>
             <Text style={styles.progressText}>
-              {doneCount}/{totalSessions} séances ·{" "}
-              {Math.round(progress * 100)}%
+              {doneCount}/{totalSessions} séances · {Math.round(progress * 100)}%
             </Text>
           </View>
         </View>
@@ -246,25 +223,7 @@ function ProgramTracker({
       <Text style={styles.sectionTitle}>À venir</Text>
       {upcoming.map(({ dayIndex, day }) => {
         const isToday = dayIndex === today;
-        const label = dayLabel(dayIndex, today);
-        if (day.rest) {
-          return (
-            <View
-              key={dayIndex}
-              style={[styles.dayBlock, styles.dayBlockRest]}
-              testID={`upcoming-${program.id}-${dayIndex}`}
-            >
-              <View style={styles.dayHead}>
-                <Text style={styles.dayLabel}>{label}</Text>
-                <Text style={styles.dayIdxText}>J{dayIndex}</Text>
-              </View>
-              <View style={styles.restRow}>
-                <Ionicons name="bed" size={16} color={colors.onSurfaceTertiary} />
-                <Text style={styles.restText}>Repos</Text>
-              </View>
-            </View>
-          );
-        }
+        if (day.rest) return null;
         return (
           <View
             key={dayIndex}
@@ -272,16 +231,10 @@ function ProgramTracker({
               styles.dayBlock,
               isToday && { borderColor: program.color, borderWidth: 2 },
             ]}
-            testID={`upcoming-${program.id}-${dayIndex}`}
           >
             <View style={styles.dayHead}>
-              <Text
-                style={[
-                  styles.dayLabel,
-                  isToday && { color: program.color },
-                ]}
-              >
-                {label}
+              <Text style={[styles.dayLabel, isToday && { color: program.color }]}>
+                {dayLabel(dayIndex, today)}
               </Text>
               <Text style={styles.dayIdxText}>J{dayIndex}</Text>
             </View>
@@ -290,45 +243,23 @@ function ProgramTracker({
               return (
                 <Pressable
                   key={si}
-                  testID={`upcoming-${program.id}-${dayIndex}-session-${si}`}
+                  testID={`stretch-${program.id}-${dayIndex}-${si}`}
                   style={[styles.sessRow, done && styles.sessRowDone]}
                   onPress={() => onLaunch(dayIndex, si, s)}
                 >
-                  <View style={styles.sessLeft}>
-                    {s.label ? (
-                      <View
-                        style={[
-                          styles.sessBadge,
-                          { backgroundColor: program.color },
-                        ]}
-                      >
-                        <Text style={styles.sessBadgeText}>
-                          {s.label.toUpperCase()}
-                        </Text>
-                      </View>
-                    ) : null}
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.sessTitle} numberOfLines={1}>
-                        {s.title}
-                      </Text>
-                      <Text style={styles.sessMeta}>
-                        {s.exercises.length} exercice
-                        {s.exercises.length > 1 ? "s" : ""}
-                      </Text>
-                    </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.sessTitle} numberOfLines={1}>
+                      {s.title}
+                    </Text>
+                    <Text style={styles.sessMeta}>
+                      {s.exercises.length} étirement
+                      {s.exercises.length > 1 ? "s" : ""}
+                    </Text>
                   </View>
                   {done ? (
-                    <Ionicons
-                      name="checkmark-circle"
-                      size={22}
-                      color={colors.success}
-                    />
+                    <Ionicons name="checkmark-circle" size={22} color={colors.success} />
                   ) : (
-                    <Ionicons
-                      name="play-circle"
-                      size={22}
-                      color={program.color}
-                    />
+                    <Ionicons name="play-circle" size={22} color={program.color} />
                   )}
                 </Pressable>
               );
@@ -336,11 +267,7 @@ function ProgramTracker({
           </View>
         );
       })}
-      <Pressable
-        style={styles.viewAll}
-        onPress={onOpen}
-        testID={`view-all-${program.id}`}
-      >
+      <Pressable style={styles.viewAll} onPress={onOpen}>
         <Text style={[styles.viewAllText, { color: program.color }]}>
           Voir tout le programme →
         </Text>
@@ -384,15 +311,16 @@ const styles = StyleSheet.create({
     width: 84,
     height: 84,
     borderRadius: 42,
-    backgroundColor: colors.brandTertiary,
+    backgroundColor: "rgba(0,230,118,0.15)",
     alignItems: "center",
     justifyContent: "center",
   },
   emptyTitle: {
     color: colors.onSurface,
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: "800",
     marginTop: spacing.md,
+    textAlign: "center",
   },
   emptyText: {
     color: colors.onSurfaceTertiary,
@@ -401,7 +329,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   ctaBtn: {
-    backgroundColor: colors.brand,
+    backgroundColor: "#00E676",
     paddingVertical: 16,
     paddingHorizontal: spacing.xl,
     borderRadius: radius.md,
@@ -409,7 +337,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.sm,
   },
-  ctaText: { color: "#fff", fontWeight: "800", letterSpacing: 1 },
+  ctaText: { color: "#000", fontWeight: "800", letterSpacing: 1 },
   ctaBtnSecondary: {
     paddingVertical: 14,
     paddingHorizontal: spacing.xl,
@@ -418,40 +346,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.sm,
     borderWidth: 1.5,
-    borderColor: colors.brand,
+    borderColor: "#00E676",
   },
-  ctaTextSecondary: { color: colors.brand, fontWeight: "800", letterSpacing: 1 },
+  ctaTextSecondary: { color: "#00E676", fontWeight: "800", letterSpacing: 1 },
   scroll: { padding: spacing.lg, gap: spacing.lg },
-  dualBanner: {
-    flexDirection: "row",
-    gap: 6,
-    alignItems: "center",
-    backgroundColor: colors.brandTertiary,
-    padding: spacing.sm,
-    borderRadius: radius.sm,
-  },
-  dualText: {
-    color: colors.brandSecondary,
-    fontSize: 12,
-    fontWeight: "700",
-    letterSpacing: 0.4,
-  },
-  dualInvite: {
-    flexDirection: "row",
-    gap: 6,
-    alignItems: "center",
-    padding: spacing.sm,
-    borderRadius: radius.sm,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderStyle: "dashed",
-  },
-  dualInviteText: {
-    flex: 1,
-    color: colors.brand,
-    fontSize: 12,
-    fontWeight: "700",
-  },
   trackerWrap: { gap: spacing.sm },
   hero: {
     flexDirection: "row",
@@ -501,7 +399,6 @@ const styles = StyleSheet.create({
     color: colors.onSurfaceTertiary,
     fontSize: 10,
     marginTop: 4,
-    letterSpacing: 0.4,
   },
   sectionTitle: {
     color: colors.onSurface,
@@ -518,7 +415,6 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     gap: spacing.sm,
   },
-  dayBlockRest: { backgroundColor: colors.surface },
   dayHead: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -535,41 +431,17 @@ const styles = StyleSheet.create({
     fontSize: 10,
     letterSpacing: 0.4,
   },
-  restRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  restText: {
-    color: colors.onSurfaceTertiary,
-    fontSize: 12,
-    fontStyle: "italic",
-  },
   sessRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
     gap: spacing.sm,
     backgroundColor: colors.surfaceTertiary,
     padding: spacing.sm,
     borderRadius: radius.sm,
   },
   sessRowDone: { opacity: 0.7 },
-  sessLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    flex: 1,
-  },
-  sessBadge: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
-  sessBadgeText: {
-    color: "#fff",
-    fontSize: 9,
-    fontWeight: "800",
-    letterSpacing: 0.4,
-  },
   sessTitle: { color: colors.onSurface, fontWeight: "600", fontSize: 12 },
   sessMeta: { color: colors.onSurfaceTertiary, fontSize: 10, marginTop: 1 },
   viewAll: { padding: spacing.sm, alignItems: "flex-end" },
-  viewAllText: {
-    fontWeight: "800",
-    letterSpacing: 0.5,
-    fontSize: 12,
-  },
+  viewAllText: { fontWeight: "800", letterSpacing: 0.5, fontSize: 12 },
 });

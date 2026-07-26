@@ -21,11 +21,12 @@ import {
 import { findProgram, isBundled } from "@/src/utils/programs";
 import {
   ActiveProgram,
+  addActiveProgram,
   currentDayIndex,
   deleteCustomProgram,
   findOrCreateProgramPlan,
-  getActiveProgram,
-  setActiveProgram,
+  getActivePrograms,
+  removeActiveProgram,
   uid,
 } from "@/src/utils/gym-storage";
 
@@ -34,11 +35,14 @@ export default function ProgramDetailScreen() {
   const router = useRouter();
   const [program, setProgram] = useState<Program | null>(null);
   const [active, setActive] = useState<ActiveProgram | null>(null);
+  const [otherActiveCount, setOtherActiveCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     setProgram(await findProgram(id!));
-    setActive(await getActiveProgram());
+    const actives = await getActivePrograms();
+    setActive(actives.find((a) => a.programId === id) ?? null);
+    setOtherActiveCount(actives.filter((a) => a.programId !== id).length);
     setLoading(false);
   }, [id]);
 
@@ -76,22 +80,24 @@ export default function ProgramDetailScreen() {
 
   const start = async () => {
     const doStart = async () => {
-      await setActiveProgram({
+      await addActiveProgram({
         programId: program.id,
         startedAt: new Date().toISOString(),
         completedSessions: [],
       });
       load();
     };
-    if (active && active.programId !== program.id) {
-      const msg = "Tu as déjà un programme actif. Le remplacer ?";
+    // We now allow up to 2 simultaneous. Warn only when already at cap.
+    if (!isActive && otherActiveCount >= 2) {
+      const msg =
+        "Tu suis déjà 2 programmes. En démarrant celui-ci, le plus ancien sera remplacé.";
       if (Platform.OS === "web") {
         if (window.confirm(msg)) await doStart();
         return;
       }
-      Alert.alert("Remplacer le programme actif ?", msg, [
+      Alert.alert("Remplacer un programme actif ?", msg, [
         { text: "Annuler", style: "cancel" },
-        { text: "Remplacer", style: "destructive", onPress: doStart },
+        { text: "Continuer", style: "destructive", onPress: doStart },
       ]);
       return;
     }
@@ -102,7 +108,7 @@ export default function ProgramDetailScreen() {
     const msg =
       "Arrêter ce programme ? Tes séances déjà faites resteront dans l'historique.";
     const doStop = async () => {
-      await setActiveProgram(null);
+      await removeActiveProgram(program.id);
       load();
     };
     if (Platform.OS === "web") {
@@ -118,7 +124,7 @@ export default function ProgramDetailScreen() {
   const removeCustom = async () => {
     const msg = "Supprimer définitivement ce programme personnalisé ?";
     const doDel = async () => {
-      if (isActive) await setActiveProgram(null);
+      if (isActive) await removeActiveProgram(program.id);
       await deleteCustomProgram(program.id);
       router.back();
     };
@@ -137,13 +143,15 @@ export default function ProgramDetailScreen() {
     sessionIndex: number,
     session: ProgramSession,
   ) {
+    const isStretch = program!.category === "stretch";
     const plan = await findOrCreateProgramPlan(
       program!.id,
       dayIndex,
       sessionIndex,
       () => ({
         title: `${program!.title} · J${dayIndex}${session.label ? " · " + session.label : ""}`,
-        type: "mixte",
+        type: isStretch ? "stretch" : "mixte",
+        category: isStretch ? "stretch" : "workout",
         createdAt: new Date().toISOString(),
         programSource: {
           programId: program!.id,

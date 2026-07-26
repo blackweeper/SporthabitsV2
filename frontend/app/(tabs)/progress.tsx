@@ -18,21 +18,44 @@ import { colors, radius, spacing } from "@/src/theme";
 import {
   deletePR,
   estimateOneRepMax,
+  formatDurationHMS,
+  formatPace,
   getMeasurements,
   getPRs,
   Measurement,
+  paceSecondsPerKm,
   PersonalRecord,
+  PRType,
+  repsForPercent,
 } from "@/src/utils/gym-storage";
 
 type SubTab = "measurements" | "records";
 
-type MetricKey = 'weight_kg' | 'waist_cm' | 'thigh_cm' | 'chest_cm';
+type MetricKey =
+  | 'weight_kg'
+  | 'waist_cm'
+  | 'thigh_cm'
+  | 'chest_cm'
+  | 'neck_cm'
+  | 'hips_cm'
+  | 'arm_cm'
+  | 'forearm_cm'
+  | 'calf_cm'
+  | 'waist_navel_cm'
+  | 'body_fat_pct';
 
 const METRICS: { key: MetricKey; label: string; unit: string }[] = [
   { key: 'weight_kg', label: 'Poids', unit: 'kg' },
-  { key: 'waist_cm', label: 'Taille', unit: 'cm' },
+  { key: 'body_fat_pct', label: 'Masse grasse', unit: '%' },
   { key: 'chest_cm', label: 'Poitrine', unit: 'cm' },
+  { key: 'waist_cm', label: 'Taille', unit: 'cm' },
+  { key: 'waist_navel_cm', label: 'Taille (nombril)', unit: 'cm' },
+  { key: 'hips_cm', label: 'Hanches', unit: 'cm' },
   { key: 'thigh_cm', label: 'Cuisse', unit: 'cm' },
+  { key: 'calf_cm', label: 'Mollet', unit: 'cm' },
+  { key: 'arm_cm', label: 'Bras', unit: 'cm' },
+  { key: 'forearm_cm', label: 'Avant-bras', unit: 'cm' },
+  { key: 'neck_cm', label: 'Cou', unit: 'cm' },
 ];
 
 export default function ProgressScreen() {
@@ -264,11 +287,20 @@ export default function ProgressScreen() {
                       {m.weight_kg != null && (
                         <MetricPill icon="body" value={`${m.weight_kg} kg`} />
                       )}
+                      {m.body_fat_pct != null && (
+                        <MetricPill icon="pulse" value={`${m.body_fat_pct}% MG`} />
+                      )}
                       {m.waist_cm != null && (
                         <MetricPill icon="resize" value={`Taille ${m.waist_cm}`} />
                       )}
+                      {m.hips_cm != null && (
+                        <MetricPill icon="ellipse" value={`Hanches ${m.hips_cm}`} />
+                      )}
                       {m.chest_cm != null && (
                         <MetricPill icon="man" value={`Poitrine ${m.chest_cm}`} />
+                      )}
+                      {m.arm_cm != null && (
+                        <MetricPill icon="barbell" value={`Bras ${m.arm_cm}`} />
                       )}
                       {m.thigh_cm != null && (
                         <MetricPill icon="footsteps" value={`Cuisse ${m.thigh_cm}`} />
@@ -309,7 +341,7 @@ export default function ProgressScreen() {
               </View>
             ) : (
               prs.map((pr) => {
-                const oneRM = estimateOneRepMax(pr.weight_kg, pr.reps);
+                const t: PRType = pr.type ?? 'weight';
                 return (
                   <Pressable
                     key={pr.id}
@@ -318,31 +350,76 @@ export default function ProgressScreen() {
                     onPress={() => setSelectedPR(pr)}
                   >
                     <View style={styles.prTop}>
-                      <Ionicons name="trophy" size={18} color={colors.brand} />
+                      <Ionicons
+                        name={t === 'run' ? 'stopwatch' : t === 'reps' ? 'repeat' : 'trophy'}
+                        size={18}
+                        color={colors.brand}
+                      />
                       <Text style={styles.prName}>{pr.exerciseName}</Text>
-                    </View>
-                    <View style={styles.prStatsRow}>
-                      <View style={styles.prStat}>
-                        <Text style={styles.prStatVal}>{pr.weight_kg}</Text>
-                        <Text style={styles.prStatLabel}>KG</Text>
-                      </View>
-                      <View style={styles.prStatSep} />
-                      <View style={styles.prStat}>
-                        <Text style={styles.prStatVal}>×{pr.reps}</Text>
-                        <Text style={styles.prStatLabel}>REPS</Text>
-                      </View>
-                      <View style={styles.prStatSep} />
-                      <View style={styles.prStat}>
-                        <Text
-                          style={[styles.prStatVal, { color: colors.brand }]}
-                        >
-                          {oneRM.toFixed(1)}
+                      <View style={styles.prTypeTag}>
+                        <Text style={styles.prTypeTagText}>
+                          {t === 'run' ? 'COURSE' : t === 'reps' ? 'REPS' : 'POIDS'}
                         </Text>
-                        <Text style={styles.prStatLabel}>1RM est.</Text>
                       </View>
                     </View>
+                    {t === 'weight' && (
+                      <View style={styles.prStatsRow}>
+                        <View style={styles.prStat}>
+                          <Text style={styles.prStatVal}>{pr.weight_kg}</Text>
+                          <Text style={styles.prStatLabel}>KG</Text>
+                        </View>
+                        <View style={styles.prStatSep} />
+                        <View style={styles.prStat}>
+                          <Text style={styles.prStatVal}>×{pr.reps}</Text>
+                          <Text style={styles.prStatLabel}>REPS</Text>
+                        </View>
+                        <View style={styles.prStatSep} />
+                        <View style={styles.prStat}>
+                          <Text style={[styles.prStatVal, { color: colors.brand }]}>
+                            {estimateOneRepMax(pr.weight_kg, pr.reps).toFixed(1)}
+                          </Text>
+                          <Text style={styles.prStatLabel}>1RM est.</Text>
+                        </View>
+                      </View>
+                    )}
+                    {t === 'reps' && (
+                      <View style={styles.prStatsRow}>
+                        <View style={styles.prStat}>
+                          <Text style={[styles.prStatVal, { color: colors.brand }]}>
+                            {pr.reps}
+                          </Text>
+                          <Text style={styles.prStatLabel}>REPS MAX</Text>
+                        </View>
+                      </View>
+                    )}
+                    {t === 'run' && (
+                      <View style={styles.prStatsRow}>
+                        <View style={styles.prStat}>
+                          <Text style={styles.prStatVal}>
+                            {((pr.distance_m ?? 0) / 1000).toFixed(2)}
+                          </Text>
+                          <Text style={styles.prStatLabel}>KM</Text>
+                        </View>
+                        <View style={styles.prStatSep} />
+                        <View style={styles.prStat}>
+                          <Text style={styles.prStatVal}>
+                            {formatDurationHMS(pr.time_seconds ?? 0)}
+                          </Text>
+                          <Text style={styles.prStatLabel}>TEMPS</Text>
+                        </View>
+                        <View style={styles.prStatSep} />
+                        <View style={styles.prStat}>
+                          <Text style={[styles.prStatVal, { color: colors.brand, fontSize: 16 }]}>
+                            {formatPace(
+                              paceSecondsPerKm(pr.distance_m ?? 0, pr.time_seconds ?? 0),
+                            )}
+                          </Text>
+                          <Text style={styles.prStatLabel}>ALLURE</Text>
+                        </View>
+                      </View>
+                    )}
                     <Text style={styles.prCalcHint}>
-                      Tape pour calculer les % →
+                      Tape pour {t === 'run' ? 'projeter d’autres distances' : 'calculer les % →'}
                     </Text>
                   </Pressable>
                 );
@@ -388,9 +465,16 @@ function PRCalculator({
   onDelete: () => void;
 }) {
   const [percent, setPercent] = useState("70");
+  const t: PRType = pr?.type ?? 'weight';
   const oneRM = pr ? estimateOneRepMax(pr.weight_kg, pr.reps) : 0;
   const pctNum = Math.max(0, Math.min(120, parseFloat(percent) || 0));
   const targetWeight = (oneRM * pctNum) / 100;
+  const targetReps = pr ? repsForPercent(pr.reps, pctNum) : 0;
+
+  // For run PR: projections at other distances using same pace
+  const runPace = pr?.type === 'run'
+    ? paceSecondsPerKm(pr.distance_m ?? 0, pr.time_seconds ?? 0)
+    : 0;
 
   if (!pr) return null;
   return (
@@ -400,57 +484,141 @@ function PRCalculator({
         <View style={styles.sheet}>
           <View style={styles.sheetHandle} />
           <Text style={styles.sheetTitle}>{pr.exerciseName}</Text>
-          <Text style={styles.sheetSub}>
-            Max : {pr.weight_kg} kg × {pr.reps} reps · 1RM estimé{" "}
-            <Text style={{ color: colors.brand, fontWeight: "800" }}>
-              {oneRM.toFixed(1)} kg
-            </Text>
-          </Text>
 
-          <Text style={styles.calcLabel}>POURCENTAGE DE MON 1RM</Text>
-          <View style={styles.percentInputRow}>
-            <TextInput
-              testID="pr-percent-input"
-              style={styles.percentInput}
-              value={percent}
-              keyboardType="number-pad"
-              onChangeText={(t) => setPercent(t.replace(/[^0-9]/g, ""))}
-            />
-            <Text style={styles.percentSuffix}>%</Text>
-          </View>
-
-          <View style={styles.chipsPresetRow}>
-            {[50, 60, 70, 80, 90, 100].map((p) => (
-              <Pressable
-                key={p}
-                testID={`preset-${p}`}
-                style={[
-                  styles.presetChip,
-                  pctNum === p && styles.presetChipActive,
-                ]}
-                onPress={() => setPercent(String(p))}
-              >
-                <Text
-                  style={[
-                    styles.presetText,
-                    pctNum === p && { color: "#fff" },
-                  ]}
-                >
-                  {p}%
+          {t === 'weight' && (
+            <>
+              <Text style={styles.sheetSub}>
+                Max : {pr.weight_kg} kg × {pr.reps} reps · 1RM estimé{" "}
+                <Text style={{ color: colors.brand, fontWeight: "800" }}>
+                  {oneRM.toFixed(1)} kg
                 </Text>
-              </Pressable>
-            ))}
-          </View>
+              </Text>
 
-          <View style={styles.resultCard}>
-            <Text style={styles.resultLabel}>POIDS À CHARGER</Text>
-            <Text style={styles.resultBig}>
-              {targetWeight.toFixed(1)} kg
-            </Text>
-            <Text style={styles.resultSub}>
-              {pctNum}% de {oneRM.toFixed(1)} kg
-            </Text>
-          </View>
+              <Text style={styles.calcLabel}>POURCENTAGE DE MON 1RM</Text>
+              <View style={styles.percentInputRow}>
+                <TextInput
+                  testID="pr-percent-input"
+                  style={styles.percentInput}
+                  value={percent}
+                  keyboardType="number-pad"
+                  onChangeText={(t2) => setPercent(t2.replace(/[^0-9]/g, ""))}
+                />
+                <Text style={styles.percentSuffix}>%</Text>
+              </View>
+
+              <View style={styles.chipsPresetRow}>
+                {[50, 60, 70, 80, 90, 100].map((p) => (
+                  <Pressable
+                    key={p}
+                    testID={`preset-${p}`}
+                    style={[
+                      styles.presetChip,
+                      pctNum === p && styles.presetChipActive,
+                    ]}
+                    onPress={() => setPercent(String(p))}
+                  >
+                    <Text
+                      style={[
+                        styles.presetText,
+                        pctNum === p && { color: "#fff" },
+                      ]}
+                    >
+                      {p}%
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+
+              <View style={styles.resultCard}>
+                <Text style={styles.resultLabel}>POIDS À CHARGER</Text>
+                <Text style={styles.resultBig}>{targetWeight.toFixed(1)} kg</Text>
+                <Text style={styles.resultSub}>
+                  {pctNum}% de {oneRM.toFixed(1)} kg
+                </Text>
+              </View>
+            </>
+          )}
+
+          {t === 'reps' && (
+            <>
+              <Text style={styles.sheetSub}>
+                Max : <Text style={{ color: colors.brand, fontWeight: "800" }}>{pr.reps} répétitions</Text>
+              </Text>
+              <Text style={styles.calcLabel}>POURCENTAGE DE MON MAX</Text>
+              <View style={styles.percentInputRow}>
+                <TextInput
+                  testID="pr-percent-input"
+                  style={styles.percentInput}
+                  value={percent}
+                  keyboardType="number-pad"
+                  onChangeText={(t2) => setPercent(t2.replace(/[^0-9]/g, ""))}
+                />
+                <Text style={styles.percentSuffix}>%</Text>
+              </View>
+
+              <View style={styles.chipsPresetRow}>
+                {[50, 60, 70, 80, 90, 100].map((p) => (
+                  <Pressable
+                    key={p}
+                    testID={`preset-${p}`}
+                    style={[
+                      styles.presetChip,
+                      pctNum === p && styles.presetChipActive,
+                    ]}
+                    onPress={() => setPercent(String(p))}
+                  >
+                    <Text
+                      style={[
+                        styles.presetText,
+                        pctNum === p && { color: "#fff" },
+                      ]}
+                    >
+                      {p}%
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+
+              <View style={styles.resultCard}>
+                <Text style={styles.resultLabel}>RÉPÉTITIONS À FAIRE</Text>
+                <Text style={styles.resultBig}>{targetReps} reps</Text>
+                <Text style={styles.resultSub}>
+                  {pctNum}% de {pr.reps} reps max
+                </Text>
+              </View>
+            </>
+          )}
+
+          {t === 'run' && (
+            <>
+              <Text style={styles.sheetSub}>
+                {(pr.distance_m ?? 0) / 1000} km en{" "}
+                <Text style={{ color: colors.brand, fontWeight: "800" }}>
+                  {formatDurationHMS(pr.time_seconds ?? 0)}
+                </Text>{" "}
+                · Allure {formatPace(runPace)}
+              </Text>
+              <Text style={styles.calcLabel}>PROJECTIONS À CETTE ALLURE</Text>
+              <View style={styles.runProjGrid}>
+                {[1000, 5000, 10000, 21097, 42195].map((d) => (
+                  <View key={d} style={styles.runProjRow}>
+                    <Text style={styles.runProjDist}>
+                      {d === 21097 ? "Semi" : d === 42195 ? "Marathon" : `${d / 1000} km`}
+                    </Text>
+                    <Text style={styles.runProjTime}>
+                      {formatDurationHMS((runPace * d) / 1000)}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+              <View style={styles.resultCard}>
+                <Text style={styles.resultLabel}>ALLURE ACTUELLE</Text>
+                <Text style={[styles.resultBig, { fontSize: 30 }]}>
+                  {formatPace(runPace)}
+                </Text>
+              </View>
+            </>
+          )}
 
           <Pressable
             testID="delete-pr"
@@ -691,7 +859,41 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   prTop: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
-  prName: { color: colors.onSurface, fontWeight: "700", fontSize: 16 },
+  prName: { color: colors.onSurface, fontWeight: "700", fontSize: 16, flex: 1 },
+  prTypeTag: {
+    backgroundColor: colors.brandTertiary,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
+  },
+  prTypeTagText: {
+    color: colors.brandSecondary,
+    fontSize: 9,
+    fontWeight: "800",
+    letterSpacing: 0.8,
+  },
+  runProjGrid: {
+    marginTop: spacing.sm,
+    gap: 4,
+  },
+  runProjRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    backgroundColor: colors.surfaceTertiary,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 10,
+    borderRadius: radius.sm,
+  },
+  runProjDist: {
+    color: colors.onSurfaceSecondary,
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  runProjTime: {
+    color: colors.brand,
+    fontSize: 13,
+    fontWeight: "800",
+  },
   prStatsRow: { flexDirection: "row", alignItems: "center" },
   prStat: { flex: 1, alignItems: "center" },
   prStatSep: { width: 1, height: 28, backgroundColor: colors.border },

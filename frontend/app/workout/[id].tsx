@@ -16,6 +16,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import Svg, { Circle } from "react-native-svg";
 import { colors, radius, spacing } from "@/src/theme";
+import ExercisePicture from "@/src/components/ExercisePicture";
 import {
   speak,
   speakGo,
@@ -317,6 +318,7 @@ export default function WorkoutScreen() {
       // If this was a program day, mark it completed
       if (plan.programSource) {
         await markProgramSessionCompleted(
+          plan.programSource.programId,
           plan.programSource.dayIndex,
           plan.programSource.sessionIndex ?? 0,
         );
@@ -455,10 +457,22 @@ export default function WorkoutScreen() {
               </Text>
             </View>
           </View>
-          <Text style={styles.exNameBig}>{currentEx.name}</Text>
-          <Text style={styles.exMeta}>
-            {describeTarget(currentEx)}
-          </Text>
+          <View style={styles.exTitleRow}>
+            <ExercisePicture
+              photoBase64={
+                plan?.exercises.find((e) => e.id === currentEx.exerciseId)?.photoBase64
+              }
+              iconKey={
+                plan?.exercises.find((e) => e.id === currentEx.exerciseId)?.iconKey
+              }
+              name={currentEx.name}
+              size={56}
+            />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.exNameBig}>{currentEx.name}</Text>
+              <Text style={styles.exMeta}>{describeTarget(currentEx)}</Text>
+            </View>
+          </View>
           <View style={styles.setProgressRow}>
             <Text style={styles.setProgressText}>
               {completedSets}/{currentEx.sets.length}{" "}
@@ -877,7 +891,13 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     letterSpacing: 1,
   },
-  exNameBig: { color: colors.onSurface, fontSize: 24, fontWeight: "800" },
+  exNameBig: { color: colors.onSurface, fontSize: 22, fontWeight: "800" },
+  exTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    marginVertical: spacing.sm,
+  },
   exMeta: { color: colors.onSurfaceTertiary, fontSize: 12 },
   setProgressRow: { marginTop: 4 },
   setProgressText: {

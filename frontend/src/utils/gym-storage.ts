@@ -5,19 +5,27 @@ export type ExerciseMode = 'reps' | 'time' | 'amrap' | 'emom';
 export type Exercise = {
   id: string;
   name: string;
-  mode: ExerciseMode; // 'reps' = classic sets×reps, 'time' = do X seconds per set, 'amrap' = timed round with rounds counter
+  mode: ExerciseMode;
   sets: number;
   reps: string;
   weight: string | null;
   rest_seconds: number;
-  duration_seconds: number | null; // used when mode = 'time' or 'amrap'
+  duration_seconds: number | null;
   notes: string | null;
+  /** Base64 photo (no data-uri prefix) OR null. Optional custom photo. */
+  photoBase64?: string | null;
+  /** Key from EXERCISE_ICONS library (fallback when no photoBase64). */
+  iconKey?: string | null;
 };
+
+/** category: 'workout' or 'stretch' — enables re-using the whole program engine for stretching programs. */
+export type PlanCategory = 'workout' | 'stretch';
 
 export type Plan = {
   id: string;
   title: string;
-  type: 'musculation' | 'hiit' | 'cardio' | 'mixte';
+  type: 'musculation' | 'hiit' | 'cardio' | 'mixte' | 'stretch';
+  category?: PlanCategory;
   createdAt: string;
   exercises: Exercise[];
   programSource?: {
@@ -28,7 +36,7 @@ export type Plan = {
 };
 
 export type SetLog = {
-  reps: string; // for reps mode: reps count. For amrap: rounds count. For time: unused.
+  reps: string;
   weight: string;
   completed: boolean;
 };
@@ -58,17 +66,14 @@ export type WorkoutSession = {
   exercises: SessionExerciseLog[];
 };
 
-// MET values (approximate)
-// musculation ~ 5, HIIT ~ 8, cardio ~ 9, mixte ~ 7
 const MET_BY_TYPE: Record<Plan['type'], number> = {
   musculation: 5,
   hiit: 8,
   cardio: 9,
   mixte: 7,
+  stretch: 2.3,
 };
 
-// Approximate calories burned. Uses default 70 kg mass since we have no auth/profile.
-// Formula: kcal = MET × mass_kg × hours
 export function estimateCalories(
   type: Plan['type'],
   durationSeconds: number,
@@ -93,15 +98,18 @@ export type UserProfile = {
   height_cm: number | null;
   sex: Sex | null;
   age: number | null;
+  /** Base64 avatar (no data-uri prefix). */
+  photoBase64?: string | null;
 };
 
 export async function getProfile(): Promise<UserProfile> {
   const raw = await AsyncStorage.getItem(PROFILE_KEY);
-  if (!raw) return { weight_kg: null, height_cm: null, sex: null, age: null };
+  if (!raw) return { weight_kg: null, height_cm: null, sex: null, age: null, photoBase64: null };
   try {
-    return JSON.parse(raw);
+    const p = JSON.parse(raw);
+    return { photoBase64: null, ...p };
   } catch {
-    return { weight_kg: null, height_cm: null, sex: null, age: null };
+    return { weight_kg: null, height_cm: null, sex: null, age: null, photoBase64: null };
   }
 }
 
@@ -112,12 +120,20 @@ export async function saveProfile(profile: UserProfile): Promise<void> {
 // ---------- Measurements ----------
 export type Measurement = {
   id: string;
-  date: string; // ISO
+  date: string;
   weight_kg: number | null;
   waist_cm: number | null;
   thigh_cm: number | null;
   chest_cm: number | null;
-  photoBase64: string | null; // just the base64 payload, no prefix
+  /** NEW measurements */
+  neck_cm?: number | null;
+  hips_cm?: number | null;
+  arm_cm?: number | null;
+  forearm_cm?: number | null;
+  calf_cm?: number | null;
+  waist_navel_cm?: number | null;
+  body_fat_pct?: number | null;
+  photoBase64: string | null;
   notes: string | null;
 };
 
@@ -126,7 +142,6 @@ export async function getMeasurements(): Promise<Measurement[]> {
   if (!raw) return [];
   try {
     const arr = JSON.parse(raw) as Measurement[];
-    // sort desc by date
     return arr.sort(
       (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
     );
@@ -156,21 +171,80 @@ export async function getMeasurement(id: string): Promise<Measurement | null> {
   return list.find((m) => m.id === id) ?? null;
 }
 
+// Navy body-fat estimation. Waist & neck (& hips for women) in cm, height in cm.
+export function estimateBodyFatNavy(input: {
+  sex: Sex | null;
+  height_cm: number | null;
+  waist_cm: number | null;
+  neck_cm: number | null | undefined;
+  hips_cm: number | null | undefined;
+}): number | null {
+  const { sex, height_cm, waist_cm, neck_cm, hips_cm } = input;
+  if (!sex || !height_cm || !waist_cm || !neck_cm) return null;
+  const h = height_cm;
+  try {
+    if (sex === 'homme') {
+      const val =
+        495 /
+          (1.0324 -
+            0.19077 * Math.log10(waist_cm - neck_cm) +
+            0.15456 * Math.log10(h)) -
+        450;
+      return Math.round(val * 10) / 10;
+    }
+    if (sex === 'femme') {
+      if (!hips_cm) return null;
+      const val =
+        495 /
+          (1.29579 -
+            0.35004 * Math.log10(waist_cm + hips_cm - neck_cm) +
+            0.221 * Math.log10(h)) -
+        450;
+      return Math.round(val * 10) / 10;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 // ---------- Personal Records ----------
+export type PRType = 'weight' | 'reps' | 'run';
+
 export type PersonalRecord = {
   id: string;
   exerciseName: string;
+  type?: PRType; // default 'weight' for legacy records
+  /** WEIGHT type */
   weight_kg: number;
   reps: number;
+  /** REPS-ONLY type (bodyweight): stored also in `reps` above, weight_kg = 0 */
+  /** RUN type */
+  distance_m?: number | null;
+  time_seconds?: number | null;
   date: string;
   notes: string | null;
 };
+
+function normalizePR(pr: any): PersonalRecord {
+  return {
+    id: pr.id,
+    exerciseName: pr.exerciseName ?? 'Exercice',
+    type: (pr.type as PRType) ?? 'weight',
+    weight_kg: typeof pr.weight_kg === 'number' ? pr.weight_kg : 0,
+    reps: typeof pr.reps === 'number' ? pr.reps : parseInt(pr.reps, 10) || 0,
+    distance_m: pr.distance_m ?? null,
+    time_seconds: pr.time_seconds ?? null,
+    date: pr.date ?? new Date().toISOString(),
+    notes: pr.notes ?? null,
+  };
+}
 
 export async function getPRs(): Promise<PersonalRecord[]> {
   const raw = await AsyncStorage.getItem(PRS_KEY);
   if (!raw) return [];
   try {
-    return JSON.parse(raw);
+    return (JSON.parse(raw) as any[]).map(normalizePR);
   } catch {
     return [];
   }
@@ -198,71 +272,157 @@ export function estimateOneRepMax(weight: number, reps: number): number {
   return weight * (1 + reps / 30);
 }
 
-// ---------- Program subscription (single active program) ----------
-const ACTIVE_PROGRAM_KEY = '@ironflow/activeProgram';
+// For bodyweight reps PR: compute expected reps for given % of max (linear).
+export function repsForPercent(maxReps: number, percent: number): number {
+  return Math.max(0, Math.round((maxReps * percent) / 100));
+}
+
+// Running pace helpers
+export function paceSecondsPerKm(distance_m: number, time_seconds: number): number {
+  if (distance_m <= 0) return 0;
+  return (time_seconds * 1000) / distance_m;
+}
+
+export function formatDurationHMS(totalSeconds: number): string {
+  totalSeconds = Math.max(0, Math.round(totalSeconds));
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
+  const mm = String(m).padStart(2, '0');
+  const ss = String(s).padStart(2, '0');
+  if (h > 0) return `${h}:${mm}:${ss}`;
+  return `${m}:${ss}`;
+}
+
+export function formatPace(secPerKm: number): string {
+  if (!secPerKm || !isFinite(secPerKm)) return '—';
+  const m = Math.floor(secPerKm / 60);
+  const s = Math.round(secPerKm % 60);
+  return `${m}:${String(s).padStart(2, '0')}/km`;
+}
+
+// ---------- Active programs (up to 2 simultaneous) ----------
+const ACTIVE_PROGRAMS_KEY = '@ironflow/activePrograms';
+// legacy single-active-program key kept for one-time migration
+const LEGACY_ACTIVE_PROGRAM_KEY = '@ironflow/activeProgram';
 const CUSTOM_PROGRAMS_KEY = '@ironflow/customPrograms';
 
 export type CompletedSessionRef = { dayIndex: number; sessionIndex: number };
 
 export type ActiveProgram = {
   programId: string;
-  startedAt: string; // ISO date
+  startedAt: string;
   completedSessions: CompletedSessionRef[];
-  /** Legacy field kept only for migration */
-  completedDayIndexes?: number[];
+  completedDayIndexes?: number[]; // legacy
 };
 
 function normalizeActive(raw: any): ActiveProgram {
-  if (Array.isArray(raw.completedSessions)) return raw as ActiveProgram;
-  const migrated: CompletedSessionRef[] = Array.isArray(raw.completedDayIndexes)
+  if (Array.isArray(raw?.completedSessions)) {
+    return {
+      programId: raw.programId,
+      startedAt: raw.startedAt,
+      completedSessions: raw.completedSessions,
+    };
+  }
+  const migrated: CompletedSessionRef[] = Array.isArray(raw?.completedDayIndexes)
     ? raw.completedDayIndexes.map((d: number) => ({
         dayIndex: d,
         sessionIndex: 0,
       }))
     : [];
   return {
-    programId: raw.programId,
-    startedAt: raw.startedAt,
+    programId: raw?.programId,
+    startedAt: raw?.startedAt,
     completedSessions: migrated,
   };
 }
 
-export async function getActiveProgram(): Promise<ActiveProgram | null> {
-  const raw = await AsyncStorage.getItem(ACTIVE_PROGRAM_KEY);
-  if (!raw) return null;
-  try {
-    return normalizeActive(JSON.parse(raw));
-  } catch {
-    return null;
+export async function getActivePrograms(): Promise<ActiveProgram[]> {
+  const raw = await AsyncStorage.getItem(ACTIVE_PROGRAMS_KEY);
+  if (raw) {
+    try {
+      const arr = JSON.parse(raw);
+      if (Array.isArray(arr)) return arr.map(normalizeActive);
+    } catch {}
   }
+  // legacy migration
+  const legacy = await AsyncStorage.getItem(LEGACY_ACTIVE_PROGRAM_KEY);
+  if (legacy) {
+    try {
+      const single = normalizeActive(JSON.parse(legacy));
+      if (single?.programId) {
+        await AsyncStorage.setItem(
+          ACTIVE_PROGRAMS_KEY,
+          JSON.stringify([single]),
+        );
+        await AsyncStorage.removeItem(LEGACY_ACTIVE_PROGRAM_KEY);
+        return [single];
+      }
+    } catch {}
+  }
+  return [];
+}
+
+export async function setActivePrograms(list: ActiveProgram[]): Promise<void> {
+  await AsyncStorage.setItem(ACTIVE_PROGRAMS_KEY, JSON.stringify(list));
+}
+
+/** Add or replace an active program; capped at 2 simultaneously. */
+export async function addActiveProgram(p: ActiveProgram): Promise<void> {
+  const list = await getActivePrograms();
+  const idx = list.findIndex((x) => x.programId === p.programId);
+  if (idx >= 0) {
+    list[idx] = p;
+  } else {
+    list.push(p);
+    if (list.length > 2) list.shift(); // FIFO drop oldest if > 2
+  }
+  await setActivePrograms(list);
+}
+
+export async function removeActiveProgram(programId: string): Promise<void> {
+  const list = await getActivePrograms();
+  await setActivePrograms(list.filter((x) => x.programId !== programId));
+}
+
+/** Legacy single-active helpers kept for callers that only care about the "primary" active program. */
+export async function getActiveProgram(): Promise<ActiveProgram | null> {
+  const list = await getActivePrograms();
+  return list[0] ?? null;
 }
 
 export async function setActiveProgram(p: ActiveProgram | null): Promise<void> {
   if (!p) {
-    await AsyncStorage.removeItem(ACTIVE_PROGRAM_KEY);
+    await setActivePrograms([]);
   } else {
-    await AsyncStorage.setItem(ACTIVE_PROGRAM_KEY, JSON.stringify(p));
+    await setActivePrograms([p]);
   }
 }
 
 export async function markProgramSessionCompleted(
+  programId: string,
   dayIndex: number,
   sessionIndex: number,
 ): Promise<void> {
-  const active = await getActiveProgram();
-  if (!active) return;
+  const list = await getActivePrograms();
+  const idx = list.findIndex((x) => x.programId === programId);
+  if (idx < 0) return;
+  const active = list[idx];
   const exists = active.completedSessions.some(
     (s) => s.dayIndex === dayIndex && s.sessionIndex === sessionIndex,
   );
   if (!exists) {
     active.completedSessions.push({ dayIndex, sessionIndex });
-    await setActiveProgram(active);
+    list[idx] = active;
+    await setActivePrograms(list);
   }
 }
 
-// Legacy alias kept for existing call sites
+// Legacy alias kept for one existing call site
 export async function markProgramDayCompleted(dayIndex: number): Promise<void> {
-  return markProgramSessionCompleted(dayIndex, 0);
+  const list = await getActivePrograms();
+  if (!list[0]) return;
+  return markProgramSessionCompleted(list[0].programId, dayIndex, 0);
 }
 
 export function currentDayIndex(
@@ -279,11 +439,7 @@ export function currentDayIndex(
   return Math.max(1, Math.min(totalDays, days + 1));
 }
 
-// ---------- Custom programs storage ----------
-/**
- * Programs created by the user. We store the FULL program object (same shape
- * as bundled programs) so they can be handled uniformly.
- */
+// ---------- Custom programs storage (workouts + stretch, differentiated by `category`) ----------
 export async function getCustomPrograms(): Promise<any[]> {
   const raw = await AsyncStorage.getItem(CUSTOM_PROGRAMS_KEY);
   if (!raw) return [];
@@ -330,6 +486,8 @@ function normalizeExercise(ex: any): Exercise {
           : parseInt(ex.duration_seconds, 10) || null
         : null,
     notes: ex.notes ?? null,
+    photoBase64: ex.photoBase64 ?? null,
+    iconKey: ex.iconKey ?? null,
   };
 }
 
@@ -339,7 +497,7 @@ export async function getPlans(): Promise<Plan[]> {
   try {
     const parsed = JSON.parse(raw) as Plan[];
     return parsed
-      .filter((p) => !p.programSource) // hide program-generated plans from user list
+      .filter((p) => !p.programSource)
       .map((p) => ({
         ...p,
         exercises: (p.exercises ?? []).map(normalizeExercise),

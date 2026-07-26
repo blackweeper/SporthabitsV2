@@ -19,11 +19,34 @@ import * as ImageManipulator from "expo-image-manipulator";
 import { colors, radius, spacing } from "@/src/theme";
 import {
   deleteMeasurement,
+  estimateBodyFatNavy,
   getMeasurement,
+  getProfile,
   Measurement,
   saveMeasurement,
+  Sex,
   uid,
 } from "@/src/utils/gym-storage";
+
+type FieldDef = {
+  key: keyof Measurement;
+  label: string;
+  icon: any;
+  hint?: string;
+};
+
+const CORE_FIELDS: FieldDef[] = [
+  { key: "weight_kg", label: "Poids (kg)", icon: "body" },
+  { key: "chest_cm", label: "Tour de poitrine (cm)", icon: "man" },
+  { key: "waist_cm", label: "Tour de taille (cm)", icon: "resize" },
+  { key: "waist_navel_cm", label: "Tour de taille · nombril (cm)", icon: "ellipse-outline", hint: "Au niveau du nombril, utile pour le calcul de masse grasse" },
+  { key: "hips_cm", label: "Tour de hanches (cm)", icon: "ellipse" },
+  { key: "thigh_cm", label: "Tour de cuisse (cm)", icon: "footsteps" },
+  { key: "calf_cm", label: "Tour de mollet (cm)", icon: "walk" },
+  { key: "arm_cm", label: "Tour de bras (cm)", icon: "barbell" },
+  { key: "forearm_cm", label: "Tour d'avant-bras (cm)", icon: "hand-left" },
+  { key: "neck_cm", label: "Tour de cou (cm)", icon: "shirt" },
+];
 
 export default function MeasurementEditScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -31,9 +54,15 @@ export default function MeasurementEditScreen() {
   const isNew = id === "new";
   const [m, setM] = useState<Measurement | null>(null);
   const [loading, setLoading] = useState(true);
+  const [profileSex, setProfileSex] = useState<Sex | null>(null);
+  const [profileHeight, setProfileHeight] = useState<number | null>(null);
+  const [bfMode, setBfMode] = useState<"manual" | "estimated">("estimated");
 
   useEffect(() => {
     (async () => {
+      const p = await getProfile();
+      setProfileSex(p.sex);
+      setProfileHeight(p.height_cm);
       if (isNew) {
         setM({
           id: uid(),
@@ -42,11 +71,21 @@ export default function MeasurementEditScreen() {
           waist_cm: null,
           thigh_cm: null,
           chest_cm: null,
+          neck_cm: null,
+          hips_cm: null,
+          arm_cm: null,
+          forearm_cm: null,
+          calf_cm: null,
+          waist_navel_cm: null,
+          body_fat_pct: null,
           photoBase64: null,
           notes: null,
         });
       } else {
-        setM(await getMeasurement(id!));
+        const loaded = await getMeasurement(id!);
+        setM(loaded);
+        // Prefer manual entry when a value is stored explicitly
+        if (loaded?.body_fat_pct != null) setBfMode("manual");
       }
       setLoading(false);
     })();
@@ -71,13 +110,12 @@ export default function MeasurementEditScreen() {
           quality: 0.9,
         })
       : await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ['images'],
+          mediaTypes: ["images"],
           allowsEditing: false,
           quality: 0.9,
         });
     if (res.canceled || !res.assets?.length) return;
     const asset = res.assets[0];
-    // Auto compress: resize to max 900px width + JPEG @ 60% quality → returns base64
     try {
       const manipulated = await ImageManipulator.manipulateAsync(
         asset.uri,
@@ -99,7 +137,19 @@ export default function MeasurementEditScreen() {
 
   const save = async () => {
     if (!m) return;
-    await saveMeasurement(m);
+    // If in estimated mode, compute BF% before saving
+    let toSave = { ...m };
+    if (bfMode === "estimated") {
+      const bf = estimateBodyFatNavy({
+        sex: profileSex,
+        height_cm: profileHeight,
+        waist_cm: m.waist_navel_cm ?? m.waist_cm,
+        neck_cm: m.neck_cm,
+        hips_cm: m.hips_cm,
+      });
+      toSave.body_fat_pct = bf;
+    }
+    await saveMeasurement(toSave);
     router.back();
   };
 
@@ -126,6 +176,14 @@ export default function MeasurementEditScreen() {
       </SafeAreaView>
     );
   }
+
+  const estimatedBF = estimateBodyFatNavy({
+    sex: profileSex,
+    height_cm: profileHeight,
+    waist_cm: m.waist_navel_cm ?? m.waist_cm,
+    neck_cm: m.neck_cm,
+    hips_cm: m.hips_cm,
+  });
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
@@ -166,35 +224,104 @@ export default function MeasurementEditScreen() {
             </Pressable>
           </View>
 
+          <Text style={styles.label}>Mesures corporelles</Text>
           <View style={styles.grid}>
-            <Field
-              label="Poids (kg)"
-              value={m.weight_kg}
-              onChange={(v) => set("weight_kg", v)}
-              testID="m-weight"
-              icon="body"
-            />
-            <Field
-              label="Tour de taille (cm)"
-              value={m.waist_cm}
-              onChange={(v) => set("waist_cm", v)}
-              testID="m-waist"
-              icon="resize"
-            />
-            <Field
-              label="Tour de cuisse (cm)"
-              value={m.thigh_cm}
-              onChange={(v) => set("thigh_cm", v)}
-              testID="m-thigh"
-              icon="footsteps"
-            />
-            <Field
-              label="Tour de poitrine (cm)"
-              value={m.chest_cm}
-              onChange={(v) => set("chest_cm", v)}
-              testID="m-chest"
-              icon="man"
-            />
+            {CORE_FIELDS.map((f) => (
+              <Field
+                key={f.key as string}
+                label={f.label}
+                value={m[f.key] as number | null}
+                onChange={(v) => set(f.key, v as any)}
+                testID={`m-${f.key as string}`}
+                icon={f.icon}
+                hint={f.hint}
+              />
+            ))}
+          </View>
+
+          {/* Body fat card */}
+          <View style={styles.bfCard}>
+            <View style={styles.bfHeader}>
+              <Ionicons name="pulse" size={16} color={colors.brand} />
+              <Text style={styles.bfTitle}>Pourcentage de masse grasse</Text>
+            </View>
+
+            <View style={styles.bfSegment}>
+              <Pressable
+                testID="bf-estimated"
+                style={[
+                  styles.bfSegBtn,
+                  bfMode === "estimated" && styles.bfSegBtnActive,
+                ]}
+                onPress={() => setBfMode("estimated")}
+              >
+                <Text
+                  style={[
+                    styles.bfSegText,
+                    bfMode === "estimated" && { color: "#fff" },
+                  ]}
+                >
+                  ESTIMATION AUTO
+                </Text>
+              </Pressable>
+              <Pressable
+                testID="bf-manual"
+                style={[
+                  styles.bfSegBtn,
+                  bfMode === "manual" && styles.bfSegBtnActive,
+                ]}
+                onPress={() => setBfMode("manual")}
+              >
+                <Text
+                  style={[
+                    styles.bfSegText,
+                    bfMode === "manual" && { color: "#fff" },
+                  ]}
+                >
+                  SAISIE MANUELLE
+                </Text>
+              </Pressable>
+            </View>
+
+            {bfMode === "estimated" ? (
+              <>
+                {estimatedBF != null ? (
+                  <View style={styles.bfResultBox}>
+                    <Text style={styles.bfBig}>{estimatedBF.toFixed(1)}%</Text>
+                    <Text style={styles.bfHint}>
+                      Méthode Navy · basée sur ton profil ({profileSex ?? "?"})
+                    </Text>
+                  </View>
+                ) : (
+                  <View style={styles.bfMissing}>
+                    <Text style={styles.bfMissingText}>
+                      Pour l&apos;estimation auto, renseigne dans ton profil : sexe et taille.{"\n"}
+                      Puis mesure : tour de cou, tour de taille (nombril)
+                      {profileSex === "femme" ? " et tour de hanches." : "."}
+                    </Text>
+                  </View>
+                )}
+              </>
+            ) : (
+              <View>
+                <TextInput
+                  testID="bf-manual-input"
+                  style={styles.bfInput}
+                  value={m.body_fat_pct == null ? "" : String(m.body_fat_pct)}
+                  keyboardType="decimal-pad"
+                  placeholder="Ex: 18.5"
+                  placeholderTextColor={colors.onSurfaceTertiary}
+                  onChangeText={(t) => {
+                    if (t.trim() === "") return set("body_fat_pct", null);
+                    const n = parseFloat(t.replace(",", "."));
+                    if (!isNaN(n)) set("body_fat_pct", n);
+                  }}
+                />
+                <Text style={styles.bfInputHint}>
+                  Depuis une balance connectée ou une pince à plis cutanés
+                </Text>
+              </View>
+            )}
           </View>
 
           <Text style={styles.label}>Photo (comparaison)</Text>
@@ -263,12 +390,14 @@ function Field({
   onChange,
   testID,
   icon,
+  hint,
 }: {
   label: string;
   value: number | null;
   onChange: (v: number | null) => void;
   testID?: string;
   icon: any;
+  hint?: string;
 }) {
   return (
     <View style={styles.fieldBox}>
@@ -289,6 +418,7 @@ function Field({
         placeholder="—"
         placeholderTextColor={colors.onSurfaceTertiary}
       />
+      {hint ? <Text style={styles.fieldHint}>{hint}</Text> : null}
     </View>
   );
 }
@@ -351,8 +481,8 @@ const styles = StyleSheet.create({
     fontSize: 11,
     letterSpacing: 0.5,
   },
-  grid: { gap: spacing.md },
-  fieldBox: { gap: 6 },
+  grid: { gap: spacing.sm },
+  fieldBox: { gap: 4 },
   fieldTop: { flexDirection: "row", alignItems: "center", gap: 4 },
   miniLabel: {
     color: colors.onSurfaceTertiary,
@@ -367,8 +497,84 @@ const styles = StyleSheet.create({
     color: colors.onSurface,
     borderWidth: 1,
     borderColor: colors.border,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "600",
+  },
+  fieldHint: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 10,
+    fontStyle: "italic",
+    marginTop: 2,
+  },
+  bfCard: {
+    marginTop: spacing.md,
+    backgroundColor: colors.surfaceSecondary,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md,
+    gap: spacing.md,
+  },
+  bfHeader: { flexDirection: "row", alignItems: "center", gap: 6 },
+  bfTitle: { color: colors.onSurface, fontWeight: "700", fontSize: 14 },
+  bfSegment: {
+    flexDirection: "row",
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    padding: 3,
+    gap: 3,
+  },
+  bfSegBtn: {
+    flex: 1,
+    paddingVertical: 8,
+    alignItems: "center",
+    borderRadius: radius.sm,
+  },
+  bfSegBtnActive: { backgroundColor: colors.brand },
+  bfSegText: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: 0.5,
+  },
+  bfResultBox: {
+    backgroundColor: colors.brand,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    alignItems: "center",
+    gap: 4,
+  },
+  bfBig: { color: "#fff", fontSize: 32, fontWeight: "800" },
+  bfHint: { color: "#fff", opacity: 0.8, fontSize: 11 },
+  bfMissing: {
+    backgroundColor: colors.surface,
+    padding: spacing.md,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  bfMissingText: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 12,
+    lineHeight: 16,
+  },
+  bfInput: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    color: colors.onSurface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    fontSize: 18,
+    fontWeight: "700",
+    textAlign: "center",
+  },
+  bfInputHint: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 10,
+    marginTop: 4,
+    textAlign: "center",
+    fontStyle: "italic",
   },
   photoActions: { flexDirection: "row", gap: spacing.md },
   photoBtn: {
