@@ -17,6 +17,7 @@ import { colors, radius, spacing } from "@/src/theme";
 import {
   COVER_COLORS,
   COVER_EMOJIS,
+  ExerciseTemplate,
   LEVEL_LABEL,
   Program,
   ProgramDay,
@@ -25,12 +26,19 @@ import {
 } from "@/src/data/programs";
 import {
   deleteCustomProgram,
+  ExerciseMode,
   getCustomPrograms,
   saveCustomProgram,
   uid,
 } from "@/src/utils/gym-storage";
 
 const LEVELS: ProgramLevel[] = ["debutant", "intermediaire", "avance"];
+const MODES: { key: ExerciseMode; label: string }[] = [
+  { key: "reps", label: "REPS" },
+  { key: "time", label: "TIME" },
+  { key: "amrap", label: "AMRAP" },
+  { key: "emom", label: "EMOM" },
+];
 
 function emptyDay(): ProgramDay {
   return { rest: true, title: "Repos", sessions: [] };
@@ -471,56 +479,23 @@ function SessionEditor({
       </View>
       <Text style={styles.miniLabel}>Exercices</Text>
       {session.exercises.map((e, ei) => (
-        <View key={ei} style={styles.exRow}>
-          <Text style={styles.exDot}>•</Text>
-          <TextInput
-            style={styles.exName}
-            value={e.name}
-            onChangeText={(t) =>
-              onChange({
-                exercises: session.exercises.map((x, i) =>
-                  i === ei ? { ...x, name: t } : x,
-                ),
-              })
-            }
-            placeholder="Nom exercice"
-            placeholderTextColor={colors.onSurfaceTertiary}
-          />
-          <TextInput
-            style={styles.exSets}
-            value={String(e.sets)}
-            onChangeText={(t) =>
-              onChange({
-                exercises: session.exercises.map((x, i) =>
-                  i === ei ? { ...x, sets: parseInt(t || "0", 10) || 0 } : x,
-                ),
-              })
-            }
-            keyboardType="number-pad"
-          />
-          <Text style={styles.xSep}>×</Text>
-          <TextInput
-            style={styles.exReps}
-            value={e.reps}
-            onChangeText={(t) =>
-              onChange({
-                exercises: session.exercises.map((x, i) =>
-                  i === ei ? { ...x, reps: t } : x,
-                ),
-              })
-            }
-          />
-          <Pressable
-            hitSlop={8}
-            onPress={() =>
-              onChange({
-                exercises: session.exercises.filter((_, i) => i !== ei),
-              })
-            }
-          >
-            <Ionicons name="remove-circle" size={18} color={colors.onSurfaceTertiary} />
-          </Pressable>
-        </View>
+        <ExerciseEditor
+          key={ei}
+          exercise={e}
+          index={ei}
+          onChange={(patch) =>
+            onChange({
+              exercises: session.exercises.map((x, i) =>
+                i === ei ? { ...x, ...patch } : x,
+              ),
+            })
+          }
+          onRemove={() =>
+            onChange({
+              exercises: session.exercises.filter((_, i) => i !== ei),
+            })
+          }
+        />
       ))}
       <Pressable
         testID={`add-ex-${index}`}
@@ -546,6 +521,248 @@ function SessionEditor({
         <Ionicons name="add" size={14} color={colors.brand} />
         <Text style={styles.addExText}>Ajouter un exercice</Text>
       </Pressable>
+    </View>
+  );
+}
+
+function ExerciseEditor({
+  exercise,
+  index,
+  onChange,
+  onRemove,
+}: {
+  exercise: ExerciseTemplate;
+  index: number;
+  onChange: (p: Partial<ExerciseTemplate>) => void;
+  onRemove: () => void;
+}) {
+  const setMode = (m: ExerciseMode) => {
+    const patch: Partial<ExerciseTemplate> = { mode: m };
+    if (m === "reps") {
+      patch.duration_seconds = null;
+      patch.rest_seconds = exercise.rest_seconds || 60;
+      patch.sets = exercise.sets || 3;
+    } else if (m === "time") {
+      patch.duration_seconds = exercise.duration_seconds || 30;
+      patch.rest_seconds = exercise.rest_seconds || 30;
+      patch.sets = exercise.sets || 3;
+    } else if (m === "amrap") {
+      patch.sets = 1;
+      patch.duration_seconds = exercise.duration_seconds || 600;
+      patch.rest_seconds = 0;
+    } else if (m === "emom") {
+      patch.sets = exercise.sets || 10;
+      patch.duration_seconds = 60;
+      patch.rest_seconds = 0;
+    }
+    onChange(patch);
+  };
+
+  return (
+    <View style={styles.exCard} testID={`ex-editor-${index}`}>
+      <View style={styles.exHead}>
+        <TextInput
+          testID={`ex-name-${index}`}
+          style={styles.exNameInput}
+          value={exercise.name}
+          onChangeText={(t) => onChange({ name: t })}
+          placeholder="Nom de l'exercice"
+          placeholderTextColor={colors.onSurfaceTertiary}
+        />
+        <Pressable
+          testID={`remove-ex-${index}`}
+          hitSlop={8}
+          onPress={onRemove}
+        >
+          <Ionicons
+            name="close-circle"
+            size={18}
+            color={colors.onSurfaceTertiary}
+          />
+        </Pressable>
+      </View>
+
+      <View style={styles.modeRow}>
+        {MODES.map((m) => {
+          const active = exercise.mode === m.key;
+          return (
+            <Pressable
+              key={m.key}
+              testID={`ex-mode-${index}-${m.key}`}
+              style={[styles.modeChip, active && styles.modeChipActive]}
+              onPress={() => setMode(m.key)}
+            >
+              <Text
+                style={[
+                  styles.modeChipText,
+                  active && { color: "#fff" },
+                ]}
+              >
+                {m.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+
+      {exercise.mode === "reps" && (
+        <>
+          <View style={styles.fieldsRow}>
+            <MiniField
+              label="Séries"
+              value={String(exercise.sets)}
+              keyboard="number-pad"
+              onChange={(t) =>
+                onChange({ sets: parseInt(t || "0", 10) || 0 })
+              }
+              testID={`ex-sets-${index}`}
+            />
+            <MiniField
+              label="Reps"
+              value={exercise.reps}
+              onChange={(t) => onChange({ reps: t })}
+              testID={`ex-reps-${index}`}
+            />
+          </View>
+          <View style={styles.fieldsRow}>
+            <MiniField
+              label="Repos (s)"
+              value={String(exercise.rest_seconds)}
+              keyboard="number-pad"
+              onChange={(t) =>
+                onChange({ rest_seconds: parseInt(t || "0", 10) || 0 })
+              }
+              testID={`ex-rest-${index}`}
+            />
+            <MiniField
+              label="Poids"
+              value={exercise.weight || ""}
+              onChange={(t) =>
+                onChange({ weight: t.trim() ? t : null })
+              }
+              placeholder="Ex: 40kg"
+              testID={`ex-weight-${index}`}
+            />
+          </View>
+        </>
+      )}
+
+      {exercise.mode === "time" && (
+        <>
+          <View style={styles.fieldsRow}>
+            <MiniField
+              label="Séries"
+              value={String(exercise.sets)}
+              keyboard="number-pad"
+              onChange={(t) =>
+                onChange({ sets: parseInt(t || "0", 10) || 0 })
+              }
+              testID={`ex-sets-${index}`}
+            />
+            <MiniField
+              label="Durée (s)"
+              value={String(exercise.duration_seconds ?? 30)}
+              keyboard="number-pad"
+              onChange={(t) =>
+                onChange({ duration_seconds: parseInt(t || "0", 10) || 0 })
+              }
+              testID={`ex-duration-${index}`}
+            />
+          </View>
+          <MiniField
+            label="Repos (s)"
+            value={String(exercise.rest_seconds)}
+            keyboard="number-pad"
+            onChange={(t) =>
+              onChange({ rest_seconds: parseInt(t || "0", 10) || 0 })
+            }
+            testID={`ex-rest-${index}`}
+          />
+        </>
+      )}
+
+      {exercise.mode === "amrap" && (
+        <MiniField
+          label="Durée totale (s)"
+          value={String(exercise.duration_seconds ?? 600)}
+          keyboard="number-pad"
+          onChange={(t) =>
+            onChange({ duration_seconds: parseInt(t || "0", 10) || 0 })
+          }
+          testID={`ex-duration-${index}`}
+        />
+      )}
+
+      {exercise.mode === "emom" && (
+        <>
+          <View style={styles.fieldsRow}>
+            <MiniField
+              label="Rounds (min)"
+              value={String(exercise.sets)}
+              keyboard="number-pad"
+              onChange={(t) =>
+                onChange({ sets: parseInt(t || "0", 10) || 0 })
+              }
+              testID={`ex-sets-${index}`}
+            />
+            <MiniField
+              label="Reps / round"
+              value={exercise.reps}
+              onChange={(t) => onChange({ reps: t })}
+              testID={`ex-reps-${index}`}
+            />
+          </View>
+          <MiniField
+            label="Durée round (s)"
+            value={String(exercise.duration_seconds ?? 60)}
+            keyboard="number-pad"
+            onChange={(t) =>
+              onChange({ duration_seconds: parseInt(t || "0", 10) || 0 })
+            }
+            testID={`ex-duration-${index}`}
+          />
+        </>
+      )}
+
+      <TextInput
+        testID={`ex-notes-${index}`}
+        style={styles.notesInput}
+        value={exercise.notes || ""}
+        onChangeText={(t) => onChange({ notes: t.trim() ? t : null })}
+        placeholder="Notes (optionnel)"
+        placeholderTextColor={colors.onSurfaceTertiary}
+      />
+    </View>
+  );
+}
+
+function MiniField({
+  label,
+  value,
+  onChange,
+  keyboard,
+  placeholder,
+  testID,
+}: {
+  label: string;
+  value: string;
+  onChange: (t: string) => void;
+  keyboard?: "number-pad" | "default";
+  placeholder?: string;
+  testID?: string;
+}) {
+  return (
+    <View style={{ flex: 1 }}>
+      <Text style={styles.fLabel}>{label}</Text>
+      <TextInput
+        testID={testID}
+        style={styles.fInput}
+        value={value}
+        onChangeText={onChange}
+        keyboardType={keyboard || "default"}
+        placeholder={placeholder}
+        placeholderTextColor={colors.onSurfaceTertiary}
+      />
     </View>
   );
 }
@@ -730,38 +947,69 @@ const styles = StyleSheet.create({
     color: colors.onSurface,
     fontSize: 13,
   },
-  exRow: {
+  exCard: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.sm,
+    padding: spacing.sm,
+    gap: 6,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  exHead: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
+    gap: spacing.sm,
   },
-  exDot: { color: colors.brand, fontSize: 12 },
-  exName: {
+  exNameInput: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceTertiary,
+    borderRadius: 6,
+    padding: 8,
+    color: colors.onSurface,
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  modeRow: {
+    flexDirection: "row",
+    gap: 3,
+    backgroundColor: colors.surfaceTertiary,
+    borderRadius: 6,
+    padding: 3,
+  },
+  modeChip: {
+    flex: 1,
+    paddingVertical: 6,
+    alignItems: "center",
+    borderRadius: 4,
+  },
+  modeChipActive: { backgroundColor: colors.brand },
+  modeChipText: {
+    color: colors.onSurfaceTertiary,
+    fontWeight: "800",
+    fontSize: 9,
+    letterSpacing: 0.5,
+  },
+  fieldsRow: { flexDirection: "row", gap: 6 },
+  fLabel: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 9,
+    letterSpacing: 0.4,
+    marginBottom: 2,
+  },
+  fInput: {
+    backgroundColor: colors.surfaceTertiary,
     borderRadius: 6,
     padding: 6,
     color: colors.onSurface,
     fontSize: 12,
   },
-  exSets: {
-    width: 32,
-    backgroundColor: colors.surface,
+  notesInput: {
+    backgroundColor: colors.surfaceTertiary,
     borderRadius: 6,
     padding: 6,
     color: colors.onSurface,
-    textAlign: "center",
-    fontSize: 12,
-  },
-  xSep: { color: colors.onSurfaceTertiary, fontSize: 12 },
-  exReps: {
-    width: 60,
-    backgroundColor: colors.surface,
-    borderRadius: 6,
-    padding: 6,
-    color: colors.onSurface,
-    textAlign: "center",
-    fontSize: 12,
+    fontSize: 11,
+    fontStyle: "italic",
   },
   addExBtn: {
     flexDirection: "row",
