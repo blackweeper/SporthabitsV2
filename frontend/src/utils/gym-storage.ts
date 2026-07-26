@@ -157,16 +157,51 @@ export type UserProfile = {
   age: number | null;
   /** Base64 avatar (no data-uri prefix). */
   photoBase64?: string | null;
+  /** Daily wellness targets */
+  water_target_ml?: number | null;
+  calories_target_kcal?: number | null;
+  steps_target?: number | null;
 };
+
+export const DEFAULT_WATER_TARGET_ML = 2000;
+export const DEFAULT_CALORIES_TARGET_KCAL = 2000;
+export const DEFAULT_STEPS_TARGET = 10000;
 
 export async function getProfile(): Promise<UserProfile> {
   const raw = await AsyncStorage.getItem(PROFILE_KEY);
-  if (!raw) return { name: null, weight_kg: null, height_cm: null, sex: null, age: null, photoBase64: null };
+  if (!raw) return {
+    name: null,
+    weight_kg: null,
+    height_cm: null,
+    sex: null,
+    age: null,
+    photoBase64: null,
+    water_target_ml: DEFAULT_WATER_TARGET_ML,
+    calories_target_kcal: DEFAULT_CALORIES_TARGET_KCAL,
+    steps_target: DEFAULT_STEPS_TARGET,
+  };
   try {
     const p = JSON.parse(raw);
-    return { name: null, photoBase64: null, ...p };
+    return {
+      name: null,
+      photoBase64: null,
+      water_target_ml: DEFAULT_WATER_TARGET_ML,
+      calories_target_kcal: DEFAULT_CALORIES_TARGET_KCAL,
+      steps_target: DEFAULT_STEPS_TARGET,
+      ...p,
+    };
   } catch {
-    return { name: null, weight_kg: null, height_cm: null, sex: null, age: null, photoBase64: null };
+    return {
+      name: null,
+      weight_kg: null,
+      height_cm: null,
+      sex: null,
+      age: null,
+      photoBase64: null,
+      water_target_ml: DEFAULT_WATER_TARGET_ML,
+      calories_target_kcal: DEFAULT_CALORIES_TARGET_KCAL,
+      steps_target: DEFAULT_STEPS_TARGET,
+    };
   }
 }
 
@@ -933,4 +968,144 @@ export async function saveDailyJournal(e: DailyJournalEntry): Promise<void> {
   if (idx >= 0) list[idx] = e;
   else list.push(e);
   await AsyncStorage.setItem(DAILY_JOURNAL_KEY, JSON.stringify(list));
+}
+
+// ---------- Reminders (local config, hook up to notifications after build) ----------
+const REMINDERS_KEY = '@ironflow/reminders';
+
+export type ReminderKind =
+  | 'workout'
+  | 'hydration'
+  | 'measurement'
+  | 'mobility'
+  | 'sleep'
+  | 'other';
+
+export const REMINDER_KIND_LABEL: Record<ReminderKind, string> = {
+  workout: 'Séance du jour',
+  hydration: 'Hydratation',
+  measurement: 'Mesures',
+  mobility: 'Étirements',
+  sleep: 'Se coucher',
+  other: 'Autre',
+};
+
+export const REMINDER_KIND_ICON: Record<ReminderKind, any> = {
+  workout: 'flame',
+  hydration: 'water',
+  measurement: 'resize',
+  mobility: 'body',
+  sleep: 'moon',
+  other: 'alarm',
+};
+
+export type Reminder = {
+  id: string;
+  kind: ReminderKind;
+  title: string;
+  time: string; // 'HH:MM'
+  daysOfWeek: number[]; // 0=Sun ... 6=Sat
+  enabled: boolean;
+  createdAt: string;
+};
+
+export async function getReminders(): Promise<Reminder[]> {
+  const raw = await AsyncStorage.getItem(REMINDERS_KEY);
+  if (!raw) return [];
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
+}
+
+export async function saveReminder(r: Reminder): Promise<void> {
+  const list = await getReminders();
+  const idx = list.findIndex((x) => x.id === r.id);
+  if (idx >= 0) list[idx] = r;
+  else list.push(r);
+  await AsyncStorage.setItem(REMINDERS_KEY, JSON.stringify(list));
+}
+
+export async function deleteReminder(id: string): Promise<void> {
+  const list = await getReminders();
+  await AsyncStorage.setItem(
+    REMINDERS_KEY,
+    JSON.stringify(list.filter((r) => r.id !== id)),
+  );
+}
+
+
+// ---------- Wellness (Water / Calories / Steps / Mood) daily logs ----------
+const WELLNESS_KEY = '@ironflow/wellness';
+
+/** 0 = triste, 1 = neutre, 2 = content, 3 = en pleine forme */
+export type FeelingMood = 0 | 1 | 2 | 3;
+
+export const FEELING_MOOD_LABEL: Record<FeelingMood, string> = {
+  0: 'Triste',
+  1: 'Neutre',
+  2: 'Content',
+  3: 'En pleine forme',
+};
+
+export const FEELING_MOOD_EMOJI: Record<FeelingMood, string> = {
+  0: '😢',
+  1: '😐',
+  2: '😊',
+  3: '💪',
+};
+
+export type WellnessLog = {
+  date: string; // YYYY-MM-DD
+  water_ml?: number;
+  calories_kcal?: number;
+  steps?: number;
+  feeling?: FeelingMood | null;
+  /** overrides journal per-session sleep, used at day level */
+  sleep_hours?: number | null;
+};
+
+export async function getWellnessLogs(): Promise<WellnessLog[]> {
+  const raw = await AsyncStorage.getItem(WELLNESS_KEY);
+  if (!raw) return [];
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
+}
+
+export async function getWellnessLog(date: string): Promise<WellnessLog | null> {
+  const list = await getWellnessLogs();
+  return list.find((l) => l.date === date) ?? null;
+}
+
+export async function saveWellnessLog(log: WellnessLog): Promise<void> {
+  const list = await getWellnessLogs();
+  const idx = list.findIndex((l) => l.date === log.date);
+  if (idx >= 0) list[idx] = log;
+  else list.push(log);
+  await AsyncStorage.setItem(WELLNESS_KEY, JSON.stringify(list));
+}
+
+export async function patchWellnessLog(
+  date: string,
+  patch: Partial<WellnessLog>,
+): Promise<WellnessLog> {
+  const cur = (await getWellnessLog(date)) ?? { date };
+  const updated: WellnessLog = { ...cur, ...patch, date };
+  await saveWellnessLog(updated);
+  return updated;
+}
+
+/**
+ * Convert decimal hours (e.g. 7.867) to "7h52" style label.
+ */
+export function formatSleepHM(hours: number | null | undefined): string {
+  if (hours == null || !isFinite(hours)) return '—';
+  const h = Math.floor(hours);
+  const m = Math.round((hours - h) * 60);
+  if (m === 60) return `${h + 1}h00`;
+  return `${h}h${String(m).padStart(2, '0')}`;
 }

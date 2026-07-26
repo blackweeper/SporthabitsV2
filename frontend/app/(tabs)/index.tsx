@@ -14,24 +14,36 @@ import { colors, radius, spacing } from "@/src/theme";
 import {
   ActiveProgram,
   currentDayIndex,
+  DEFAULT_CALORIES_TARGET_KCAL,
+  DEFAULT_STEPS_TARGET,
+  DEFAULT_WATER_TARGET_ML,
+  FeelingMood,
   getActivePrograms,
   getHabits,
   getHabitLogs,
   getMeasurements,
   getProfile,
   getSessions,
+  getWellnessLog,
   Habit,
   HabitLog,
-  habitProgress,
   Measurement,
+  patchWellnessLog,
   setHabitValue,
   todayYYYYMMDD,
+  UserProfile,
+  WellnessLog,
   WorkoutSession,
 } from "@/src/utils/gym-storage";
 import { findProgram } from "@/src/utils/programs";
 import { Program } from "@/src/data/programs";
 import { computeDailyScore } from "@/src/utils/scoring";
 import { computeAdvancedStats } from "@/src/utils/stats";
+import { todayQuote } from "@/src/data/motivation";
+import {
+  FeelingCard,
+  WellnessQuickWidgets,
+} from "@/src/components/WellnessWidgets";
 
 type ActiveWithProgram = { active: ActiveProgram; program: Program };
 
@@ -43,6 +55,8 @@ export default function TodayScreen() {
   const [measurements, setMeasurements] = useState<Measurement[]>([]);
   const [name, setName] = useState<string>("");
   const [actives, setActives] = useState<ActiveWithProgram[]>([]);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [wellness, setWellness] = useState<WellnessLog | null>(null);
 
   const load = useCallback(async () => {
     setSessions(await getSessions());
@@ -50,6 +64,7 @@ export default function TodayScreen() {
     setLogs(await getHabitLogs());
     setMeasurements(await getMeasurements());
     const p = await getProfile();
+    setProfile(p);
     setName((p as any).name ?? "");
     const list = await getActivePrograms();
     const resolved: ActiveWithProgram[] = [];
@@ -58,6 +73,7 @@ export default function TodayScreen() {
       if (prog) resolved.push({ active: a, program: prog });
     }
     setActives(resolved);
+    setWellness(await getWellnessLog(todayYYYYMMDD()));
   }, []);
 
   useFocusEffect(
@@ -92,6 +108,12 @@ export default function TodayScreen() {
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
       >
+        {/* Motivation banner */}
+        <View style={styles.motivationCard}>
+          <Ionicons name="sparkles" size={14} color={colors.brand} />
+          <Text style={styles.motivationText}>{todayQuote()}</Text>
+        </View>
+
         {/* Header */}
         <View style={styles.header}>
           <View style={{ flex: 1 }}>
@@ -122,6 +144,27 @@ export default function TodayScreen() {
             </Text>
           </View>
         </View>
+
+        {/* Feeling of the day — non-blocking suggestion card */}
+        <FeelingCard
+          currentFeeling={wellness?.feeling ?? null}
+          onSelect={async (m: FeelingMood) => {
+            await patchWellnessLog(today, { feeling: m });
+            load();
+          }}
+        />
+
+        {/* Wellness quick widgets — Water / Calories / Steps */}
+        <Text style={styles.sectionTitle}>Bien-être du jour</Text>
+        <WellnessQuickWidgets
+          log={wellness}
+          targetWater={profile?.water_target_ml || DEFAULT_WATER_TARGET_ML}
+          targetCalories={
+            profile?.calories_target_kcal || DEFAULT_CALORIES_TARGET_KCAL
+          }
+          targetSteps={profile?.steps_target || DEFAULT_STEPS_TARGET}
+          onChange={load}
+        />
 
         {/* CTA principal */}
         <Pressable
@@ -221,7 +264,32 @@ export default function TodayScreen() {
           )}
         </View>
 
-        {/* Quick stats */}
+        {/* Streak — hero metric */}
+        <Pressable
+          testID="streak-hero"
+          style={styles.streakHero}
+          onPress={() => router.push("/stats")}
+        >
+          <View style={styles.streakLeft}>
+            <Ionicons name="flame" size={30} color="#fff" />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.streakLabel}>STREAK ACTUEL</Text>
+            <Text style={styles.streakBig}>
+              {stats.currentStreakDays}
+              <Text style={styles.streakUnit}> jours</Text>
+            </Text>
+            <Text style={styles.streakSub}>
+              {stats.currentStreakDays === 0
+                ? "Fais une séance aujourd'hui pour lancer ta série 🔥"
+                : stats.currentStreakDays >= stats.bestStreakDays
+                ? "Tu es sur ton record ! Continue ↗"
+                : `Record : ${stats.bestStreakDays} jours`}
+            </Text>
+          </View>
+        </Pressable>
+
+        {/* Quick stats — secondary */}
         <Text style={styles.sectionTitle}>Statistiques rapides</Text>
         <View style={styles.statsGrid}>
           <QuickStat
@@ -240,17 +308,6 @@ export default function TodayScreen() {
             onPress={() => router.push("/progression")}
           />
           <QuickStat
-            icon="flame"
-            value={String(stats.currentStreakDays)}
-            label="Streak jours"
-            trend={
-              stats.bestStreakDays > stats.currentStreakDays
-                ? `record ${stats.bestStreakDays}`
-                : undefined
-            }
-            onPress={() => router.push("/stats")}
-          />
-          <QuickStat
             icon="checkmark-done"
             value={String(stats.totalSessions)}
             label="Séances totales"
@@ -260,6 +317,12 @@ export default function TodayScreen() {
             icon="barbell"
             value={`${(stats.totalVolumeKg / 1000).toFixed(1)}t`}
             label="Volume soulevé"
+            onPress={() => router.push("/stats")}
+          />
+          <QuickStat
+            icon="time"
+            value={formatShortDuration(stats.avgDurationSec)}
+            label="Durée moyenne"
             onPress={() => router.push("/stats")}
           />
         </View>
@@ -342,9 +405,82 @@ function formatFullDate() {
   });
 }
 
+function formatShortDuration(sec: number): string {
+  if (!sec) return "—";
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  if (h > 0) return `${h}h${m > 0 ? m : ""}`;
+  return `${m}m`;
+}
+
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.surface },
   scroll: { padding: spacing.lg, gap: spacing.md, paddingBottom: 40 },
+  motivationCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: colors.brandTertiary,
+    padding: 10,
+    borderRadius: radius.md,
+    borderLeftWidth: 3,
+    borderLeftColor: colors.brand,
+  },
+  motivationText: {
+    flex: 1,
+    color: colors.onSurface,
+    fontSize: 12,
+    fontWeight: "600",
+    lineHeight: 16,
+    fontStyle: "italic",
+  },
+  streakHero: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    backgroundColor: "#FF5722",
+    padding: spacing.lg,
+    borderRadius: radius.md,
+    shadowColor: "#FF5722",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  streakLeft: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "rgba(255,255,255,0.15)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  streakLabel: {
+    color: "#fff",
+    fontSize: 10,
+    letterSpacing: 2,
+    fontWeight: "800",
+    opacity: 0.9,
+  },
+  streakBig: {
+    color: "#fff",
+    fontSize: 42,
+    fontWeight: "800",
+    marginTop: 2,
+  },
+  streakUnit: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "700",
+    opacity: 0.9,
+  },
+  streakSub: {
+    color: "#fff",
+    fontSize: 11,
+    fontWeight: "600",
+    opacity: 0.9,
+    marginTop: 2,
+  },
   header: {
     flexDirection: "row",
     alignItems: "flex-start",

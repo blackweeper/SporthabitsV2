@@ -259,67 +259,41 @@ export default function ProfileScreen() {
             </View>
           ) : null}
 
+          {/* Wellness daily targets */}
+          <Text style={styles.sectionHeader}>Objectifs quotidiens bien-être</Text>
+          <Text style={styles.sectionHelp}>
+            Utilisés dans le score IRONFLOW & les widgets du dashboard.
+          </Text>
+
+          <View style={styles.fieldRow}>
+            <FieldBox
+              label="Eau (ml)"
+              value={profile.water_target_ml ?? null}
+              onChange={(v) => set("water_target_ml", v)}
+              placeholder="2000"
+              testID="input-water-target"
+            />
+            <FieldBox
+              label="Calories (kcal)"
+              value={profile.calories_target_kcal ?? null}
+              onChange={(v) => set("calories_target_kcal", v)}
+              placeholder="2000"
+              testID="input-calories-target"
+            />
+          </View>
+          <View style={styles.fieldRow}>
+            <FieldBox
+              label="Pas / jour"
+              value={profile.steps_target ?? null}
+              onChange={(v) => set("steps_target", v)}
+              placeholder="10000"
+              testID="input-steps-target"
+            />
+            <View style={{ flex: 1 }} />
+          </View>
+
           {/* Quick shortcuts */}
-          <Pressable
-            testID="open-achievements"
-            style={styles.linkRow}
-            onPress={() => router.push("/achievements")}
-          >
-            <View style={[styles.linkIcon, { backgroundColor: "#FFE082" }]}>
-              <Ionicons name="trophy" size={18} color="#000" />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.linkTitle}>Succès & badges</Text>
-              <Text style={styles.linkSub}>Débloque des trophées de progression</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={colors.onSurfaceTertiary} />
-          </Pressable>
-
-          <Pressable
-            testID="open-goals"
-            style={styles.linkRow}
-            onPress={() => router.push("/goals")}
-          >
-            <View style={[styles.linkIcon, { backgroundColor: "#B39DDB" }]}>
-              <Ionicons name="flag" size={18} color="#fff" />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.linkTitle}>Mes objectifs</Text>
-              <Text style={styles.linkSub}>Suis tes cibles personnelles</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={colors.onSurfaceTertiary} />
-          </Pressable>
-
-          <Pressable
-            testID="open-stats"
-            style={styles.linkRow}
-            onPress={() => router.push("/stats")}
-          >
-            <View style={[styles.linkIcon, { backgroundColor: "#4FC3F7" }]}>
-              <Ionicons name="stats-chart" size={18} color="#fff" />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.linkTitle}>Statistiques avancées</Text>
-              <Text style={styles.linkSub}>Volume, streaks, exercice préféré…</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={colors.onSurfaceTertiary} />
-          </Pressable>
-
-          {/* History shortcut (was a tab) */}
-          <Pressable
-            testID="open-history"
-            style={styles.linkRow}
-            onPress={() => router.push("/history")}
-          >
-            <View style={styles.linkIcon}>
-              <Ionicons name="time" size={18} color={colors.brand} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.linkTitle}>Historique des séances</Text>
-              <Text style={styles.linkSub}>Voir toutes tes séances passées</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={colors.onSurfaceTertiary} />
-          </Pressable>
+          {/* Shortcuts moved to Profil tab (list). This screen focuses on personal settings. */}
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -509,6 +483,19 @@ const styles = StyleSheet.create({
   },
   bmiVal: { color: colors.onSurface, fontSize: 36, fontWeight: "800" },
   bmiHint: { color: colors.brandSecondary, fontSize: 12, fontWeight: "600" },
+  sectionHeader: {
+    color: colors.onSurface,
+    fontSize: 14,
+    fontWeight: "800",
+    letterSpacing: 0.5,
+    marginTop: spacing.lg,
+  },
+  sectionHelp: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 11,
+    marginTop: 2,
+    marginBottom: spacing.sm,
+  },
   linkRow: {
     marginTop: spacing.lg,
     flexDirection: "row",

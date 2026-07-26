@@ -22,13 +22,34 @@ import {
 import { findProgram } from "@/src/utils/programs";
 import { Program } from "@/src/data/programs";
 
-type Tab = "program" | "sessions" | "plans" | "mobility";
+type Tab = "program" | "mobility" | "sessions" | "individual";
+type IndCat = "all" | "musculation" | "cardio" | "wod" | "stretch";
 
 const TABS: { key: Tab; label: string; icon: any }[] = [
   { key: "program", label: "Programme", icon: "calendar" },
-  { key: "sessions", label: "Séances", icon: "list" },
-  { key: "plans", label: "Plans", icon: "barbell" },
   { key: "mobility", label: "Mobilité", icon: "body" },
+  { key: "sessions", label: "Séances", icon: "list" },
+  { key: "individual", label: "Séances indiv.", icon: "barbell" },
+];
+
+const IND_CATS: { key: IndCat; label: string; icon: any }[] = [
+  { key: "all", label: "Toutes", icon: "apps" },
+  { key: "musculation", label: "Musculation", icon: "barbell" },
+  { key: "cardio", label: "Cardio", icon: "stopwatch" },
+  { key: "wod", label: "WOD", icon: "flame" },
+  { key: "stretch", label: "Mobilité", icon: "body" },
+];
+
+const MUSCLE_GROUPS: { key: string; label: string; emoji: string }[] = [
+  { key: "chest", label: "Pectoraux", emoji: "💪" },
+  { key: "back", label: "Dos", emoji: "🦵" },
+  { key: "shoulders", label: "Épaules", emoji: "🙆" },
+  { key: "arms", label: "Bras", emoji: "💪" },
+  { key: "legs", label: "Jambes", emoji: "🦵" },
+  { key: "glutes", label: "Fessiers", emoji: "🍑" },
+  { key: "core", label: "Abdos", emoji: "🌀" },
+  { key: "cardio", label: "Cardio", emoji: "🏃" },
+  { key: "full_body", label: "Full body", emoji: "🔥" },
 ];
 
 export default function TrainingHub() {
@@ -104,12 +125,14 @@ export default function TrainingHub() {
         {tab === "program" && (
           <ProgramView actives={workoutActives} router={router} />
         )}
+        {tab === "mobility" && (
+          <MobilityView actives={stretchActives} router={router} />
+        )}
         {tab === "sessions" && (
           <SessionsView sessions={sessions} router={router} />
         )}
-        {tab === "plans" && <PlansView plans={plans} router={router} />}
-        {tab === "mobility" && (
-          <MobilityView actives={stretchActives} router={router} />
+        {tab === "individual" && (
+          <IndividualView plans={plans} router={router} />
         )}
       </ScrollView>
     </SafeAreaView>
@@ -247,56 +270,169 @@ function SessionsView({
   );
 }
 
-function PlansView({ plans, router }: { plans: Plan[]; router: any }) {
-  if (plans.length === 0) {
-    return (
-      <View style={styles.empty}>
-        <Ionicons name="barbell" size={40} color={colors.brand} />
-        <Text style={styles.emptyTitle}>Aucun plan</Text>
-        <Pressable
-          style={styles.ctaBtn}
-          onPress={() => router.push("/plan/new")}
-          testID="create-plan"
-        >
-          <Text style={styles.ctaText}>CRÉER UN PLAN</Text>
-        </Pressable>
-      </View>
-    );
-  }
+function IndividualView({ plans, router }: { plans: Plan[]; router: any }) {
+  const [cat, setCat] = useState<IndCat>("all");
+  const [muscle, setMuscle] = useState<string | null>(null);
+
+  const filtered = plans.filter((p) => {
+    if (cat !== "all") {
+      const type = p.type;
+      const matches =
+        cat === type ||
+        (cat === "cardio" && (type === "cardio" || type === "hiit")) ||
+        (cat === "wod" && type === "mixte");
+      if (!matches) return false;
+    }
+    if (muscle) {
+      const hasMuscle = p.exercises.some(
+        (ex) => (ex as any).muscle_groups?.includes(muscle),
+      );
+      if (!hasMuscle) return false;
+    }
+    return true;
+  });
+
   return (
     <>
-      {plans.map((p) => (
-        <Pressable
-          key={p.id}
-          testID={`plan-item-${p.id}`}
-          style={styles.planCard}
-          onPress={() => router.push(`/plan/${p.id}`)}
-        >
-          <View style={{ flex: 1 }}>
-            <Text style={styles.planTitle}>{p.title}</Text>
-            <Text style={styles.planMeta}>
-              {p.exercises.length} exercice{p.exercises.length > 1 ? "s" : ""}
-            </Text>
-          </View>
-          <Pressable
-            testID={`plan-start-${p.id}`}
-            style={styles.startBtn}
-            onPress={() => router.push(`/workout/${p.id}`)}
-          >
-            <Ionicons name="play" size={14} color="#fff" />
-          </Pressable>
-        </Pressable>
-      ))}
-      <Pressable
-        style={styles.linkBtn}
-        onPress={() => router.push("/plan/new")}
-        testID="new-plan"
+      {/* Category filter */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={{ maxHeight: 42 }}
+        contentContainerStyle={styles.catRow}
       >
-        <Ionicons name="add-circle" size={14} color={colors.brand} />
-        <Text style={styles.linkBtnText}>Créer un nouveau plan</Text>
-      </Pressable>
+        {IND_CATS.map((c) => {
+          const active = cat === c.key;
+          return (
+            <Pressable
+              key={c.key}
+              testID={`ind-cat-${c.key}`}
+              style={[styles.catChip, active && styles.catChipActive]}
+              onPress={() => setCat(c.key)}
+            >
+              <Ionicons
+                name={c.icon}
+                size={12}
+                color={active ? "#fff" : colors.brand}
+              />
+              <Text
+                style={[styles.catLabel, active && { color: "#fff" }]}
+              >
+                {c.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </ScrollView>
+
+      {/* Muscle groups filter */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={{ maxHeight: 42 }}
+        contentContainerStyle={styles.catRow}
+      >
+        <Pressable
+          testID="muscle-all"
+          style={[styles.muscleChip, !muscle && styles.muscleChipActive]}
+          onPress={() => setMuscle(null)}
+        >
+          <Text style={[styles.muscleText, !muscle && { color: "#fff" }]}>
+            Tous groupes
+          </Text>
+        </Pressable>
+        {MUSCLE_GROUPS.map((mg) => {
+          const active = muscle === mg.key;
+          return (
+            <Pressable
+              key={mg.key}
+              testID={`muscle-${mg.key}`}
+              style={[styles.muscleChip, active && styles.muscleChipActive]}
+              onPress={() => setMuscle(active ? null : mg.key)}
+            >
+              <Text style={styles.muscleEmoji}>{mg.emoji}</Text>
+              <Text style={[styles.muscleText, active && { color: "#fff" }]}>
+                {mg.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </ScrollView>
+
+      {filtered.length === 0 ? (
+        <View style={styles.empty}>
+          <Ionicons name="barbell" size={40} color={colors.brand} />
+          <Text style={styles.emptyTitle}>
+            {plans.length === 0 ? "Aucune séance individuelle" : "Aucune séance dans ce filtre"}
+          </Text>
+          <Pressable
+            style={styles.ctaBtn}
+            onPress={() => router.push("/plan/new")}
+            testID="create-plan"
+          >
+            <Text style={styles.ctaText}>CRÉER UNE SÉANCE</Text>
+          </Pressable>
+        </View>
+      ) : (
+        <>
+          {filtered.map((p) => (
+            <Pressable
+              key={p.id}
+              testID={`plan-item-${p.id}`}
+              style={styles.planCard}
+              onPress={() => router.push(`/plan/${p.id}`)}
+            >
+              <View style={{ flex: 1 }}>
+                <View style={styles.planTagsRow}>
+                  <View style={styles.planTypeTag}>
+                    <Text style={styles.planTypeText}>
+                      {planTypeLabel(p.type)}
+                    </Text>
+                  </View>
+                </View>
+                <Text style={styles.planTitle}>{p.title}</Text>
+                <Text style={styles.planMeta}>
+                  {p.exercises.length} exercice{p.exercises.length > 1 ? "s" : ""}
+                </Text>
+              </View>
+              <Pressable
+                testID={`plan-start-${p.id}`}
+                style={styles.startBtn}
+                onPress={() => router.push(`/workout/${p.id}`)}
+              >
+                <Ionicons name="play" size={14} color="#fff" />
+              </Pressable>
+            </Pressable>
+          ))}
+          <Pressable
+            style={styles.linkBtn}
+            onPress={() => router.push("/plan/new")}
+            testID="new-plan"
+          >
+            <Ionicons name="add-circle" size={14} color={colors.brand} />
+            <Text style={styles.linkBtnText}>Créer une nouvelle séance</Text>
+          </Pressable>
+        </>
+      )}
     </>
   );
+}
+
+function planTypeLabel(t: Plan["type"]): string {
+  switch (t) {
+    case "musculation":
+      return "MUSCULATION";
+    case "cardio":
+      return "CARDIO";
+    case "hiit":
+      return "HIIT";
+    case "mixte":
+      return "WOD";
+    case "stretch":
+      return "MOBILITÉ";
+    default:
+      return "SÉANCE";
+  }
 }
 
 function MobilityView({
@@ -522,6 +658,59 @@ const styles = StyleSheet.create({
   },
   planTitle: { color: colors.onSurface, fontWeight: "800", fontSize: 14 },
   planMeta: { color: colors.onSurfaceTertiary, fontSize: 11, marginTop: 2 },
+  planTagsRow: { flexDirection: "row", gap: 4, marginBottom: 4 },
+  planTypeTag: {
+    backgroundColor: colors.brandTertiary,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  planTypeText: {
+    color: colors.brandSecondary,
+    fontSize: 9,
+    fontWeight: "800",
+    letterSpacing: 0.6,
+  },
+  catRow: {
+    gap: 6,
+    paddingRight: spacing.md,
+    alignItems: "center",
+  },
+  catChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceSecondary,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  catChipActive: { backgroundColor: colors.brand, borderColor: colors.brand },
+  catLabel: {
+    color: colors.onSurfaceSecondary,
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  muscleChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceTertiary,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  muscleChipActive: { backgroundColor: colors.brand, borderColor: colors.brand },
+  muscleEmoji: { fontSize: 12 },
+  muscleText: {
+    color: colors.onSurfaceSecondary,
+    fontSize: 11,
+    fontWeight: "600",
+  },
   startBtn: {
     width: 38,
     height: 38,

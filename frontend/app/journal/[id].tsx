@@ -21,6 +21,7 @@ import {
   saveSession,
   WorkoutSession,
 } from "@/src/utils/gym-storage";
+import { SleepSlider } from "@/src/components/SleepSlider";
 
 const ACTIVITIES: CardioActivity[] = [
   "course",
@@ -176,12 +177,13 @@ export default function JournalScreen() {
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Ressenti (post-séance)</Text>
 
-            <Rating
-              label="Humeur"
-              icon="happy"
-              value={j.mood ?? null}
-              onChange={(v) => patchJournal({ mood: v })}
+            <SleepSlider
+              label="Sommeil de la nuit"
+              value={j.sleep_hours ?? null}
+              onChange={(v) => patchJournal({ sleep_hours: v })}
+              testID="journal-sleep-slider"
             />
+
             <Rating
               label="Énergie"
               icon="battery-charging"
@@ -193,13 +195,6 @@ export default function JournalScreen() {
               icon="flame"
               value={j.motivation ?? null}
               onChange={(v) => patchJournal({ motivation: v })}
-            />
-
-            <NumField
-              label="Sommeil (h)"
-              value={j.sleep_hours ?? null}
-              onChange={(v) => patchJournal({ sleep_hours: v })}
-              full
             />
 
             <Text style={styles.miniLabel}>Douleurs / gênes</Text>

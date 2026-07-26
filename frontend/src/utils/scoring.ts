@@ -1,8 +1,13 @@
 import {
+  DEFAULT_CALORIES_TARGET_KCAL,
+  DEFAULT_STEPS_TARGET,
+  DEFAULT_WATER_TARGET_ML,
   Habit,
   HabitLog,
   habitProgress,
   todayYYYYMMDD,
+  UserProfile,
+  WellnessLog,
   WorkoutSession,
 } from '@/src/utils/gym-storage';
 import { computeAdvancedStats } from '@/src/utils/stats';
@@ -23,8 +28,8 @@ export type DailyScore = {
 };
 
 /**
- * Compute today's score:
- *   Workout (30%) + each active habit distributed on 70% by frequency
+ * Compute today's score (widget on the dashboard).
+ *   Workout (30%) + each active habit distributed on 70% by frequency.
  * If user has no habits, workout accounts for 100%.
  */
 export function computeDailyScore(
@@ -50,9 +55,7 @@ export function computeDailyScore(
   ];
 
   const scoredHabits = habits.filter((h) => h.includedInScore !== false);
-  const perHabitWeight = scoredHabits.length
-    ? 0.7 / scoredHabits.length
-    : 0;
+  const perHabitWeight = scoredHabits.length ? 0.7 / scoredHabits.length : 0;
 
   for (const h of scoredHabits) {
     const val = habitLogs.find((l) => l.habitId === h.id && l.date === today)?.value ?? 0;
@@ -66,7 +69,6 @@ export function computeDailyScore(
     });
   }
 
-  // If no habits, workout counts for 100%.
   if (scoredHabits.length === 0) scored[0].weight = 1;
 
   const total = scored.reduce((a, i) => a + i.weight * i.achieved, 0);
@@ -78,7 +80,6 @@ export function computeDailyScore(
 }
 
 function iconForHabit(h: Habit): any {
-  // Reuse HABIT_KIND_ICON from types, but keep it simple:
   switch (h.kind) {
     case 'water': return 'water';
     case 'steps': return 'footsteps';
@@ -92,108 +93,178 @@ function iconForHabit(h: Habit): any {
 }
 
 /**
- * IRONFLOW Score /100 based on training / regularity / performance progress / habits / physical evolution.
- * Weighted combination:
- *   - Regularity 30% (streak & sessions/week)
- *   - Volume progression 20% (last 30d vs prior 30d)
- *   - Habits average 20% (average completion in last 30 days across all active habits)
- *   - Diversity of exercises 10%
- *   - Number of PRs 10%
- *   - Recent activity 10%
+ * IRONFLOW Score /100 rebuilt around lifestyle & training pillars.
+ * Weighted combination (total = 100):
+ *   - Régularité 20%          → sessions / week + best streak
+ *   - Sommeil 15%             → avg last 7 days vs 7-9h target
+ *   - Nutrition 15%           → % of last 7 days where calories logged within ±20% of goal
+ *   - Eau 15%                 → avg water_ml achieved vs goal (last 7 days)
+ *   - Pas journaliers 15%     → avg steps achieved vs goal (last 7 days)
+ *   - Habitudes 20%           → avg habit completion (last 30 days)
  */
 export type IronflowScore = {
   score: number;
-  breakdown: { label: string; value: number; max: number }[];
+  breakdown: { key: string; label: string; icon: any; value: number; max: number; hint?: string }[];
 };
 
 export function computeIronflowScore(
   sessions: WorkoutSession[],
   habits: Habit[],
   habitLogs: HabitLog[],
-  prsCount: number,
+  wellnessLogs: WellnessLog[],
+  profile: UserProfile,
 ): IronflowScore {
   const stats = computeAdvancedStats(sessions);
-
-  // Regularity: 5+ sessions/week ideal → cap at 5
   const now = new Date();
+
+  // ─── Régularité (20) ─────────────────────────────────────────
   const weekAgo = new Date(now.getTime() - 7 * 86400000);
   const sessionsThisWeek = sessions.filter(
     (s) => new Date(s.startedAt) >= weekAgo,
   ).length;
   const regularityScore =
-    Math.min(1, sessionsThisWeek / 4) * 20 +
-    Math.min(1, stats.bestStreakDays / 14) * 10;
+    Math.min(1, sessionsThisWeek / 4) * 13 +
+    Math.min(1, stats.bestStreakDays / 14) * 7;
 
-  // Volume progression: last 30d vs previous 30d
-  const now30 = new Date(now.getTime() - 30 * 86400000);
-  const prev60 = new Date(now.getTime() - 60 * 86400000);
-  const vol30 = volumeInRange(sessions, now30, now);
-  const volPrev = volumeInRange(sessions, prev60, now30);
-  let progScore = 0;
-  if (volPrev > 0) {
-    const growth = (vol30 - volPrev) / volPrev;
-    progScore = Math.min(1, Math.max(0, growth)) * 20;
-  } else if (vol30 > 0) {
-    progScore = 20;
+  // Wellness helpers (last 7 days including today)
+  const last7Keys: string[] = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(now.getTime() - i * 86400000);
+    last7Keys.push(d.toISOString().slice(0, 10));
   }
+  const logs7 = wellnessLogs.filter((l) => last7Keys.includes(l.date));
 
-  // Habits: average completion last 30d
+  // ─── Sommeil (15) ─────────────────────────────────────────────
+  const sleepValues = logs7
+    .map((l) => l.sleep_hours ?? null)
+    .filter((v): v is number => v != null && v > 0);
+  const avgSleep = sleepValues.length
+    ? sleepValues.reduce((a, b) => a + b, 0) / sleepValues.length
+    : 0;
+  // Sleep quality: peak 7.5–9h → 1, drops linearly outside.
+  const sleepQuality = sleepQualityCurve(avgSleep);
+  const sleepScore = sleepQuality * 15;
+
+  // ─── Nutrition (15) ───────────────────────────────────────────
+  const calTarget = profile.calories_target_kcal || DEFAULT_CALORIES_TARGET_KCAL;
+  const calValues = logs7
+    .map((l) => l.calories_kcal ?? null)
+    .filter((v): v is number => v != null && v > 0);
+  const inRange = calValues.filter(
+    (v) => v >= calTarget * 0.8 && v <= calTarget * 1.2,
+  ).length;
+  const nutritionRatio = calValues.length ? inRange / 7 : 0;
+  const nutritionScore = nutritionRatio * 15;
+
+  // ─── Eau (15) ─────────────────────────────────────────────────
+  const waterTarget = profile.water_target_ml || DEFAULT_WATER_TARGET_ML;
+  const waterAchieved = last7Keys.map((k) => {
+    const l = logs7.find((x) => x.date === k);
+    return Math.min(1, (l?.water_ml ?? 0) / waterTarget);
+  });
+  const waterAvg = waterAchieved.reduce((a, b) => a + b, 0) / 7;
+  const waterScore = waterAvg * 15;
+
+  // ─── Pas journaliers (15) ─────────────────────────────────────
+  const stepsTarget = profile.steps_target || DEFAULT_STEPS_TARGET;
+  const stepsAchieved = last7Keys.map((k) => {
+    const l = logs7.find((x) => x.date === k);
+    return Math.min(1, (l?.steps ?? 0) / stepsTarget);
+  });
+  const stepsAvg = stepsAchieved.reduce((a, b) => a + b, 0) / 7;
+  const stepsScore = stepsAvg * 15;
+
+  // ─── Habitudes (20) ───────────────────────────────────────────
   let habitsScore = 0;
+  const now30 = new Date(now.getTime() - 30 * 86400000);
   if (habits.length > 0) {
     let totalPct = 0;
-    let count = 0;
     for (const h of habits) {
       const logs30 = habitLogs.filter(
         (l) => l.habitId === h.id && new Date(l.date) >= now30,
       );
-      const avg = logs30.reduce((a, l) => a + habitProgress(h, l.value), 0) / 30;
+      const avg =
+        logs30.reduce((a, l) => a + habitProgress(h, l.value), 0) / 30;
       totalPct += avg;
-      count++;
     }
-    habitsScore = (totalPct / Math.max(1, count)) * 20;
+    habitsScore = (totalPct / habits.length) * 20;
   }
 
-  // Diversity: cap 15 exercises
-  const diversityScore = Math.min(1, stats.distinctExercises / 15) * 10;
-
-  // PRs: cap 15
-  const prScore = Math.min(1, prsCount / 15) * 10;
-
-  // Recent activity: session in last 3 days = 10, else scaled down
-  const last3 = new Date(now.getTime() - 3 * 86400000);
-  const hasRecent = sessions.some((s) => new Date(s.startedAt) >= last3);
-  const recentScore = hasRecent ? 10 : 0;
-
   const score = Math.round(
-    regularityScore + progScore + habitsScore + diversityScore + prScore + recentScore,
+    regularityScore +
+      sleepScore +
+      nutritionScore +
+      waterScore +
+      stepsScore +
+      habitsScore,
   );
 
   return {
     score: Math.max(0, Math.min(100, score)),
     breakdown: [
-      { label: 'Régularité', value: Math.round(regularityScore), max: 30 },
-      { label: 'Progression', value: Math.round(progScore), max: 20 },
-      { label: 'Habitudes', value: Math.round(habitsScore), max: 20 },
-      { label: 'Diversité', value: Math.round(diversityScore), max: 10 },
-      { label: 'Records', value: Math.round(prScore), max: 10 },
-      { label: 'Activité récente', value: Math.round(recentScore), max: 10 },
+      {
+        key: 'regularity',
+        label: 'Régularité',
+        icon: 'flame',
+        value: Math.round(regularityScore),
+        max: 20,
+      },
+      {
+        key: 'sleep',
+        label: 'Sommeil',
+        icon: 'moon',
+        value: Math.round(sleepScore),
+        max: 15,
+        hint: sleepValues.length ? formatHoursHint(avgSleep) : 'Aucune saisie',
+      },
+      {
+        key: 'nutrition',
+        label: 'Nutrition',
+        icon: 'nutrition',
+        value: Math.round(nutritionScore),
+        max: 15,
+        hint: calValues.length
+          ? `${inRange}/7 jours dans la cible`
+          : 'Aucune saisie',
+      },
+      {
+        key: 'water',
+        label: 'Eau',
+        icon: 'water',
+        value: Math.round(waterScore),
+        max: 15,
+        hint: `${Math.round(waterAvg * 100)}% de la cible`,
+      },
+      {
+        key: 'steps',
+        label: 'Pas journaliers',
+        icon: 'footsteps',
+        value: Math.round(stepsScore),
+        max: 15,
+        hint: `${Math.round(stepsAvg * 100)}% de la cible`,
+      },
+      {
+        key: 'habits',
+        label: 'Habitudes',
+        icon: 'checkbox',
+        value: Math.round(habitsScore),
+        max: 20,
+      },
     ],
   };
 }
 
-function volumeInRange(sessions: WorkoutSession[], from: Date, to: Date): number {
-  let sum = 0;
-  for (const s of sessions) {
-    const d = new Date(s.startedAt);
-    if (d < from || d >= to) continue;
-    for (const ex of s.exercises) {
-      for (const st of ex.sets) {
-        if (!st.completed) continue;
-        const w = parseFloat((st.weight ?? '').replace(',', '.')) || 0;
-        const r = parseFloat((st.reps ?? '').replace(/[^0-9.]/g, '')) || 0;
-        sum += w * r;
-      }
-    }
-  }
-  return sum;
+function sleepQualityCurve(hours: number): number {
+  if (hours <= 0) return 0;
+  if (hours < 5) return hours / 5 * 0.5;         // <5h: max 0.5
+  if (hours < 7) return 0.5 + (hours - 5) / 2 * 0.5; // 5-7 → 0.5..1
+  if (hours <= 9) return 1;                       // 7-9 = ideal
+  if (hours <= 11) return 1 - (hours - 9) / 2 * 0.4; // 9-11 → 1..0.6
+  return 0.3;                                     // >11h
+}
+
+function formatHoursHint(h: number): string {
+  const hh = Math.floor(h);
+  const mm = Math.round((h - hh) * 60);
+  return `${hh}h${String(mm).padStart(2, '0')} / nuit`;
 }
