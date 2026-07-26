@@ -1,0 +1,44 @@
+{
+  "summary": "Frontend-only testing for IronFlow iteration 12: (1) Records progression chart, (2) Duplicate 'Tour de taille' bug fix, (3) PR pace-mode auto-compute. All 3 features implemented correctly and passing end-to-end tests via Playwright at mobile viewport 390x844. Deprecated packages / react-native warnings observed in console (informational only, not blocking).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": [
+      {"component": "TouchableMixin (Pressable dependency)", "issue": "Console warning: 'TouchableMixin is deprecated. Please use Pressable.' Emitted at runtime — origin likely inside react-native-gifted-charts (LineChart). Not blocking but worth verifying library version supports newer RN."},
+      {"component": "Web-only responder handlers", "issue": "Console: 'Unknown event handler property onStartShouldSetResponder / onResponder* / onPressOut' when rendering LineChart on web. Purely RN-Web compatibility warnings from gifted-charts; safe to ignore for now."},
+      {"component": "Deprecated style props", "issue": "Console warning: 'shadow* style props are deprecated. Use boxShadow.' Multiple occurrences in RN-Web. Recommend audit of shadowOffset/shadowRadius/shadowOpacity usages and migrate to boxShadow where applicable."},
+      {"component": "pointerEvents prop", "issue": "Console warning: 'props.pointerEvents is deprecated. Use style.pointerEvents.' Present in third-party or app views. Non-blocking."}
+    ]
+  },
+  "test_report_links": ["/app/test_reports/iteration_12.json"],
+  "detailed_test_results": {
+    "1a_single_record_hint": "PASS — Expanding 'Squat' (1 record) shows hint 'Ajoute un 2ᵉ record pour voir la progression.' and no PROGRESSION card is rendered.",
+    "1b_weight_progression": "PASS — 'Développé couché' (3 weight PRs 90×5, 95×3, 100×3) shows PROGRESSION card with values '105.0 → 110.0 kg', delta pill '+4.8%' green with trending-up icon, and LineChart with 3 data points labelled 27/11, 27/12, 26/1.",
+    "1c_reps_progression": "PASS — 'Pompes' (20 reps, 30 reps) shows '20.0 → 30.0 reps' with '+50.0%' delta.",
+    "1d_run_progression": "PASS — '5 km' with 25:00 then 22:30 renders km/h speed values (~12.0 → ~13.3) with positive percentage delta.",
+    "2_measurement_no_duplicate_waist": "PASS — Only one waist field visible: label 'Tour de taille · nombril (cm)'. No occurrence of standalone 'Tour de taille (cm)'.",
+    "3a_mode_toggle_visible": "PASS — Both testIDs 'mode-distance' and 'mode-pace' visible with labels 'Distance + Temps' and 'Allure + Temps' after selecting COURSE.",
+    "3b_pace_mode_inputs": "PASS — Tapping mode-pace hides distance presets (preset-dist-5000 no longer in DOM), reveals pr-pace-min / pr-pace-sec inputs separated by ':' with '/ km' suffix.",
+    "3c_auto_computed_distance_and_calories": "PASS — pace 4:00 + time 20 min → ALLURE '4:00/km', distance metric '5.00 km' with 'Distance (auto)' label, calories '187 kcal' (matches MET=8·70·1200/3600 ≈ 186.67).",
+    "3d_bodyweight_updates_calories": "PASS — Changing bodyweight from 70 to 80 updates calories to '213 kcal' (8·80·1200/3600 ≈ 213.33).",
+    "3e_save_pace_mode_pr": "PASS — After save, localStorage '@ironflow/prs' contains new PR named 'SkiErg' with type='run', distance_m=5000, time_seconds=1200."
+  },
+  "action_items": [
+    "Optional: audit shadow* / pointerEvents deprecated style props for future RN-Web compat (non-blocking).",
+    "Optional: investigate react-native-gifted-charts version for TouchableMixin/onResponder warnings on web."
+  ],
+  "critical_code_review_comments": [
+    "progression.tsx (2200+ lines) exceeds 700 lines — consider splitting sub-views (OverviewView, ExercisesView, RecordsView, TransformationView, HabitsView, JournalView) into separate files for maintainability.",
+    "In pr/new.tsx, finalDistanceMeters returns 0 when pace/time missing in pace mode; save() validation correctly rejects with alert. Good.",
+    "Nice work: RecordProgressionChart correctly picks the dominant PR type by count and requires ≥2 points before rendering the LineChart."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (skipped per request)", "frontend": "100% (10/10 sub-tests passing across 3 features)"},
+  "seed_data_creation": "Playwright seeded 6-8 PersonalRecord entries into localStorage key '@ironflow/prs' via page.evaluate before navigation. All test seeds cleared naturally between reloads by re-setting the array; no residual data required.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "For record group testIDs: use ORIGINAL case of exerciseName (e.g., 'record-group-Développé couché'). Data-testid values in the DOM preserve original casing even though the group heading is CSS-capitalized (textTransform). PR pace-mode save writes to '@ironflow/prs' with type='run'. All feature tests captured screenshots in /tmp/test_*.png.",
+  "rca_of_issue": "N/A — no bugs found."
+}

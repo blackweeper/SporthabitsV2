@@ -705,6 +705,9 @@ function RecordsView({
 
               {isOpen && (
                 <View style={styles.recordBody}>
+                  {/* Progression chart for this exercise */}
+                  <RecordProgressionChart prs={g.prs} />
+
                   {g.prs
                     .slice()
                     .sort((a, b) => (b.date < a.date ? -1 : 1))
@@ -766,6 +769,119 @@ function estimatedOneRM(pr: PersonalRecord): number {
   const r = pr.reps ?? 1;
   if (r <= 1) return w;
   return w * (1 + r / 30);
+}
+
+/** Derive a scalar value from a PR for chart plotting. */
+function prScalar(pr: PersonalRecord): { value: number; unit: string } {
+  const type = pr.type ?? "weight";
+  if (type === "weight") return { value: estimatedOneRM(pr), unit: "kg" };
+  if (type === "reps") return { value: pr.reps ?? 0, unit: "reps" };
+  if (type === "run") {
+    // Score = km/h speed to make “higher is better”.
+    const d = pr.distance_m ?? 0;
+    const t = pr.time_seconds ?? 0;
+    const speedKmh = t > 0 ? (d / 1000) / (t / 3600) : 0;
+    return { value: Number(speedKmh.toFixed(2)), unit: "km/h" };
+  }
+  return { value: 0, unit: "" };
+}
+
+function RecordProgressionChart({ prs }: { prs: PersonalRecord[] }) {
+  // Group by type and pick the dominant one (max count)
+  const byType: Record<string, PersonalRecord[]> = {};
+  for (const pr of prs) {
+    const t = pr.type ?? "weight";
+    if (!byType[t]) byType[t] = [];
+    byType[t].push(pr);
+  }
+  const dominant = Object.entries(byType).sort(
+    (a, b) => b[1].length - a[1].length,
+  )[0];
+  if (!dominant) return null;
+  const list = dominant[1]
+    .slice()
+    .sort((a, b) => (a.date < b.date ? -1 : 1));
+  if (list.length < 2) {
+    return (
+      <View style={styles.chartHintMini}>
+        <Ionicons name="analytics" size={12} color={colors.brand} />
+        <Text style={styles.chartHintText}>
+          Ajoute un 2ᵉ record pour voir la progression.
+        </Text>
+      </View>
+    );
+  }
+  const points = list.map((pr) => {
+    const s = prScalar(pr);
+    return { value: s.value, label: shortDate(pr.date) };
+  });
+  const first = points[0].value;
+  const last = points[points.length - 1].value;
+  const delta = last - first;
+  const pct = first > 0 ? (delta / first) * 100 : 0;
+  const unit = prScalar(list[0]).unit;
+  const chartW = Dimensions.get("window").width - spacing.lg * 2 - 48;
+
+  return (
+    <View style={styles.recordChartWrap}>
+      <View style={styles.recordChartHead}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.recordChartLabel}>PROGRESSION</Text>
+          <Text style={styles.recordChartValue}>
+            {first.toFixed(1)} → {last.toFixed(1)} {unit}
+          </Text>
+        </View>
+        <View
+          style={[
+            styles.deltaPill,
+            {
+              backgroundColor:
+                delta >= 0 ? colors.success + "30" : colors.error + "30",
+            },
+          ]}
+        >
+          <Ionicons
+            name={delta >= 0 ? "trending-up" : "trending-down"}
+            size={12}
+            color={delta >= 0 ? colors.success : colors.error}
+          />
+          <Text
+            style={[
+              styles.deltaText,
+              { color: delta >= 0 ? colors.success : colors.error },
+            ]}
+          >
+            {delta >= 0 ? "+" : ""}
+            {pct.toFixed(1)}%
+          </Text>
+        </View>
+      </View>
+      <LineChart
+        data={points}
+        color={colors.brand}
+        thickness={3}
+        areaChart
+        startFillColor={colors.brand}
+        startOpacity={0.35}
+        endFillColor={colors.brand}
+        endOpacity={0.05}
+        yAxisThickness={0}
+        xAxisThickness={0}
+        yAxisTextStyle={{ color: colors.onSurfaceTertiary, fontSize: 9 }}
+        xAxisLabelTextStyle={{
+          color: colors.onSurfaceTertiary,
+          fontSize: 8,
+        }}
+        hideRules
+        width={chartW}
+        height={110}
+        isAnimated
+        curved
+        dataPointsColor={colors.brand}
+        dataPointsRadius={3}
+      />
+    </View>
+  );
 }
 
 function RecordRow({ pr }: { pr: PersonalRecord }) {
@@ -1949,6 +2065,57 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "700",
     marginTop: 2,
+  },
+  recordChartWrap: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    gap: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  recordChartHead: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
+  recordChartLabel: {
+    color: colors.brand,
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 0.6,
+  },
+  recordChartValue: {
+    color: colors.onSurface,
+    fontSize: 14,
+    fontWeight: "800",
+    marginTop: 2,
+  },
+  deltaPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: radius.pill,
+  },
+  deltaText: {
+    fontWeight: "800",
+    fontSize: 12,
+  },
+  chartHintMini: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    padding: 10,
+    borderRadius: radius.sm,
+    backgroundColor: colors.brandTertiary,
+  },
+  chartHintText: {
+    color: colors.brandSecondary,
+    fontSize: 11,
+    fontWeight: "700",
+    flex: 1,
   },
   empty: {
     alignItems: "center",

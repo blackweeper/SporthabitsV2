@@ -50,6 +50,12 @@ export default function NewPRScreen() {
   const [minutes, setMinutes] = useState("");
   const [seconds, setSeconds] = useState("");
 
+  // Pace-based cardio mode
+  const [inputMode, setInputMode] = useState<"distance" | "pace">("distance");
+  const [paceMin, setPaceMin] = useState("");
+  const [paceSec, setPaceSec] = useState("");
+  const [bodyWeight, setBodyWeight] = useState("70");
+
   const w = parseFloat(weight.replace(",", ".")) || 0;
   const r = parseInt(reps, 10) || 1;
   const oneRM = w > 0 ? estimateOneRepMax(w, r) : 0;
@@ -62,15 +68,32 @@ export default function NewPRScreen() {
   }, [hours, minutes, seconds]);
 
   const finalDistanceMeters = useMemo(() => {
+    if (inputMode === "pace") {
+      // distance = time / pace * 1000
+      const paceSecPerKm =
+        (parseInt(paceMin || "0", 10) || 0) * 60 +
+        (parseInt(paceSec || "0", 10) || 0);
+      if (paceSecPerKm > 0 && totalRunSec > 0) {
+        return Math.round((totalRunSec / paceSecPerKm) * 1000);
+      }
+      return 0;
+    }
     if (useCustomDist) {
       const km = parseFloat(customDistance.replace(",", "."));
       if (!isNaN(km) && km > 0) return Math.round(km * 1000);
       return 0;
     }
     return distanceMeters;
-  }, [useCustomDist, customDistance, distanceMeters]);
+  }, [inputMode, paceMin, paceSec, useCustomDist, customDistance, distanceMeters, totalRunSec]);
 
   const pace = paceSecondsPerKm(finalDistanceMeters, totalRunSec);
+
+  // Rough calories: MET-based (running MET≈9, cycling≈7, rowing≈8, avg 8)
+  const bodyMassKg = parseFloat(bodyWeight.replace(",", ".")) || 70;
+  const estimatedCalories = useMemo(() => {
+    if (totalRunSec <= 0) return 0;
+    return Math.round(((8 * bodyMassKg) * totalRunSec) / 3600);
+  }, [totalRunSec, bodyMassKg]);
 
   const save = async () => {
     if (!name.trim()) {
@@ -245,8 +268,95 @@ export default function NewPRScreen() {
 
           {type === "run" && (
             <>
-              <Text style={styles.label}>Distance</Text>
-              <View style={styles.presetRow}>
+              <Text style={styles.label}>Mode de saisie</Text>
+              <View style={styles.modeToggle}>
+                <Pressable
+                  testID="mode-distance"
+                  style={[
+                    styles.modeChip,
+                    inputMode === "distance" && styles.modeChipActive,
+                  ]}
+                  onPress={() => setInputMode("distance")}
+                >
+                  <Ionicons
+                    name="location"
+                    size={13}
+                    color={inputMode === "distance" ? "#fff" : colors.onSurfaceTertiary}
+                  />
+                  <Text
+                    style={[
+                      styles.modeChipText,
+                      inputMode === "distance" && { color: "#fff" },
+                    ]}
+                  >
+                    Distance + Temps
+                  </Text>
+                </Pressable>
+                <Pressable
+                  testID="mode-pace"
+                  style={[
+                    styles.modeChip,
+                    inputMode === "pace" && styles.modeChipActive,
+                  ]}
+                  onPress={() => setInputMode("pace")}
+                >
+                  <Ionicons
+                    name="speedometer"
+                    size={13}
+                    color={inputMode === "pace" ? "#fff" : colors.onSurfaceTertiary}
+                  />
+                  <Text
+                    style={[
+                      styles.modeChipText,
+                      inputMode === "pace" && { color: "#fff" },
+                    ]}
+                  >
+                    Allure + Temps
+                  </Text>
+                </Pressable>
+              </View>
+
+              {inputMode === "pace" && (
+                <>
+                  <Text style={styles.label}>Allure de référence (min:sec / km)</Text>
+                  <View style={styles.paceRow}>
+                    <TextInput
+                      testID="pr-pace-min"
+                      style={[styles.input, styles.paceInput]}
+                      keyboardType="number-pad"
+                      value={paceMin}
+                      onChangeText={(t) =>
+                        setPaceMin(t.replace(/[^0-9]/g, "").slice(0, 2))
+                      }
+                      placeholder="4"
+                      placeholderTextColor={colors.onSurfaceTertiary}
+                      maxLength={2}
+                    />
+                    <Text style={styles.paceSep}>:</Text>
+                    <TextInput
+                      testID="pr-pace-sec"
+                      style={[styles.input, styles.paceInput]}
+                      keyboardType="number-pad"
+                      value={paceSec}
+                      onChangeText={(t) =>
+                        setPaceSec(t.replace(/[^0-9]/g, "").slice(0, 2))
+                      }
+                      placeholder="00"
+                      placeholderTextColor={colors.onSurfaceTertiary}
+                      maxLength={2}
+                    />
+                    <Text style={styles.paceUnit}>/ km</Text>
+                  </View>
+                  <Text style={styles.customDistHint}>
+                    Ex : 4:00 pour du 4 min au km
+                  </Text>
+                </>
+              )}
+
+              {inputMode === "distance" && (
+                <>
+                  <Text style={styles.label}>Distance</Text>
+                  <View style={styles.presetRow}>
                 {RUN_PRESETS.map((p) => {
                   const active =
                     !useCustomDist && distanceMeters === p.meters;
@@ -309,6 +419,8 @@ export default function NewPRScreen() {
                   </Text>
                 </View>
               )}
+                </>
+              )}
 
               <Text style={styles.label}>Temps</Text>
               <View style={styles.timeRow}>
@@ -335,14 +447,42 @@ export default function NewPRScreen() {
               </View>
 
               {finalDistanceMeters > 0 && totalRunSec > 0 && (
-                <View style={styles.previewCard}>
-                  <Text style={styles.previewLabel}>ALLURE</Text>
-                  <Text style={styles.previewValue}>{formatPace(pace)}</Text>
-                  <Text style={styles.previewHint}>
-                    {formatDurationHMS(totalRunSec)} pour{" "}
-                    {(finalDistanceMeters / 1000).toFixed(2)} km
-                  </Text>
-                </View>
+                <>
+                  <View style={styles.previewCard}>
+                    <Text style={styles.previewLabel}>ALLURE</Text>
+                    <Text style={styles.previewValue}>{formatPace(pace)}</Text>
+                    <Text style={styles.previewHint}>
+                      {formatDurationHMS(totalRunSec)} pour{" "}
+                      {(finalDistanceMeters / 1000).toFixed(2)} km
+                    </Text>
+                  </View>
+                  <View style={styles.metricsGrid}>
+                    <View style={styles.metricBox}>
+                      <Ionicons name="location" size={14} color={colors.brand} />
+                      <Text style={styles.metricVal}>
+                        {(finalDistanceMeters / 1000).toFixed(2)} km
+                      </Text>
+                      <Text style={styles.metricLbl}>Distance{inputMode === "pace" ? " (auto)" : ""}</Text>
+                    </View>
+                    <View style={styles.metricBox}>
+                      <Ionicons name="flame" size={14} color={colors.brand} />
+                      <Text style={styles.metricVal}>
+                        {estimatedCalories} kcal
+                      </Text>
+                      <Text style={styles.metricLbl}>Calories (est.)</Text>
+                    </View>
+                  </View>
+                  <Text style={styles.label}>Poids corporel (kg) — pour les calories</Text>
+                  <TextInput
+                    testID="pr-bodyweight"
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    value={bodyWeight}
+                    onChangeText={setBodyWeight}
+                    placeholder="70"
+                    placeholderTextColor={colors.onSurfaceTertiary}
+                  />
+                </>
               )}
             </>
           )}
@@ -600,5 +740,80 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "800",
     marginTop: -14,
+  },
+  modeToggle: {
+    flexDirection: "row",
+    gap: 6,
+    marginTop: 6,
+  },
+  modeChip: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: radius.md,
+    backgroundColor: colors.surfaceSecondary,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  modeChipActive: {
+    backgroundColor: colors.brand,
+    borderColor: colors.brand,
+  },
+  modeChipText: {
+    color: colors.onSurfaceSecondary,
+    fontWeight: "800",
+    fontSize: 11,
+  },
+  paceRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 6,
+  },
+  paceInput: {
+    width: 80,
+    textAlign: "center",
+    fontSize: 24,
+    fontWeight: "800",
+    marginTop: 0,
+  },
+  paceSep: {
+    color: colors.onSurface,
+    fontSize: 22,
+    fontWeight: "800",
+  },
+  paceUnit: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  metricsGrid: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 8,
+  },
+  metricBox: {
+    flex: 1,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    backgroundColor: colors.surfaceSecondary,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: "flex-start",
+    gap: 4,
+  },
+  metricVal: {
+    color: colors.onSurface,
+    fontSize: 18,
+    fontWeight: "800",
+    marginTop: 4,
+  },
+  metricLbl: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 11,
+    fontWeight: "700",
   },
 });

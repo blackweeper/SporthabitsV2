@@ -38,8 +38,7 @@ type FieldDef = {
 const CORE_FIELDS: FieldDef[] = [
   { key: "weight_kg", label: "Poids (kg)", icon: "body" },
   { key: "chest_cm", label: "Tour de poitrine (cm)", icon: "man" },
-  { key: "waist_cm", label: "Tour de taille (cm)", icon: "resize" },
-  { key: "waist_navel_cm", label: "Tour de taille · nombril (cm)", icon: "ellipse-outline", hint: "Au niveau du nombril, utile pour le calcul de masse grasse" },
+  { key: "waist_navel_cm", label: "Tour de taille · nombril (cm)", icon: "resize", hint: "Au niveau du nombril, utile pour le calcul de masse grasse" },
   { key: "hips_cm", label: "Tour de hanches (cm)", icon: "ellipse" },
   { key: "thigh_cm", label: "Tour de cuisse (cm)", icon: "footsteps" },
   { key: "calf_cm", label: "Tour de mollet (cm)", icon: "walk" },
