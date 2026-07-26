@@ -15,7 +15,13 @@ export type AdvancedStats = {
   cardioKmTotal: number;
 };
 
-export function computeAdvancedStats(sessions: WorkoutSession[]): AdvancedStats {
+export function computeAdvancedStats(rawSessions: WorkoutSession[]): AdvancedStats {
+  // Guard against legacy or malformed entries that would crash the whole tab.
+  const sessions = (rawSessions ?? []).filter((s) => {
+    if (!s || !s.startedAt) return false;
+    const t = Date.parse(s.startedAt);
+    return !isNaN(t);
+  });
   const totalSessions = sessions.length;
   let totalVolumeKg = 0;
   let totalCalories = 0;
