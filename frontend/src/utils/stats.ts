@@ -32,13 +32,14 @@ export function computeAdvancedStats(rawSessions: WorkoutSession[]): AdvancedSta
   for (const s of sessions) {
     totalCalories += s.caloriesBurned ?? 0;
     totalDurationSec += s.durationSeconds ?? 0;
-    for (const ex of s.exercises) {
+    for (const ex of s.exercises ?? []) {
+      if (!ex || !ex.name) continue;
       const key = ex.name.toLowerCase().trim();
       exFreq[key] = (exFreq[key] ?? 0) + 1;
       const d = new Date(s.startedAt);
       if (!exLastDate[key] || d > exLastDate[key]) exLastDate[key] = d;
-      for (const st of ex.sets) {
-        if (!st.completed) continue;
+      for (const st of ex.sets ?? []) {
+        if (!st || !st.completed) continue;
         const w = parseFloat((st.weight ?? '').replace(',', '.')) || 0;
         const r = parseFloat((st.reps ?? '').replace(/[^0-9.]/g, '')) || 0;
         totalVolumeKg += w * r;
