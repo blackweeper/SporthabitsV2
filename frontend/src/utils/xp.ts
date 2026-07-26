@@ -36,16 +36,25 @@ export const BADGES: BadgeDef[] = [
   { level: 50, title: 'Légende', emoji: '👑', color: '#8B5CF6' },
 ];
 
-/** Total XP required to reach `level` (from L0). */
+export const MAX_LEVEL = 50;
+
+/**
+ * XP curve: quick early progress, slower as you climb.
+ * Formula: xpForLevel(N) = round(50 * N ^ 1.6)
+ *   L1 = 50    · L2 = 152   · L3 = 290
+ *   L5 = 655   · L10 = 1993 · L20 = 6553
+ *   L30 = 12869 · L40 = 21205 · L50 = 31249
+ */
 export function xpForLevel(level: number): number {
   if (level <= 0) return 0;
-  return 100 * (level * (level + 1)) / 2;
+  if (level >= MAX_LEVEL) return Math.round(50 * Math.pow(MAX_LEVEL, 1.6));
+  return Math.round(50 * Math.pow(level, 1.6));
 }
 
 /** Compute the level reached by given cumulative XP. */
 export function levelFromXP(xp: number): number {
   let n = 0;
-  while (xp >= xpForLevel(n + 1)) n++;
+  while (n < MAX_LEVEL && xp >= xpForLevel(n + 1)) n++;
   return n;
 }
 

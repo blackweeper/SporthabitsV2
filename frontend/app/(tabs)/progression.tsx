@@ -25,6 +25,12 @@ import {
 } from "@/src/utils/exercise-category";
 import { EXERCISE_LIBRARY } from "@/src/data/exercise-library";
 import {
+  BADGES,
+  computeXPState,
+  MAX_LEVEL,
+  xpForLevel,
+} from "@/src/utils/xp";
+import {
   getGoals,
   getHabits,
   getHabitLogs,
@@ -51,12 +57,13 @@ import {
 import { computeIronflowScore, IronflowScore } from "@/src/utils/scoring";
 import { listAllExercises } from "@/src/utils/exercise-detail";
 
-type Tab = "overview" | "exercises" | "records" | "transformation" | "habits" | "journal";
+type Tab = "overview" | "exercises" | "records" | "level" | "transformation" | "habits" | "journal";
 
 const TABS: { key: Tab; label: string; icon: any }[] = [
   { key: "overview", label: "Score", icon: "speedometer" },
   { key: "exercises", label: "Exercices", icon: "barbell" },
   { key: "records", label: "Records", icon: "trophy" },
+  { key: "level", label: "Niveau", icon: "star" },
   { key: "transformation", label: "Corps", icon: "body" },
   { key: "habits", label: "Habitudes", icon: "checkbox" },
   { key: "journal", label: "Journal", icon: "book" },
@@ -168,6 +175,9 @@ export default function ProgressionHub() {
         )}
         {tab === "records" && (
           <RecordsView prs={prs} router={router} />
+        )}
+        {tab === "level" && (
+          <LevelView sessions={sessions} habits={habits} habitLogs={logs} prs={prs} />
         )}
         {tab === "transformation" && (
           <TransformationView
@@ -761,6 +771,203 @@ function RecordsView({
         })
       )}
     </>
+  );
+}
+
+function LevelView({
+  sessions,
+  habits,
+  habitLogs,
+  prs,
+}: {
+  sessions: WorkoutSession[];
+  habits: Habit[];
+  habitLogs: HabitLog[];
+  prs: PersonalRecord[];
+}) {
+  const xp = computeXPState({ sessions, habits, habitLogs, prs });
+  const totalXPForMax = xpForLevel(MAX_LEVEL);
+  const overallPct = Math.min(1, xp.xp / totalXPForMax);
+  const nextThreshold = xpForLevel(xp.level + 1);
+  const currentThreshold = xpForLevel(xp.level);
+  const isMax = xp.level >= MAX_LEVEL;
+
+  // Upcoming levels list: next 10 (or up to max)
+  const upcoming: { level: number; xpTotal: number; xpDelta: number; badge?: any }[] = [];
+  const from = xp.level + 1;
+  const to = Math.min(MAX_LEVEL, from + 9);
+  for (let lvl = from; lvl <= to; lvl++) {
+    const total = xpForLevel(lvl);
+    const prev = xpForLevel(lvl - 1);
+    upcoming.push({
+      level: lvl,
+      xpTotal: total,
+      xpDelta: total - prev,
+      badge: BADGES.find((b) => b.level === lvl),
+    });
+  }
+
+  return (
+    <View style={{ gap: spacing.md }}>
+      {/* Hero */}
+      <View style={styles.levelHero}>
+        <View style={styles.levelHeroLeft}>
+          <View style={styles.levelBigBadge}>
+            <Text style={styles.levelBigNum}>{xp.level}</Text>
+            <Text style={styles.levelBigLbl}>NIVEAU</Text>
+          </View>
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.levelXPLabel}>XP TOTAL</Text>
+          <Text style={styles.levelXPValue}>
+            {xp.xp}
+          </Text>
+          {isMax ? (
+            <Text style={styles.levelHint}>
+              🏆 Niveau maximum atteint !
+            </Text>
+          ) : (
+            <Text style={styles.levelHint}>
+              {xp.xpToNext} XP → N{xp.level + 1}
+            </Text>
+          )}
+        </View>
+      </View>
+
+      {/* Progress toward next level */}
+      {!isMax && (
+        <View style={styles.levelProgressBox}>
+          <View style={styles.levelProgressHead}>
+            <Text style={styles.levelProgressText}>
+              N{xp.level}
+              <Text style={{ color: colors.onSurfaceTertiary }}> ({currentThreshold})</Text>
+            </Text>
+            <Text style={styles.levelProgressPct}>
+              {Math.round(xp.progress * 100)}%
+            </Text>
+            <Text style={styles.levelProgressText}>
+              N{xp.level + 1}
+              <Text style={{ color: colors.onSurfaceTertiary }}> ({nextThreshold})</Text>
+            </Text>
+          </View>
+          <View style={styles.levelBigBar}>
+            <View
+              style={[
+                styles.levelBigFill,
+                { width: `${xp.progress * 100}%` },
+              ]}
+            />
+          </View>
+        </View>
+      )}
+
+      {/* Overall progress toward MAX_LEVEL */}
+      <View style={styles.overallCard}>
+        <View style={styles.overallHead}>
+          <Ionicons name="trophy" size={14} color={colors.brand} />
+          <Text style={styles.overallLabel}>PROGRESSION GLOBALE</Text>
+          <Text style={styles.overallPct}>
+            {Math.round(overallPct * 100)}%
+          </Text>
+        </View>
+        <View style={styles.overallBar}>
+          <View
+            style={[
+              styles.overallFill,
+              { width: `${overallPct * 100}%` },
+            ]}
+          />
+        </View>
+        <Text style={styles.overallHint}>
+          Niveau {xp.level} / {MAX_LEVEL} · {xp.xp} XP / {totalXPForMax} XP
+        </Text>
+      </View>
+
+      {/* XP sources */}
+      <View style={styles.sourcesCard}>
+        <Text style={styles.sourcesTitle}>Comment gagner de l&apos;XP</Text>
+        <SourceRow icon="barbell" label="Séance terminée" xp="+50" />
+        <SourceRow icon="trophy" label="Nouveau record" xp="+100" />
+        <SourceRow icon="checkbox" label="Habitude complétée du jour" xp="+10" />
+        <SourceRow icon="flame" label="Journée active (séance)" xp="+5" />
+      </View>
+
+      {/* Upcoming levels */}
+      {upcoming.length > 0 && (
+        <>
+          <Text style={styles.sectionTitle}>Prochains niveaux</Text>
+          {upcoming.map((u) => (
+            <View
+              key={u.level}
+              style={[
+                styles.upNext,
+                u.badge && { borderLeftColor: u.badge.color, borderLeftWidth: 4 },
+              ]}
+              testID={`upcoming-${u.level}`}
+            >
+              <View style={styles.upBadge}>
+                <Text style={styles.upBadgeNum}>{u.level}</Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.upTitle}>
+                  Niveau {u.level}
+                  {u.badge ? ` · ${u.badge.emoji} ${u.badge.title}` : ""}
+                </Text>
+                <Text style={styles.upSub}>
+                  {u.xpTotal} XP total · +{u.xpDelta} XP à gagner
+                </Text>
+              </View>
+              {u.badge && (
+                <View
+                  style={[
+                    styles.upBadgeChip,
+                    { backgroundColor: u.badge.color + "30", borderColor: u.badge.color },
+                  ]}
+                >
+                  <Text style={styles.upBadgeChipEmoji}>{u.badge.emoji}</Text>
+                </View>
+              )}
+            </View>
+          ))}
+        </>
+      )}
+
+      {/* Unlocked badges */}
+      {xp.unlockedBadges.length > 0 && (
+        <>
+          <Text style={styles.sectionTitle}>Badges débloqués</Text>
+          <View style={styles.badgesGrid}>
+            {xp.unlockedBadges.map((b) => (
+              <View
+                key={b.level}
+                style={[
+                  styles.bigBadgeItem,
+                  { borderColor: b.color, backgroundColor: b.color + "20" },
+                ]}
+              >
+                <Text style={{ fontSize: 26 }}>{b.emoji}</Text>
+                <Text style={styles.bigBadgeTitle} numberOfLines={1}>
+                  {b.title}
+                </Text>
+                <Text style={styles.bigBadgeLvl}>N{b.level}</Text>
+              </View>
+            ))}
+          </View>
+        </>
+      )}
+    </View>
+  );
+}
+
+function SourceRow({ icon, label, xp }: { icon: any; label: string; xp: string }) {
+  return (
+    <View style={styles.sourceRow}>
+      <View style={styles.sourceIcon}>
+        <Ionicons name={icon} size={13} color={colors.brand} />
+      </View>
+      <Text style={styles.sourceLabel}>{label}</Text>
+      <Text style={styles.sourceXP}>{xp}</Text>
+    </View>
   );
 }
 
@@ -2116,6 +2323,241 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "700",
     flex: 1,
+  },
+  levelHero: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    padding: spacing.lg,
+    backgroundColor: colors.brand,
+    borderRadius: radius.md,
+  },
+  levelHeroLeft: {
+    alignItems: "center",
+  },
+  levelBigBadge: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 4,
+    borderColor: "#ffffff40",
+  },
+  levelBigNum: { color: colors.brand, fontSize: 32, fontWeight: "800" },
+  levelBigLbl: {
+    color: colors.brand,
+    fontSize: 9,
+    fontWeight: "800",
+    letterSpacing: 0.8,
+  },
+  levelXPLabel: {
+    color: "#fff",
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 0.8,
+    opacity: 0.9,
+  },
+  levelXPValue: {
+    color: "#fff",
+    fontSize: 32,
+    fontWeight: "800",
+    marginTop: 4,
+  },
+  levelHint: {
+    color: "#fff",
+    fontSize: 12,
+    opacity: 0.9,
+    marginTop: 2,
+    fontWeight: "700",
+  },
+  levelProgressBox: {
+    backgroundColor: colors.surfaceSecondary,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md,
+    gap: 8,
+  },
+  levelProgressHead: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  levelProgressText: {
+    color: colors.onSurface,
+    fontSize: 12,
+    fontWeight: "800",
+  },
+  levelProgressPct: {
+    color: colors.brand,
+    fontSize: 15,
+    fontWeight: "800",
+  },
+  levelBigBar: {
+    height: 10,
+    backgroundColor: colors.surfaceTertiary,
+    borderRadius: 5,
+    overflow: "hidden",
+  },
+  levelBigFill: {
+    height: "100%",
+    borderRadius: 5,
+    backgroundColor: colors.brand,
+  },
+  overallCard: {
+    backgroundColor: colors.brandTertiary,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: colors.brand + "50",
+  },
+  overallHead: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  overallLabel: {
+    flex: 1,
+    color: colors.brand,
+    fontSize: 11,
+    fontWeight: "800",
+    letterSpacing: 0.6,
+  },
+  overallPct: {
+    color: colors.brand,
+    fontSize: 15,
+    fontWeight: "800",
+  },
+  overallBar: {
+    height: 6,
+    backgroundColor: colors.surface,
+    borderRadius: 3,
+    overflow: "hidden",
+  },
+  overallFill: {
+    height: "100%",
+    borderRadius: 3,
+    backgroundColor: colors.brand,
+  },
+  overallHint: {
+    color: colors.brandSecondary,
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  sourcesCard: {
+    backgroundColor: colors.surfaceSecondary,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md,
+    gap: 8,
+  },
+  sourcesTitle: {
+    color: colors.onSurface,
+    fontSize: 13,
+    fontWeight: "800",
+    letterSpacing: 0.3,
+    marginBottom: 4,
+  },
+  sourceRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    paddingVertical: 6,
+  },
+  sourceIcon: {
+    width: 26,
+    height: 26,
+    borderRadius: 8,
+    backgroundColor: colors.brandTertiary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  sourceLabel: {
+    flex: 1,
+    color: colors.onSurface,
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  sourceXP: {
+    color: colors.brand,
+    fontSize: 13,
+    fontWeight: "800",
+    letterSpacing: 0.5,
+  },
+  upNext: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    backgroundColor: colors.surfaceSecondary,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md,
+    marginBottom: 6,
+  },
+  upBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.surfaceTertiary,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  upBadgeNum: {
+    color: colors.onSurface,
+    fontSize: 12,
+    fontWeight: "800",
+  },
+  upTitle: {
+    color: colors.onSurface,
+    fontSize: 13,
+    fontWeight: "800",
+  },
+  upSub: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 11,
+    marginTop: 2,
+    fontWeight: "600",
+  },
+  upBadgeChip: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+  },
+  upBadgeChipEmoji: { fontSize: 16 },
+  badgesGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  bigBadgeItem: {
+    width: "48%",
+    padding: spacing.md,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    alignItems: "center",
+    gap: 4,
+  },
+  bigBadgeTitle: {
+    color: colors.onSurface,
+    fontSize: 12,
+    fontWeight: "800",
+    marginTop: 4,
+    textAlign: "center",
+  },
+  bigBadgeLvl: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 11,
+    fontWeight: "700",
   },
   empty: {
     alignItems: "center",

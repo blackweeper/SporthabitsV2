@@ -1,0 +1,39 @@
+{
+  "summary": "Frontend-only testing for IronFlow iteration 13: new 'Niveau' sub-tab in Progression with reformulated XP curve (xpForLevel(N) = round(50 * N^1.6), MAX_LEVEL=50). All 9 spec items PASSED at mobile viewport 390x844 with data seeded via localStorage. Formula verified in-browser: L1=50, L2=152, L3=290, L5=657, L6=879, L10=1991, L20=6034, L50=26141 (matches spec except minor rounding — spec mentions L5=655 but exact value is 657 per formula; not a bug, just doc drift).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": [
+      {"component": "Deprecated shadow* style props", "issue": "Console warning: '\"shadow*\" style props are deprecated. Use \"boxShadow\".' Persists from previous iterations, likely in third-party components; non-blocking."},
+      {"component": "pointerEvents prop", "issue": "Console warning: 'props.pointerEvents is deprecated. Use style.pointerEvents'. Non-blocking, from third-party libs."}
+    ]
+  },
+  "test_report_links": ["/app/test_reports/iteration_13.json"],
+  "detailed_test_results": {
+    "1_niveau_tab_present": "PASS — [data-testid='prog-seg-level'] found with star icon and 'Niveau' label in horizontal segment scroller.",
+    "2_level_hero": "PASS — After seeding 12 sessions on 12 distinct days + 2 PRs (600+200+60=860 XP), hero shows level number '5', 'NIVEAU' label, 'XP TOTAL' label, value '860', and hint '19 XP → N6'.",
+    "3_progress_bar_current_to_next": "PASS — Row shows 'N5 (657)' left, '91%' center, 'N6 (879)' right, with visible filled bar (91% width).",
+    "4_progression_globale": "PASS — Card labeled 'PROGRESSION GLOBALE' with '3%' pct, hint 'Niveau 5 / 50 · 860 XP / 26141 XP'. Bar filled ~3%.",
+    "5_xp_sources": "PASS — All 4 rows visible: 'Séance terminée +50', 'Nouveau record +100', 'Habitude complétée du jour +10', 'Journée active (séance) +5'.",
+    "6_upcoming_levels": "PASS — [data-testid='upcoming-6'] renders 'Niveau 6 · 879 XP total · +222 XP à gagner'. [data-testid='upcoming-10'] renders 'Niveau 10 · 💪 Régulier · 1991 XP total · +309 XP à gagner' with badge chip (💪) and colored left border.",
+    "7_xp_curve_progressive": "PASS — Consecutive deltas strictly increasing: L6=+222, L7=+246, L8=+268, L9=+289, L10=+309 XP. Exponential curve confirmed.",
+    "8_max_level_cap": "PASS — After seeding 700 sessions (38500 XP > threshold), hero shows level 50, hint '🏆 Niveau maximum atteint !', 'N51' is absent from DOM (no next-level progress bar), 'PROGRESSION GLOBALE' shows 100%.",
+    "9_badges_section": "PASS — With level 5, 'Badges débloqués' grid visible with '🔥 Débutant motivé · N5' card with orange border. At max level (50), grid contains all 8 badges (Débutant motivé N5, Régulier N10, Confirmé N15, Avancé N20, Expert N25, Athlète N30, Machine N40, Légende N50)."
+  },
+  "action_items": [],
+  "critical_code_review_comments": [
+    "xp.ts docstring (line 4-16) still references OLD linear formula (100*N*(N+1)/2, L1=100, L2=300, L3=600...) — inconsistent with the new exponential formula in xpForLevel() (lines 41-52). Comment block should be updated for clarity.",
+    "xp.ts comment on line 46 says 'L50 = 31249' but actual formula produces 26141 (round(50 * 50^1.6)). Doc drift — either the comment is stale or the formula needs adjustment. Recommend aligning comment with implementation.",
+    "progression.tsx (~2200 lines) still exceeds 700-line threshold — LevelView (lines 777-960) is a good candidate for extraction to /src/components/progression/LevelView.tsx.",
+    "LevelView correctly hides next-level progress bar via `{!isMax && (...)}` guard and displays trophy hint at max level — nice UX detail."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (skipped per request)", "frontend": "100% (9/9 spec items passing)"},
+  "seed_data_creation": "Playwright seeded localStorage['@ironflow/sessions'] with 12 workout sessions on 12 distinct days (level 5 test) then 700 sessions (max level test), plus 2 PRs in localStorage['@ironflow/prs']. Habits/logs cleared to avoid interference. All seeds injected via page.evaluate before /progression navigation.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "The 'Niveau' segment testID is 'prog-seg-level'. Upcoming level rows use testID pattern 'upcoming-{level}'. XP formula: round(50 * level^1.6). MAX_LEVEL threshold is 26141 XP (not 31249 as the code comment claims). Seed pattern: 12 sessions × 50 XP + 12 active days × 5 XP + N PRs × 100 XP. For max-level testing, seed 700 sessions across 700 distinct days to guarantee crossing the threshold. AsyncStorage on web = localStorage with key prefix preserved verbatim (e.g., '@ironflow/sessions').",
+  "rca_of_issue": "N/A — no bugs found. Only minor documentation drift in xp.ts comments (linear formula description + wrong L50 value) which does not affect behavior."
+}
