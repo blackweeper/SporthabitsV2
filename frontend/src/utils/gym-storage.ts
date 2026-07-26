@@ -150,6 +150,7 @@ const PRS_KEY = '@ironflow/prs';
 export type Sex = 'homme' | 'femme' | 'autre';
 
 export type UserProfile = {
+  name?: string | null;
   weight_kg: number | null;
   height_cm: number | null;
   sex: Sex | null;
@@ -160,12 +161,12 @@ export type UserProfile = {
 
 export async function getProfile(): Promise<UserProfile> {
   const raw = await AsyncStorage.getItem(PROFILE_KEY);
-  if (!raw) return { weight_kg: null, height_cm: null, sex: null, age: null, photoBase64: null };
+  if (!raw) return { name: null, weight_kg: null, height_cm: null, sex: null, age: null, photoBase64: null };
   try {
     const p = JSON.parse(raw);
-    return { photoBase64: null, ...p };
+    return { name: null, photoBase64: null, ...p };
   } catch {
-    return { weight_kg: null, height_cm: null, sex: null, age: null, photoBase64: null };
+    return { name: null, weight_kg: null, height_cm: null, sex: null, age: null, photoBase64: null };
   }
 }
 
@@ -753,4 +754,183 @@ export async function markAchievementSeen(id: string): Promise<void> {
     list.push({ id, unlockedAt: new Date().toISOString() });
     await AsyncStorage.setItem(ACHIEVEMENTS_KEY, JSON.stringify(list));
   }
+}
+
+// ---------- Habits ----------
+const HABITS_KEY = '@ironflow/habits';
+const HABIT_LOGS_KEY = '@ironflow/habitLogs';
+
+export type HabitFrequency = 'daily' | 'weekly';
+export type HabitKind =
+  | 'water'
+  | 'steps'
+  | 'nutrition'
+  | 'mobility'
+  | 'sleep'
+  | 'meditation'
+  | 'reading'
+  | 'other';
+
+export const HABIT_KIND_LABEL: Record<HabitKind, string> = {
+  water: 'Hydratation',
+  steps: 'Pas quotidiens',
+  nutrition: 'Nutrition',
+  mobility: 'Mobilité',
+  sleep: 'Sommeil',
+  meditation: 'Méditation',
+  reading: 'Lecture',
+  other: 'Autre',
+};
+
+export const HABIT_KIND_ICON: Record<HabitKind, any> = {
+  water: 'water',
+  steps: 'footsteps',
+  nutrition: 'nutrition',
+  mobility: 'body',
+  sleep: 'moon',
+  meditation: 'leaf',
+  reading: 'book',
+  other: 'star',
+};
+
+export type Habit = {
+  id: string;
+  title: string;
+  kind: HabitKind;
+  frequency: HabitFrequency;
+  target?: number | null; // e.g. 8 (glasses of water), 10000 (steps), 8 (hours)
+  unit?: string | null; // 'verres', 'pas', 'h', 'g'
+  color?: string;
+  createdAt: string;
+  archived?: boolean;
+  /** Whether this habit contributes to the daily IRONFLOW score. */
+  includedInScore?: boolean;
+};
+
+export async function getHabits(): Promise<Habit[]> {
+  const raw = await AsyncStorage.getItem(HABITS_KEY);
+  if (!raw) return [];
+  try {
+    return (JSON.parse(raw) as Habit[]).filter((h) => !h.archived);
+  } catch {
+    return [];
+  }
+}
+
+export async function saveHabit(h: Habit): Promise<void> {
+  const raw = await AsyncStorage.getItem(HABITS_KEY);
+  const list: Habit[] = raw ? JSON.parse(raw) : [];
+  const idx = list.findIndex((x) => x.id === h.id);
+  if (idx >= 0) list[idx] = h;
+  else list.push(h);
+  await AsyncStorage.setItem(HABITS_KEY, JSON.stringify(list));
+}
+
+export async function deleteHabit(id: string): Promise<void> {
+  const raw = await AsyncStorage.getItem(HABITS_KEY);
+  const list: Habit[] = raw ? JSON.parse(raw) : [];
+  await AsyncStorage.setItem(
+    HABITS_KEY,
+    JSON.stringify(list.filter((h) => h.id !== id)),
+  );
+}
+
+// Habit log entry: value achieved (or 1 for boolean) for a given habit on a given date (YYYY-MM-DD)
+export type HabitLog = {
+  habitId: string;
+  date: string; // YYYY-MM-DD
+  value: number;
+};
+
+export async function getHabitLogs(): Promise<HabitLog[]> {
+  const raw = await AsyncStorage.getItem(HABIT_LOGS_KEY);
+  if (!raw) return [];
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
+}
+
+export async function setHabitValue(
+  habitId: string,
+  date: string,
+  value: number,
+): Promise<void> {
+  const list = await getHabitLogs();
+  const idx = list.findIndex((l) => l.habitId === habitId && l.date === date);
+  if (idx >= 0) list[idx].value = value;
+  else list.push({ habitId, date, value });
+  await AsyncStorage.setItem(HABIT_LOGS_KEY, JSON.stringify(list));
+}
+
+export async function getHabitValue(
+  habitId: string,
+  date: string,
+): Promise<number> {
+  const list = await getHabitLogs();
+  return list.find((l) => l.habitId === habitId && l.date === date)?.value ?? 0;
+}
+
+export function todayYYYYMMDD(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+/** Compute the "achievement" for a habit today (0..1). */
+export function habitProgress(h: Habit, value: number): number {
+  const target = h.target && h.target > 0 ? h.target : 1;
+  return Math.max(0, Math.min(1, value / target));
+}
+
+/** Streak: consecutive days habit was completed (>= target). */
+export function habitStreak(h: Habit, logs: HabitLog[]): number {
+  const relevant = logs
+    .filter((l) => l.habitId === h.id)
+    .sort((a, b) => (b.date < a.date ? -1 : 1));
+  if (relevant.length === 0) return 0;
+  let streak = 0;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const cursor = new Date(today);
+  const target = h.target ?? 1;
+  while (true) {
+    const key = cursor.toISOString().slice(0, 10);
+    const log = relevant.find((l) => l.date === key);
+    if (!log || log.value < target) break;
+    streak++;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  return streak;
+}
+
+// ---------- Daily Journal (mood/energy/sleep etc kept per-day) ----------
+const DAILY_JOURNAL_KEY = '@ironflow/dailyJournal';
+
+export type DailyJournalEntry = {
+  date: string; // YYYY-MM-DD
+  mood?: number | null;
+  energy?: number | null;
+  motivation?: number | null;
+  stress?: number | null;
+  sleep_hours?: number | null;
+  pain?: string | null;
+  notes?: string | null;
+};
+
+export async function getDailyJournal(): Promise<DailyJournalEntry[]> {
+  const raw = await AsyncStorage.getItem(DAILY_JOURNAL_KEY);
+  if (!raw) return [];
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
+}
+
+export async function saveDailyJournal(e: DailyJournalEntry): Promise<void> {
+  const list = await getDailyJournal();
+  const idx = list.findIndex((x) => x.date === e.date);
+  if (idx >= 0) list[idx] = e;
+  else list.push(e);
+  await AsyncStorage.setItem(DAILY_JOURNAL_KEY, JSON.stringify(list));
 }

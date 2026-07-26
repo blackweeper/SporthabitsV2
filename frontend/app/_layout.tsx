@@ -44,6 +44,14 @@ export default function RootLayout() {
           <Stack.Screen name="programs" options={{ presentation: "modal" }} />
           <Stack.Screen name="program/[id]" />
           <Stack.Screen name="custom-program/[id]" />
+          <Stack.Screen name="habit/[id]" />
+          <Stack.Screen name="daily-journal" options={{ presentation: "modal" }} />
+          <Stack.Screen name="journal/[id]" options={{ presentation: "modal" }} />
+          <Stack.Screen name="exercise/[name]" />
+          <Stack.Screen name="exercise/index" />
+          <Stack.Screen name="stats" options={{ presentation: "modal" }} />
+          <Stack.Screen name="achievements" options={{ presentation: "modal" }} />
+          <Stack.Screen name="goals" options={{ presentation: "modal" }} />
         </Stack>
       </SafeAreaProvider>
     </GestureHandlerRootView>

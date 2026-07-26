@@ -1,0 +1,319 @@
+import { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Pressable,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
+  Alert,
+  Switch,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { colors, radius, spacing } from "@/src/theme";
+import {
+  deleteHabit,
+  getHabits,
+  Habit,
+  HabitKind,
+  HABIT_KIND_ICON,
+  HABIT_KIND_LABEL,
+  saveHabit,
+  uid,
+} from "@/src/utils/gym-storage";
+
+const KINDS: { key: HabitKind; defaultTitle: string; defaultTarget: number; defaultUnit: string }[] = [
+  { key: "water", defaultTitle: "Boire de l'eau", defaultTarget: 8, defaultUnit: "verres" },
+  { key: "steps", defaultTitle: "Marche quotidienne", defaultTarget: 8000, defaultUnit: "pas" },
+  { key: "nutrition", defaultTitle: "Nutrition respectée", defaultTarget: 1, defaultUnit: "" },
+  { key: "mobility", defaultTitle: "Mobilité / étirements", defaultTarget: 1, defaultUnit: "" },
+  { key: "sleep", defaultTitle: "Sommeil", defaultTarget: 8, defaultUnit: "h" },
+  { key: "meditation", defaultTitle: "Méditation", defaultTarget: 10, defaultUnit: "min" },
+  { key: "reading", defaultTitle: "Lecture", defaultTarget: 30, defaultUnit: "min" },
+  { key: "other", defaultTitle: "Autre", defaultTarget: 1, defaultUnit: "" },
+];
+
+export default function HabitEditorScreen() {
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const router = useRouter();
+  const isNew = id === "new";
+  const [habit, setHabit] = useState<Habit | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      if (isNew) {
+        setHabit({
+          id: uid(),
+          title: "",
+          kind: "water",
+          frequency: "daily",
+          target: 8,
+          unit: "verres",
+          createdAt: new Date().toISOString(),
+          includedInScore: true,
+        });
+      } else {
+        const list = await getHabits();
+        const h = list.find((x) => x.id === id);
+        if (h) setHabit(h);
+        else router.back();
+      }
+    })();
+  }, [id, isNew, router]);
+
+  if (!habit) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.loading}>Chargement…</Text>
+      </SafeAreaView>
+    );
+  }
+
+  const set = <K extends keyof Habit>(k: K, v: Habit[K]) =>
+    setHabit((h) => (h ? { ...h, [k]: v } : h));
+
+  const save = async () => {
+    if (!habit) return;
+    if (!habit.title.trim()) {
+      Alert.alert("Titre requis", "Nomme ton habitude.");
+      return;
+    }
+    await saveHabit(habit);
+    router.back();
+  };
+
+  const remove = async () => {
+    if (!habit || isNew) return;
+    const doDelete = async () => {
+      await deleteHabit(habit.id);
+      router.back();
+    };
+    if (Platform.OS === "web") {
+      if (window.confirm("Supprimer cette habitude ?")) doDelete();
+      return;
+    }
+    Alert.alert("Supprimer cette habitude ?", "", [
+      { text: "Annuler", style: "cancel" },
+      { text: "Supprimer", style: "destructive", onPress: doDelete },
+    ]);
+  };
+
+  const applyKind = (kind: HabitKind) => {
+    const def = KINDS.find((k) => k.key === kind)!;
+    setHabit((h) =>
+      h
+        ? {
+            ...h,
+            kind,
+            title: h.title.trim() ? h.title : def.defaultTitle,
+            target: def.defaultTarget,
+            unit: def.defaultUnit,
+          }
+        : h,
+    );
+  };
+
+  return (
+    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+      <View style={styles.header}>
+        <Pressable onPress={() => router.back()} hitSlop={12} testID="close-habit">
+          <Ionicons name="chevron-back" size={24} color={colors.onSurface} />
+        </Pressable>
+        <Text style={styles.title}>{isNew ? "Nouvelle habitude" : "Habitude"}</Text>
+        <Pressable onPress={save} hitSlop={12} testID="save-habit">
+          <Text style={styles.saveText}>SAUVER</Text>
+        </Pressable>
+      </View>
+
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Text style={styles.miniLabel}>Type</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.kindRow}
+          >
+            {KINDS.map((k) => {
+              const active = habit.kind === k.key;
+              return (
+                <Pressable
+                  key={k.key}
+                  testID={`habit-kind-${k.key}`}
+                  style={[styles.kindChip, active && styles.kindChipActive]}
+                  onPress={() => applyKind(k.key)}
+                >
+                  <Ionicons
+                    name={HABIT_KIND_ICON[k.key]}
+                    size={14}
+                    color={active ? "#fff" : colors.brand}
+                  />
+                  <Text style={[styles.kindLabel, active && { color: "#fff" }]}>
+                    {HABIT_KIND_LABEL[k.key]}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+
+          <Text style={styles.miniLabel}>Titre</Text>
+          <TextInput
+            testID="habit-title"
+            style={styles.input}
+            value={habit.title}
+            onChangeText={(t) => set("title", t)}
+            placeholder="Ex: Boire 2L d'eau"
+            placeholderTextColor={colors.onSurfaceTertiary}
+          />
+
+          <View style={styles.row}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.miniLabel}>Cible / jour</Text>
+              <TextInput
+                testID="habit-target"
+                style={styles.input}
+                value={habit.target == null ? "" : String(habit.target)}
+                keyboardType="decimal-pad"
+                onChangeText={(t) => {
+                  if (t.trim() === "") return set("target", null);
+                  const n = parseFloat(t.replace(",", "."));
+                  if (!isNaN(n)) set("target", n);
+                }}
+                placeholder="8"
+                placeholderTextColor={colors.onSurfaceTertiary}
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.miniLabel}>Unité</Text>
+              <TextInput
+                testID="habit-unit"
+                style={styles.input}
+                value={habit.unit || ""}
+                onChangeText={(t) => set("unit", t)}
+                placeholder="verres, min, pas…"
+                placeholderTextColor={colors.onSurfaceTertiary}
+              />
+            </View>
+          </View>
+
+          <View style={styles.switchRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.switchTitle}>Compter dans le score du jour</Text>
+              <Text style={styles.switchSub}>
+                Cette habitude sera visible dans "À faire aujourd&apos;hui"
+              </Text>
+            </View>
+            <Switch
+              testID="habit-in-score"
+              value={habit.includedInScore !== false}
+              onValueChange={(v) => set("includedInScore", v)}
+              trackColor={{ true: colors.brand, false: colors.surfaceTertiary }}
+              thumbColor="#fff"
+            />
+          </View>
+
+          {!isNew && (
+            <Pressable style={styles.deleteBtn} onPress={remove}>
+              <Ionicons name="trash" size={16} color={colors.error} />
+              <Text style={styles.deleteText}>Supprimer</Text>
+            </Pressable>
+          )}
+          <View style={{ height: 40 }} />
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.surface },
+  loading: {
+    color: colors.onSurfaceTertiary,
+    textAlign: "center",
+    marginTop: 40,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderBottomColor: colors.border,
+    borderBottomWidth: 1,
+  },
+  title: { color: colors.onSurface, fontSize: 16, fontWeight: "700" },
+  saveText: { color: colors.brand, fontWeight: "800", letterSpacing: 0.8 },
+  scroll: { padding: spacing.lg, gap: spacing.sm },
+  miniLabel: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 10,
+    letterSpacing: 1,
+    fontWeight: "700",
+    marginTop: spacing.sm,
+  },
+  input: {
+    backgroundColor: colors.surfaceSecondary,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    color: colors.onSurface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    fontSize: 14,
+    fontWeight: "600",
+    marginTop: 6,
+  },
+  row: { flexDirection: "row", gap: spacing.md },
+  kindRow: { gap: 6, paddingVertical: 6 },
+  kindChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceSecondary,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  kindChipActive: { backgroundColor: colors.brand, borderColor: colors.brand },
+  kindLabel: {
+    color: colors.onSurfaceSecondary,
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  switchRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    backgroundColor: colors.surfaceSecondary,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginTop: spacing.md,
+  },
+  switchTitle: { color: colors.onSurface, fontWeight: "700", fontSize: 13 },
+  switchSub: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 11,
+    marginTop: 2,
+  },
+  deleteBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.sm,
+    padding: spacing.lg,
+    marginTop: spacing.lg,
+  },
+  deleteText: { color: colors.error, fontWeight: "700" },
+});

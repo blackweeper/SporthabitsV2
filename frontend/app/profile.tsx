@@ -33,6 +33,7 @@ const SEXES: { key: Sex; label: string; icon: any }[] = [
 export default function ProfileScreen() {
   const router = useRouter();
   const [profile, setProfile] = useState<UserProfile>({
+    name: null,
     weight_kg: null,
     height_cm: null,
     sex: null,
@@ -177,6 +178,16 @@ export default function ProfileScreen() {
               Ces infos affinent le calcul des calories brûlées et servent au suivi de progression (IMC, masse grasse).
             </Text>
           </View>
+
+          <Text style={styles.label}>Prénom</Text>
+          <TextInput
+            testID="input-name"
+            style={styles.input}
+            value={profile.name ?? ""}
+            onChangeText={(t) => set("name", t.trim() ? t : null)}
+            placeholder="Ex: Alex"
+            placeholderTextColor={colors.onSurfaceTertiary}
+          />
 
           <Text style={styles.label}>Sexe</Text>
           <View style={styles.sexRow}>
