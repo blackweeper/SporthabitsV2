@@ -241,6 +241,21 @@ function PhotoColumn({
   return (
     <View style={styles.photoCol}>
       <Text style={styles.photoLabel}>{label}</Text>
+      <View style={styles.photoDateAbove}>
+        <Ionicons
+          name="calendar"
+          size={11}
+          color={measurement ? colors.brand : colors.onSurfaceTertiary}
+        />
+        <Text
+          style={[
+            styles.photoDateAboveText,
+            !measurement && { color: colors.onSurfaceTertiary },
+          ]}
+        >
+          {measurement ? formatShort(measurement.date) : "—"}
+        </Text>
+      </View>
       <Pressable
         testID={`pick-${testIDPrefix}`}
         onPress={onPick}
@@ -264,14 +279,11 @@ function PhotoColumn({
           </View>
         )}
       </Pressable>
-      {measurement && (
+      {measurement && measurement.weight_kg != null && (
         <View style={styles.photoMeta}>
-          <Text style={styles.photoDate}>{formatShort(measurement.date)}</Text>
-          {measurement.weight_kg != null && (
-            <Text style={styles.photoWeight}>
-              {measurement.weight_kg} kg
-            </Text>
-          )}
+          <Text style={styles.photoWeight}>
+            {measurement.weight_kg} kg
+          </Text>
         </View>
       )}
     </View>
@@ -389,6 +401,22 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "800",
     textAlign: "center",
+  },
+  photoDateAbove: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+    paddingVertical: 4,
+    marginBottom: 4,
+    backgroundColor: colors.brandTertiary,
+    borderRadius: radius.sm,
+  },
+  photoDateAboveText: {
+    color: colors.brand,
+    fontSize: 11,
+    fontWeight: "800",
+    letterSpacing: 0.3,
   },
   photoPress: {
     borderRadius: radius.md,
