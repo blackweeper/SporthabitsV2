@@ -38,11 +38,12 @@ import {
 import { computeIronflowScore, IronflowScore } from "@/src/utils/scoring";
 import { listAllExercises } from "@/src/utils/exercise-detail";
 
-type Tab = "overview" | "exercises" | "transformation" | "habits" | "journal";
+type Tab = "overview" | "exercises" | "records" | "transformation" | "habits" | "journal";
 
 const TABS: { key: Tab; label: string; icon: any }[] = [
   { key: "overview", label: "Score", icon: "speedometer" },
   { key: "exercises", label: "Exercices", icon: "barbell" },
+  { key: "records", label: "Records", icon: "trophy" },
   { key: "transformation", label: "Corps", icon: "body" },
   { key: "habits", label: "Habitudes", icon: "checkbox" },
   { key: "journal", label: "Journal", icon: "book" },
@@ -151,6 +152,9 @@ export default function ProgressionHub() {
         )}
         {tab === "exercises" && (
           <ExercisesView exercises={exercises} router={router} />
+        )}
+        {tab === "records" && (
+          <RecordsView prs={prs} router={router} />
         )}
         {tab === "transformation" && (
           <TransformationView
@@ -502,6 +506,205 @@ function ExercisesView({
       ))}
     </>
   );
+}
+
+function RecordsView({
+  prs,
+  router,
+}: {
+  prs: PersonalRecord[];
+  router: any;
+}) {
+  const [expanded, setExpanded] = useState<string | null>(null);
+  // Group PRs by exercise name (lowercased)
+  const grouped: Record<string, { name: string; prs: PersonalRecord[] }> = {};
+  for (const pr of prs) {
+    const key = pr.exerciseName.toLowerCase().trim();
+    if (!grouped[key])
+      grouped[key] = { name: pr.exerciseName, prs: [] };
+    grouped[key].prs.push(pr);
+  }
+  const groups = Object.values(grouped).sort((a, b) =>
+    a.name.localeCompare(b.name),
+  );
+
+  return (
+    <>
+      <Pressable
+        testID="new-record-btn"
+        style={styles.ctaFull}
+        onPress={() => router.push("/pr/new")}
+      >
+        <Ionicons name="add-circle" size={18} color="#fff" />
+        <Text style={styles.ctaFullText}>NOUVEAU RECORD</Text>
+      </Pressable>
+
+      {groups.length === 0 ? (
+        <View style={styles.empty}>
+          <Ionicons name="trophy" size={40} color={colors.brand} />
+          <Text style={styles.emptyTitle}>Aucun record</Text>
+          <Text style={styles.emptySub}>
+            Enregistre tes performances (1RM développé couché, 5 km, max tractions…) pour suivre tes progrès.
+          </Text>
+        </View>
+      ) : (
+        groups.map((g) => {
+          // Get best PR per type for this exercise
+          const weightPRs = g.prs.filter((p) => (p.type ?? "weight") === "weight");
+          const bestWeight = weightPRs
+            .slice()
+            .sort((a, b) => estimatedOneRM(b) - estimatedOneRM(a))[0];
+          const isOpen = expanded === g.name;
+          return (
+            <View key={g.name} style={styles.recordGroup}>
+              <Pressable
+                testID={`record-group-${g.name}`}
+                onPress={() => setExpanded(isOpen ? null : g.name)}
+                style={styles.recordHead}
+              >
+                <View style={styles.recordIcon}>
+                  <Ionicons name="trophy" size={16} color={colors.brand} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.recordName} numberOfLines={1}>
+                    {g.name}
+                  </Text>
+                  <Text style={styles.recordSub}>
+                    {g.prs.length} record{g.prs.length > 1 ? "s" : ""}
+                  </Text>
+                </View>
+                <Ionicons
+                  name={isOpen ? "chevron-up" : "chevron-down"}
+                  size={16}
+                  color={colors.onSurfaceTertiary}
+                />
+              </Pressable>
+
+              {isOpen && (
+                <View style={styles.recordBody}>
+                  {g.prs
+                    .slice()
+                    .sort((a, b) => (b.date < a.date ? -1 : 1))
+                    .map((pr) => (
+                      <RecordRow key={pr.id} pr={pr} />
+                    ))}
+
+                  {bestWeight && (
+                    <OneRMCalculator
+                      pr={bestWeight}
+                      testID={`orm-calc-${g.name}`}
+                    />
+                  )}
+                </View>
+              )}
+            </View>
+          );
+        })
+      )}
+    </>
+  );
+}
+
+function estimatedOneRM(pr: PersonalRecord): number {
+  const w = pr.weight_kg ?? 0;
+  const r = pr.reps ?? 1;
+  if (r <= 1) return w;
+  return w * (1 + r / 30);
+}
+
+function RecordRow({ pr }: { pr: PersonalRecord }) {
+  const type = pr.type ?? "weight";
+  let main = "—";
+  let sub = "";
+  if (type === "weight") {
+    main = `${pr.weight_kg} kg × ${pr.reps}`;
+    sub = `1RM estimé : ${estimatedOneRM(pr).toFixed(1)} kg`;
+  } else if (type === "reps") {
+    main = `${pr.reps} reps`;
+    sub = "au poids du corps";
+  } else if (type === "run") {
+    const km = (pr.distance_m ?? 0) / 1000;
+    const t = pr.time_seconds ?? 0;
+    const h = Math.floor(t / 3600);
+    const m = Math.floor((t % 3600) / 60);
+    const s = t % 60;
+    const time =
+      h > 0
+        ? `${h}h${String(m).padStart(2, "0")}`
+        : `${m}:${String(s).padStart(2, "0")}`;
+    main = `${km.toFixed(1)} km`;
+    sub = time;
+  }
+  return (
+    <View style={styles.recordRow}>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.recordRowMain}>{main}</Text>
+        {sub ? <Text style={styles.recordRowSub}>{sub}</Text> : null}
+      </View>
+      <Text style={styles.recordRowDate}>{formatDateShort(pr.date)}</Text>
+    </View>
+  );
+}
+
+function OneRMCalculator({
+  pr,
+  testID,
+}: {
+  pr: PersonalRecord;
+  testID?: string;
+}) {
+  const [pct, setPct] = useState(70);
+  const oneRM = estimatedOneRM(pr);
+  const load = (oneRM * pct) / 100;
+  // Round to nearest 2.5 kg
+  const roundedLoad = Math.round(load / 2.5) * 2.5;
+  return (
+    <View style={styles.calcCard} testID={testID}>
+      <View style={styles.calcHead}>
+        <Ionicons name="calculator" size={14} color={colors.brand} />
+        <Text style={styles.calcTitle}>Calculateur % de 1RM</Text>
+      </View>
+      <Text style={styles.calcSub}>
+        1RM estimé : <Text style={styles.calcAccent}>{oneRM.toFixed(1)} kg</Text>
+      </Text>
+      <View style={styles.calcRow}>
+        {[50, 60, 70, 80, 90, 95].map((p) => {
+          const active = p === pct;
+          return (
+            <Pressable
+              key={p}
+              testID={`${testID}-pct-${p}`}
+              style={[
+                styles.pctChip,
+                active && { backgroundColor: colors.brand, borderColor: colors.brand },
+              ]}
+              onPress={() => setPct(p)}
+            >
+              <Text
+                style={[
+                  styles.pctChipText,
+                  active && { color: "#fff" },
+                ]}
+              >
+                {p}%
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+      <View style={styles.calcResult}>
+        <Text style={styles.calcResultVal}>{roundedLoad.toFixed(1)} kg</Text>
+        <Text style={styles.calcResultHint}>à {pct}% de 1RM</Text>
+      </View>
+    </View>
+  );
+}
+
+function formatDateShort(iso: string) {
+  return new Date(iso).toLocaleDateString("fr-FR", {
+    day: "2-digit",
+    month: "short",
+  });
 }
 
 function TransformationView({
@@ -1118,6 +1321,133 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   metricChipText: { color: colors.onSurface, fontSize: 11, fontWeight: "700" },
+  recordGroup: {
+    backgroundColor: colors.surfaceSecondary,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    overflow: "hidden",
+  },
+  recordHead: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    padding: spacing.md,
+  },
+  recordIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: colors.brandTertiary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  recordName: {
+    color: colors.onSurface,
+    fontWeight: "800",
+    fontSize: 14,
+    textTransform: "capitalize",
+  },
+  recordSub: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 11,
+    marginTop: 2,
+  },
+  recordBody: {
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    padding: spacing.md,
+    gap: spacing.sm,
+  },
+  recordRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    padding: 10,
+    backgroundColor: colors.surface,
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  recordRowMain: {
+    color: colors.onSurface,
+    fontWeight: "800",
+    fontSize: 14,
+  },
+  recordRowSub: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 11,
+    marginTop: 2,
+  },
+  recordRowDate: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  calcCard: {
+    backgroundColor: colors.brandTertiary,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    gap: 8,
+    marginTop: 4,
+  },
+  calcHead: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  calcTitle: {
+    color: colors.brand,
+    fontWeight: "800",
+    fontSize: 12,
+    letterSpacing: 0.5,
+  },
+  calcSub: {
+    color: colors.onSurfaceSecondary,
+    fontSize: 11,
+  },
+  calcAccent: {
+    color: colors.onSurface,
+    fontWeight: "800",
+  },
+  calcRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+    marginTop: 4,
+  },
+  pctChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  pctChipText: {
+    color: colors.onSurfaceSecondary,
+    fontWeight: "800",
+    fontSize: 11,
+  },
+  calcResult: {
+    alignItems: "center",
+    padding: spacing.md,
+    borderRadius: radius.md,
+    backgroundColor: colors.brand,
+    marginTop: 4,
+  },
+  calcResultVal: {
+    color: "#fff",
+    fontWeight: "800",
+    fontSize: 26,
+  },
+  calcResultHint: {
+    color: "#fff",
+    opacity: 0.9,
+    fontSize: 11,
+    fontWeight: "700",
+    marginTop: 2,
+  },
   empty: {
     alignItems: "center",
     padding: spacing.xl,
