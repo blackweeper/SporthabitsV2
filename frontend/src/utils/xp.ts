@@ -42,8 +42,8 @@ export const MAX_LEVEL = 50;
  * XP curve: quick early progress, slower as you climb.
  * Formula: xpForLevel(N) = round(50 * N ^ 1.6)
  *   L1 = 50    · L2 = 152   · L3 = 290
- *   L5 = 655   · L10 = 1993 · L20 = 6553
- *   L30 = 12869 · L40 = 21205 · L50 = 31249
+ *   L5 = 657   · L10 = 1991 · L20 = 6034
+ *   L30 = 11868 · L40 = 19536 · L50 = 26141
  */
 export function xpForLevel(level: number): number {
   if (level <= 0) return 0;
