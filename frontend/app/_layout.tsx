@@ -34,7 +34,6 @@ export default function RootLayout() {
           }}
         >
           <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="import" options={{ presentation: "modal" }} />
           <Stack.Screen name="profile" options={{ presentation: "modal" }} />
           <Stack.Screen name="plan/[id]" />
           <Stack.Screen name="workout/[id]" />

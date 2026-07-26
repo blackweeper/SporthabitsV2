@@ -115,12 +115,11 @@ export default function HomeScreen() {
           resizeMode="cover"
         >
           <LinearGradient
-            pointerEvents="none"
             colors={["rgba(14,14,14,0.2)", "rgba(14,14,14,0.98)"]}
-            style={StyleSheet.absoluteFill}
+            style={[StyleSheet.absoluteFill, { pointerEvents: "none" }]}
           />
           <View style={styles.heroTopBar}>
-            <View style={{ flex: 1 }} pointerEvents="none" />
+            <View style={{ flex: 1, pointerEvents: "none" }} />
             <Pressable
               testID="open-profile"
               style={styles.profileBtn}
