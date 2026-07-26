@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -30,9 +31,12 @@ import {
   deleteCustomProgram,
   ExerciseMode,
   getCustomPrograms,
+  getPlans,
+  Plan,
   saveCustomProgram,
   uid,
 } from "@/src/utils/gym-storage";
+import { estimateSessionDurationSeconds, formatEstimatedDuration } from "@/src/utils/session-estimate";
 
 const LEVELS: ProgramLevel[] = ["debutant", "intermediaire", "avance"];
 const MODES: { key: ExerciseMode; label: string }[] = [
@@ -73,9 +77,14 @@ export default function CustomProgramEditor() {
   const [program, setProgram] = useState<Program | null>(null);
   const [selectedDay, setSelectedDay] = useState(1);
   const [pickingIdx, setPickingIdx] = useState<{ sessionIdx: number; exIdx: number } | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
+  const [availablePlans, setAvailablePlans] = useState<Plan[]>([]);
 
   useEffect(() => {
     (async () => {
+      // Load plans (individual sessions the user has created) for the import modal
+      const plans = await getPlans();
+      setAvailablePlans(plans);
       if (isNew) {
         setProgram({
           id: uid(),
@@ -408,19 +417,29 @@ export default function CustomProgramEditor() {
                     index={si}
                   />
                 ))}
-                <Pressable
-                  testID="add-session"
-                  style={styles.addSessBtn}
-                  onPress={() =>
-                    updateDay(selectedDay, (d) => ({
-                      ...d,
-                      sessions: [...d.sessions, newSession()],
-                    }))
-                  }
-                >
-                  <Ionicons name="add" size={16} color={colors.brand} />
-                  <Text style={styles.addSessText}>AJOUTER UNE SÉANCE CE JOUR</Text>
-                </Pressable>
+                <View style={styles.addSessRow}>
+                  <Pressable
+                    testID="add-session"
+                    style={[styles.addSessBtn, { flex: 1 }]}
+                    onPress={() =>
+                      updateDay(selectedDay, (d) => ({
+                        ...d,
+                        sessions: [...d.sessions, newSession()],
+                      }))
+                    }
+                  >
+                    <Ionicons name="add" size={16} color={colors.brand} />
+                    <Text style={styles.addSessText}>SÉANCE VIDE</Text>
+                  </Pressable>
+                  <Pressable
+                    testID="import-session"
+                    style={[styles.addSessBtn, { flex: 1 }]}
+                    onPress={() => setImportOpen(true)}
+                  >
+                    <Ionicons name="download" size={16} color={colors.brand} />
+                    <Text style={styles.addSessText}>IMPORTER</Text>
+                  </Pressable>
+                </View>
               </>
             )}
           </View>
@@ -468,7 +487,143 @@ export default function CustomProgramEditor() {
           }));
         }}
       />
+
+      <PlanPickerModal
+        visible={importOpen}
+        plans={availablePlans}
+        onClose={() => setImportOpen(false)}
+        onPick={(plan) => {
+          // Convert Plan into ProgramSession and append to selected day
+          const importedSession: ProgramSession = {
+            label: "",
+            title: plan.title,
+            exercises: plan.exercises.map((e) => ({
+              name: e.name,
+              mode: e.mode,
+              sets: e.sets,
+              reps: e.reps,
+              weight: e.weight,
+              rest_seconds: e.rest_seconds,
+              duration_seconds: e.duration_seconds,
+              notes: e.notes,
+              photoBase64: e.photoBase64 ?? null,
+              iconKey: e.iconKey ?? null,
+            })),
+          };
+          updateDay(selectedDay, (d) => ({
+            rest: false,
+            title: d.rest ? plan.title : d.title,
+            sessions: [...(d.rest ? [] : d.sessions), importedSession],
+          }));
+          setImportOpen(false);
+        }}
+      />
     </SafeAreaView>
+  );
+}
+
+function PlanPickerModal({
+  visible,
+  plans,
+  onClose,
+  onPick,
+}: {
+  visible: boolean;
+  plans: Plan[];
+  onClose: () => void;
+  onPick: (p: Plan) => void;
+}) {
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}
+    >
+      <View style={styles.sheetBackdrop}>
+        <Pressable style={{ flex: 1 }} onPress={onClose} />
+        <View style={styles.sheet}>
+          <View style={styles.sheetHandle} />
+          <Text style={styles.sheetTitle}>Importer une séance</Text>
+          <Text style={styles.sheetHelp}>
+            Choisis une séance individuelle déjà créée pour l&apos;ajouter à ce jour.
+          </Text>
+          {plans.length === 0 ? (
+            <View style={styles.emptyImport}>
+              <Ionicons name="folder-open" size={40} color={colors.brand} />
+              <Text style={styles.emptyImportTitle}>
+                Aucune séance individuelle
+              </Text>
+              <Text style={styles.emptyImportSub}>
+                Crée une séance dans l&apos;onglet Entraînements → Séances
+                individuelles pour pouvoir l&apos;importer ici.
+              </Text>
+            </View>
+          ) : (
+            <ScrollView style={{ maxHeight: 400 }}>
+              {plans.map((p) => {
+                const est = estimateSessionDurationSeconds(p.exercises);
+                return (
+                  <Pressable
+                    key={p.id}
+                    testID={`import-plan-${p.id}`}
+                    style={styles.planCard}
+                    onPress={() => onPick(p)}
+                  >
+                    <View
+                      style={[
+                        styles.planIcon,
+                        p.type === "cardio" && { backgroundColor: "#00B0FF40" },
+                        p.type === "hiit" && { backgroundColor: "#FF6B0040" },
+                        p.category === "stretch" && {
+                          backgroundColor: "#00E67640",
+                        },
+                      ]}
+                    >
+                      <Ionicons
+                        name={
+                          p.category === "stretch"
+                            ? "body"
+                            : p.type === "cardio"
+                              ? "walk"
+                              : p.type === "hiit"
+                                ? "flash"
+                                : "barbell"
+                        }
+                        size={16}
+                        color={colors.brand}
+                      />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.planTitle} numberOfLines={1}>
+                        {p.title}
+                      </Text>
+                      <Text style={styles.planMeta}>
+                        {p.exercises.length} exercice
+                        {p.exercises.length > 1 ? "s" : ""}
+                        {est > 0 ? ` · ${formatEstimatedDuration(est)}` : ""}
+                      </Text>
+                    </View>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={16}
+                      color={colors.onSurfaceTertiary}
+                    />
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          )}
+          <Pressable
+            style={styles.sheetCloseBtn}
+            onPress={onClose}
+            testID="import-close"
+          >
+            <Text style={styles.sheetCloseText}>Fermer</Text>
+          </Pressable>
+        </View>
+      </View>
+    </Modal>
   );
 }
 
@@ -1083,6 +1238,98 @@ const styles = StyleSheet.create({
     borderColor: colors.brand,
     borderStyle: "dashed",
     borderRadius: radius.sm,
+  },
+  addSessRow: {
+    flexDirection: "row",
+    gap: spacing.sm,
+  },
+  sheetBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.65)",
+    justifyContent: "flex-end",
+  },
+  sheet: {
+    backgroundColor: colors.surfaceSecondary,
+    padding: spacing.lg,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingBottom: 32,
+    gap: spacing.sm,
+  },
+  sheetHandle: {
+    width: 48,
+    height: 5,
+    backgroundColor: colors.border,
+    borderRadius: 3,
+    alignSelf: "center",
+    marginBottom: spacing.sm,
+  },
+  sheetTitle: {
+    color: colors.onSurface,
+    fontSize: 18,
+    fontWeight: "800",
+  },
+  sheetHelp: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 12,
+    marginBottom: spacing.sm,
+  },
+  planCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    backgroundColor: colors.surface,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginBottom: 8,
+  },
+  planIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: colors.brandTertiary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  planTitle: {
+    color: colors.onSurface,
+    fontWeight: "800",
+    fontSize: 13,
+  },
+  planMeta: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 11,
+    marginTop: 2,
+  },
+  emptyImport: {
+    alignItems: "center",
+    padding: spacing.lg,
+    gap: 8,
+  },
+  emptyImportTitle: {
+    color: colors.onSurface,
+    fontWeight: "800",
+    fontSize: 15,
+  },
+  emptyImportSub: {
+    color: colors.onSurfaceTertiary,
+    textAlign: "center",
+    fontSize: 12,
+    lineHeight: 17,
+  },
+  sheetCloseBtn: {
+    marginTop: spacing.sm,
+    padding: 12,
+    borderRadius: radius.md,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  sheetCloseText: {
+    color: colors.onSurfaceSecondary,
+    fontWeight: "800",
   },
   addSessText: {
     color: colors.brand,

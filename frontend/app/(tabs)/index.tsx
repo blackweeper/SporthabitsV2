@@ -176,22 +176,64 @@ export default function TodayScreen() {
           <Text style={styles.mainCtaText}>DÉMARRER LA SÉANCE</Text>
         </Pressable>
 
-        {/* Today program */}
-        {primary && (
-          <Pressable
-            testID="open-active-program"
-            style={styles.progCard}
-            onPress={() => router.push(`/program/${primary.program.id}`)}
-          >
-            <Ionicons name="calendar" size={16} color={colors.brand} />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.progLabel}>PROGRAMME DU JOUR</Text>
-              <Text style={styles.progName} numberOfLines={1}>
-                {primary.program.title}
-              </Text>
+        {/* Programmes actifs — jusqu'à 2 en parallèle */}
+        {actives.length > 0 && (
+          <>
+            <Text style={styles.sectionTitle}>
+              {actives.length > 1 ? "Programmes actifs" : "Programme actif"}
+            </Text>
+            <View style={styles.programsRow}>
+              {actives.map(({ active, program }) => {
+                const di = currentDayIndex(active, program.durationDays);
+                const totalSess = program.days.reduce(
+                  (a, d) => a + (d.rest ? 0 : d.sessions.length),
+                  0,
+                );
+                const done = active.completedSessions.length;
+                const pct = totalSess ? done / totalSess : 0;
+                return (
+                  <Pressable
+                    key={program.id}
+                    testID={`active-program-${program.id}`}
+                    style={[
+                      styles.progMini,
+                      { borderLeftColor: program.color },
+                    ]}
+                    onPress={() => router.push(`/program/${program.id}`)}
+                  >
+                    <View style={styles.progMiniHead}>
+                      <Text style={styles.progMiniEmoji}>
+                        {program.coverEmoji}
+                      </Text>
+                      <View style={{ flex: 1 }}>
+                        <Text
+                          style={styles.progMiniTitle}
+                          numberOfLines={1}
+                        >
+                          {program.title}
+                        </Text>
+                        <Text style={styles.progMiniMeta}>
+                          Jour {di}/{program.durationDays} · {done}/{totalSess}{" "}
+                          séances
+                        </Text>
+                      </View>
+                    </View>
+                    <View style={styles.progMiniTrack}>
+                      <View
+                        style={[
+                          styles.progMiniFill,
+                          {
+                            width: `${pct * 100}%`,
+                            backgroundColor: program.color,
+                          },
+                        ]}
+                      />
+                    </View>
+                  </Pressable>
+                );
+              })}
             </View>
-            <Ionicons name="chevron-forward" size={16} color={colors.onSurfaceTertiary} />
-          </Pressable>
+          </>
         )}
 
         {/* Checklist */}
@@ -560,6 +602,47 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.border,
+  },
+  programsRow: {
+    gap: spacing.sm,
+  },
+  progMini: {
+    backgroundColor: colors.surfaceSecondary,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderLeftWidth: 4,
+    padding: spacing.md,
+    gap: 8,
+  },
+  progMiniHead: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
+  progMiniEmoji: {
+    fontSize: 26,
+  },
+  progMiniTitle: {
+    color: colors.onSurface,
+    fontWeight: "800",
+    fontSize: 14,
+  },
+  progMiniMeta: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 11,
+    fontWeight: "600",
+    marginTop: 2,
+  },
+  progMiniTrack: {
+    height: 4,
+    backgroundColor: colors.surfaceTertiary,
+    borderRadius: 2,
+    overflow: "hidden",
+  },
+  progMiniFill: {
+    height: "100%",
+    borderRadius: 2,
   },
   progLabel: {
     color: colors.onSurfaceTertiary,

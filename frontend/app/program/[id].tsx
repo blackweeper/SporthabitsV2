@@ -29,6 +29,12 @@ import {
   removeActiveProgram,
   uid,
 } from "@/src/utils/gym-storage";
+import {
+  estimateSessionDurationSeconds,
+  formatEstimatedDuration,
+  formatPlannedDate,
+  plannedDateForDayIndex,
+} from "@/src/utils/session-estimate";
 
 export default function ProgramDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -261,6 +267,11 @@ export default function ProgramDetailScreen() {
               isToday={isActive && i + 1 === todayIdx}
               color={program.color}
               onLaunch={launchSession}
+              plannedDate={
+                active
+                  ? plannedDateForDayIndex(active.startedAt, i + 1)
+                  : null
+              }
             />
           ))}
         </View>
@@ -284,6 +295,7 @@ function ProgramDayCard({
   isToday,
   color,
   onLaunch,
+  plannedDate,
 }: {
   dayIndex: number;
   day: ProgramDay;
@@ -291,6 +303,7 @@ function ProgramDayCard({
   isToday: boolean;
   color: string;
   onLaunch: (di: number, si: number, s: ProgramSession) => void;
+  plannedDate: Date | null;
 }) {
   const doneOf = (si: number) =>
     active?.completedSessions.some(
@@ -309,7 +322,14 @@ function ProgramDayCard({
               {dayIndex}
             </Text>
           </View>
-          <Text style={styles.dayRestTitle}>{day.title}</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.dayRestTitle}>{day.title}</Text>
+            {plannedDate && (
+              <Text style={styles.dayDate}>
+                {formatPlannedDate(plannedDate)}
+              </Text>
+            )}
+          </View>
           <Ionicons name="bed" size={18} color={colors.onSurfaceTertiary} />
         </View>
       </View>
@@ -348,9 +368,16 @@ function ProgramDayCard({
             </Text>
           )}
         </View>
-        <Text style={styles.dayTitle} numberOfLines={1}>
-          {day.title}
-        </Text>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.dayTitle} numberOfLines={1}>
+            {day.title}
+          </Text>
+          {plannedDate && (
+            <Text style={styles.dayDate}>
+              {formatPlannedDate(plannedDate)}
+            </Text>
+          )}
+        </View>
         {isToday && (
           <Text style={[styles.todayLbl, { color }]}>AUJOURD&apos;HUI</Text>
         )}
@@ -358,6 +385,7 @@ function ProgramDayCard({
 
       {day.sessions.map((s, si) => {
         const done = doneOf(si);
+        const est = estimateSessionDurationSeconds(s.exercises);
         return (
           <Pressable
             key={si}
@@ -374,20 +402,61 @@ function ProgramDayCard({
                 </View>
               ) : null}
               <View style={{ flex: 1 }}>
-                <Text style={styles.sessTitle} numberOfLines={1}>
-                  {s.title}
-                </Text>
-                <Text style={styles.sessMeta}>
-                  {s.exercises.length} exercice
-                  {s.exercises.length > 1 ? "s" : ""}
-                </Text>
+                <View style={styles.sessTitleRow}>
+                  <Text style={styles.sessTitle} numberOfLines={1}>
+                    {s.title}
+                  </Text>
+                  {done ? (
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={20}
+                      color={colors.success}
+                    />
+                  ) : (
+                    <Ionicons name="play-circle" size={20} color={color} />
+                  )}
+                </View>
+                <View style={styles.sessMetaRow}>
+                  <View style={styles.metaPill}>
+                    <Ionicons
+                      name="barbell"
+                      size={10}
+                      color={colors.onSurfaceTertiary}
+                    />
+                    <Text style={styles.metaPillText}>
+                      {s.exercises.length} ex.
+                    </Text>
+                  </View>
+                  {est > 0 && (
+                    <View style={styles.metaPill}>
+                      <Ionicons
+                        name="time"
+                        size={10}
+                        color={colors.onSurfaceTertiary}
+                      />
+                      <Text style={styles.metaPillText}>
+                        {formatEstimatedDuration(est)}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+                {/* Preview list of exercises */}
+                {s.exercises.length > 0 && (
+                  <Text
+                    style={styles.sessPreview}
+                    numberOfLines={2}
+                  >
+                    {s.exercises
+                      .slice(0, 4)
+                      .map((e) => e.name)
+                      .join(" · ")}
+                    {s.exercises.length > 4
+                      ? ` · +${s.exercises.length - 4}`
+                      : ""}
+                  </Text>
+                )}
               </View>
             </View>
-            {done ? (
-              <Ionicons name="checkmark-circle" size={22} color={colors.success} />
-            ) : (
-              <Ionicons name="play-circle" size={22} color={color} />
-            )}
           </Pressable>
         );
       })}
@@ -528,6 +597,45 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   dayRestTitle: { color: colors.onSurfaceTertiary, flex: 1, fontSize: 13 },
+  dayDate: {
+    color: colors.brand,
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 0.4,
+    marginTop: 2,
+    textTransform: "capitalize",
+  },
+  sessTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  sessMetaRow: {
+    flexDirection: "row",
+    gap: 6,
+    marginTop: 4,
+    flexWrap: "wrap",
+  },
+  metaPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+    backgroundColor: colors.surface,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  metaPillText: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 10,
+    fontWeight: "700",
+  },
+  sessPreview: {
+    color: colors.onSurfaceSecondary,
+    fontSize: 11,
+    marginTop: 6,
+    lineHeight: 15,
+  },
   todayLbl: {
     fontSize: 10,
     letterSpacing: 1,
