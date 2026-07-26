@@ -1,0 +1,29 @@
+{
+  "summary": "Frontend-only bug re-test after profile button fix. Result: FIX CONFIRMED. Profile button (testID=open-profile) is now 44x44, positioned in hero top-right (x=334, y=12), and hit-testing via document.elementFromPoint returns an element whose closest ancestor IS the button itself — meaning the previously-intercepting LinearGradient overlay no longer blocks the tap. Clicking it navigates to /profile reliably (verified twice, including after returning to home). All 4 new profile shortcuts (open-achievements, open-goals, open-stats, open-history) are visible on the profile screen, tappable, and route to /achievements, /goals, /stats, /history respectively. Two non-blocking console warnings observed (see react_native_issues).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": [
+      {"component": "LinearGradient / spacer View (home hero)", "issue": "Console warning: 'props.pointerEvents is deprecated. Use style.pointerEvents'. The fix uses pointerEvents as a prop; on react-native-web this is deprecated. Migrate to style={{ pointerEvents: 'none' }} (or add pointerEvents: 'none' to StyleSheet.absoluteFill / spacer style). Reference: /app/frontend/app/(tabs)/index.tsx:118 and :123."},
+      {"component": "Expo Router root Stack layout", "issue": "Console warning: '[Layout children]: No route named \"import\" exists in nested children'. The root _layout.tsx declares a Stack.Screen for a route named 'import' that no longer exists in /app. Remove the stale <Stack.Screen name=\"import\" .../> entry. Reference: /app/frontend/app/_layout.tsx."}
+    ]
+  },
+  "test_report_links": ["/tmp/home_before_profile.png", "/tmp/profile_screen.png"],
+  "action_items": [
+    "Optional cleanup: replace pointerEvents=\"none\" prop with style-based pointerEvents on the LinearGradient overlay and spacer View in app/(tabs)/index.tsx to silence the react-native-web deprecation warning.",
+    "Optional cleanup: remove the stale <Stack.Screen name=\"import\" /> declaration from app/_layout.tsx."
+  ],
+  "critical_code_review_comments": [
+    "Fix is correctly applied at /app/frontend/app/(tabs)/index.tsx: heroTopBar has zIndex/elevation:10, profileBtn is 44x44 with hitSlop=16, gradient + spacer are pointerEvents='none'. This is the right pattern for tap-target rescue on RN Web.",
+    "profile.tsx correctly exposes testIDs open-achievements/goals/stats/history and each Pressable routes with router.push to the expected screen."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A", "frontend": "100%"},
+  "seed_data_creation": "None. Pure navigation smoke test.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Profile button regression fully validated. Hit-test confirms overlay no longer intercepts. All 4 profile shortcut testIDs verified. Two deprecation warnings remain but are cosmetic (see react_native_issues).",
+  "rca_of_issue": "Root cause of the original bug: the LinearGradient using StyleSheet.absoluteFill on top of the ImageBackground was capturing pointer events on web, and the flex:1 spacer View also stole taps. Mitigation applied by main agent: pointerEvents='none' on both, zIndex:10/elevation:10 on heroTopBar, bumped touch target to 44x44 with hitSlop:16. Verified via document.elementFromPoint that the top element at the button center resolves back to the button ancestor, and click navigates to /profile."
+}

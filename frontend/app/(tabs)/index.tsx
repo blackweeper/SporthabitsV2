@@ -115,16 +115,17 @@ export default function HomeScreen() {
           resizeMode="cover"
         >
           <LinearGradient
+            pointerEvents="none"
             colors={["rgba(14,14,14,0.2)", "rgba(14,14,14,0.98)"]}
             style={StyleSheet.absoluteFill}
           />
           <View style={styles.heroTopBar}>
-            <View style={{ flex: 1 }} />
+            <View style={{ flex: 1 }} pointerEvents="none" />
             <Pressable
               testID="open-profile"
               style={styles.profileBtn}
               onPress={() => router.push("/profile")}
-              hitSlop={8}
+              hitSlop={16}
             >
               <Ionicons name="person" size={18} color="#fff" />
             </Pressable>
@@ -397,16 +398,18 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     padding: spacing.md,
     alignItems: "center",
+    zIndex: 10,
+    elevation: 10,
   },
   profileBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "rgba(0,0,0,0.55)",
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "rgba(0,0,0,0.65)",
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.2)",
+    borderColor: "rgba(255,255,255,0.25)",
   },
   heroContent: {
     padding: spacing.xl,
