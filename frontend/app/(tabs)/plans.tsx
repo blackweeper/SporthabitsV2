@@ -46,11 +46,11 @@ export default function PlansScreen() {
       <View style={styles.header}>
         <Text style={styles.title}>Mes plans</Text>
         <Pressable
-          testID="import-plan-btn"
+          testID="create-plan-btn"
           style={styles.headerBtn}
-          onPress={() => router.push("/import")}
+          onPress={() => router.push("/plan/new")}
         >
-          <Ionicons name="camera" size={18} color={colors.brand} />
+          <Ionicons name="add" size={20} color={colors.brand} />
         </Pressable>
       </View>
 
@@ -69,22 +69,15 @@ export default function PlansScreen() {
             </View>
             <Text style={styles.emptyTitle}>Aucun plan</Text>
             <Text style={styles.emptySub}>
-              Importe ton plan depuis une photo ou{"\n"}crée-en un manuellement.
+              Crée ton premier plan d&apos;entraînement{"\n"}manuellement.
             </Text>
             <Pressable
-              testID="empty-import-btn"
-              style={styles.ctaBtn}
-              onPress={() => router.push("/import")}
-            >
-              <Ionicons name="camera" size={18} color="#fff" />
-              <Text style={styles.ctaText}>IMPORTER DEPUIS UNE PHOTO</Text>
-            </Pressable>
-            <Pressable
               testID="empty-create-btn"
-              style={styles.secondaryBtn}
+              style={styles.ctaBtn}
               onPress={() => router.push("/plan/new")}
             >
-              <Text style={styles.secondaryText}>Créer manuellement</Text>
+              <Ionicons name="add-circle" size={18} color="#fff" />
+              <Text style={styles.ctaText}>CRÉER UN PLAN</Text>
             </Pressable>
           </View>
         ) : (

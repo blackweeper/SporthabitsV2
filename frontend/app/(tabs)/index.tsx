@@ -188,15 +188,6 @@ export default function HomeScreen() {
             <Text style={styles.quickSub}>30 jours</Text>
           </Pressable>
           <Pressable
-            testID="quick-import"
-            style={styles.quickBtn}
-            onPress={() => router.push("/import")}
-          >
-            <Ionicons name="camera" size={22} color={colors.brand} />
-            <Text style={styles.quickTitle}>Importer</Text>
-            <Text style={styles.quickSub}>Photo → IA</Text>
-          </Pressable>
-          <Pressable
             testID="quick-create"
             style={styles.quickBtn}
             onPress={() => router.push("/plan/new")}
