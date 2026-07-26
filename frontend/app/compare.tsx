@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import {
   Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing } from "@/src/theme";
 import { getMeasurements, Measurement } from "@/src/utils/gym-storage";
@@ -21,23 +21,30 @@ export default function CompareScreen() {
   const [beforeId, setBeforeId] = useState<string | null>(null);
   const [afterId, setAfterId] = useState<string | null>(null);
   const [picker, setPicker] = useState<null | "before" | "after">(null);
+  const [mode, setMode] = useState<"compare" | "gallery">("compare");
 
-  useEffect(() => {
-    (async () => {
-      const list = (await getMeasurements()).filter((m) => !!m.photoBase64);
-      // sort ascending by date
-      list.sort(
-        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
-      );
-      setAll(list);
-      if (list.length >= 2) {
-        setBeforeId(list[0].id);
-        setAfterId(list[list.length - 1].id);
-      } else if (list.length === 1) {
-        setBeforeId(list[0].id);
-      }
-    })();
+  const load = useCallback(async () => {
+    const raw = await getMeasurements();
+    const list = raw.filter((m) => !!m.photoBase64 && m.photoBase64!.length > 0);
+    list.sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+    );
+    setAll(list);
+    setBeforeId((prev) => {
+      if (prev && list.some((m) => m.id === prev)) return prev;
+      return list.length >= 1 ? list[0].id : null;
+    });
+    setAfterId((prev) => {
+      if (prev && list.some((m) => m.id === prev)) return prev;
+      return list.length >= 2 ? list[list.length - 1].id : null;
+    });
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      load();
+    }, [load]),
+  );
 
   const before = useMemo(
     () => all.find((m) => m.id === beforeId) || null,
@@ -88,11 +95,11 @@ export default function CompareScreen() {
         </Pressable>
       </View>
 
-      {all.length < 2 ? (
+      {all.length < 1 ? (
         <View style={styles.empty}>
           <Ionicons name="images" size={40} color={colors.onSurfaceTertiary} />
           <Text style={styles.emptyText}>
-            Ajoute au moins 2 mesures avec photo pour comparer.
+            Ajoute au moins une mesure avec photo dans l&apos;onglet Corps.
           </Text>
         </View>
       ) : (
@@ -100,6 +107,65 @@ export default function CompareScreen() {
           contentContainerStyle={styles.scroll}
           showsVerticalScrollIndicator={false}
         >
+          {/* Mode switch */}
+          <View style={styles.modeSwitch}>
+            <Pressable
+              testID="mode-compare"
+              onPress={() => setMode("compare")}
+              style={[
+                styles.modeBtn,
+                mode === "compare" && styles.modeBtnActive,
+              ]}
+            >
+              <Ionicons
+                name="swap-horizontal"
+                size={13}
+                color={mode === "compare" ? "#fff" : colors.onSurfaceTertiary}
+              />
+              <Text
+                style={[
+                  styles.modeBtnText,
+                  mode === "compare" && { color: "#fff" },
+                ]}
+              >
+                Comparer
+              </Text>
+            </Pressable>
+            <Pressable
+              testID="mode-gallery"
+              onPress={() => setMode("gallery")}
+              style={[
+                styles.modeBtn,
+                mode === "gallery" && styles.modeBtnActive,
+              ]}
+            >
+              <Ionicons
+                name="grid"
+                size={13}
+                color={mode === "gallery" ? "#fff" : colors.onSurfaceTertiary}
+              />
+              <Text
+                style={[
+                  styles.modeBtnText,
+                  mode === "gallery" && { color: "#fff" },
+                ]}
+              >
+                Galerie
+              </Text>
+            </Pressable>
+          </View>
+
+          {mode === "gallery" ? (
+            <GalleryView measurements={all} />
+          ) : all.length < 2 ? (
+            <View style={styles.empty}>
+              <Ionicons name="images" size={40} color={colors.onSurfaceTertiary} />
+              <Text style={styles.emptyText}>
+                Ajoute au moins 2 mesures avec photo pour comparer.
+              </Text>
+            </View>
+          ) : (
+            <>
           {/* Side by side photos */}
           <View style={styles.photosRow}>
             <PhotoColumn
@@ -167,6 +233,8 @@ export default function CompareScreen() {
           )}
 
           <View style={{ height: 40 }} />
+            </>
+          )}
         </ScrollView>
       )}
 
@@ -224,6 +292,45 @@ export default function CompareScreen() {
         </View>
       </Modal>
     </SafeAreaView>
+  );
+}
+
+function GalleryView({ measurements }: { measurements: Measurement[] }) {
+  // Sort chronologically ASCending — oldest first
+  const chrono = [...measurements].sort(
+    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+  );
+  const width = Dimensions.get("window").width;
+  const size = Math.floor((width - spacing.lg * 2 - 8) / 2);
+  return (
+    <View style={{ gap: spacing.md }}>
+      <Text style={styles.galleryTitle}>
+        {chrono.length} photo{chrono.length > 1 ? "s" : ""} — ordre chronologique
+      </Text>
+      <View style={styles.galleryGrid}>
+        {chrono.map((m, i) => (
+          <View
+            key={m.id}
+            testID={`gallery-${m.id}`}
+            style={[styles.galleryItem, { width: size }]}
+          >
+            <Image
+              source={{
+                uri: `data:image/jpeg;base64,${m.photoBase64}`,
+              }}
+              style={[styles.galleryImg, { width: size, height: size * 1.2 }]}
+            />
+            <View style={styles.galleryOverlay}>
+              <Text style={styles.galleryIdx}>#{i + 1}</Text>
+              <Text style={styles.galleryDate}>{formatShort(m.date)}</Text>
+              {m.weight_kg != null && (
+                <Text style={styles.galleryWeight}>{m.weight_kg} kg</Text>
+              )}
+            </View>
+          </View>
+        ))}
+      </View>
+    </View>
   );
 }
 
@@ -388,6 +495,75 @@ const styles = StyleSheet.create({
     color: colors.onSurfaceTertiary,
     textAlign: "center",
     lineHeight: 20,
+  },
+  modeSwitch: {
+    flexDirection: "row",
+    backgroundColor: colors.surfaceSecondary,
+    borderRadius: radius.pill,
+    padding: 3,
+    borderWidth: 1,
+    borderColor: colors.border,
+    gap: 2,
+  },
+  modeBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 8,
+    borderRadius: radius.pill,
+  },
+  modeBtnActive: { backgroundColor: colors.brand },
+  modeBtnText: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 12,
+    fontWeight: "800",
+    letterSpacing: 0.3,
+  },
+  galleryTitle: {
+    color: colors.onSurfaceSecondary,
+    fontSize: 12,
+    fontWeight: "700",
+    marginTop: 4,
+  },
+  galleryGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  galleryItem: {
+    position: "relative",
+    borderRadius: radius.md,
+    overflow: "hidden",
+    backgroundColor: colors.surfaceSecondary,
+  },
+  galleryImg: { borderRadius: radius.md },
+  galleryOverlay: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    padding: 8,
+    backgroundColor: "rgba(0,0,0,0.65)",
+  },
+  galleryIdx: {
+    color: colors.brand,
+    fontWeight: "800",
+    fontSize: 10,
+    letterSpacing: 0.4,
+  },
+  galleryDate: {
+    color: "#fff",
+    fontWeight: "800",
+    fontSize: 12,
+    marginTop: 2,
+  },
+  galleryWeight: {
+    color: "#fff",
+    fontSize: 10,
+    fontWeight: "700",
+    opacity: 0.85,
   },
   photosRow: {
     flexDirection: "row",

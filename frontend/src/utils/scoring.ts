@@ -106,13 +106,36 @@ export function computeDailyScore(
 
   const scoredHabits = habits.filter((h) => h.includedInScore !== false);
   for (const h of scoredHabits) {
+    let derivedProgress: number | null = null;
+    // Auto-fill from wellness widgets when kinds match
+    if (wellness) {
+      const { log, waterTarget, caloriesTarget, stepsTarget } = wellness;
+      if (h.kind === 'water' && waterTarget > 0)
+        derivedProgress = Math.min(1, (log?.water_ml ?? 0) / waterTarget);
+      else if (h.kind === 'steps' && stepsTarget > 0)
+        derivedProgress = Math.min(1, (log?.steps ?? 0) / stepsTarget);
+      else if (h.kind === 'nutrition' && caloriesTarget > 0) {
+        const cur = log?.calories_kcal ?? 0;
+        if (cur > 0) {
+          const ratio = cur / caloriesTarget;
+          if (ratio >= 0.8 && ratio <= 1.2) derivedProgress = 1;
+          else if (ratio < 0.8) derivedProgress = ratio / 0.8;
+          else derivedProgress = Math.max(0, 1 - (ratio - 1.2) / 0.8);
+        } else derivedProgress = 0;
+      } else if (h.kind === 'sleep' && log?.sleep_hours) {
+        derivedProgress = Math.min(1, log.sleep_hours / 7.5);
+      }
+    }
     const val = habitLogs.find((l) => l.habitId === h.id && l.date === today)?.value ?? 0;
+    const achieved = derivedProgress != null
+      ? Math.max(derivedProgress, habitProgress(h, val))
+      : habitProgress(h, val);
     scored.push({
       id: h.id,
       label: h.title,
       icon: iconForHabit(h),
       weight: 0,
-      achieved: habitProgress(h, val),
+      achieved,
       color: h.color ?? '#4CAF50',
     });
   }

@@ -16,7 +16,14 @@ import { colors, radius, spacing } from "@/src/theme";
 import {
   PERIOD_LABEL,
   PeriodKey,
+  EXERCISE_CATEGORY_COLOR,
+  EXERCISE_CATEGORY_ICON,
+  EXERCISE_CATEGORY_LABEL,
+  ExerciseCategory,
+  getOverrides,
+  resolveCategory,
 } from "@/src/utils/exercise-category";
+import { EXERCISE_LIBRARY } from "@/src/data/exercise-library";
 import {
   getGoals,
   getHabits,
@@ -477,40 +484,149 @@ function ExercisesView({
   exercises: { name: string; count: number }[];
   router: any;
 }) {
-  if (exercises.length === 0) {
-    return (
-      <View style={styles.empty}>
-        <Ionicons name="barbell" size={40} color={colors.brand} />
-        <Text style={styles.emptyTitle}>Aucun exercice</Text>
-        <Text style={styles.emptySub}>
-          Fais une séance pour analyser tes performances par exercice.
-        </Text>
-      </View>
+  const [subTab, setSubTab] = useState<ExerciseCategory>("musculation");
+  const [overrides, setOverridesState] = useState<Record<string, ExerciseCategory>>({});
+
+  useFocusEffect(
+    useCallback(() => {
+      (async () => {
+        setOverridesState(await getOverrides());
+      })();
+    }, []),
+  );
+
+  // Merge library + user-done exercises, resolving each to a category
+  const merged: {
+    name: string;
+    category: ExerciseCategory;
+    count: number;
+    emoji?: string;
+    fromLibrary: boolean;
+  }[] = [];
+
+  const seenNames = new Set<string>();
+  for (const lib of EXERCISE_LIBRARY) {
+    const key = lib.name.toLowerCase().trim();
+    seenNames.add(key);
+    const done = exercises.find(
+      (e) => e.name.toLowerCase().trim() === key,
     );
+    merged.push({
+      name: lib.name,
+      category: lib.category,
+      count: done?.count ?? 0,
+      emoji: lib.emoji,
+      fromLibrary: true,
+    });
   }
+  for (const e of exercises) {
+    const key = e.name.toLowerCase().trim();
+    if (seenNames.has(key)) continue;
+    merged.push({
+      name: e.name,
+      category: resolveCategory(e.name, overrides),
+      count: e.count,
+      fromLibrary: false,
+    });
+  }
+
+  const filtered = merged.filter((m) => m.category === subTab);
+  // Sort: first user-active (count > 0), then library
+  filtered.sort((a, b) => {
+    if ((b.count > 0 ? 1 : 0) - (a.count > 0 ? 1 : 0)) return b.count - a.count;
+    return a.name.localeCompare(b.name);
+  });
+
+  const CATS: ExerciseCategory[] = ["musculation", "cardio_machine", "mobility"];
+
   return (
     <>
-      {exercises.map((e) => (
-        <Pressable
-          key={e.name}
-          testID={`ex-detail-${e.name}`}
-          style={styles.exerciseCard}
-          onPress={() => router.push(`/exercise/${encodeURIComponent(e.name)}`)}
-        >
-          <View style={styles.exIconBox}>
-            <Ionicons name="barbell" size={16} color={colors.brand} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.exName} numberOfLines={1}>
-              {e.name}
-            </Text>
-            <Text style={styles.exMeta}>
-              {e.count} séance{e.count > 1 ? "s" : ""}
-            </Text>
-          </View>
-          <Ionicons name="chevron-forward" size={16} color={colors.onSurfaceTertiary} />
-        </Pressable>
-      ))}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.exSubtabs}
+      >
+        {CATS.map((c) => {
+          const active = c === subTab;
+          const color = EXERCISE_CATEGORY_COLOR[c];
+          return (
+            <Pressable
+              key={c}
+              testID={`ex-cat-${c}`}
+              style={[
+                styles.exSubtab,
+                active && { backgroundColor: color + "26", borderColor: color },
+              ]}
+              onPress={() => setSubTab(c)}
+            >
+              <Ionicons
+                name={EXERCISE_CATEGORY_ICON[c]}
+                size={12}
+                color={active ? color : colors.onSurfaceTertiary}
+              />
+              <Text
+                style={[
+                  styles.exSubtabText,
+                  active && { color },
+                ]}
+              >
+                {EXERCISE_CATEGORY_LABEL[c]}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </ScrollView>
+
+      {filtered.length === 0 ? (
+        <View style={styles.empty}>
+          <Ionicons name="barbell" size={40} color={colors.brand} />
+          <Text style={styles.emptyTitle}>Rien pour l&apos;instant</Text>
+          <Text style={styles.emptySub}>Aucun exercice dans cette catégorie.</Text>
+        </View>
+      ) : (
+        filtered.map((e) => {
+          const color = EXERCISE_CATEGORY_COLOR[e.category];
+          return (
+            <Pressable
+              key={e.name}
+              testID={`ex-detail-${e.name}`}
+              style={styles.exerciseCard}
+              onPress={() =>
+                router.push(`/exercise/${encodeURIComponent(e.name)}`)
+              }
+            >
+              <View
+                style={[styles.exIconBox, { backgroundColor: color + "26" }]}
+              >
+                {e.emoji ? (
+                  <Text style={{ fontSize: 15 }}>{e.emoji}</Text>
+                ) : (
+                  <Ionicons
+                    name={EXERCISE_CATEGORY_ICON[e.category]}
+                    size={16}
+                    color={color}
+                  />
+                )}
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.exName} numberOfLines={1}>
+                  {e.name}
+                </Text>
+                <Text style={styles.exMeta}>
+                  {e.count > 0
+                    ? `${e.count} séance${e.count > 1 ? "s" : ""}`
+                    : "Pas encore pratiqué"}
+                </Text>
+              </View>
+              <Ionicons
+                name="chevron-forward"
+                size={16}
+                color={colors.onSurfaceTertiary}
+              />
+            </Pressable>
+          );
+        })
+      )}
     </>
   );
 }
@@ -1635,6 +1751,28 @@ const styles = StyleSheet.create({
     textTransform: "capitalize",
   },
   exMeta: { color: colors.onSurfaceTertiary, fontSize: 11, marginTop: 2 },
+  exSubtabs: {
+    gap: 6,
+    paddingVertical: 4,
+    marginBottom: spacing.sm,
+  },
+  exSubtab: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surfaceSecondary,
+  },
+  exSubtabText: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 11,
+    fontWeight: "800",
+    letterSpacing: 0.4,
+  },
   summaryGrid: { flexDirection: "row", gap: 8 },
   sumTile: {
     flex: 1,

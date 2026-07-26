@@ -17,19 +17,19 @@ import {
   DEFAULT_CALORIES_TARGET_KCAL,
   DEFAULT_STEPS_TARGET,
   DEFAULT_WATER_TARGET_ML,
-  FeelingMood,
+  Measurement,
+  setHabitValue,
   getActivePrograms,
   getHabits,
   getHabitLogs,
   getMeasurements,
+  getPRs,
   getProfile,
   getSessions,
   getWellnessLog,
   Habit,
   HabitLog,
-  Measurement,
-  patchWellnessLog,
-  setHabitValue,
+  PersonalRecord,
   todayYYYYMMDD,
   UserProfile,
   WellnessLog,
@@ -38,10 +38,10 @@ import {
 import { findProgram } from "@/src/utils/programs";
 import { Program } from "@/src/data/programs";
 import { computeDailyScore } from "@/src/utils/scoring";
+import { computeXPState } from "@/src/utils/xp";
 import { computeAdvancedStats } from "@/src/utils/stats";
 import { todayQuote } from "@/src/data/motivation";
 import {
-  FeelingCard,
   WellnessQuickWidgets,
 } from "@/src/components/WellnessWidgets";
 
@@ -57,12 +57,14 @@ export default function TodayScreen() {
   const [actives, setActives] = useState<ActiveWithProgram[]>([]);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [wellness, setWellness] = useState<WellnessLog | null>(null);
+  const [prs, setPRs] = useState<PersonalRecord[]>([]);
 
   const load = useCallback(async () => {
     setSessions(await getSessions());
     setHabits(await getHabits());
     setLogs(await getHabitLogs());
     setMeasurements(await getMeasurements());
+    setPRs(await getPRs());
     const p = await getProfile();
     setProfile(p);
     setName((p as any).name ?? "");
@@ -89,6 +91,7 @@ export default function TodayScreen() {
     stepsTarget: profile?.steps_target || DEFAULT_STEPS_TARGET,
   });
   const stats = computeAdvancedStats(sessions);
+  const xpState = computeXPState({ sessions, habits, habitLogs: logs, prs });
   const lastMeasurement = measurements[0];
   const firstMeasurement = measurements[measurements.length - 1];
   const weightDelta =
@@ -149,6 +152,48 @@ export default function TodayScreen() {
             </Text>
           </View>
         </View>
+
+        {/* XP + Level card */}
+        <Pressable
+          style={styles.xpCard}
+          testID="xp-card"
+          onPress={() => router.push("/profile")}
+        >
+          <View style={styles.xpHeadRow}>
+            <View style={styles.xpBadge}>
+              <Text style={styles.xpLevelNum}>{xpState.level}</Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.xpLabel}>NIVEAU {xpState.level}</Text>
+              <Text style={styles.xpValue}>{xpState.xp} XP</Text>
+              <Text style={styles.xpHint}>
+                {xpState.nextBadge
+                  ? `${xpState.xpToNext} XP → niveau ${xpState.level + 1} · badge ${xpState.nextBadge.emoji} ${xpState.nextBadge.title} au N${xpState.nextBadge.level}`
+                  : `${xpState.xpToNext} XP → niveau ${xpState.level + 1}`}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.xpBar}>
+            <View
+              style={[
+                styles.xpFill,
+                { width: `${xpState.progress * 100}%` },
+              ]}
+            />
+          </View>
+          {xpState.unlockedBadges.length > 0 && (
+            <View style={styles.badgeRow}>
+              {xpState.unlockedBadges.slice(-6).map((b) => (
+                <View
+                  key={b.level}
+                  style={[styles.badge, { backgroundColor: b.color + "30", borderColor: b.color }]}
+                >
+                  <Text style={styles.badgeEmoji}>{b.emoji}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+        </Pressable>
 
         {/* CTA principal */}
         <Pressable
@@ -318,15 +363,6 @@ export default function TodayScreen() {
             </Text>
           </View>
         </Pressable>
-
-        {/* Feeling of the day — non-blocking suggestion card */}
-        <FeelingCard
-          currentFeeling={wellness?.feeling ?? null}
-          onSelect={async (m: FeelingMood) => {
-            await patchWellnessLog(today, { feeling: m });
-            load();
-          }}
-        />
 
         {/* Wellness quick widgets — Water / Calories / Steps */}
         <Text style={styles.sectionTitle}>Bien-être du jour</Text>
@@ -587,6 +623,61 @@ const styles = StyleSheet.create({
   },
   scoreValue: { color: colors.onSurface, fontSize: 26, fontWeight: "800" },
   scoreHint: { color: colors.brand, fontSize: 12, fontWeight: "700", marginTop: 2 },
+  xpCard: {
+    backgroundColor: colors.surfaceSecondary,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    gap: 10,
+  },
+  xpHeadRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+  xpBadge: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: colors.brand,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: "#fff",
+  },
+  xpLevelNum: { color: "#fff", fontWeight: "800", fontSize: 20 },
+  xpLabel: {
+    color: colors.brand,
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 0.6,
+  },
+  xpValue: {
+    color: colors.onSurface,
+    fontSize: 17,
+    fontWeight: "800",
+    marginTop: 2,
+  },
+  xpHint: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 10,
+    fontWeight: "600",
+    marginTop: 2,
+  },
+  xpBar: {
+    height: 6,
+    backgroundColor: colors.surfaceTertiary,
+    borderRadius: 3,
+    overflow: "hidden",
+  },
+  xpFill: { height: "100%", borderRadius: 3, backgroundColor: colors.brand },
+  badgeRow: { flexDirection: "row", gap: 6, marginTop: 2 },
+  badge: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+  },
+  badgeEmoji: { fontSize: 15 },
   mainCta: {
     backgroundColor: colors.brand,
     padding: 18,

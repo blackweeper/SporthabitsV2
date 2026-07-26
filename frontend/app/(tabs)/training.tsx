@@ -26,10 +26,10 @@ type Tab = "program" | "mobility" | "sessions" | "individual";
 type IndCat = "all" | "musculation" | "cardio" | "wod" | "stretch";
 
 const TABS: { key: Tab; label: string; icon: any }[] = [
-  { key: "program", label: "Programme", icon: "calendar" },
+  { key: "program", label: "Musculation", icon: "barbell" },
   { key: "mobility", label: "Mobilité", icon: "body" },
-  { key: "sessions", label: "Séances", icon: "list" },
-  { key: "individual", label: "Séances indiv.", icon: "barbell" },
+  { key: "individual", label: "Séances", icon: "list" },
+  { key: "sessions", label: "Historique", icon: "time" },
 ];
 
 const IND_CATS: { key: IndCat; label: string; icon: any }[] = [
@@ -459,6 +459,17 @@ function MobilityView({
             PARCOURIR LES ÉTIREMENTS
           </Text>
         </Pressable>
+        <Pressable
+          onPress={() =>
+            router.push("/custom-program/new?category=stretch")
+          }
+          testID="create-mobility-program"
+          style={[styles.ctaBtnSecondary, { borderColor: "#00E676" }]}
+        >
+          <Text style={[styles.ctaTextSecondary, { color: "#00E676" }]}>
+            Créer mon programme
+          </Text>
+        </Pressable>
       </View>
     );
   }
@@ -488,6 +499,28 @@ function MobilityView({
           </Pressable>
         );
       })}
+      <Pressable
+        style={styles.linkBtn}
+        onPress={() => router.push("/programs?category=stretch")}
+        testID="all-mobility"
+      >
+        <Ionicons name="library" size={14} color="#00E676" />
+        <Text style={[styles.linkBtnText, { color: "#00E676" }]}>
+          Parcourir les étirements
+        </Text>
+        <Ionicons name="chevron-forward" size={14} color="#00E676" />
+      </Pressable>
+      <Pressable
+        onPress={() =>
+          router.push("/custom-program/new?category=stretch")
+        }
+        testID="create-mobility-program-2"
+        style={[styles.ctaBtnSecondary, { borderColor: "#00E676" }]}
+      >
+        <Text style={[styles.ctaTextSecondary, { color: "#00E676" }]}>
+          Créer mon programme
+        </Text>
+      </Pressable>
     </>
   );
 }
