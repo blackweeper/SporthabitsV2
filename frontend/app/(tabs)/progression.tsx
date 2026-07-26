@@ -5,12 +5,18 @@ import {
   StyleSheet,
   ScrollView,
   Pressable,
+  Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import Svg, { Circle } from "react-native-svg";
+import { LineChart } from "react-native-gifted-charts";
 import { colors, radius, spacing } from "@/src/theme";
+import {
+  PERIOD_LABEL,
+  PeriodKey,
+} from "@/src/utils/exercise-category";
 import {
   getGoals,
   getHabits,
@@ -763,6 +769,7 @@ function TransformationView({
         </View>
       ) : (
         <>
+          <BodyStatsChart measurements={measurements} />
           <Text style={styles.sectionTitle}>Historique</Text>
           {measurements.slice(0, 20).map((m) => (
             <Pressable
@@ -789,6 +796,193 @@ function TransformationView({
       )}
     </>
   );
+}
+
+function BodyStatsChart({ measurements }: { measurements: Measurement[] }) {
+  type StatKey =
+    | "weight_kg"
+    | "body_fat_pct"
+    | "waist_cm"
+    | "chest_cm"
+    | "hips_cm"
+    | "arm_cm"
+    | "thigh_cm"
+    | "neck_cm";
+
+  const STAT_META: Record<StatKey, { label: string; icon: any; unit: string }> = {
+    weight_kg: { label: "Poids", icon: "body", unit: "kg" },
+    body_fat_pct: { label: "Masse grasse", icon: "pulse", unit: "%" },
+    waist_cm: { label: "Taille", icon: "resize", unit: "cm" },
+    chest_cm: { label: "Poitrine", icon: "shirt", unit: "cm" },
+    hips_cm: { label: "Hanches", icon: "resize", unit: "cm" },
+    arm_cm: { label: "Bras", icon: "barbell", unit: "cm" },
+    thigh_cm: { label: "Cuisses", icon: "walk", unit: "cm" },
+    neck_cm: { label: "Cou", icon: "man", unit: "cm" },
+  };
+
+  const PERIODS: PeriodKey[] = ["7d", "30d", "6m", "1y", "all"];
+
+  // Detect which stats have at least 1 recorded value
+  const availableStats = (Object.keys(STAT_META) as StatKey[]).filter((k) =>
+    measurements.some((m) => (m as any)[k] != null),
+  );
+
+  const [stat, setStat] = useState<StatKey>(
+    (availableStats[0] ?? "weight_kg") as StatKey,
+  );
+  const [period, setPeriod] = useState<PeriodKey>("6m");
+
+  if (availableStats.length === 0) return null;
+  // Ensure current stat is available
+  const effectiveStat = availableStats.includes(stat) ? stat : availableStats[0];
+
+  const now = new Date();
+  let cutoff = new Date(0);
+  if (period === "7d") cutoff = new Date(now.getTime() - 7 * 86400000);
+  else if (period === "30d") cutoff = new Date(now.getTime() - 30 * 86400000);
+  else if (period === "6m") {
+    cutoff = new Date(now);
+    cutoff.setMonth(cutoff.getMonth() - 6);
+  } else if (period === "1y") {
+    cutoff = new Date(now);
+    cutoff.setFullYear(cutoff.getFullYear() - 1);
+  }
+
+  // Build sorted asc list of points for that stat in period
+  const points = measurements
+    .filter((m) => (m as any)[effectiveStat] != null)
+    .filter((m) => new Date(m.date) >= cutoff)
+    .sort((a, b) => (a.date < b.date ? -1 : 1))
+    .map((m) => ({
+      value: Number((m as any)[effectiveStat]),
+      label: shortDate(m.date),
+    }));
+
+  const chartW = Dimensions.get("window").width - spacing.lg * 2 - 32;
+  const meta = STAT_META[effectiveStat];
+  const first = points[0]?.value ?? 0;
+  const last = points[points.length - 1]?.value ?? 0;
+  const delta = last - first;
+
+  return (
+    <View style={{ gap: spacing.sm }}>
+      <Text style={styles.sectionTitle}>Graphique de progression</Text>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.bodyChipRow}
+      >
+        {availableStats.map((s) => {
+          const active = s === effectiveStat;
+          const m = STAT_META[s];
+          return (
+            <Pressable
+              key={s}
+              testID={`body-stat-${s}`}
+              style={[styles.bodyChip, active && styles.bodyChipActive]}
+              onPress={() => setStat(s)}
+            >
+              <Ionicons
+                name={m.icon}
+                size={11}
+                color={active ? "#fff" : colors.onSurfaceTertiary}
+              />
+              <Text
+                style={[
+                  styles.bodyChipText,
+                  active && { color: "#fff" },
+                ]}
+              >
+                {m.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </ScrollView>
+
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.bodyChipRow}
+      >
+        {PERIODS.map((p) => {
+          const active = p === period;
+          return (
+            <Pressable
+              key={p}
+              testID={`body-period-${p}`}
+              style={[styles.bodyChipMini, active && styles.bodyChipMiniActive]}
+              onPress={() => setPeriod(p)}
+            >
+              <Text
+                style={[
+                  styles.bodyChipMiniText,
+                  active && { color: colors.brand },
+                ]}
+              >
+                {PERIOD_LABEL[p]}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </ScrollView>
+
+      {points.length >= 2 ? (
+        <View style={styles.chartWrap}>
+          <View style={styles.chartHeadRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.chartTitleBody}>
+                {meta.label} ({meta.unit})
+              </Text>
+              <Text style={styles.chartDelta}>
+                {delta > 0 ? "+" : ""}
+                {delta.toFixed(1)} {meta.unit} sur la période
+              </Text>
+            </View>
+            <View style={styles.chartCurrentBox}>
+              <Text style={styles.chartCurrentVal}>{last}</Text>
+              <Text style={styles.chartCurrentUnit}>{meta.unit}</Text>
+            </View>
+          </View>
+          <LineChart
+            data={points}
+            color={colors.brand}
+            thickness={3}
+            areaChart
+            startFillColor={colors.brand}
+            startOpacity={0.4}
+            endFillColor={colors.brand}
+            endOpacity={0.05}
+            yAxisThickness={0}
+            xAxisThickness={0}
+            yAxisTextStyle={{ color: colors.onSurfaceTertiary, fontSize: 10 }}
+            xAxisLabelTextStyle={{
+              color: colors.onSurfaceTertiary,
+              fontSize: 9,
+            }}
+            hideRules
+            width={chartW}
+            isAnimated
+            curved
+            dataPointsColor={colors.brand}
+            dataPointsRadius={3}
+          />
+        </View>
+      ) : (
+        <View style={styles.hintBanner}>
+          <Ionicons name="information-circle" size={14} color={colors.brand} />
+          <Text style={styles.hintBannerText}>
+            Enregistre au moins 2 mesures de {meta.label.toLowerCase()} sur cette période.
+          </Text>
+        </View>
+      )}
+    </View>
+  );
+}
+
+function shortDate(iso: string) {
+  const d = new Date(iso);
+  return `${d.getDate()}/${d.getMonth() + 1}`;
 }
 
 function HabitsView({
@@ -1516,5 +1710,85 @@ const styles = StyleSheet.create({
     color: colors.brandSecondary,
     fontSize: 11,
     lineHeight: 15,
+  },
+  bodyChipRow: { gap: 6, paddingVertical: 2 },
+  bodyChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceSecondary,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  bodyChipActive: {
+    backgroundColor: colors.brand,
+    borderColor: colors.brand,
+  },
+  bodyChipText: {
+    color: colors.onSurfaceSecondary,
+    fontWeight: "700",
+    fontSize: 11,
+  },
+  bodyChipMini: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: radius.sm,
+    backgroundColor: colors.surfaceSecondary,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  bodyChipMiniActive: {
+    backgroundColor: colors.brandTertiary,
+    borderColor: colors.brand,
+  },
+  bodyChipMiniText: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 0.4,
+  },
+  chartWrap: {
+    backgroundColor: colors.surfaceSecondary,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.lg,
+    gap: spacing.md,
+  },
+  chartHeadRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
+  chartTitleBody: {
+    color: colors.onSurface,
+    fontSize: 14,
+    fontWeight: "800",
+  },
+  chartDelta: {
+    color: colors.brand,
+    fontSize: 11,
+    fontWeight: "700",
+    marginTop: 2,
+  },
+  chartCurrentBox: {
+    backgroundColor: colors.brandTertiary,
+    borderRadius: radius.sm,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    alignItems: "center",
+  },
+  chartCurrentVal: {
+    color: colors.brand,
+    fontSize: 20,
+    fontWeight: "800",
+  },
+  chartCurrentUnit: {
+    color: colors.brandSecondary,
+    fontSize: 10,
+    fontWeight: "700",
   },
 });
