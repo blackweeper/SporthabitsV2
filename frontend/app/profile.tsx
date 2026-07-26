@@ -248,6 +248,52 @@ export default function ProfileScreen() {
             </View>
           ) : null}
 
+          {/* Quick shortcuts */}
+          <Pressable
+            testID="open-achievements"
+            style={styles.linkRow}
+            onPress={() => router.push("/achievements")}
+          >
+            <View style={[styles.linkIcon, { backgroundColor: "#FFE082" }]}>
+              <Ionicons name="trophy" size={18} color="#000" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.linkTitle}>Succès & badges</Text>
+              <Text style={styles.linkSub}>Débloque des trophées de progression</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={colors.onSurfaceTertiary} />
+          </Pressable>
+
+          <Pressable
+            testID="open-goals"
+            style={styles.linkRow}
+            onPress={() => router.push("/goals")}
+          >
+            <View style={[styles.linkIcon, { backgroundColor: "#B39DDB" }]}>
+              <Ionicons name="flag" size={18} color="#fff" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.linkTitle}>Mes objectifs</Text>
+              <Text style={styles.linkSub}>Suis tes cibles personnelles</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={colors.onSurfaceTertiary} />
+          </Pressable>
+
+          <Pressable
+            testID="open-stats"
+            style={styles.linkRow}
+            onPress={() => router.push("/stats")}
+          >
+            <View style={[styles.linkIcon, { backgroundColor: "#4FC3F7" }]}>
+              <Ionicons name="stats-chart" size={18} color="#fff" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.linkTitle}>Statistiques avancées</Text>
+              <Text style={styles.linkSub}>Volume, streaks, exercice préféré…</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={colors.onSurfaceTertiary} />
+          </Pressable>
+
           {/* History shortcut (was a tab) */}
           <Pressable
             testID="open-history"

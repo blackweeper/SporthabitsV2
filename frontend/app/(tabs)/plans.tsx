@@ -11,7 +11,17 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing } from "@/src/theme";
-import { deletePlan, getPlans, Plan } from "@/src/utils/gym-storage";
+import {
+  COVER_COLORS,
+  Program,
+} from "@/src/data/programs";
+import {
+  deletePlan,
+  getPlans,
+  Plan,
+  saveCustomProgram,
+  uid,
+} from "@/src/utils/gym-storage";
 
 export default function PlansScreen() {
   const router = useRouter();
@@ -39,6 +49,55 @@ export default function PlansScreen() {
         },
       },
     ]);
+  };
+
+  const duplicateToProgram = async (p: Plan) => {
+    // Create a new custom program pre-filled with this plan as day 1 session 1.
+    const newProgram: Program = {
+      id: uid(),
+      title: `${p.title} (programme)`,
+      description: `Programme construit depuis le plan « ${p.title} ».`,
+      durationDays: 7,
+      level: "debutant",
+      goal: "",
+      coverEmoji: p.type === "stretch" ? "🧘" : "💪",
+      color: COVER_COLORS[0],
+      days: Array.from({ length: 7 }, (_, i) => {
+        if (i === 0) {
+          return {
+            rest: false,
+            title: p.title,
+            sessions: [
+              {
+                label: "",
+                title: p.title,
+                exercises: p.exercises.map((ex) => ({
+                  name: ex.name,
+                  mode: ex.mode,
+                  sets: ex.sets,
+                  reps: ex.reps,
+                  weight: ex.weight,
+                  rest_seconds: ex.rest_seconds,
+                  duration_seconds: ex.duration_seconds,
+                  notes: ex.notes,
+                  photoBase64: ex.photoBase64 ?? null,
+                  iconKey: ex.iconKey ?? null,
+                })),
+              },
+            ],
+          };
+        }
+        return { rest: true, title: `Jour ${i + 1} — Repos actif`, sessions: [] };
+      }),
+      isCustom: true,
+      category: p.type === "stretch" ? "stretch" : "workout",
+    };
+    await saveCustomProgram(newProgram);
+    Alert.alert(
+      "Programme créé",
+      "Ouvre-le pour compléter les autres jours et l'ajuster.",
+    );
+    router.push(`/custom-program/${newProgram.id}`);
   };
 
   return (
@@ -120,14 +179,24 @@ export default function PlansScreen() {
                   </Text>
                 )}
               </View>
-              <Pressable
-                testID={`start-plan-${p.id}`}
-                style={styles.startBtn}
-                onPress={() => router.push(`/workout/${p.id}`)}
-              >
-                <Ionicons name="play" size={16} color="#fff" />
-                <Text style={styles.startText}>DÉMARRER</Text>
-              </Pressable>
+              <View style={styles.cardActions}>
+                <Pressable
+                  testID={`duplicate-plan-${p.id}`}
+                  style={styles.dupBtn}
+                  onPress={() => duplicateToProgram(p)}
+                >
+                  <Ionicons name="copy" size={14} color={colors.brand} />
+                  <Text style={styles.dupBtnText}>PROGRAMME</Text>
+                </Pressable>
+                <Pressable
+                  testID={`start-plan-${p.id}`}
+                  style={styles.startBtn}
+                  onPress={() => router.push(`/workout/${p.id}`)}
+                >
+                  <Ionicons name="play" size={16} color="#fff" />
+                  <Text style={styles.startText}>DÉMARRER</Text>
+                </Pressable>
+              </View>
             </Pressable>
           ))
         )}
@@ -232,6 +301,7 @@ const styles = StyleSheet.create({
   },
   moreText: { color: colors.brand, fontSize: 12, marginTop: 2 },
   startBtn: {
+    flex: 1,
     backgroundColor: colors.brand,
     paddingVertical: 12,
     borderRadius: radius.md,
@@ -241,4 +311,25 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   startText: { color: "#fff", fontWeight: "800", letterSpacing: 1 },
+  cardActions: {
+    flexDirection: "row",
+    gap: spacing.sm,
+  },
+  dupBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    borderRadius: radius.md,
+    borderWidth: 1.5,
+    borderColor: colors.brand,
+  },
+  dupBtnText: {
+    color: colors.brand,
+    fontWeight: "800",
+    fontSize: 11,
+    letterSpacing: 0.6,
+  },
 });

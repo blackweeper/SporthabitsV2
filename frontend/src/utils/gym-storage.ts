@@ -53,6 +53,57 @@ export type SessionExerciseLog = {
   sets: SetLog[];
 };
 
+export type CardioActivity =
+  | 'course'
+  | 'velo'
+  | 'rameur'
+  | 'skierg'
+  | 'assault_bike'
+  | 'natation'
+  | 'corde'
+  | 'autre';
+
+export const CARDIO_ACTIVITY_LABEL: Record<CardioActivity, string> = {
+  course: 'Course à pied',
+  velo: 'Vélo',
+  rameur: 'Rameur',
+  skierg: 'SkiErg',
+  assault_bike: 'Assault Bike',
+  natation: 'Natation',
+  corde: 'Corde à sauter',
+  autre: 'Autre',
+};
+
+export const CARDIO_ACTIVITY_EMOJI: Record<CardioActivity, string> = {
+  course: '🏃',
+  velo: '🚴',
+  rameur: '🚣',
+  skierg: '⛷️',
+  assault_bike: '🚴‍♂️',
+  natation: '🏊',
+  corde: '🤸',
+  autre: '💨',
+};
+
+export type SessionJournal = {
+  mood?: number | null; // 1-10
+  energy?: number | null; // 1-10
+  motivation?: number | null; // 1-10
+  pain?: string | null;
+  sleep_hours?: number | null;
+  nutrition?: string | null;
+  comment?: string | null;
+};
+
+export type CardioMetrics = {
+  distance_m?: number | null;
+  avg_hr?: number | null;
+  max_hr?: number | null;
+  elevation_m?: number | null;
+  cadence?: number | null;
+  vo2max?: number | null;
+};
+
 export type WorkoutSession = {
   id: string;
   planId: string;
@@ -64,6 +115,11 @@ export type WorkoutSession = {
   totalRestSeconds: number;
   caloriesBurned: number;
   exercises: SessionExerciseLog[];
+  /** Optional cardio activity classification (when planType is cardio/mixte/hiit). */
+  cardio_activity?: CardioActivity | null;
+  cardio_metrics?: CardioMetrics | null;
+  /** Optional post-session journal entry. */
+  journal?: SessionJournal | null;
 };
 
 const MET_BY_TYPE: Record<Plan['type'], number> = {
@@ -598,4 +654,103 @@ export async function getSession(id: string): Promise<WorkoutSession | null> {
 
 export function uid(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+// ---------- Goals ----------
+export type GoalCategory =
+  | 'weight_pr'
+  | 'reps_pr'
+  | 'run_distance'
+  | 'body_weight'
+  | 'body_fat'
+  | 'measurement'
+  | 'sessions_count'
+  | 'streak'
+  | 'other';
+
+export const GOAL_CATEGORY_LABEL: Record<GoalCategory, string> = {
+  weight_pr: 'Record de poids (kg)',
+  reps_pr: 'Record de répétitions',
+  run_distance: 'Distance de course (km)',
+  body_weight: 'Poids corporel (kg)',
+  body_fat: 'Masse grasse (%)',
+  measurement: 'Mesure corporelle (cm)',
+  sessions_count: 'Nombre de séances',
+  streak: 'Streak (jours)',
+  other: 'Autre',
+};
+
+export const GOAL_CATEGORY_ICON: Record<GoalCategory, any> = {
+  weight_pr: 'barbell',
+  reps_pr: 'repeat',
+  run_distance: 'stopwatch',
+  body_weight: 'body',
+  body_fat: 'pulse',
+  measurement: 'resize',
+  sessions_count: 'checkmark-done',
+  streak: 'flame',
+  other: 'flag',
+};
+
+export type Goal = {
+  id: string;
+  title: string;
+  category: GoalCategory;
+  startValue: number;
+  targetValue: number;
+  unit: string;
+  createdAt: string;
+  achievedAt?: string | null;
+  notes?: string | null;
+};
+
+const GOALS_KEY = '@ironflow/goals';
+
+export async function getGoals(): Promise<Goal[]> {
+  const raw = await AsyncStorage.getItem(GOALS_KEY);
+  if (!raw) return [];
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
+}
+
+export async function saveGoal(goal: Goal): Promise<void> {
+  const list = await getGoals();
+  const idx = list.findIndex((g) => g.id === goal.id);
+  if (idx >= 0) list[idx] = goal;
+  else list.unshift(goal);
+  await AsyncStorage.setItem(GOALS_KEY, JSON.stringify(list));
+}
+
+export async function deleteGoal(id: string): Promise<void> {
+  const list = await getGoals();
+  await AsyncStorage.setItem(
+    GOALS_KEY,
+    JSON.stringify(list.filter((g) => g.id !== id)),
+  );
+}
+
+// ---------- Unlocked Achievements (persistent so we know what has been "seen") ----------
+const ACHIEVEMENTS_KEY = '@ironflow/achievementsSeen';
+
+export type SeenAchievement = { id: string; unlockedAt: string };
+
+export async function getSeenAchievements(): Promise<SeenAchievement[]> {
+  const raw = await AsyncStorage.getItem(ACHIEVEMENTS_KEY);
+  if (!raw) return [];
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
+}
+
+export async function markAchievementSeen(id: string): Promise<void> {
+  const list = await getSeenAchievements();
+  if (!list.find((a) => a.id === id)) {
+    list.push({ id, unlockedAt: new Date().toISOString() });
+    await AsyncStorage.setItem(ACHIEVEMENTS_KEY, JSON.stringify(list));
+  }
 }
