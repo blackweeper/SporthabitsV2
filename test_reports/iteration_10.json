@@ -1,0 +1,32 @@
+{
+  "summary": "Frontend-only validation of 6 bug fixes on IronFlow Expo/RN app via web preview at localhost:3000 (mobile viewport 390x844). Seeded localStorage with profile, activePrograms (fullbody-30 started 2 days ago), and PRs (weight/reps/run). All 6 features verified PASSING: (1) Dashboard order correct — Streak → Feeling → Bien-être → Statistiques rapides (Y positions 744→873→989→1500). (2a) /journal/[id] shows 'Humeur' rating (5 dots via `happy` icon) and NO sleep slider. (2b) /daily-journal shows 4 emoji feeling buttons (dj-feeling-0..3) AND sleep slider (dj-sleep-slider). (3) Water/Calories/Steps +buttons persist to wellness log and produce Eau/Calories/Pas rows in 'À faire aujourd\\'hui' checklist. (4) Records tab expands each group with correct calculator: OneRMCalculator ('77.5 kg à 70% de 1RM'), RepsCalculator ('35 reps à 70% du max'), CardioCalculator ('6:15/km'), all with chips 50/60/70/80/90/95%. (5) Détail du score renders orange % pill badges next to '0/20' etc. on every row (Régularité, Sommeil, Nutrition…) with progress bar underneath. (6) /program/fullbody-30 renders today's session expanded with exercise list + big 'LANCER LA SÉANCE' button (launch-today-0) AND tapping another day's session opens the bottom-sheet preview modal with '👁️ Ceci est un aperçu lecture seule…' hint and testID `close-preview`; URL stays on /program/fullbody-30 (does NOT navigate to /workout).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "latent_issues": [
+    {
+      "file": "/app/frontend/src/utils/stats.ts",
+      "line": 45,
+      "issue": "computeAdvancedStats crashes with 'Invalid time value' if any session.startedAt is missing/invalid. Encountered during testing when a seeded session lacked startedAt — the Progression screen fully crashes with red screen. Suggested guard: `sessions.filter(s => s.startedAt).map(...)` before calling toISOString(). Not directly part of the 6 requested fixes but worth hardening."
+    }
+  ],
+  "test_report_links": ["/app/test_reports/iteration_10.json"],
+  "action_items": [
+    "OPTIONAL — Harden /app/frontend/src/utils/stats.ts:45 against sessions missing startedAt (filter or guard before new Date().toISOString()) to avoid red-screen on corrupted legacy data."
+  ],
+  "critical_code_review_comments": [
+    "In /app/frontend/app/(tabs)/progression.tsx the record groups use a single `expanded` state so only one group can be open at a time — this is intentional but means simultaneous inspection of all 3 calculator types requires opening each one separately. Verified individually and all 3 work correctly.",
+    "In /app/frontend/app/program/[id].tsx, the today's session is correctly gated by `isToday && i + 1 === todayIdx`; non-today sessions properly call `onPreview` (opens Modal) instead of `onLaunch`, so no risk of accidental workout navigation. Confirmed by URL staying on /program/fullbody-30 after tap."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (skipped)", "frontend": "100% (6/6 features)"},
+  "seed_data_creation": "localStorage seeded via page.evaluate: @ironflow/profile (targets 2000/2000/10000), @ironflow/activePrograms (fullbody-30 started 2 days ago), @ironflow/prs (Développé couché weight 100kg×3, Pompes reps 50, Course 5K run 5000m in 1500s using field time_seconds).",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "The PR field for run type is `time_seconds` (NOT duration_seconds). Use fullbody-30 as bundled program. Sessions injected into @ironflow/sessions must have startedAt otherwise the Progression tab crashes via computeAdvancedStats. WellnessQuickWidgets testIDs are widget-water-+250/+500, widget-calories-+200/+500, widget-steps-+1000/+2500. Records group testIDs are `record-group-<exerciseName>` (case-sensitive to seeded name). Calculators are `orm-calc-<name>`, `reps-calc-<name>`, `cardio-calc-<name>`.",
+  "rca_of_issue": "N/A — all 6 fixes verified working."
+}

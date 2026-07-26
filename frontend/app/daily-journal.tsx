@@ -15,10 +15,17 @@ import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing } from "@/src/theme";
 import {
   DailyJournalEntry,
+  FeelingMood,
+  FEELING_MOOD_EMOJI,
+  FEELING_MOOD_LABEL,
   getDailyJournal,
+  getWellnessLog,
+  patchWellnessLog,
   saveDailyJournal,
   todayYYYYMMDD,
+  WellnessLog,
 } from "@/src/utils/gym-storage";
+import { SleepSlider } from "@/src/components/SleepSlider";
 
 export default function DailyJournalScreen() {
   const router = useRouter();
@@ -26,6 +33,7 @@ export default function DailyJournalScreen() {
     date: todayYYYYMMDD(),
   });
   const [past, setPast] = useState<DailyJournalEntry[]>([]);
+  const [wellness, setWellness] = useState<WellnessLog | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -35,6 +43,7 @@ export default function DailyJournalScreen() {
         const today = todayYYYYMMDD();
         const cur = list.find((x) => x.date === today);
         setEntry(cur ?? { date: today });
+        setWellness(await getWellnessLog(today));
       })();
     }, []),
   );
@@ -71,6 +80,45 @@ export default function DailyJournalScreen() {
             </Text>
           </View>
 
+          {/* Feeling emojis */}
+          <Text style={styles.miniLabel}>Comment te sens-tu ?</Text>
+          <View style={styles.feelingRow}>
+            {[0, 1, 2, 3].map((n) => {
+              const m = n as FeelingMood;
+              const active = wellness?.feeling === m;
+              return (
+                <Pressable
+                  key={n}
+                  testID={`dj-feeling-${n}`}
+                  style={[
+                    styles.feelingBtn,
+                    active && styles.feelingBtnActive,
+                  ]}
+                  onPress={async () => {
+                    const today = todayYYYYMMDD();
+                    const updated = await patchWellnessLog(today, {
+                      feeling: m,
+                    });
+                    setWellness(updated);
+                  }}
+                >
+                  <Text style={styles.feelingEmoji}>
+                    {FEELING_MOOD_EMOJI[m]}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.feelingLabel,
+                      active && { color: colors.brand },
+                    ]}
+                    numberOfLines={1}
+                  >
+                    {FEELING_MOOD_LABEL[m]}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
           <Rating
             label="Énergie"
             icon="battery-charging"
@@ -96,18 +144,12 @@ export default function DailyJournalScreen() {
             onChange={(v) => setEntry({ ...entry, stress: v })}
           />
 
-          <Text style={styles.miniLabel}>Sommeil (h)</Text>
-          <TextInput
-            style={styles.input}
-            keyboardType="decimal-pad"
-            value={entry.sleep_hours == null ? "" : String(entry.sleep_hours)}
-            onChangeText={(t) => {
-              if (t.trim() === "") return setEntry({ ...entry, sleep_hours: null });
-              const n = parseFloat(t.replace(",", "."));
-              if (!isNaN(n)) setEntry({ ...entry, sleep_hours: n });
-            }}
-            placeholder="8"
-            placeholderTextColor={colors.onSurfaceTertiary}
+          {/* Sleep slider (0h-12h with minute precision) */}
+          <SleepSlider
+            label="Sommeil"
+            value={entry.sleep_hours ?? null}
+            onChange={(v) => setEntry({ ...entry, sleep_hours: v })}
+            testID="dj-sleep-slider"
           />
 
           <Text style={styles.miniLabel}>Douleurs</Text>
@@ -292,6 +334,34 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   dotActive: { backgroundColor: colors.brand, borderColor: colors.brand },
+  feelingRow: {
+    flexDirection: "row",
+    gap: 6,
+    marginTop: 4,
+  },
+  feelingBtn: {
+    flex: 1,
+    borderRadius: radius.md,
+    padding: 8,
+    alignItems: "center",
+    backgroundColor: colors.surfaceSecondary,
+    borderWidth: 1,
+    borderColor: colors.border,
+    gap: 4,
+  },
+  feelingBtnActive: {
+    borderColor: colors.brand,
+    backgroundColor: colors.brandTertiary,
+  },
+  feelingEmoji: {
+    fontSize: 22,
+  },
+  feelingLabel: {
+    color: colors.onSurfaceTertiary,
+    fontWeight: "700",
+    fontSize: 9,
+    textAlign: "center",
+  },
   sectionTitle: {
     color: colors.onSurface,
     fontSize: 14,

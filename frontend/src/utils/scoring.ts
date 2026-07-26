@@ -29,13 +29,19 @@ export type DailyScore = {
 
 /**
  * Compute today's score (widget on the dashboard).
- *   Workout (30%) + each active habit distributed on 70% by frequency.
- * If user has no habits, workout accounts for 100%.
+ *   Workout (30%) + Water/Calories/Steps combined (30%) + Habits (40%).
+ * If wellness data is not provided, weight is redistributed.
  */
 export function computeDailyScore(
   sessions: WorkoutSession[],
   habits: Habit[],
   habitLogs: HabitLog[],
+  wellness?: {
+    log: import('@/src/utils/gym-storage').WellnessLog | null;
+    waterTarget: number;
+    caloriesTarget: number;
+    stepsTarget: number;
+  },
 ): DailyScore {
   const today = todayYYYYMMDD();
   const sessionsToday = sessions.filter(
@@ -48,28 +54,96 @@ export function computeDailyScore(
       id: 'workout',
       label: 'Séance',
       icon: 'barbell',
-      weight: 0.3,
+      weight: 0, // set later
       achieved: workoutAchieved,
       color: '#FF5722',
     },
   ];
 
-  const scoredHabits = habits.filter((h) => h.includedInScore !== false);
-  const perHabitWeight = scoredHabits.length ? 0.7 / scoredHabits.length : 0;
+  // Wellness items — only if a target > 0 provided and data known
+  if (wellness) {
+    const { log, waterTarget, caloriesTarget, stepsTarget } = wellness;
+    if (waterTarget > 0) {
+      scored.push({
+        id: 'water',
+        label: 'Eau',
+        icon: 'water',
+        weight: 0,
+        achieved: Math.min(1, (log?.water_ml ?? 0) / waterTarget),
+        color: '#3B82F6',
+      });
+    }
+    if (caloriesTarget > 0) {
+      const cur = log?.calories_kcal ?? 0;
+      // Full credit when within 80–120% of goal, gradient otherwise.
+      let achv = 0;
+      if (cur > 0) {
+        const ratio = cur / caloriesTarget;
+        if (ratio >= 0.8 && ratio <= 1.2) achv = 1;
+        else if (ratio < 0.8) achv = ratio / 0.8;
+        else achv = Math.max(0, 1 - (ratio - 1.2) / 0.8);
+      }
+      scored.push({
+        id: 'calories',
+        label: 'Calories',
+        icon: 'nutrition',
+        weight: 0,
+        achieved: achv,
+        color: '#F97316',
+      });
+    }
+    if (stepsTarget > 0) {
+      scored.push({
+        id: 'steps',
+        label: 'Pas',
+        icon: 'footsteps',
+        weight: 0,
+        achieved: Math.min(1, (log?.steps ?? 0) / stepsTarget),
+        color: '#10B981',
+      });
+    }
+  }
 
+  const scoredHabits = habits.filter((h) => h.includedInScore !== false);
   for (const h of scoredHabits) {
     const val = habitLogs.find((l) => l.habitId === h.id && l.date === today)?.value ?? 0;
     scored.push({
       id: h.id,
       label: h.title,
       icon: iconForHabit(h),
-      weight: perHabitWeight,
+      weight: 0,
       achieved: habitProgress(h, val),
       color: h.color ?? '#4CAF50',
     });
   }
 
-  if (scoredHabits.length === 0) scored[0].weight = 1;
+  // Distribute weights: workout 30%, wellness bucket 30%, habits 40%.
+  const wellnessCount = scored.filter(
+    (i) => i.id === 'water' || i.id === 'calories' || i.id === 'steps',
+  ).length;
+  const habitCount = scoredHabits.length;
+  let wWorkout = 0.3;
+  let wWellness = 0.3;
+  let wHabits = 0.4;
+  if (wellnessCount === 0 && habitCount === 0) wWorkout = 1;
+  else if (wellnessCount === 0) {
+    wWorkout = 0.4;
+    wWellness = 0;
+    wHabits = 0.6;
+  } else if (habitCount === 0) {
+    wWorkout = 0.4;
+    wWellness = 0.6;
+    wHabits = 0;
+  }
+
+  for (const it of scored) {
+    if (it.id === 'workout') it.weight = wWorkout;
+    else if (it.id === 'water' || it.id === 'calories' || it.id === 'steps') {
+      it.weight = wellnessCount ? wWellness / wellnessCount : 0;
+    } else {
+      it.weight = habitCount ? wHabits / habitCount : 0;
+    }
+  }
 
   const total = scored.reduce((a, i) => a + i.weight * i.achieved, 0);
   return {

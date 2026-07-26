@@ -296,28 +296,29 @@ function OverviewView({
 
       {/* Détail du score */}
       <Text style={styles.sectionTitle}>Détail du score</Text>
-      {score.breakdown.map((b) => (
-        <View key={b.key} style={styles.breakdownRowBox}>
-          <View style={styles.brHeadRow}>
-            <View style={styles.brIconBox}>
-              <Ionicons name={b.icon} size={12} color={colors.brand} />
+      {score.breakdown.map((b) => {
+        const pct = Math.round((b.value / b.max) * 100);
+        return (
+          <View key={b.key} style={styles.breakdownRowBox}>
+            <View style={styles.brHeadRow}>
+              <View style={styles.brIconBox}>
+                <Ionicons name={b.icon} size={12} color={colors.brand} />
+              </View>
+              <Text style={styles.brLabelBig}>{b.label}</Text>
+              <Text style={styles.brValue}>
+                {b.value}/{b.max}
+              </Text>
+              <View style={styles.brPctBadge}>
+                <Text style={styles.brPctText}>{pct}%</Text>
+              </View>
             </View>
-            <Text style={styles.brLabelBig}>{b.label}</Text>
-            <Text style={styles.brValue}>
-              {b.value}/{b.max}
-            </Text>
+            <View style={styles.brBar}>
+              <View style={[styles.brFill, { width: `${pct}%` }]} />
+            </View>
+            {b.hint ? <Text style={styles.brHint}>{b.hint}</Text> : null}
           </View>
-          <View style={styles.brBar}>
-            <View
-              style={[
-                styles.brFill,
-                { width: `${(b.value / b.max) * 100}%` },
-              ]}
-            />
-          </View>
-          {b.hint ? <Text style={styles.brHint}>{b.hint}</Text> : null}
-        </View>
-      ))}
+        );
+      })}
 
       <Pressable
         testID="open-full-stats"
@@ -601,6 +602,39 @@ function RecordsView({
                       testID={`orm-calc-${g.name}`}
                     />
                   )}
+                  {(() => {
+                    const bestReps = g.prs
+                      .filter((p) => p.type === "reps")
+                      .slice()
+                      .sort((a, b) => (b.reps ?? 0) - (a.reps ?? 0))[0];
+                    return bestReps ? (
+                      <RepsCalculator
+                        pr={bestReps}
+                        testID={`reps-calc-${g.name}`}
+                      />
+                    ) : null;
+                  })()}
+                  {(() => {
+                    const bestRun = g.prs
+                      .filter(
+                        (p) =>
+                          p.type === "run" &&
+                          (p.time_seconds ?? 0) > 0 &&
+                          (p.distance_m ?? 0) > 0,
+                      )
+                      .slice()
+                      .sort(
+                        (a, b) =>
+                          (a.time_seconds ?? 1e9) / (a.distance_m ?? 1) -
+                          (b.time_seconds ?? 1e9) / (b.distance_m ?? 1),
+                      )[0];
+                    return bestRun ? (
+                      <CardioCalculator
+                        pr={bestRun}
+                        testID={`cardio-calc-${g.name}`}
+                      />
+                    ) : null;
+                  })()}
                 </View>
               )}
             </View>
@@ -701,6 +735,127 @@ function OneRMCalculator({
       <View style={styles.calcResult}>
         <Text style={styles.calcResultVal}>{roundedLoad.toFixed(1)} kg</Text>
         <Text style={styles.calcResultHint}>à {pct}% de 1RM</Text>
+      </View>
+    </View>
+  );
+}
+
+function RepsCalculator({
+  pr,
+  testID,
+}: {
+  pr: PersonalRecord;
+  testID?: string;
+}) {
+  const [pct, setPct] = useState(70);
+  const maxReps = pr.reps ?? 0;
+  const target = Math.round((maxReps * pct) / 100);
+  return (
+    <View style={styles.calcCard} testID={testID}>
+      <View style={styles.calcHead}>
+        <Ionicons name="repeat" size={14} color={colors.brand} />
+        <Text style={styles.calcTitle}>Calculateur % du record reps</Text>
+      </View>
+      <Text style={styles.calcSub}>
+        Max reps : <Text style={styles.calcAccent}>{maxReps} reps</Text>
+      </Text>
+      <View style={styles.calcRow}>
+        {[50, 60, 70, 80, 90, 95].map((p) => {
+          const active = p === pct;
+          return (
+            <Pressable
+              key={p}
+              testID={`${testID}-pct-${p}`}
+              style={[
+                styles.pctChip,
+                active && { backgroundColor: colors.brand, borderColor: colors.brand },
+              ]}
+              onPress={() => setPct(p)}
+            >
+              <Text
+                style={[styles.pctChipText, active && { color: "#fff" }]}
+              >
+                {p}%
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+      <View style={styles.calcResult}>
+        <Text style={styles.calcResultVal}>{target} reps</Text>
+        <Text style={styles.calcResultHint}>à {pct}% du max</Text>
+      </View>
+    </View>
+  );
+}
+
+function CardioCalculator({
+  pr,
+  testID,
+}: {
+  pr: PersonalRecord;
+  testID?: string;
+}) {
+  // At X% intensity, an athlete typically runs slower (=> higher pace/time)
+  // Pace scale: target_pace = ref_pace * 100 / pct
+  const [pct, setPct] = useState(80);
+  const distanceM = pr.distance_m ?? 0;
+  const timeS = pr.time_seconds ?? 0;
+  const refPace = timeS / (distanceM / 1000); // seconds per km
+  const targetPace = pct > 0 ? refPace * (100 / pct) : 0;
+  const targetTime = (targetPace * distanceM) / 1000;
+  const formatSec = (s: number) => {
+    if (!s || !isFinite(s)) return "—";
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const sec = Math.round(s % 60);
+    if (h > 0)
+      return `${h}h${String(m).padStart(2, "0")}min${String(sec).padStart(2, "0")}`;
+    return `${m}:${String(sec).padStart(2, "0")}`;
+  };
+  const formatPace = (s: number) =>
+    !s || !isFinite(s) ? "—" : `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}/km`;
+
+  return (
+    <View style={styles.calcCard} testID={testID}>
+      <View style={styles.calcHead}>
+        <Ionicons name="speedometer" size={14} color={colors.brand} />
+        <Text style={styles.calcTitle}>Calculateur % du record cardio</Text>
+      </View>
+      <Text style={styles.calcSub}>
+        Record :{" "}
+        <Text style={styles.calcAccent}>
+          {(distanceM / 1000).toFixed(1)} km en {formatSec(timeS)} (
+          {formatPace(refPace)})
+        </Text>
+      </Text>
+      <View style={styles.calcRow}>
+        {[50, 60, 70, 80, 90, 95].map((p) => {
+          const active = p === pct;
+          return (
+            <Pressable
+              key={p}
+              testID={`${testID}-pct-${p}`}
+              style={[
+                styles.pctChip,
+                active && { backgroundColor: colors.brand, borderColor: colors.brand },
+              ]}
+              onPress={() => setPct(p)}
+            >
+              <Text
+                style={[styles.pctChipText, active && { color: "#fff" }]}
+              >
+                {p}%
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+      <View style={styles.calcResult}>
+        <Text style={styles.calcResultVal}>{formatPace(targetPace)}</Text>
+        <Text style={styles.calcResultHint}>
+          ≈ {formatSec(targetTime)} pour {(distanceM / 1000).toFixed(1)} km à {pct}%
+        </Text>
       </View>
     </View>
   );
@@ -1422,6 +1577,21 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     width: 50,
     textAlign: "right",
+  },
+  brPctBadge: {
+    backgroundColor: colors.brand,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: radius.pill,
+    marginLeft: 6,
+    minWidth: 46,
+    alignItems: "center",
+  },
+  brPctText: {
+    color: "#fff",
+    fontWeight: "800",
+    fontSize: 11,
+    letterSpacing: 0.3,
   },
   linkBtn: {
     flexDirection: "row",

@@ -82,7 +82,12 @@ export default function TodayScreen() {
     }, [load]),
   );
 
-  const daily = computeDailyScore(sessions, habits, logs);
+  const daily = computeDailyScore(sessions, habits, logs, {
+    log: wellness,
+    waterTarget: profile?.water_target_ml || DEFAULT_WATER_TARGET_ML,
+    caloriesTarget: profile?.calories_target_kcal || DEFAULT_CALORIES_TARGET_KCAL,
+    stepsTarget: profile?.steps_target || DEFAULT_STEPS_TARGET,
+  });
   const stats = computeAdvancedStats(sessions);
   const lastMeasurement = measurements[0];
   const firstMeasurement = measurements[measurements.length - 1];
@@ -144,27 +149,6 @@ export default function TodayScreen() {
             </Text>
           </View>
         </View>
-
-        {/* Feeling of the day — non-blocking suggestion card */}
-        <FeelingCard
-          currentFeeling={wellness?.feeling ?? null}
-          onSelect={async (m: FeelingMood) => {
-            await patchWellnessLog(today, { feeling: m });
-            load();
-          }}
-        />
-
-        {/* Wellness quick widgets — Water / Calories / Steps */}
-        <Text style={styles.sectionTitle}>Bien-être du jour</Text>
-        <WellnessQuickWidgets
-          log={wellness}
-          targetWater={profile?.water_target_ml || DEFAULT_WATER_TARGET_ML}
-          targetCalories={
-            profile?.calories_target_kcal || DEFAULT_CALORIES_TARGET_KCAL
-          }
-          targetSteps={profile?.steps_target || DEFAULT_STEPS_TARGET}
-          onChange={load}
-        />
 
         {/* CTA principal */}
         <Pressable
@@ -244,7 +228,11 @@ export default function TodayScreen() {
             const habitLog = logs.find(
               (l) => l.habitId === item.id && l.date === today,
             );
-            const canToggle = item.id !== "workout";
+            const canToggle =
+              item.id !== "workout" &&
+              item.id !== "water" &&
+              item.id !== "calories" &&
+              item.id !== "steps";
             return (
               <Pressable
                 key={item.id}
@@ -330,6 +318,27 @@ export default function TodayScreen() {
             </Text>
           </View>
         </Pressable>
+
+        {/* Feeling of the day — non-blocking suggestion card */}
+        <FeelingCard
+          currentFeeling={wellness?.feeling ?? null}
+          onSelect={async (m: FeelingMood) => {
+            await patchWellnessLog(today, { feeling: m });
+            load();
+          }}
+        />
+
+        {/* Wellness quick widgets — Water / Calories / Steps */}
+        <Text style={styles.sectionTitle}>Bien-être du jour</Text>
+        <WellnessQuickWidgets
+          log={wellness}
+          targetWater={profile?.water_target_ml || DEFAULT_WATER_TARGET_ML}
+          targetCalories={
+            profile?.calories_target_kcal || DEFAULT_CALORIES_TARGET_KCAL
+          }
+          targetSteps={profile?.steps_target || DEFAULT_STEPS_TARGET}
+          onChange={load}
+        />
 
         {/* Quick stats — secondary */}
         <Text style={styles.sectionTitle}>Statistiques rapides</Text>

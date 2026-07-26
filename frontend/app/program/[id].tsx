@@ -7,6 +7,7 @@ import {
   Pressable,
   Alert,
   Platform,
+  Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
@@ -43,6 +44,11 @@ export default function ProgramDetailScreen() {
   const [active, setActive] = useState<ActiveProgram | null>(null);
   const [otherActiveCount, setOtherActiveCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [preview, setPreview] = useState<{
+    dayIndex: number;
+    sessionIndex: number;
+    session: ProgramSession;
+  } | null>(null);
 
   const load = useCallback(async () => {
     setProgram(await findProgram(id!));
@@ -267,6 +273,9 @@ export default function ProgramDetailScreen() {
               isToday={isActive && i + 1 === todayIdx}
               color={program.color}
               onLaunch={launchSession}
+              onPreview={(di, si, s) =>
+                setPreview({ dayIndex: di, sessionIndex: si, session: s })
+              }
               plannedDate={
                 active
                   ? plannedDateForDayIndex(active.startedAt, i + 1)
@@ -284,7 +293,137 @@ export default function ProgramDetailScreen() {
         )}
         <View style={{ height: 40 }} />
       </ScrollView>
+
+      <SessionPreviewModal
+        visible={preview !== null}
+        preview={preview}
+        color={program.color}
+        plannedDate={
+          preview && active
+            ? plannedDateForDayIndex(active.startedAt, preview.dayIndex)
+            : null
+        }
+        onClose={() => setPreview(null)}
+      />
     </SafeAreaView>
+  );
+}
+
+function SessionPreviewModal({
+  visible,
+  preview,
+  color,
+  plannedDate,
+  onClose,
+}: {
+  visible: boolean;
+  preview: {
+    dayIndex: number;
+    sessionIndex: number;
+    session: ProgramSession;
+  } | null;
+  color: string;
+  plannedDate: Date | null;
+  onClose: () => void;
+}) {
+  if (!preview) {
+    return (
+      <Modal transparent visible={visible} animationType="slide" onRequestClose={onClose}>
+        <View />
+      </Modal>
+    );
+  }
+  const { session, dayIndex } = preview;
+  const est = estimateSessionDurationSeconds(session.exercises);
+  return (
+    <Modal
+      transparent
+      visible={visible}
+      animationType="slide"
+      onRequestClose={onClose}
+    >
+      <View style={styles.sheetBackdrop}>
+        <Pressable style={{ flex: 1 }} onPress={onClose} />
+        <View style={styles.sheetSurface}>
+          <View style={styles.sheetHandle} />
+          <View style={styles.previewHeader}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.previewDay}>
+                Jour {dayIndex}
+                {plannedDate ? ` · ${formatPlannedDate(plannedDate)}` : ""}
+              </Text>
+              <Text style={styles.previewTitle}>{session.title}</Text>
+            </View>
+            <Pressable onPress={onClose} hitSlop={12} testID="close-preview">
+              <Ionicons name="close" size={22} color={colors.onSurface} />
+            </Pressable>
+          </View>
+          <View style={styles.previewMetaRow}>
+            <View style={styles.metaPill}>
+              <Ionicons
+                name="barbell"
+                size={10}
+                color={colors.onSurfaceTertiary}
+              />
+              <Text style={styles.metaPillText}>
+                {session.exercises.length} exercice
+                {session.exercises.length > 1 ? "s" : ""}
+              </Text>
+            </View>
+            {est > 0 && (
+              <View style={styles.metaPill}>
+                <Ionicons
+                  name="time"
+                  size={10}
+                  color={colors.onSurfaceTertiary}
+                />
+                <Text style={styles.metaPillText}>
+                  {formatEstimatedDuration(est)}
+                </Text>
+              </View>
+            )}
+            <View style={[styles.metaPill, { backgroundColor: color + "26" }]}>
+              <Ionicons name="eye" size={10} color={color} />
+              <Text style={[styles.metaPillText, { color }]}>Aperçu</Text>
+            </View>
+          </View>
+          <ScrollView
+            style={{ maxHeight: 460 }}
+            contentContainerStyle={{ paddingBottom: 12 }}
+          >
+            {session.exercises.map((ex, ei) => (
+              <View key={ei} style={styles.previewExRow}>
+                <View
+                  style={[styles.exIcon, { backgroundColor: color + "26" }]}
+                >
+                  <Ionicons
+                    name={
+                      ex.mode === "time" ||
+                      ex.mode === "emom" ||
+                      ex.mode === "amrap"
+                        ? "time"
+                        : "barbell"
+                    }
+                    size={12}
+                    color={color}
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.exName}>{ex.name}</Text>
+                  <Text style={styles.exDetail}>{formatExerciseDetail(ex)}</Text>
+                  {ex.notes ? (
+                    <Text style={styles.previewNotes}>{ex.notes}</Text>
+                  ) : null}
+                </View>
+              </View>
+            ))}
+          </ScrollView>
+          <Text style={styles.previewHint}>
+            👁️ Ceci est un aperçu lecture seule. La séance ne peut être lancée que le jour prévu.
+          </Text>
+        </View>
+      </View>
+    </Modal>
   );
 }
 
@@ -295,6 +434,7 @@ function ProgramDayCard({
   isToday,
   color,
   onLaunch,
+  onPreview,
   plannedDate,
 }: {
   dayIndex: number;
@@ -303,6 +443,7 @@ function ProgramDayCard({
   isToday: boolean;
   color: string;
   onLaunch: (di: number, si: number, s: ProgramSession) => void;
+  onPreview: (di: number, si: number, s: ProgramSession) => void;
   plannedDate: Date | null;
 }) {
   const doneOf = (si: number) =>
@@ -386,12 +527,102 @@ function ProgramDayCard({
       {day.sessions.map((s, si) => {
         const done = doneOf(si);
         const est = estimateSessionDurationSeconds(s.exercises);
+        if (isToday) {
+          // Today: fully expanded — details of all exercises + explicit CTA
+          return (
+            <View
+              key={si}
+              testID={`day-${dayIndex}-session-${si}`}
+              style={[styles.todaySession, done && styles.sessRowDone]}
+            >
+              <View style={styles.todaySessHead}>
+                {s.label ? (
+                  <View style={styles.sessLabel}>
+                    <Text style={styles.sessLabelText}>
+                      {s.label.toUpperCase()}
+                    </Text>
+                  </View>
+                ) : null}
+                <Text style={styles.sessTitle} numberOfLines={1}>
+                  {s.title}
+                </Text>
+                {done && (
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={22}
+                    color={colors.success}
+                  />
+                )}
+              </View>
+              <View style={styles.sessMetaRow}>
+                <View style={styles.metaPill}>
+                  <Ionicons
+                    name="barbell"
+                    size={10}
+                    color={colors.onSurfaceTertiary}
+                  />
+                  <Text style={styles.metaPillText}>
+                    {s.exercises.length} exercice{s.exercises.length > 1 ? "s" : ""}
+                  </Text>
+                </View>
+                {est > 0 && (
+                  <View style={styles.metaPill}>
+                    <Ionicons
+                      name="time"
+                      size={10}
+                      color={colors.onSurfaceTertiary}
+                    />
+                    <Text style={styles.metaPillText}>
+                      {formatEstimatedDuration(est)}
+                    </Text>
+                  </View>
+                )}
+              </View>
+              <View style={styles.exList}>
+                {s.exercises.map((ex, ei) => (
+                  <View key={ei} style={styles.exRow}>
+                    <View style={[styles.exIcon, { backgroundColor: color + "26" }]}>
+                      <Ionicons
+                        name={
+                          ex.mode === "time" || ex.mode === "emom" || ex.mode === "amrap"
+                            ? "time"
+                            : "barbell"
+                        }
+                        size={11}
+                        color={color}
+                      />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.exName} numberOfLines={1}>
+                        {ex.name}
+                      </Text>
+                      <Text style={styles.exDetail}>
+                        {formatExerciseDetail(ex)}
+                      </Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+              <Pressable
+                testID={`launch-today-${si}`}
+                style={[styles.launchBtn, { backgroundColor: color }]}
+                onPress={() => onLaunch(dayIndex, si, s)}
+              >
+                <Ionicons name="play" size={14} color="#fff" />
+                <Text style={styles.launchBtnText}>
+                  {done ? "REFAIRE LA SÉANCE" : "LANCER LA SÉANCE"}
+                </Text>
+              </Pressable>
+            </View>
+          );
+        }
+        // Other days: preview only, tap opens read-only preview (no launch)
         return (
           <Pressable
             key={si}
             testID={`day-${dayIndex}-session-${si}`}
             style={[styles.sessRow, done && styles.sessRowDone]}
-            onPress={() => onLaunch(dayIndex, si, s)}
+            onPress={() => onPreview(dayIndex, si, s)}
           >
             <View style={styles.sessLeft}>
               {s.label ? (
@@ -413,7 +644,11 @@ function ProgramDayCard({
                       color={colors.success}
                     />
                   ) : (
-                    <Ionicons name="play-circle" size={20} color={color} />
+                    <Ionicons
+                      name="chevron-forward"
+                      size={20}
+                      color={colors.onSurfaceTertiary}
+                    />
                   )}
                 </View>
                 <View style={styles.sessMetaRow}>
@@ -440,12 +675,8 @@ function ProgramDayCard({
                     </View>
                   )}
                 </View>
-                {/* Preview list of exercises */}
                 {s.exercises.length > 0 && (
-                  <Text
-                    style={styles.sessPreview}
-                    numberOfLines={2}
-                  >
+                  <Text style={styles.sessPreview} numberOfLines={2}>
                     {s.exercises
                       .slice(0, 4)
                       .map((e) => e.name)
@@ -462,6 +693,24 @@ function ProgramDayCard({
       })}
     </View>
   );
+}
+
+function formatExerciseDetail(ex: any): string {
+  const parts: string[] = [];
+  if (ex.mode === "reps") {
+    parts.push(`${ex.sets || 1} × ${ex.reps ?? "?"}`);
+    if (ex.weight) parts.push(String(ex.weight));
+  } else if (ex.mode === "time") {
+    parts.push(`${ex.sets || 1} × ${ex.duration_seconds || 0}s`);
+  } else if (ex.mode === "amrap") {
+    parts.push(`AMRAP ${Math.round((ex.duration_seconds || 0) / 60)} min`);
+  } else if (ex.mode === "emom") {
+    parts.push(`EMOM ${ex.sets || 1} min`);
+    if (ex.reps) parts.push(String(ex.reps));
+  }
+  if (ex.rest_seconds && ex.mode !== "amrap")
+    parts.push(`repos ${ex.rest_seconds}s`);
+  return parts.join(" · ");
 }
 
 const styles = StyleSheet.create({
@@ -640,6 +889,127 @@ const styles = StyleSheet.create({
     fontSize: 10,
     letterSpacing: 1,
     fontWeight: "800",
+  },
+  todaySession: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md,
+    gap: 10,
+    marginTop: 4,
+  },
+  todaySessHead: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  exList: { gap: 8 },
+  exRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    padding: 8,
+    backgroundColor: colors.surfaceTertiary,
+    borderRadius: radius.sm,
+  },
+  exIcon: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  exName: {
+    color: colors.onSurface,
+    fontWeight: "800",
+    fontSize: 13,
+  },
+  exDetail: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 11,
+    fontWeight: "600",
+    marginTop: 2,
+  },
+  launchBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingVertical: 12,
+    borderRadius: radius.md,
+    marginTop: 4,
+  },
+  launchBtnText: {
+    color: "#fff",
+    fontWeight: "800",
+    letterSpacing: 0.8,
+    fontSize: 13,
+  },
+  sheetBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.65)",
+    justifyContent: "flex-end",
+  },
+  sheetSurface: {
+    backgroundColor: colors.surfaceSecondary,
+    padding: spacing.lg,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingBottom: 32,
+    gap: spacing.sm,
+  },
+  sheetHandle: {
+    width: 48,
+    height: 5,
+    backgroundColor: colors.border,
+    borderRadius: 3,
+    alignSelf: "center",
+    marginBottom: spacing.sm,
+  },
+  previewHeader: { flexDirection: "row", alignItems: "center" },
+  previewDay: {
+    color: colors.brand,
+    fontSize: 11,
+    fontWeight: "800",
+    letterSpacing: 0.6,
+    textTransform: "uppercase",
+  },
+  previewTitle: {
+    color: colors.onSurface,
+    fontSize: 17,
+    fontWeight: "800",
+    marginTop: 2,
+  },
+  previewMetaRow: {
+    flexDirection: "row",
+    gap: 6,
+    flexWrap: "wrap",
+    marginBottom: spacing.sm,
+  },
+  previewExRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: spacing.sm,
+    padding: spacing.sm,
+    backgroundColor: colors.surface,
+    borderRadius: radius.sm,
+    marginBottom: 6,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  previewNotes: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 10,
+    fontStyle: "italic",
+    marginTop: 4,
+  },
+  previewHint: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 11,
+    fontStyle: "italic",
+    textAlign: "center",
+    marginTop: 4,
   },
   sessRow: {
     flexDirection: "row",
