@@ -28,8 +28,10 @@ import {
   ProgramSession,
 } from "@/src/data/programs";
 import {
+  addActiveProgram,
   deleteCustomProgram,
   ExerciseMode,
+  getActivePrograms,
   getCustomPrograms,
   getPlans,
   Plan,
@@ -146,15 +148,31 @@ export default function CustomProgramEditor() {
       Alert.alert("Titre requis", "Donne un nom à ton programme.");
       return;
     }
-    await saveCustomProgram({
+    const saved: Program = {
       ...program,
       title: program.title.trim(),
       goal: program.goal.trim() || "Objectif personnel",
       description:
         program.description.trim() ||
         `Programme personnalisé de ${program.durationDays} jours.`,
-    });
-    router.back();
+    };
+    await saveCustomProgram(saved);
+    if (isNew) {
+      // Auto-activate the newly created program so it shows up in Entraînements
+      const actives = await getActivePrograms();
+      const alreadyActive = actives.some((a) => a.programId === saved.id);
+      if (!alreadyActive) {
+        await addActiveProgram({
+          programId: saved.id,
+          startedAt: new Date().toISOString(),
+          completedSessions: [],
+        });
+      }
+      // Navigate to the newly created program details so the user immediately sees it
+      router.replace(`/program/${saved.id}`);
+    } else {
+      router.back();
+    }
   };
 
   const remove = async () => {
@@ -193,8 +211,17 @@ export default function CustomProgramEditor() {
         <Text style={styles.title} numberOfLines={1}>
           {isNew ? "Nouveau programme" : "Modifier programme"}
         </Text>
-        <Pressable testID="save-cp" onPress={save} hitSlop={12}>
-          <Text style={styles.saveText}>SAUVER</Text>
+        <Pressable
+          testID="save-cp"
+          onPress={save}
+          hitSlop={16}
+          style={({ pressed }) => [
+            styles.saveBtn,
+            pressed && { opacity: 0.75 },
+          ]}
+        >
+          <Ionicons name="checkmark" size={14} color="#fff" />
+          <Text style={styles.saveBtnText}>SAUVEGARDER</Text>
         </Pressable>
       </View>
 
@@ -997,6 +1024,21 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   saveText: { color: colors.brand, fontWeight: "800", letterSpacing: 0.8 },
+  saveBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: colors.brand,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: radius.pill,
+  },
+  saveBtnText: {
+    color: "#fff",
+    fontWeight: "800",
+    letterSpacing: 0.6,
+    fontSize: 11,
+  },
   scroll: { padding: spacing.lg, gap: spacing.sm },
   label: {
     color: colors.onSurfaceTertiary,

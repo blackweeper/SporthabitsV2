@@ -137,9 +137,14 @@ export default function PlanDetailScreen() {
         <Pressable
           testID="save-plan-btn"
           onPress={save}
-          hitSlop={12}
+          hitSlop={16}
+          style={({ pressed }) => [
+            styles.saveBtn,
+            pressed && { opacity: 0.75 },
+          ]}
         >
-          <Text style={styles.saveText}>ENREGISTRER</Text>
+          <Ionicons name="checkmark" size={14} color="#fff" />
+          <Text style={styles.saveBtnText}>SAUVEGARDER</Text>
         </Pressable>
       </View>
 
@@ -504,6 +509,21 @@ const styles = StyleSheet.create({
   },
   headerTitle: { color: colors.onSurface, fontSize: 16, fontWeight: "700" },
   saveText: { color: colors.brand, fontWeight: "800", letterSpacing: 0.8 },
+  saveBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: colors.brand,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: radius.pill,
+  },
+  saveBtnText: {
+    color: "#fff",
+    fontWeight: "800",
+    letterSpacing: 0.6,
+    fontSize: 11,
+  },
   scroll: { padding: spacing.lg, gap: spacing.md },
   label: {
     color: colors.onSurfaceTertiary,
