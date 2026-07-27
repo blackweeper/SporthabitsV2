@@ -15,9 +15,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import * as ImageManipulator from "expo-image-manipulator";
 import { colors, radius, spacing } from "@/src/theme";
 import DatePickerField from "@/src/components/DatePickerField";
+import { cropImage } from "@/src/utils/imageCropper";
 import {
   deleteMeasurement,
   estimateBodyFatNavy,
@@ -117,16 +117,15 @@ export default function MeasurementEditScreen() {
     if (res.canceled || !res.assets?.length) return;
     const asset = res.assets[0];
     try {
-      const manipulated = await ImageManipulator.manipulateAsync(
-        asset.uri,
-        [{ resize: { width: 900 } }],
-        {
-          compress: 0.6,
-          format: ImageManipulator.SaveFormat.JPEG,
-          base64: true,
-        },
-      );
-      if (manipulated.base64) set("photoBase64", manipulated.base64);
+      // Route to custom cropper for user framing (portrait aspect for body photos)
+      const cropped = await cropImage(asset.uri, {
+        aspectRatio: 3 / 4,
+        outputWidth: 900,
+        jpegQuality: 0.8,
+        title: "Cadrer la photo",
+      });
+      if (!cropped) return; // user cancelled
+      set("photoBase64", cropped.base64);
     } catch {
       Alert.alert(
         "Erreur",

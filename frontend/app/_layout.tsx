@@ -52,6 +52,10 @@ export default function RootLayout() {
           <Stack.Screen name="stats" options={{ presentation: "modal" }} />
           <Stack.Screen name="achievements" options={{ presentation: "modal" }} />
           <Stack.Screen name="goals" options={{ presentation: "modal" }} />
+          <Stack.Screen
+            name="photo-crop"
+            options={{ presentation: "modal", animation: "slide_from_bottom" }}
+          />
         </Stack>
       </SafeAreaProvider>
     </GestureHandlerRootView>

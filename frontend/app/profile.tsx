@@ -15,8 +15,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import * as ImageManipulator from "expo-image-manipulator";
 import { colors, radius, spacing } from "@/src/theme";
+import { cropImage } from "@/src/utils/imageCropper";
 import {
   getProfile,
   saveProfile,
@@ -67,28 +67,24 @@ export default function ProfileScreen() {
     }
     const res = fromCamera
       ? await ImagePicker.launchCameraAsync({
-          allowsEditing: true,
-          aspect: [1, 1],
-          quality: 0.85,
+          allowsEditing: false,
+          quality: 0.9,
         })
       : await ImagePicker.launchImageLibraryAsync({
           mediaTypes: ["images"],
-          allowsEditing: true,
-          aspect: [1, 1],
-          quality: 0.85,
+          allowsEditing: false,
+          quality: 0.9,
         });
     if (res.canceled || !res.assets?.length) return;
     try {
-      const m = await ImageManipulator.manipulateAsync(
-        res.assets[0].uri,
-        [{ resize: { width: 480 } }],
-        {
-          compress: 0.7,
-          format: ImageManipulator.SaveFormat.JPEG,
-          base64: true,
-        },
-      );
-      if (m.base64) set("photoBase64", m.base64);
+      const cropped = await cropImage(res.assets[0].uri, {
+        aspectRatio: 1,
+        outputWidth: 480,
+        jpegQuality: 0.8,
+        title: "Cadrer ta photo de profil",
+      });
+      if (!cropped) return;
+      set("photoBase64", cropped.base64);
     } catch {
       Alert.alert("Erreur", "Impossible de traiter cette image.");
     }
@@ -118,8 +114,17 @@ export default function ProfileScreen() {
           <Ionicons name="close" size={26} color={colors.onSurface} />
         </Pressable>
         <Text style={styles.title}>Mon profil</Text>
-        <Pressable testID="save-profile" onPress={save} hitSlop={12}>
-          <Text style={styles.saveText}>SAUVER</Text>
+        <Pressable
+          testID="save-profile"
+          onPress={save}
+          hitSlop={16}
+          style={({ pressed }) => [
+            styles.saveBtn,
+            pressed && { opacity: 0.75 },
+          ]}
+        >
+          <Ionicons name="checkmark" size={14} color="#fff" />
+          <Text style={styles.saveBtnText}>SAUVEGARDER</Text>
         </Pressable>
       </View>
 
@@ -364,6 +369,21 @@ const styles = StyleSheet.create({
   },
   title: { color: colors.onSurface, fontSize: 17, fontWeight: "700" },
   saveText: { color: colors.brand, fontWeight: "800", letterSpacing: 0.8 },
+  saveBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: colors.brand,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: radius.pill,
+  },
+  saveBtnText: {
+    color: "#fff",
+    fontWeight: "800",
+    letterSpacing: 0.6,
+    fontSize: 11,
+  },
   scroll: { padding: spacing.lg, gap: spacing.md, paddingBottom: 40 },
   avatarWrap: { alignItems: "center", gap: spacing.md, marginBottom: spacing.sm },
   avatarCircle: {
