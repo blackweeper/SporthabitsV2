@@ -124,8 +124,17 @@ export default function HabitEditorScreen() {
           <Ionicons name="chevron-back" size={24} color={colors.onSurface} />
         </Pressable>
         <Text style={styles.title}>{isNew ? "Nouvelle habitude" : "Habitude"}</Text>
-        <Pressable onPress={save} hitSlop={12} testID="save-habit">
-          <Text style={styles.saveText}>SAUVER</Text>
+        <Pressable
+          onPress={save}
+          hitSlop={16}
+          testID="save-habit"
+          style={({ pressed }) => [
+            styles.saveBtn,
+            pressed && { opacity: 0.75 },
+          ]}
+        >
+          <Ionicons name="checkmark" size={14} color="#fff" />
+          <Text style={styles.saveBtnText}>SAUVEGARDER</Text>
         </Pressable>
       </View>
 
@@ -252,6 +261,21 @@ const styles = StyleSheet.create({
   },
   title: { color: colors.onSurface, fontSize: 16, fontWeight: "700" },
   saveText: { color: colors.brand, fontWeight: "800", letterSpacing: 0.8 },
+  saveBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: colors.brand,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: radius.pill,
+  },
+  saveBtnText: {
+    color: "#fff",
+    fontWeight: "800",
+    letterSpacing: 0.6,
+    fontSize: 11,
+  },
   scroll: { padding: spacing.lg, gap: spacing.sm },
   miniLabel: {
     color: colors.onSurfaceTertiary,

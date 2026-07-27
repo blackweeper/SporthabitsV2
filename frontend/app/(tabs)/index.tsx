@@ -29,6 +29,7 @@ import {
   getWellnessLog,
   Habit,
   HabitLog,
+  HABIT_KIND_ICON,
   PersonalRecord,
   todayYYYYMMDD,
   UserProfile,
@@ -265,78 +266,56 @@ export default function TodayScreen() {
           </>
         )}
 
-        {/* Checklist */}
-        <Text style={styles.sectionTitle}>À faire aujourd&apos;hui</Text>
-        <View style={styles.checkCard}>
-          {daily.items.map((item, idx) => {
-            const done = item.achieved >= 1;
-            const habitLog = logs.find(
-              (l) => l.habitId === item.id && l.date === today,
-            );
-            const canToggle =
-              item.id !== "workout" &&
-              item.id !== "water" &&
-              item.id !== "calories" &&
-              item.id !== "steps";
+        {/* Interactive daily widgets */}
+        <View style={styles.widgetsHead}>
+          <Text style={styles.sectionTitle}>Aujourd&apos;hui</Text>
+          <Pressable
+            testID="manage-habits"
+            hitSlop={8}
+            onPress={() => router.push("/progression?tab=habits" as any)}
+          >
+            <Text style={styles.widgetsMoreLink}>Gérer</Text>
+          </Pressable>
+        </View>
+        <View style={styles.widgetsGrid}>
+          {/* Séance widget (workout) */}
+          <SessionWidget
+            done={daily.workoutDone}
+            onPress={() => router.push("/training")}
+          />
+          {/* Habit widgets */}
+          {habits.map((h) => {
+            const cur =
+              logs.find((l) => l.habitId === h.id && l.date === today)?.value ?? 0;
+            const target = h.target && h.target > 0 ? h.target : 1;
             return (
-              <Pressable
-                key={item.id}
-                testID={`check-${item.id}`}
-                style={[
-                  styles.checkRow,
-                  idx > 0 && styles.checkRowBorder,
-                ]}
-                disabled={!canToggle}
-                onPress={async () => {
-                  if (!canToggle) return;
-                  const habit = habits.find((h) => h.id === item.id);
-                  if (!habit) return;
-                  const cur = habitLog?.value ?? 0;
-                  const target = habit.target ?? 1;
-                  await setHabitValue(item.id, today, cur >= target ? 0 : target);
+              <HabitWidget
+                key={h.id}
+                habit={h}
+                current={cur}
+                target={target}
+                onIncrement={async () => {
+                  const next = cur >= target ? 0 : cur + 1;
+                  await setHabitValue(h.id, today, next);
                   load();
                 }}
-              >
-                <View
-                  style={[
-                    styles.checkBox,
-                    done && { backgroundColor: item.color, borderColor: item.color },
-                  ]}
-                >
-                  {done && <Ionicons name="checkmark" size={14} color="#fff" />}
-                </View>
-                <Ionicons
-                  name={item.icon}
-                  size={14}
-                  color={done ? item.color : colors.onSurfaceTertiary}
-                />
-                <Text
-                  style={[
-                    styles.checkLabel,
-                    done && styles.checkLabelDone,
-                  ]}
-                  numberOfLines={1}
-                >
-                  {item.label}
-                </Text>
-                <Text style={styles.checkWeight}>
-                  {Math.round(item.weight * 100)}%
-                </Text>
-              </Pressable>
+                onLongPress={async () => {
+                  await setHabitValue(h.id, today, 0);
+                  load();
+                }}
+                onOpen={() => router.push(`/habit/${h.id}` as any)}
+              />
             );
           })}
-          {habits.length === 0 && (
-            <Pressable
-              testID="add-first-habit"
-              style={styles.emptyHabitBtn}
-              onPress={() => router.push("/habit/new")}
-            >
-              <Ionicons name="add-circle" size={14} color={colors.brand} />
-              <Text style={styles.emptyHabitText}>
-                Ajoute une habitude pour enrichir ton score
-              </Text>
-            </Pressable>
-          )}
+          {/* Add habit widget */}
+          <Pressable
+            testID="add-habit-widget"
+            style={styles.addWidget}
+            onPress={() => router.push("/habit/new" as any)}
+          >
+            <Ionicons name="add-circle" size={26} color={colors.brand} />
+            <Text style={styles.addWidgetLabel}>Nouvelle habitude</Text>
+          </Pressable>
         </View>
 
         {/* Streak — hero metric */}
@@ -417,6 +396,138 @@ export default function TodayScreen() {
         <View style={{ height: 40 }} />
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+function SessionWidget({
+  done,
+  onPress,
+}: {
+  done: boolean;
+  onPress: () => void;
+}) {
+  const bg = done ? "#FF572220" : colors.surfaceSecondary;
+  const border = done ? "#FF5722" : colors.border;
+  return (
+    <Pressable
+      testID="widget-session"
+      style={[
+        styles.widget,
+        { backgroundColor: bg, borderColor: border },
+      ]}
+      onPress={onPress}
+    >
+      <View
+        style={[
+          styles.widgetIcon,
+          { backgroundColor: done ? "#FF5722" : colors.surfaceTertiary },
+        ]}
+      >
+        <Ionicons
+          name="barbell"
+          size={16}
+          color={done ? "#fff" : colors.onSurfaceTertiary}
+        />
+      </View>
+      <Text style={styles.widgetTitle} numberOfLines={1}>
+        Séance
+      </Text>
+      <Text style={styles.widgetProgress}>
+        {done ? "Fait ✓" : "À faire"}
+      </Text>
+      <View style={styles.widgetBar}>
+        <View
+          style={[
+            styles.widgetBarFill,
+            {
+              width: done ? "100%" : "0%",
+              backgroundColor: "#FF5722",
+            },
+          ]}
+        />
+      </View>
+    </Pressable>
+  );
+}
+
+function HabitWidget({
+  habit,
+  current,
+  target,
+  onIncrement,
+  onLongPress,
+  onOpen,
+}: {
+  habit: Habit;
+  current: number;
+  target: number;
+  onIncrement: () => void;
+  onLongPress: () => void;
+  onOpen: () => void;
+}) {
+  const done = current >= target;
+  const color = habit.color ?? "#4CAF50";
+  const bg = done ? `${color}20` : colors.surfaceSecondary;
+  const border = done ? color : colors.border;
+  const iconName = (habit.kind ? HABIT_KIND_ICON[habit.kind] : "star") as any;
+  const pct = target > 0 ? Math.min(1, current / target) : 0;
+  return (
+    <Pressable
+      testID={`widget-${habit.id}`}
+      style={[styles.widget, { backgroundColor: bg, borderColor: border }]}
+      onPress={onIncrement}
+      onLongPress={() => {
+        // Long press: quick shortcut to open habit settings
+        onOpen();
+      }}
+      delayLongPress={450}
+    >
+      <View style={styles.widgetTopRow}>
+        <View
+          style={[
+            styles.widgetIcon,
+            { backgroundColor: done ? color : colors.surfaceTertiary },
+          ]}
+        >
+          <Ionicons
+            name={iconName}
+            size={16}
+            color={done ? "#fff" : colors.onSurfaceTertiary}
+          />
+        </View>
+        {target > 1 ? (
+          <Pressable
+            testID={`widget-${habit.id}-reset`}
+            hitSlop={8}
+            onPress={onLongPress}
+            style={styles.widgetResetBtn}
+          >
+            <Ionicons
+              name="refresh"
+              size={12}
+              color={colors.onSurfaceTertiary}
+            />
+          </Pressable>
+        ) : null}
+      </View>
+      <Text style={styles.widgetTitle} numberOfLines={1}>
+        {habit.title}
+      </Text>
+      <Text style={[styles.widgetProgress, done && { color }]}>
+        {target > 1 ? `${current}/${target}${habit.unit ? " " + habit.unit : ""}` : done ? "Fait ✓" : "À faire"}
+      </Text>
+      <View style={styles.widgetBar}>
+        <View
+          style={[
+            styles.widgetBarFill,
+            {
+              width: `${Math.round(pct * 100)}%`,
+              backgroundColor: color,
+            },
+          ]}
+        />
+      </View>
+    </Pressable>
   );
 }
 
@@ -806,6 +917,89 @@ const styles = StyleSheet.create({
     color: colors.brand,
     fontSize: 12,
     fontWeight: "700",
+  },
+  widgetsHead: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-end",
+    marginTop: spacing.sm,
+  },
+  widgetsMoreLink: {
+    color: colors.brand,
+    fontSize: 12,
+    fontWeight: "700",
+  },
+  widgetsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  widget: {
+    width: "48%",
+    backgroundColor: colors.surfaceSecondary,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md,
+    gap: 4,
+    minHeight: 108,
+  },
+  widgetTopRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  widgetIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  widgetResetBtn: {
+    padding: 4,
+    borderRadius: 6,
+  },
+  widgetTitle: {
+    color: colors.onSurface,
+    fontSize: 13,
+    fontWeight: "700",
+    marginTop: 4,
+  },
+  widgetProgress: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  widgetBar: {
+    height: 4,
+    backgroundColor: colors.surfaceTertiary,
+    borderRadius: 2,
+    marginTop: 4,
+    overflow: "hidden",
+  },
+  widgetBarFill: {
+    height: "100%",
+    borderRadius: 2,
+  },
+  addWidget: {
+    width: "48%",
+    backgroundColor: colors.surfaceSecondary,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.brand,
+    borderStyle: "dashed",
+    padding: spacing.md,
+    minHeight: 108,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+  },
+  addWidgetLabel: {
+    color: colors.brand,
+    fontSize: 12,
+    fontWeight: "800",
+    textAlign: "center",
   },
   statsGrid: {
     flexDirection: "row",
