@@ -31,7 +31,7 @@ const KINDS: { key: HabitKind; defaultTitle: string; defaultTarget: number; defa
   { key: "water", defaultTitle: "Boire de l'eau", defaultTarget: 8, defaultUnit: "verres" },
   { key: "steps", defaultTitle: "Marche quotidienne", defaultTarget: 8000, defaultUnit: "pas" },
   { key: "nutrition", defaultTitle: "Nutrition respectée", defaultTarget: 1, defaultUnit: "" },
-  { key: "mobility", defaultTitle: "Mobilité / étirements", defaultTarget: 1, defaultUnit: "" },
+  { key: "mobility", defaultTitle: "Mobilité / étirements", defaultTarget: 10, defaultUnit: "min" },
   { key: "sleep", defaultTitle: "Sommeil", defaultTarget: 8, defaultUnit: "h" },
   { key: "meditation", defaultTitle: "Méditation", defaultTarget: 10, defaultUnit: "min" },
   { key: "reading", defaultTitle: "Lecture", defaultTarget: 30, defaultUnit: "min" },

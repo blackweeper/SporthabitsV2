@@ -24,6 +24,8 @@ import {
 } from "@/src/utils/gym-storage";
 import ExercisePicture from "@/src/components/ExercisePicture";
 import ExercisePicturePicker from "@/src/components/ExercisePicturePicker";
+import ExerciseLibraryPicker from "@/src/components/ExerciseLibraryPicker";
+import DurationField from "@/src/components/DurationField";
 
 const TYPES: Plan["type"][] = ["musculation", "hiit", "cardio", "mixte"];
 const MODES: { key: ExerciseMode; label: string; hint: string }[] = [
@@ -40,6 +42,7 @@ export default function PlanDetailScreen() {
   const [plan, setPlan] = useState<Plan | null>(null);
   const [loading, setLoading] = useState(true);
   const [pickingExerciseId, setPickingExerciseId] = useState<string | null>(null);
+  const [libraryOpen, setLibraryOpen] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -74,7 +77,7 @@ export default function PlanDetailScreen() {
     });
   };
 
-  const addExercise = () => {
+  const addExercise = (name = "Nouvel exercice") => {
     if (!plan) return;
     setPlan({
       ...plan,
@@ -82,7 +85,7 @@ export default function PlanDetailScreen() {
         ...plan.exercises,
         {
           id: uid(),
-          name: "Nouvel exercice",
+          name,
           mode: "reps",
           sets: 3,
           reps: "10",
@@ -193,14 +196,24 @@ export default function PlanDetailScreen() {
 
           <View style={styles.sectionHead}>
             <Text style={styles.label}>Exercices ({plan.exercises.length})</Text>
-            <Pressable
-              testID="add-exercise-btn"
-              style={styles.addBtn}
-              onPress={addExercise}
-            >
-              <Ionicons name="add" size={16} color="#fff" />
-              <Text style={styles.addBtnText}>AJOUTER</Text>
-            </Pressable>
+            <View style={styles.addBtnRow}>
+              <Pressable
+                testID="add-from-library-btn"
+                style={styles.addBtnGhost}
+                onPress={() => setLibraryOpen(true)}
+              >
+                <Ionicons name="library" size={14} color={colors.brand} />
+                <Text style={styles.addBtnGhostText}>BIBLIOTHÈQUE</Text>
+              </Pressable>
+              <Pressable
+                testID="add-exercise-btn"
+                style={styles.addBtn}
+                onPress={() => addExercise()}
+              >
+                <Ionicons name="add" size={16} color="#fff" />
+                <Text style={styles.addBtnText}>AJOUTER</Text>
+              </Pressable>
+            </View>
           </View>
 
           {plan.exercises.length === 0 && (
@@ -316,9 +329,10 @@ export default function PlanDetailScreen() {
                     />
                   </View>
                   <View style={styles.fieldRow}>
-                    <FieldNum
-                      label="Repos (s)"
-                      value={ex.rest_seconds}
+                    <DurationField
+                      testID={`ex-rest-${ex.id}`}
+                      label="Repos"
+                      valueSeconds={ex.rest_seconds}
                       onChange={(v) => updateExercise(ex.id, { rest_seconds: v })}
                     />
                     <FieldText
@@ -341,18 +355,20 @@ export default function PlanDetailScreen() {
                       value={ex.sets}
                       onChange={(v) => updateExercise(ex.id, { sets: v })}
                     />
-                    <FieldNum
-                      label="Durée (s)"
-                      value={ex.duration_seconds ?? 300}
+                    <DurationField
+                      testID={`ex-duration-${ex.id}`}
+                      label="Durée"
+                      valueSeconds={ex.duration_seconds ?? 300}
                       onChange={(v) =>
                         updateExercise(ex.id, { duration_seconds: v })
                       }
                     />
                   </View>
                   <View style={styles.fieldRow}>
-                    <FieldNum
-                      label="Repos (s)"
-                      value={ex.rest_seconds}
+                    <DurationField
+                      testID={`ex-rest-${ex.id}`}
+                      label="Repos"
+                      valueSeconds={ex.rest_seconds}
                       onChange={(v) => updateExercise(ex.id, { rest_seconds: v })}
                     />
                     <FieldText
@@ -369,9 +385,11 @@ export default function PlanDetailScreen() {
 
               {ex.mode === "amrap" && (
                 <View style={styles.fieldRow}>
-                  <FieldNum
-                    label="Durée totale (s)"
-                    value={ex.duration_seconds ?? 720}
+                  <DurationField
+                    testID={`ex-duration-${ex.id}`}
+                    label="Durée totale"
+                    valueSeconds={ex.duration_seconds ?? 720}
+                    presetsSeconds={[300, 480, 600, 720, 900, 1200]}
                     onChange={(v) =>
                       updateExercise(ex.id, { duration_seconds: v })
                     }
@@ -403,9 +421,11 @@ export default function PlanDetailScreen() {
                     />
                   </View>
                   <View style={styles.fieldRow}>
-                    <FieldNum
-                      label="Durée round (s)"
-                      value={ex.duration_seconds ?? 60}
+                    <DurationField
+                      testID={`ex-duration-${ex.id}`}
+                      label="Durée round"
+                      valueSeconds={ex.duration_seconds ?? 60}
+                      presetsSeconds={[30, 45, 60, 90, 120]}
                       onChange={(v) =>
                         updateExercise(ex.id, { duration_seconds: v })
                       }
@@ -442,6 +462,15 @@ export default function PlanDetailScreen() {
         onClose={() => setPickingExerciseId(null)}
         onPick={(payload) => {
           if (pickingExerciseId) updateExercise(pickingExerciseId, payload);
+        }}
+      />
+
+      <ExerciseLibraryPicker
+        visible={libraryOpen}
+        onClose={() => setLibraryOpen(false)}
+        onPick={(name) => {
+          addExercise(name);
+          setLibraryOpen(false);
         }}
       />
     </SafeAreaView>
@@ -601,6 +630,23 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   addBtnText: { color: "#fff", fontWeight: "800", fontSize: 11, letterSpacing: 0.5 },
+  addBtnRow: { flexDirection: "row", gap: 8 },
+  addBtnGhost: {
+    borderWidth: 1,
+    borderColor: colors.brand,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: radius.sm,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  addBtnGhostText: {
+    color: colors.brand,
+    fontWeight: "800",
+    fontSize: 10,
+    letterSpacing: 0.5,
+  },
   emptyEx: {
     color: colors.onSurfaceTertiary,
     fontStyle: "italic",

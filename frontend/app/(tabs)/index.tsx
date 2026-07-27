@@ -44,9 +44,11 @@ import { Program } from "@/src/data/programs";
 import { computeDailyScore } from "@/src/utils/scoring";
 import { computeXPState } from "@/src/utils/xp";
 import { computeAdvancedStats } from "@/src/utils/stats";
-import { todayQuote } from "@/src/data/motivation";
+import { motivationMessage } from "@/src/data/motivation";
 import { WellnessCard } from "@/src/components/WellnessWidgets";
 import { progressionHref } from "@/src/utils/progression-nav";
+import HabitTimerModal from "@/src/components/HabitTimerModal";
+import { getActiveHabitTimer } from "@/src/utils/habit-timer";
 
 type ActiveWithProgram = { active: ActiveProgram; program: Program };
 
@@ -70,10 +72,12 @@ export default function TodayScreen() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [wellness, setWellness] = useState<WellnessLog | null>(null);
   const [prs, setPRs] = useState<PersonalRecord[]>([]);
+  const [timerHabit, setTimerHabit] = useState<Habit | null>(null);
 
   const load = useCallback(async () => {
+    const loadedHabits = await getHabits();
     setSessions(await getSessions());
-    setHabits(await getHabits());
+    setHabits(loadedHabits);
     setLogs(await getHabitLogs());
     setMeasurements(await getMeasurements());
     setPRs(await getPRs());
@@ -88,6 +92,15 @@ export default function TodayScreen() {
     }
     setActives(resolved);
     setWellness(await getWellnessLog(todayYYYYMMDD()));
+
+    // Restore an in-progress habit timer (e.g. the app was backgrounded or
+    // reloaded mid-countdown) so it keeps running instead of silently
+    // vanishing.
+    const active = await getActiveHabitTimer();
+    if (active) {
+      const match = loadedHabits.find((h) => h.id === active.habitId);
+      if (match) setTimerHabit(match);
+    }
   }, []);
 
   useFocusEffect(
@@ -121,6 +134,11 @@ export default function TodayScreen() {
   const greetingHour = new Date().getHours();
   const greeting =
     greetingHour < 12 ? "Bonjour" : greetingHour < 18 ? "Salut" : "Bonsoir";
+  const motivation = motivationMessage({
+    workoutDoneToday: daily.workoutDone,
+    streakDays: stats.currentStreakDays,
+    score: daily.score,
+  });
 
   const bumpWellness = async (
     field: "water_ml" | "calories_kcal" | "steps",
@@ -146,12 +164,6 @@ export default function TodayScreen() {
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
       >
-        {/* Motivation banner */}
-        <View style={styles.motivationCard}>
-          <Ionicons name="sparkles" size={14} color={colors.brand} />
-          <Text style={styles.motivationText}>{todayQuote()}</Text>
-        </View>
-
         {/* Header */}
         <View style={styles.header}>
           <View style={{ flex: 1 }}>
@@ -168,6 +180,12 @@ export default function TodayScreen() {
               <Text style={styles.daySub}>/ {totalDays}</Text>
             </View>
           ) : null}
+        </View>
+
+        {/* Motivation — contextual to today's progress */}
+        <View style={styles.motivationCard}>
+          <Ionicons name="sparkles" size={13} color={colors.brand} />
+          <Text style={styles.motivationText}>{motivation}</Text>
         </View>
 
         {/* Score circle */}
@@ -382,6 +400,7 @@ export default function TodayScreen() {
                     load();
                   }}
                   onOpen={() => router.push(`/habit/${h.id}` as any)}
+                  onStartTimer={() => setTimerHabit(h)}
                 />
               );
             })}
@@ -461,6 +480,15 @@ export default function TodayScreen() {
 
         <View style={{ height: 40 }} />
       </ScrollView>
+      <HabitTimerModal
+        habit={timerHabit}
+        visible={timerHabit !== null}
+        onClose={() => setTimerHabit(null)}
+        onCompleted={() => {
+          setTimerHabit(null);
+          load();
+        }}
+      />
     </SafeAreaView>
   );
 }
@@ -517,6 +545,7 @@ function HabitListItem({
   onIncrement,
   onReset,
   onOpen,
+  onStartTimer,
 }: {
   habit: Habit;
   current: number;
@@ -524,17 +553,21 @@ function HabitListItem({
   onIncrement: () => void;
   onReset: () => void;
   onOpen: () => void;
+  onStartTimer: () => void;
 }) {
   const done = current >= target;
   const color = habit.color ?? "#4CAF50";
   const iconName = (habit.kind ? HABIT_KIND_ICON[habit.kind] : "star") as any;
   const pct = target > 0 ? Math.min(1, current / target) : 0;
   const pctLabel = `${Math.round(pct * 100)}%`;
+  // Habits tracked in minutes get a real countdown timer instead of a plain
+  // tap-to-increment counter.
+  const isTimed = habit.unit === "min";
   return (
     <Pressable
       testID={`widget-${habit.id}`}
       style={[styles.listItem, done && { borderColor: color }]}
-      onPress={onIncrement}
+      onPress={isTimed ? undefined : onIncrement}
       onLongPress={onOpen}
       delayLongPress={450}
     >
@@ -554,16 +587,15 @@ function HabitListItem({
         <Text style={styles.listItemTitle} numberOfLines={1}>
           {habit.title}
         </Text>
-        {target > 1 && (
+        {target > 1 && !done && (
           <Text style={styles.listItemValue}>
-            {current}/{target}
-            {habit.unit ? ` ${habit.unit}` : ""}
+            {isTimed ? `${target} min` : `${current}/${target}${habit.unit ? ` ${habit.unit}` : ""}`}
           </Text>
         )}
         <Text style={[styles.listItemPct, done && { color }]}>{pctLabel}</Text>
         {done ? (
           <Ionicons name="checkmark-circle" size={14} color={color} />
-        ) : target > 1 ? (
+        ) : isTimed ? null : target > 1 ? (
           <Pressable
             testID={`widget-${habit.id}-reset`}
             hitSlop={8}
@@ -582,6 +614,16 @@ function HabitListItem({
           ]}
         />
       </View>
+      {isTimed && !done && (
+        <Pressable
+          testID={`widget-${habit.id}-start`}
+          style={[styles.startTimerBtn, { backgroundColor: color }]}
+          onPress={onStartTimer}
+        >
+          <Ionicons name="play" size={13} color="#fff" />
+          <Text style={styles.startTimerBtnText}>COMMENCER</Text>
+        </Pressable>
+      )}
     </Pressable>
   );
 }
@@ -672,19 +714,15 @@ const styles = StyleSheet.create({
   motivationCard: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    backgroundColor: colors.brandTertiary,
-    padding: 10,
-    borderRadius: radius.md,
-    borderLeftWidth: 3,
-    borderLeftColor: colors.brand,
+    gap: 6,
+    paddingHorizontal: 2,
   },
   motivationText: {
     flex: 1,
-    color: colors.onSurface,
-    fontSize: 12,
-    fontWeight: "600",
-    lineHeight: 16,
+    color: colors.onSurfaceSecondary,
+    fontSize: 12.5,
+    fontWeight: "500",
+    lineHeight: 17,
     fontStyle: "italic",
   },
   streakHero: {
@@ -1036,6 +1074,21 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   progressFill: { height: "100%", borderRadius: 3 },
+  startTimerBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: radius.md,
+    marginTop: 4,
+  },
+  startTimerBtnText: {
+    color: "#fff",
+    fontWeight: "800",
+    fontSize: 11,
+    letterSpacing: 0.6,
+  },
   addListItem: {
     flexDirection: "row",
     alignItems: "center",

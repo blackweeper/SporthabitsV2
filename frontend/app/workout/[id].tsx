@@ -53,6 +53,12 @@ export default function WorkoutScreen() {
   const [overlayTotal, setOverlayTotal] = useState(0);
   const [overlaySetIdx, setOverlaySetIdx] = useState<number | null>(null);
   const [amrapRounds, setAmrapRounds] = useState(0);
+  // What to auto-start (no interaction needed) once the current rest ends —
+  // only set for timed exercises (time/amrap/emom); reps stay fully manual.
+  const [pendingResume, setPendingResume] = useState<{
+    exI: number;
+    setIdx: number;
+  } | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const [elapsed, setElapsed] = useState(0);
@@ -144,11 +150,86 @@ export default function WorkoutScreen() {
     );
   }
 
+  /** Start the work/amrap timer for a given exercise+set, whatever the
+   *  current exIdx is — used both for manual taps and auto-advance. */
+  function startSetTimer(exI: number, setIdx: number) {
+    const ex = logs[exI];
+    if (!ex) return;
+    const dur = ex.targetDurationSeconds || (ex.mode === "emom" ? 60 : 300);
+    if (ex.mode === "emom") speak(`Round ${setIdx + 1}`);
+    if (ex.mode === "time" || ex.mode === "emom") {
+      startWork(setIdx, dur);
+    } else if (ex.mode === "amrap") {
+      startAmrap(setIdx, dur);
+    }
+  }
+
+  /**
+   * After a timed set/round completes: if the same exercise has more sets,
+   * queue them; otherwise, if the next exercise is also timed, queue that.
+   * Reps exercises are never auto-started — the user stays in control there.
+   * Returns true if a rest or next timer was queued (caller should stop).
+   */
+  function chainRestAndAdvance(
+    exI: number,
+    currentLog: SessionExerciseLog | undefined,
+    nextSetIdx: number,
+  ): boolean {
+    if (!currentLog) return false;
+    if (nextSetIdx < currentLog.sets.length) {
+      const rest = currentLog.targetRestSeconds || 0;
+      if (rest > 0) {
+        speak("Repos");
+        setPendingResume({ exI, setIdx: nextSetIdx });
+        setOverlaySetIdx(null);
+        setOverlay("rest");
+        setOverlayTotal(rest);
+        setOverlayRemaining(rest);
+      } else {
+        startSetTimer(exI, nextSetIdx);
+      }
+      return true;
+    }
+    const nextExI = exI + 1;
+    const nextEx = logs[nextExI];
+    if (
+      nextEx &&
+      (nextEx.mode === "time" || nextEx.mode === "amrap" || nextEx.mode === "emom")
+    ) {
+      const rest = currentLog.targetRestSeconds || 0;
+      if (rest > 0) {
+        speak("Repos, exercice suivant");
+        setPendingResume({ exI: nextExI, setIdx: 0 });
+        setOverlaySetIdx(null);
+        setOverlay("rest");
+        setOverlayTotal(rest);
+        setOverlayRemaining(rest);
+      } else {
+        setExIdx(nextExI);
+        startSetTimer(nextExI, 0);
+      }
+      return true;
+    }
+    // Next exercise is reps-based (or there isn't one) — hand control back
+    // to the user, who finishes it manually.
+    if (nextEx) setExIdx(nextExI);
+    return false;
+  }
+
   function onOverlayComplete() {
     if (timerRef.current) clearInterval(timerRef.current);
     haptic();
     if (overlay === "rest") {
       setTotalRest((t) => t + overlayTotal);
+      const resume = pendingResume;
+      setPendingResume(null);
+      if (resume) {
+        speakGo("C'est parti");
+        setExIdx(resume.exI);
+        setOverlaySetIdx(null);
+        startSetTimer(resume.exI, resume.setIdx);
+        return;
+      }
       speak("Go");
     } else if (overlay === "work" && overlaySetIdx !== null) {
       const currentLog = logs[exIdx];
@@ -174,17 +255,11 @@ export default function WorkoutScreen() {
         setOverlayRemaining(dur);
         return;
       }
-      // TIME mode: chain rest if configured
-      const rest = currentLog?.targetRestSeconds || 0;
-      if (rest > 0 && currentLog?.mode === "time") {
-        speak("Repos");
-        setOverlaySetIdx(null);
-        setOverlay("rest");
-        setOverlayTotal(rest);
-        setOverlayRemaining(rest);
-        return;
-      }
+      // Timed exercise: automatically chain into rest, then the next
+      // set/exercise, with no interaction required.
+      if (chainRestAndAdvance(exIdx, currentLog, nextSetIdx)) return;
     } else if (overlay === "amrap" && overlaySetIdx !== null) {
+      const currentLog = logs[exIdx];
       setLogs((prev) => {
         const copy = prev.map((l) => ({ ...l, sets: [...l.sets] }));
         copy[exIdx].sets[overlaySetIdx!] = {
@@ -194,6 +269,7 @@ export default function WorkoutScreen() {
         };
         return copy;
       });
+      if (chainRestAndAdvance(exIdx, currentLog, overlaySetIdx + 1)) return;
     }
     setOverlay(null);
     setOverlaySetIdx(null);
@@ -229,6 +305,14 @@ export default function WorkoutScreen() {
     speakStop();
     if (overlay === "rest") {
       setTotalRest((t) => t + (overlayTotal - overlayRemaining));
+      const resume = pendingResume;
+      setPendingResume(null);
+      if (resume) {
+        setExIdx(resume.exI);
+        setOverlaySetIdx(null);
+        startSetTimer(resume.exI, resume.setIdx);
+        return;
+      }
     } else if (
       (overlay === "work" || overlay === "amrap") &&
       overlaySetIdx !== null
@@ -265,11 +349,7 @@ export default function WorkoutScreen() {
       !ex.sets[setI].completed &&
       (ex.mode === "time" || ex.mode === "amrap" || ex.mode === "emom")
     ) {
-      const dur = ex.targetDurationSeconds || (ex.mode === "emom" ? 60 : 300);
-      if (ex.mode === "time" || ex.mode === "emom") {
-        if (ex.mode === "emom") speak(`Round ${setI + 1}`);
-        startWork(setI, dur);
-      } else startAmrap(setI, dur);
+      startSetTimer(exI, setI);
       return;
     }
     setLogs((prev) => {
@@ -638,6 +718,17 @@ export default function WorkoutScreen() {
                     : colors.warning
               }
             />
+            {overlay === "rest" && pendingResume && (
+              <View style={styles.nextUpBox} testID="rest-next-up">
+                <Ionicons name="play-forward" size={14} color={colors.onSurfaceTertiary} />
+                <Text style={styles.nextUpText}>
+                  Suivant ·{" "}
+                  {pendingResume.exI === exIdx
+                    ? `${currentEx.name} — série ${pendingResume.setIdx + 1}/${currentEx.sets.length}`
+                    : logs[pendingResume.exI]?.name}
+                </Text>
+              </View>
+            )}
             {overlay === "amrap" && (
               <View style={styles.amrapCounter}>
                 <Pressable
@@ -1007,6 +1098,21 @@ const styles = StyleSheet.create({
     color: colors.brand,
     fontWeight: "800",
     letterSpacing: 2,
+    fontSize: 12,
+  },
+  nextUpBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: colors.surfaceTertiary,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.pill,
+    marginTop: -spacing.sm,
+  },
+  nextUpText: {
+    color: colors.onSurfaceSecondary,
+    fontWeight: "700",
     fontSize: 12,
   },
   restBig: {

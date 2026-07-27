@@ -14,6 +14,7 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing } from "@/src/theme";
 import {
+  computeSleepHoursFromTimes,
   DailyJournalEntry,
   FeelingMood,
   FEELING_MOOD_EMOJI,
@@ -25,7 +26,7 @@ import {
   todayYYYYMMDD,
   WellnessLog,
 } from "@/src/utils/gym-storage";
-import { SleepSlider } from "@/src/components/SleepSlider";
+import SleepInput, { SleepValue } from "@/src/components/SleepInput";
 
 export default function DailyJournalScreen() {
   const router = useRouter();
@@ -51,6 +52,32 @@ export default function DailyJournalScreen() {
   const save = async () => {
     await saveDailyJournal(entry);
     router.back();
+  };
+
+  const sleepValue: SleepValue = {
+    mode: entry.sleep_mode ?? "auto",
+    bedtime: entry.sleep_bedtime ?? null,
+    wakeTime: entry.sleep_wake_time ?? null,
+    manualHours: entry.sleep_hours ?? null,
+  };
+
+  const updateSleep = async (next: SleepValue) => {
+    const hours =
+      next.mode === "auto"
+        ? computeSleepHoursFromTimes(next.bedtime, next.wakeTime)
+        : next.manualHours;
+    setEntry({
+      ...entry,
+      sleep_mode: next.mode,
+      sleep_bedtime: next.bedtime,
+      sleep_wake_time: next.wakeTime,
+      sleep_hours: hours,
+    });
+    // Keep the daily score's sleep component in sync immediately — this
+    // previously never happened, so entered sleep never actually moved the
+    // score (same pattern already used for "feeling" below).
+    const today = todayYYYYMMDD();
+    setWellness(await patchWellnessLog(today, { sleep_hours: hours }));
   };
 
   return (
@@ -144,13 +171,8 @@ export default function DailyJournalScreen() {
             onChange={(v) => setEntry({ ...entry, stress: v })}
           />
 
-          {/* Sleep slider (0h-12h with minute precision) */}
-          <SleepSlider
-            label="Sommeil"
-            value={entry.sleep_hours ?? null}
-            onChange={(v) => setEntry({ ...entry, sleep_hours: v })}
-            testID="dj-sleep-slider"
-          />
+          {/* Sleep: bedtime/wake-time (auto duration) or direct manual entry */}
+          <SleepInput value={sleepValue} onChange={updateSleep} testID="dj-sleep-input" />
 
           <Text style={styles.miniLabel}>Douleurs</Text>
           <TextInput

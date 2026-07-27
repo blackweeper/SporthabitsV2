@@ -17,6 +17,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing } from "@/src/theme";
 import ExercisePicture from "@/src/components/ExercisePicture";
 import ExercisePicturePicker from "@/src/components/ExercisePicturePicker";
+import DurationField from "@/src/components/DurationField";
 import { useConfirmDialog } from "@/src/hooks/use-confirm-dialog";
 import {
   COVER_COLORS,
@@ -870,13 +871,10 @@ function ExerciseEditor({
             />
           </View>
           <View style={styles.fieldsRow}>
-            <MiniField
-              label="Repos (s)"
-              value={String(exercise.rest_seconds)}
-              keyboard="number-pad"
-              onChange={(t) =>
-                onChange({ rest_seconds: parseInt(t || "0", 10) || 0 })
-              }
+            <DurationField
+              label="Repos"
+              valueSeconds={exercise.rest_seconds}
+              onChange={(v) => onChange({ rest_seconds: v })}
               testID={`ex-rest-${index}`}
             />
             <MiniField
@@ -904,36 +902,28 @@ function ExerciseEditor({
               }
               testID={`ex-sets-${index}`}
             />
-            <MiniField
-              label="Durée (s)"
-              value={String(exercise.duration_seconds ?? 30)}
-              keyboard="number-pad"
-              onChange={(t) =>
-                onChange({ duration_seconds: parseInt(t || "0", 10) || 0 })
-              }
+            <DurationField
+              label="Durée"
+              valueSeconds={exercise.duration_seconds ?? 30}
+              onChange={(v) => onChange({ duration_seconds: v })}
               testID={`ex-duration-${index}`}
             />
           </View>
-          <MiniField
-            label="Repos (s)"
-            value={String(exercise.rest_seconds)}
-            keyboard="number-pad"
-            onChange={(t) =>
-              onChange({ rest_seconds: parseInt(t || "0", 10) || 0 })
-            }
+          <DurationField
+            label="Repos"
+            valueSeconds={exercise.rest_seconds}
+            onChange={(v) => onChange({ rest_seconds: v })}
             testID={`ex-rest-${index}`}
           />
         </>
       )}
 
       {exercise.mode === "amrap" && (
-        <MiniField
-          label="Durée totale (s)"
-          value={String(exercise.duration_seconds ?? 600)}
-          keyboard="number-pad"
-          onChange={(t) =>
-            onChange({ duration_seconds: parseInt(t || "0", 10) || 0 })
-          }
+        <DurationField
+          label="Durée totale"
+          valueSeconds={exercise.duration_seconds ?? 600}
+          presetsSeconds={[300, 480, 600, 720, 900, 1200]}
+          onChange={(v) => onChange({ duration_seconds: v })}
           testID={`ex-duration-${index}`}
         />
       )}
@@ -957,13 +947,11 @@ function ExerciseEditor({
               testID={`ex-reps-${index}`}
             />
           </View>
-          <MiniField
-            label="Durée round (s)"
-            value={String(exercise.duration_seconds ?? 60)}
-            keyboard="number-pad"
-            onChange={(t) =>
-              onChange({ duration_seconds: parseInt(t || "0", 10) || 0 })
-            }
+          <DurationField
+            label="Durée round"
+            valueSeconds={exercise.duration_seconds ?? 60}
+            presetsSeconds={[30, 45, 60, 90, 120]}
+            onChange={(v) => onChange({ duration_seconds: v })}
             testID={`ex-duration-${index}`}
           />
         </>

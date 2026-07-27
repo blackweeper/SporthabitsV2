@@ -947,10 +947,34 @@ export type DailyJournalEntry = {
   energy?: number | null;
   motivation?: number | null;
   stress?: number | null;
+  /** Resulting sleep duration in decimal hours — always the source of truth,
+   *  whichever input mode produced it (bedtime/wake or direct manual entry). */
   sleep_hours?: number | null;
+  sleep_bedtime?: string | null; // "HH:MM"
+  sleep_wake_time?: string | null; // "HH:MM"
+  sleep_mode?: 'auto' | 'manual' | null;
   pain?: string | null;
   notes?: string | null;
 };
+
+/**
+ * Sleep duration (decimal hours) from a bedtime/wake-time pair, handling the
+ * overnight wrap (e.g. 23:00 -> 07:00 = 8h). Returns null if either time is
+ * missing/invalid.
+ */
+export function computeSleepHoursFromTimes(
+  bedtime: string | null | undefined,
+  wakeTime: string | null | undefined,
+): number | null {
+  if (!bedtime || !wakeTime) return null;
+  const [bh, bm] = bedtime.split(':').map(Number);
+  const [wh, wm] = wakeTime.split(':').map(Number);
+  if ([bh, bm, wh, wm].some((n) => Number.isNaN(n))) return null;
+  const startMin = bh * 60 + bm;
+  let endMin = wh * 60 + wm;
+  if (endMin <= startMin) endMin += 24 * 60;
+  return Math.round(((endMin - startMin) / 60) * 100) / 100;
+}
 
 export async function getDailyJournal(): Promise<DailyJournalEntry[]> {
   const raw = await AsyncStorage.getItem(DAILY_JOURNAL_KEY);
@@ -1108,4 +1132,27 @@ export function formatSleepHM(hours: number | null | undefined): string {
   const m = Math.round((hours - h) * 60);
   if (m === 60) return `${h + 1}h00`;
   return `${h}h${String(m).padStart(2, '0')}`;
+}
+
+// ---------- Favorite exercises (for the exercise library picker) ----------
+const FAVORITE_EXERCISES_KEY = '@ironflow/favoriteExercises';
+
+export async function getFavoriteExercises(): Promise<string[]> {
+  const raw = await AsyncStorage.getItem(FAVORITE_EXERCISES_KEY);
+  if (!raw) return [];
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
+}
+
+export async function toggleFavoriteExercise(name: string): Promise<string[]> {
+  const key = name.toLowerCase().trim();
+  const list = await getFavoriteExercises();
+  const next = list.some((n) => n.toLowerCase().trim() === key)
+    ? list.filter((n) => n.toLowerCase().trim() !== key)
+    : [...list, name];
+  await AsyncStorage.setItem(FAVORITE_EXERCISES_KEY, JSON.stringify(next));
+  return next;
 }
