@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   View,
   Text,
@@ -47,6 +47,15 @@ export default function DatePickerField({
   const [open, setOpen] = useState(false);
   const currentDate = new Date(value);
   const effectiveMax = maxDate ?? new Date();
+  const webInputRef = useRef<any>(null);
+
+  const openWebPicker = () => {
+    try {
+      webInputRef.current?.showPicker?.();
+    } catch {
+      // showPicker can throw if not user-triggered or unsupported; input stays focused as fallback.
+    }
+  };
 
   const setToday = () => {
     onChange(new Date().toISOString());
@@ -63,13 +72,15 @@ export default function DatePickerField({
         <View style={styles.card} testID={testID}>
           <Ionicons name="calendar" size={16} color={colors.brand} />
           <Text style={styles.dateText}>{formatDate(currentDate)}</Text>
-          {/* @ts-expect-error DOM input for web only */}
           <input
+            ref={webInputRef}
             type="date"
             value={isoDate}
             max={maxStr}
             min={minStr}
             data-testid={testID ? `${testID}-input` : "date-input"}
+            onClick={openWebPicker}
+            onFocus={openWebPicker}
             onChange={(e: any) => {
               const v = e.target.value;
               if (!v) return;

@@ -12,6 +12,7 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing } from "@/src/theme";
 import { getProfile, UserProfile } from "@/src/utils/gym-storage";
+import { progressionHref } from "@/src/utils/progression-nav";
 
 export default function ProfileTab() {
   const router = useRouter();
@@ -73,7 +74,7 @@ export default function ProfileTab() {
           iconBg="#4FC3F7"
           title="Mesures"
           subtitle="Poids, taille, tour de bras, masse grasse…"
-          onPress={() => router.push("/progression")}
+          onPress={() => router.push(progressionHref("transformation") as any)}
           testID="row-measurements"
         />
         <ListRow

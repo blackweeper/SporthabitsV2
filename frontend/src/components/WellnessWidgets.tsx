@@ -16,106 +16,14 @@ import {
   FeelingMood,
   FEELING_MOOD_EMOJI,
   FEELING_MOOD_LABEL,
-  patchWellnessLog,
-  todayYYYYMMDD,
-  WellnessLog,
 } from "@/src/utils/gym-storage";
 
-type WidgetProps = {
-  log: WellnessLog | null;
-  targetWater: number;
-  targetCalories: number;
-  targetSteps: number;
-  onChange: () => void;
-};
-
 /**
- * Trio of widget cards: Water / Calories / Steps.
- * Each supports quick +/- and a custom-value modal.
+ * Full-width quick-tap card for a daily wellness metric (water / calories /
+ * steps). Meant to be rendered inline among other daily list items (see the
+ * "Aujourd'hui" list in the home screen) rather than in its own section.
  */
-export function WellnessQuickWidgets({
-  log,
-  targetWater,
-  targetCalories,
-  targetSteps,
-  onChange,
-}: WidgetProps) {
-  const today = todayYYYYMMDD();
-  const water = log?.water_ml ?? 0;
-  const calories = log?.calories_kcal ?? 0;
-  const steps = log?.steps ?? 0;
-
-  const bump = async (
-    field: "water_ml" | "calories_kcal" | "steps",
-    delta: number,
-  ) => {
-    Haptics.selectionAsync().catch(() => {});
-    const cur = log?.[field] ?? 0;
-    const next = Math.max(0, cur + delta);
-    await patchWellnessLog(today, { [field]: next });
-    onChange();
-  };
-
-  const setValue = async (
-    field: "water_ml" | "calories_kcal" | "steps",
-    value: number,
-  ) => {
-    await patchWellnessLog(today, { [field]: Math.max(0, value) });
-    onChange();
-  };
-
-  return (
-    <View style={styles.widgetsGrid}>
-      <WellnessCard
-        icon="water"
-        color="#3B82F6"
-        label="Eau"
-        value={water}
-        target={targetWater}
-        unit="ml"
-        shortcuts={[
-          { label: "+250", delta: 250 },
-          { label: "+500", delta: 500 },
-        ]}
-        onBump={(d) => bump("water_ml", d)}
-        onSet={(v) => setValue("water_ml", v)}
-        testId="widget-water"
-      />
-      <WellnessCard
-        icon="nutrition"
-        color="#F97316"
-        label="Calories"
-        value={calories}
-        target={targetCalories}
-        unit="kcal"
-        shortcuts={[
-          { label: "+200", delta: 200 },
-          { label: "+500", delta: 500 },
-        ]}
-        onBump={(d) => bump("calories_kcal", d)}
-        onSet={(v) => setValue("calories_kcal", v)}
-        testId="widget-calories"
-      />
-      <WellnessCard
-        icon="footsteps"
-        color="#10B981"
-        label="Pas"
-        value={steps}
-        target={targetSteps}
-        unit="pas"
-        shortcuts={[
-          { label: "+1000", delta: 1000 },
-          { label: "+2500", delta: 2500 },
-        ]}
-        onBump={(d) => bump("steps", d)}
-        onSet={(v) => setValue("steps", v)}
-        testId="widget-steps"
-      />
-    </View>
-  );
-}
-
-function WellnessCard({
+export function WellnessCard({
   icon,
   color,
   label,
@@ -138,20 +46,28 @@ function WellnessCard({
   onSet: (value: number) => void;
   testId?: string;
 }) {
-  const [modal, setModal] = useState(false);
+  const [modalMode, setModalMode] = useState<null | "set" | "add">(null);
   const [draft, setDraft] = useState("");
   const pct = Math.min(1, target > 0 ? value / target : 0);
   const done = pct >= 1;
 
-  const openModal = () => {
+  const openSetModal = () => {
     setDraft(String(value));
-    setModal(true);
+    setModalMode("set");
+  };
+
+  const openAddModal = () => {
+    setDraft("");
+    setModalMode("add");
   };
 
   const submit = () => {
     const n = parseInt(draft.replace(/[^0-9]/g, ""), 10);
-    if (!isNaN(n)) onSet(n);
-    setModal(false);
+    if (!isNaN(n)) {
+      if (modalMode === "add") onBump(n);
+      else onSet(n);
+    }
+    setModalMode(null);
   };
 
   return (
@@ -161,11 +77,14 @@ function WellnessCard({
           <Ionicons name={icon} size={16} color={color} />
         </View>
         <Text style={styles.cardLabel}>{label}</Text>
+        <Text style={[styles.cardPct, done && { color }]}>
+          {Math.round(pct * 100)}%
+        </Text>
         {done && <Ionicons name="checkmark-circle" size={14} color={color} />}
       </View>
       <Pressable
         testID={`${testId}-value`}
-        onPress={openModal}
+        onPress={openSetModal}
         style={styles.cardValueWrap}
       >
         <Text style={styles.cardValue}>{formatNumber(value)}</Text>
@@ -200,22 +119,33 @@ function WellnessCard({
             <Text style={styles.chipBtnText}>{s.label}</Text>
           </Pressable>
         ))}
+        <Pressable
+          testID={`${testId}-custom`}
+          style={[styles.customBtn, { borderColor: color }]}
+          onPress={openAddModal}
+          hitSlop={6}
+        >
+          <Ionicons name="add" size={14} color={color} />
+          <Text style={[styles.customBtnText, { color }]}>Autre</Text>
+        </Pressable>
       </View>
 
       <Modal
         transparent
-        visible={modal}
+        visible={modalMode !== null}
         animationType="fade"
-        onRequestClose={() => setModal(false)}
+        onRequestClose={() => setModalMode(null)}
       >
         <View style={styles.modalBackdrop}>
-          <Pressable style={{ flex: 1 }} onPress={() => setModal(false)} />
+          <Pressable style={{ flex: 1 }} onPress={() => setModalMode(null)} />
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : undefined}
           >
             <View style={styles.modalCard}>
               <Text style={styles.modalTitle}>
-                Saisir {label.toLowerCase()}
+                {modalMode === "add"
+                  ? `Ajouter ${label.toLowerCase()}`
+                  : `Saisir ${label.toLowerCase()}`}
               </Text>
               <TextInput
                 testID={`${testId}-modal-input`}
@@ -223,13 +153,13 @@ function WellnessCard({
                 value={draft}
                 onChangeText={setDraft}
                 keyboardType="number-pad"
-                placeholder={`0 ${unit}`}
+                placeholder={modalMode === "add" ? `Ex: 325 ${unit}` : `0 ${unit}`}
                 placeholderTextColor={colors.onSurfaceTertiary}
                 autoFocus
               />
               <View style={styles.modalActions}>
                 <Pressable
-                  onPress={() => setModal(false)}
+                  onPress={() => setModalMode(null)}
                   style={styles.modalBtnGhost}
                 >
                   <Text style={styles.modalBtnGhostText}>Annuler</Text>
@@ -239,12 +169,14 @@ function WellnessCard({
                   style={[styles.modalBtn, { backgroundColor: color }]}
                   testID={`${testId}-modal-save`}
                 >
-                  <Text style={styles.modalBtnText}>Valider</Text>
+                  <Text style={styles.modalBtnText}>
+                    {modalMode === "add" ? "Ajouter" : "Valider"}
+                  </Text>
                 </Pressable>
               </View>
             </View>
           </KeyboardAvoidingView>
-          <Pressable style={{ flex: 1 }} onPress={() => setModal(false)} />
+          <Pressable style={{ flex: 1 }} onPress={() => setModalMode(null)} />
         </View>
       </Modal>
     </View>
@@ -307,9 +239,6 @@ function formatNumber(n: number): string {
 }
 
 const styles = StyleSheet.create({
-  widgetsGrid: {
-    gap: spacing.sm,
-  },
   card: {
     backgroundColor: colors.surfaceSecondary,
     borderWidth: 1,
@@ -333,6 +262,11 @@ const styles = StyleSheet.create({
   cardLabel: {
     flex: 1,
     color: colors.onSurface,
+    fontWeight: "800",
+    fontSize: 13,
+  },
+  cardPct: {
+    color: colors.onSurfaceTertiary,
     fontWeight: "800",
     fontSize: 13,
   },
@@ -384,6 +318,20 @@ const styles = StyleSheet.create({
   },
   chipBtnText: {
     color: colors.onSurface,
+    fontWeight: "700",
+    fontSize: 12,
+  },
+  customBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    backgroundColor: colors.surfaceTertiary,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+  },
+  customBtnText: {
     fontWeight: "700",
     fontSize: 12,
   },

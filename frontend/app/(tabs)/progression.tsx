@@ -8,7 +8,7 @@ import {
   Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useFocusEffect, useRouter } from "expo-router";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import Svg, { Circle } from "react-native-svg";
 import { LineChart } from "react-native-gifted-charts";
@@ -31,6 +31,8 @@ import {
   xpForLevel,
 } from "@/src/utils/xp";
 import {
+  DailyJournalEntry,
+  getDailyJournal,
   getGoals,
   getHabits,
   getHabitLogs,
@@ -56,8 +58,9 @@ import {
 } from "@/src/utils/gym-storage";
 import { computeIronflowScore, IronflowScore } from "@/src/utils/scoring";
 import { listAllExercises } from "@/src/utils/exercise-detail";
+import { ProgressionTab } from "@/src/utils/progression-nav";
 
-type Tab = "overview" | "exercises" | "records" | "level" | "transformation" | "habits" | "journal";
+type Tab = ProgressionTab;
 
 const TABS: { key: Tab; label: string; icon: any }[] = [
   { key: "overview", label: "Score", icon: "speedometer" },
@@ -69,9 +72,16 @@ const TABS: { key: Tab; label: string; icon: any }[] = [
   { key: "journal", label: "Journal", icon: "book" },
 ];
 
+function isProgressionTab(v: unknown): v is Tab {
+  return typeof v === "string" && TABS.some((t) => t.key === v);
+}
+
 export default function ProgressionHub() {
   const router = useRouter();
-  const [tab, setTab] = useState<Tab>("overview");
+  const { tab: tabParam } = useLocalSearchParams<{ tab?: string }>();
+  const [tab, setTab] = useState<Tab>(
+    isProgressionTab(tabParam) ? tabParam : "overview",
+  );
   const [sessions, setSessions] = useState<WorkoutSession[]>([]);
   const [prs, setPRs] = useState<PersonalRecord[]>([]);
   const [measurements, setMeasurements] = useState<Measurement[]>([]);
@@ -81,6 +91,15 @@ export default function ProgressionHub() {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [wellness, setWellness] = useState<WellnessLog[]>([]);
   const [profile, setProfile] = useState<UserProfile | null>(null);
+
+  // Re-sync the active tab whenever we're pushed here with a `?tab=...`
+  // param — this screen stays mounted across tab-bar switches, so a plain
+  // useState initializer alone wouldn't react to a later navigation.
+  useFocusEffect(
+    useCallback(() => {
+      if (isProgressionTab(tabParam)) setTab(tabParam);
+    }, [tabParam]),
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -1775,6 +1794,19 @@ function formatDaysOfWeek(days: number[]): string {
 }
 
 function JournalView({ router }: { router: any }) {
+  const [entries, setEntries] = useState<DailyJournalEntry[]>([]);
+  const [loaded, setLoaded] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      (async () => {
+        const list = await getDailyJournal();
+        setEntries(list.sort((a, b) => (a.date < b.date ? 1 : -1)));
+        setLoaded(true);
+      })();
+    }, []),
+  );
+
   return (
     <>
       <Pressable
@@ -1785,15 +1817,63 @@ function JournalView({ router }: { router: any }) {
         <Ionicons name="book" size={18} color="#fff" />
         <Text style={styles.ctaFullText}>NOTE DU JOUR</Text>
       </Pressable>
-      <View style={styles.empty}>
-        <Ionicons name="calendar" size={40} color={colors.brand} />
-        <Text style={styles.emptyTitle}>Journal quotidien</Text>
-        <Text style={styles.emptySub}>
-          Note ton énergie, ton stress, tes douleurs. Revois ton évolution jour après jour.
-        </Text>
-      </View>
+
+      {loaded && entries.length === 0 ? (
+        <View style={styles.empty}>
+          <Ionicons name="calendar" size={40} color={colors.brand} />
+          <Text style={styles.emptyTitle}>Journal quotidien</Text>
+          <Text style={styles.emptySub}>
+            Note ton énergie, ton stress, tes douleurs. Revois ton évolution jour après jour.
+          </Text>
+        </View>
+      ) : (
+        <>
+          <Text style={styles.sectionTitle}>Historique</Text>
+          {entries.map((e) => (
+            <Pressable
+              key={e.date}
+              testID={`journal-entry-${e.date}`}
+              style={styles.journalEntryCard}
+              onPress={() => router.push("/daily-journal")}
+            >
+              <View style={styles.pastHead}>
+                <Text style={styles.pastDate}>{formatJournalDate(e.date)}</Text>
+                <View style={styles.pastRatings}>
+                  {e.energy != null && <MiniBadge label="⚡" value={e.energy} />}
+                  {e.mood != null && <MiniBadge label="🙂" value={e.mood} />}
+                  {e.stress != null && <MiniBadge label="⚠️" value={e.stress} />}
+                </View>
+              </View>
+              {e.sleep_hours != null && (
+                <Text style={styles.journalEntryMeta}>
+                  😴 {e.sleep_hours.toFixed(1)}h de sommeil
+                </Text>
+              )}
+              {e.pain ? (
+                <Text style={styles.journalEntryMeta} numberOfLines={2}>
+                  🩹 {e.pain}
+                </Text>
+              ) : null}
+              {e.notes ? (
+                <Text style={styles.pastNotes} numberOfLines={3}>
+                  {e.notes}
+                </Text>
+              ) : null}
+            </Pressable>
+          ))}
+        </>
+      )}
     </>
   );
+}
+
+function formatJournalDate(iso: string) {
+  const d = new Date(iso);
+  return d.toLocaleDateString("fr-FR", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+  });
 }
 
 function SummaryTile({
@@ -1820,6 +1900,16 @@ function MetricChip({ label }: { label: string }) {
   return (
     <View style={styles.metricChip}>
       <Text style={styles.metricChipText}>{label}</Text>
+    </View>
+  );
+}
+
+function MiniBadge({ label, value }: { label: string; value: number }) {
+  return (
+    <View style={styles.miniJournalBadge}>
+      <Text style={styles.miniJournalBadgeText}>
+        {label} {value}
+      </Text>
     </View>
   );
 }
@@ -2146,6 +2236,42 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   metricChipText: { color: colors.onSurface, fontSize: 11, fontWeight: "700" },
+  journalEntryCard: {
+    backgroundColor: colors.surfaceSecondary,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    gap: 6,
+  },
+  journalEntryMeta: {
+    color: colors.onSurfaceSecondary,
+    fontSize: 12,
+  },
+  pastHead: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  pastDate: {
+    color: colors.onSurface,
+    fontWeight: "700",
+    fontSize: 12,
+    textTransform: "capitalize",
+  },
+  pastRatings: { flexDirection: "row", gap: 4 },
+  pastNotes: { color: colors.onSurfaceSecondary, fontSize: 12, lineHeight: 16 },
+  miniJournalBadge: {
+    backgroundColor: colors.surfaceTertiary,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  miniJournalBadgeText: {
+    color: colors.onSurface,
+    fontSize: 10,
+    fontWeight: "700",
+  },
   recordGroup: {
     backgroundColor: colors.surfaceSecondary,
     borderRadius: radius.md,

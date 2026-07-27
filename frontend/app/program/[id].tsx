@@ -5,14 +5,13 @@ import {
   StyleSheet,
   ScrollView,
   Pressable,
-  Alert,
-  Platform,
   Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing } from "@/src/theme";
+import { useConfirmDialog } from "@/src/hooks/use-confirm-dialog";
 import {
   LEVEL_LABEL,
   Program,
@@ -49,6 +48,7 @@ export default function ProgramDetailScreen() {
     sessionIndex: number;
     session: ProgramSession;
   } | null>(null);
+  const { confirm, ConfirmModal } = useConfirmDialog();
 
   const load = useCallback(async () => {
     setProgram(await findProgram(id!));
@@ -101,53 +101,43 @@ export default function ProgramDetailScreen() {
     };
     // We now allow up to 2 simultaneous. Warn only when already at cap.
     if (!isActive && otherActiveCount >= 2) {
-      const msg =
-        "Tu suis déjà 2 programmes. En démarrant celui-ci, le plus ancien sera remplacé.";
-      if (Platform.OS === "web") {
-        if (window.confirm(msg)) await doStart();
-        return;
-      }
-      Alert.alert("Remplacer un programme actif ?", msg, [
-        { text: "Annuler", style: "cancel" },
-        { text: "Continuer", style: "destructive", onPress: doStart },
-      ]);
+      const ok = await confirm({
+        title: "Remplacer un programme actif ?",
+        message:
+          "Tu suis déjà 2 programmes. En démarrant celui-ci, le plus ancien sera remplacé.",
+        confirmLabel: "CONTINUER",
+        destructive: true,
+      });
+      if (ok) await doStart();
       return;
     }
     await doStart();
   };
 
   const stop = async () => {
-    const msg =
-      "Arrêter ce programme ? Tes séances déjà faites resteront dans l'historique.";
-    const doStop = async () => {
-      await removeActiveProgram(program.id);
-      load();
-    };
-    if (Platform.OS === "web") {
-      if (window.confirm(msg)) await doStop();
-      return;
-    }
-    Alert.alert("Arrêter le programme ?", msg, [
-      { text: "Annuler", style: "cancel" },
-      { text: "Arrêter", style: "destructive", onPress: doStop },
-    ]);
+    const ok = await confirm({
+      title: "Arrêter le programme ?",
+      message:
+        "Arrêter ce programme ? Tes séances déjà faites resteront dans l'historique.",
+      confirmLabel: "ARRÊTER",
+      destructive: true,
+    });
+    if (!ok) return;
+    await removeActiveProgram(program.id);
+    load();
   };
 
   const removeCustom = async () => {
-    const msg = "Supprimer définitivement ce programme personnalisé ?";
-    const doDel = async () => {
-      if (isActive) await removeActiveProgram(program.id);
-      await deleteCustomProgram(program.id);
-      router.back();
-    };
-    if (Platform.OS === "web") {
-      if (window.confirm(msg)) await doDel();
-      return;
-    }
-    Alert.alert("Supprimer ?", msg, [
-      { text: "Annuler", style: "cancel" },
-      { text: "Supprimer", style: "destructive", onPress: doDel },
-    ]);
+    const ok = await confirm({
+      title: "Supprimer ?",
+      message: "Supprimer définitivement ce programme personnalisé ?",
+      confirmLabel: "SUPPRIMER",
+      destructive: true,
+    });
+    if (!ok) return;
+    if (isActive) await removeActiveProgram(program.id);
+    await deleteCustomProgram(program.id);
+    router.back();
   };
 
   async function launchSession(
@@ -305,6 +295,7 @@ export default function ProgramDetailScreen() {
         }
         onClose={() => setPreview(null)}
       />
+      {ConfirmModal}
     </SafeAreaView>
   );
 }

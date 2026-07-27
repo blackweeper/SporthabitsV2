@@ -15,6 +15,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing } from "@/src/theme";
+import { useConfirmDialog } from "@/src/hooks/use-confirm-dialog";
 import {
   deleteHabit,
   getHabits,
@@ -42,6 +43,7 @@ export default function HabitEditorScreen() {
   const router = useRouter();
   const isNew = id === "new";
   const [habit, setHabit] = useState<Habit | null>(null);
+  const { confirm, ConfirmModal } = useConfirmDialog();
 
   useEffect(() => {
     (async () => {
@@ -49,10 +51,14 @@ export default function HabitEditorScreen() {
         setHabit({
           id: uid(),
           title: "",
-          kind: "water",
+          // "other" by default: "water"/"steps"/"nutrition" habits are
+          // hidden from the dashboard list (they'd duplicate the built-in
+          // Eau/Calories/Pas cards), so a new habit shouldn't silently
+          // inherit one of those kinds before the user picks on purpose.
+          kind: "other",
           frequency: "daily",
-          target: 8,
-          unit: "verres",
+          target: 1,
+          unit: "",
           createdAt: new Date().toISOString(),
           includedInScore: true,
         });
@@ -88,18 +94,14 @@ export default function HabitEditorScreen() {
 
   const remove = async () => {
     if (!habit || isNew) return;
-    const doDelete = async () => {
-      await deleteHabit(habit.id);
-      router.back();
-    };
-    if (Platform.OS === "web") {
-      if (window.confirm("Supprimer cette habitude ?")) doDelete();
-      return;
-    }
-    Alert.alert("Supprimer cette habitude ?", "", [
-      { text: "Annuler", style: "cancel" },
-      { text: "Supprimer", style: "destructive", onPress: doDelete },
-    ]);
+    const ok = await confirm({
+      title: "Supprimer cette habitude ?",
+      confirmLabel: "SUPPRIMER",
+      destructive: true,
+    });
+    if (!ok) return;
+    await deleteHabit(habit.id);
+    router.back();
   };
 
   const applyKind = (kind: HabitKind) => {
@@ -239,6 +241,7 @@ export default function HabitEditorScreen() {
           <View style={{ height: 40 }} />
         </ScrollView>
       </KeyboardAvoidingView>
+      {ConfirmModal}
     </SafeAreaView>
   );
 }

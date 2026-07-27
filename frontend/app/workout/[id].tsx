@@ -8,7 +8,6 @@ import {
   TextInput,
   Alert,
   Modal,
-  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -17,6 +16,7 @@ import * as Haptics from "expo-haptics";
 import Svg, { Circle } from "react-native-svg";
 import { colors, radius, spacing } from "@/src/theme";
 import ExercisePicture from "@/src/components/ExercisePicture";
+import { useConfirmDialog } from "@/src/hooks/use-confirm-dialog";
 import {
   speak,
   speakGo,
@@ -56,6 +56,8 @@ export default function WorkoutScreen() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const [elapsed, setElapsed] = useState(0);
+
+  const { confirm, ConfirmModal } = useConfirmDialog();
 
   useEffect(() => {
     (async () => {
@@ -292,52 +294,42 @@ export default function WorkoutScreen() {
 
   async function finishWorkout() {
     if (!plan) return;
-    const doFinish = async () => {
-      const endedAt = new Date().toISOString();
-      const durationSeconds = Math.floor(
-        (new Date(endedAt).getTime() - new Date(startedAt).getTime()) / 1000,
-      );
-      const restTotalFinal =
-        totalRest +
-        (overlay === "rest" ? overlayTotal - overlayRemaining : 0);
-      const profile = await getProfile();
-      const bodyMass = profile.weight_kg && profile.weight_kg > 0 ? profile.weight_kg : 70;
-      const session: WorkoutSession = {
-        id: uid(),
-        planId: plan.id,
-        planTitle: plan.title,
-        planType: plan.type,
-        startedAt,
-        endedAt,
-        durationSeconds,
-        totalRestSeconds: restTotalFinal,
-        caloriesBurned: estimateCalories(plan.type, durationSeconds, bodyMass),
-        exercises: logs,
-      };
-      await saveSession(session);
-      // If this was a program day, mark it completed
-      if (plan.programSource) {
-        await markProgramSessionCompleted(
-          plan.programSource.programId,
-          plan.programSource.dayIndex,
-          plan.programSource.sessionIndex ?? 0,
-        );
-      }
-      router.replace(`/session/${session.id}`);
+    const ok = await confirm({
+      title: "Terminer la séance ?",
+      message: "Ta séance sera enregistrée.",
+      confirmLabel: "TERMINER",
+    });
+    if (!ok) return;
+    const endedAt = new Date().toISOString();
+    const durationSeconds = Math.floor(
+      (new Date(endedAt).getTime() - new Date(startedAt).getTime()) / 1000,
+    );
+    const restTotalFinal =
+      totalRest + (overlay === "rest" ? overlayTotal - overlayRemaining : 0);
+    const profile = await getProfile();
+    const bodyMass = profile.weight_kg && profile.weight_kg > 0 ? profile.weight_kg : 70;
+    const session: WorkoutSession = {
+      id: uid(),
+      planId: plan.id,
+      planTitle: plan.title,
+      planType: plan.type,
+      startedAt,
+      endedAt,
+      durationSeconds,
+      totalRestSeconds: restTotalFinal,
+      caloriesBurned: estimateCalories(plan.type, durationSeconds, bodyMass),
+      exercises: logs,
     };
-    if (Platform.OS === "web") {
-      if (
-        typeof window !== "undefined" &&
-        window.confirm("Terminer la séance ? Ta séance sera enregistrée.")
-      ) {
-        await doFinish();
-      }
-      return;
+    await saveSession(session);
+    // If this was a program day, mark it completed
+    if (plan.programSource) {
+      await markProgramSessionCompleted(
+        plan.programSource.programId,
+        plan.programSource.dayIndex,
+        plan.programSource.sessionIndex ?? 0,
+      );
     }
-    Alert.alert("Terminer la séance ?", "Ta séance sera enregistrée.", [
-      { text: "Annuler", style: "cancel" },
-      { text: "Terminer", style: "destructive", onPress: doFinish },
-    ]);
+    router.replace(`/session/${session.id}`);
   }
 
   const currentEx = logs[exIdx];
@@ -363,28 +355,17 @@ export default function WorkoutScreen() {
       <View style={styles.header}>
         <Pressable
           testID="close-workout"
-          onPress={() => {
-            const doQuit = () => {
-              speakStop();
-              router.back();
-            };
-            if (Platform.OS === "web") {
-              if (
-                typeof window !== "undefined" &&
-                window.confirm("Quitter la séance ? Progression non enregistrée.")
-              ) {
-                doQuit();
-              }
-              return;
-            }
-            Alert.alert("Quitter la séance ?", "Progression non enregistrée.", [
-              { text: "Rester", style: "cancel" },
-              {
-                text: "Quitter",
-                style: "destructive",
-                onPress: doQuit,
-              },
-            ]);
+          onPress={async () => {
+            const ok = await confirm({
+              title: "Quitter la séance ?",
+              message: "Progression non enregistrée.",
+              confirmLabel: "QUITTER",
+              cancelLabel: "RESTER",
+              destructive: true,
+            });
+            if (!ok) return;
+            speakStop();
+            router.back();
           }}
           hitSlop={12}
         >
@@ -717,6 +698,8 @@ export default function WorkoutScreen() {
           </View>
         </View>
       </Modal>
+
+      {ConfirmModal}
     </SafeAreaView>
   );
 }

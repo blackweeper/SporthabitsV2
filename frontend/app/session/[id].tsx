@@ -7,7 +7,6 @@ import {
   Pressable,
   Share,
   Alert,
-  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -17,6 +16,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { captureRef } from "react-native-view-shot";
 import * as Sharing from "expo-sharing";
 import { colors, radius, spacing } from "@/src/theme";
+import { useConfirmDialog } from "@/src/hooks/use-confirm-dialog";
 import {
   deleteSession,
   getSession,
@@ -28,6 +28,7 @@ export default function SessionDetailScreen() {
   const router = useRouter();
   const [session, setSession] = useState<WorkoutSession | null>(null);
   const shareCardRef = useRef<View>(null);
+  const { confirm, ConfirmModal } = useConfirmDialog();
 
   useEffect(() => {
     (async () => {
@@ -121,23 +122,16 @@ export default function SessionDetailScreen() {
     }
   }
 
-  function remove() {
-    const doDelete = async () => {
-      await deleteSession(session!.id);
-      router.back();
-    };
-    if (Platform.OS === "web") {
-      if (window.confirm("Supprimer cette séance ? Action irréversible.")) doDelete();
-      return;
-    }
-    Alert.alert(
-      "Supprimer cette séance ?",
-      "Cette action est irréversible.",
-      [
-        { text: "Annuler", style: "cancel" },
-        { text: "Supprimer", style: "destructive", onPress: doDelete },
-      ],
-    );
+  async function remove() {
+    const ok = await confirm({
+      title: "Supprimer cette séance ?",
+      message: "Cette action est irréversible.",
+      confirmLabel: "SUPPRIMER",
+      destructive: true,
+    });
+    if (!ok) return;
+    await deleteSession(session!.id);
+    router.back();
   }
 
   return (
@@ -292,8 +286,18 @@ export default function SessionDetailScreen() {
         <Text style={styles.disclaimer}>
           Calories estimées (base 70kg). Précision ±20 %.
         </Text>
+
+        <Pressable
+          testID="finish-session"
+          style={styles.finishBtn}
+          onPress={() => router.replace("/")}
+        >
+          <Ionicons name="checkmark-circle" size={20} color={colors.brand} />
+          <Text style={styles.finishBtnText}>TERMINER · RETOUR À L&apos;ACCUEIL</Text>
+        </Pressable>
         <View style={{ height: 40 }} />
       </ScrollView>
+      {ConfirmModal}
     </SafeAreaView>
   );
 }
@@ -475,6 +479,23 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
   shareText: { color: "#fff", fontWeight: "800", letterSpacing: 1 },
+  finishBtn: {
+    backgroundColor: colors.surfaceSecondary,
+    paddingVertical: 16,
+    borderRadius: radius.md,
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: spacing.sm,
+    marginTop: spacing.sm,
+    borderWidth: 1.5,
+    borderColor: colors.brand,
+  },
+  finishBtnText: {
+    color: colors.brand,
+    fontWeight: "800",
+    letterSpacing: 0.8,
+  },
   journalBtn: {
     flexDirection: "row",
     alignItems: "center",

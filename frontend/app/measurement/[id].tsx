@@ -18,6 +18,7 @@ import * as ImagePicker from "expo-image-picker";
 import { colors, radius, spacing } from "@/src/theme";
 import DatePickerField from "@/src/components/DatePickerField";
 import { cropImage } from "@/src/utils/imageCropper";
+import { useConfirmDialog } from "@/src/hooks/use-confirm-dialog";
 import {
   deleteMeasurement,
   estimateBodyFatNavy,
@@ -57,6 +58,7 @@ export default function MeasurementEditScreen() {
   const [profileSex, setProfileSex] = useState<Sex | null>(null);
   const [profileHeight, setProfileHeight] = useState<number | null>(null);
   const [bfMode, setBfMode] = useState<"manual" | "estimated">("estimated");
+  const { confirm, ConfirmModal } = useConfirmDialog();
 
   useEffect(() => {
     (async () => {
@@ -154,18 +156,14 @@ export default function MeasurementEditScreen() {
 
   const remove = async () => {
     if (!m || isNew) return;
-    const doDelete = async () => {
-      await deleteMeasurement(m.id);
-      router.back();
-    };
-    if (Platform.OS === "web") {
-      if (window.confirm("Supprimer cette mesure ?")) doDelete();
-      return;
-    }
-    Alert.alert("Supprimer cette mesure ?", "", [
-      { text: "Annuler", style: "cancel" },
-      { text: "Supprimer", style: "destructive", onPress: doDelete },
-    ]);
+    const ok = await confirm({
+      title: "Supprimer cette mesure ?",
+      confirmLabel: "SUPPRIMER",
+      destructive: true,
+    });
+    if (!ok) return;
+    await deleteMeasurement(m.id);
+    router.back();
   };
 
   if (loading || !m) {
@@ -386,6 +384,7 @@ export default function MeasurementEditScreen() {
           <View style={{ height: 40 }} />
         </ScrollView>
       </KeyboardAvoidingView>
+      {ConfirmModal}
     </SafeAreaView>
   );
 }

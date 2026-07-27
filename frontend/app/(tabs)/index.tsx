@@ -10,6 +10,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import Svg, { Circle } from "react-native-svg";
+import * as Haptics from "expo-haptics";
 import { colors, radius, spacing } from "@/src/theme";
 import {
   ActiveProgram,
@@ -27,7 +28,9 @@ import {
   getProfile,
   getSessions,
   getWellnessLog,
+  patchWellnessLog,
   Habit,
+  HabitKind,
   HabitLog,
   HABIT_KIND_ICON,
   PersonalRecord,
@@ -42,11 +45,19 @@ import { computeDailyScore } from "@/src/utils/scoring";
 import { computeXPState } from "@/src/utils/xp";
 import { computeAdvancedStats } from "@/src/utils/stats";
 import { todayQuote } from "@/src/data/motivation";
-import {
-  WellnessQuickWidgets,
-} from "@/src/components/WellnessWidgets";
+import { WellnessCard } from "@/src/components/WellnessWidgets";
+import { progressionHref } from "@/src/utils/progression-nav";
 
 type ActiveWithProgram = { active: ActiveProgram; program: Program };
+
+// These habit kinds are already covered by the built-in Eau / Calories / Pas
+// cards rendered directly in the "Aujourd'hui" list — showing a custom habit
+// of the same kind again would just track the same daily metric twice.
+const WELLNESS_DUPLICATE_KINDS = new Set<HabitKind>([
+  "water",
+  "nutrition",
+  "steps",
+]);
 
 export default function TodayScreen() {
   const router = useRouter();
@@ -110,6 +121,24 @@ export default function TodayScreen() {
   const greetingHour = new Date().getHours();
   const greeting =
     greetingHour < 12 ? "Bonjour" : greetingHour < 18 ? "Salut" : "Bonsoir";
+
+  const bumpWellness = async (
+    field: "water_ml" | "calories_kcal" | "steps",
+    delta: number,
+  ) => {
+    Haptics.selectionAsync().catch(() => {});
+    const cur = wellness?.[field] ?? 0;
+    await patchWellnessLog(today, { [field]: Math.max(0, cur + delta) });
+    load();
+  };
+
+  const setWellnessValue = async (
+    field: "water_ml" | "calories_kcal" | "steps",
+    value: number,
+  ) => {
+    await patchWellnessLog(today, { [field]: Math.max(0, value) });
+    load();
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
@@ -266,54 +295,103 @@ export default function TodayScreen() {
           </>
         )}
 
-        {/* Interactive daily widgets */}
+        {/* Unified daily list: séance, wellness quick-taps, and habits */}
         <View style={styles.widgetsHead}>
           <Text style={styles.sectionTitle}>Aujourd&apos;hui</Text>
           <Pressable
             testID="manage-habits"
             hitSlop={8}
-            onPress={() => router.push("/progression?tab=habits" as any)}
+            onPress={() => router.push(progressionHref("habits") as any)}
           >
             <Text style={styles.widgetsMoreLink}>Gérer</Text>
           </Pressable>
         </View>
-        <View style={styles.widgetsGrid}>
-          {/* Séance widget (workout) */}
-          <SessionWidget
+        <View style={styles.listCol}>
+          {/* Séance (workout) */}
+          <SessionListItem
             done={daily.workoutDone}
             onPress={() => router.push("/training")}
           />
-          {/* Habit widgets */}
-          {habits.map((h) => {
-            const cur =
-              logs.find((l) => l.habitId === h.id && l.date === today)?.value ?? 0;
-            const target = h.target && h.target > 0 ? h.target : 1;
-            return (
-              <HabitWidget
-                key={h.id}
-                habit={h}
-                current={cur}
-                target={target}
-                onIncrement={async () => {
-                  const next = cur >= target ? 0 : cur + 1;
-                  await setHabitValue(h.id, today, next);
-                  load();
-                }}
-                onLongPress={async () => {
-                  await setHabitValue(h.id, today, 0);
-                  load();
-                }}
-                onOpen={() => router.push(`/habit/${h.id}` as any)}
-              />
-            );
-          })}
-          {/* Add habit widget */}
+          {/* Wellness quick-taps: Eau / Calories / Pas */}
+          <WellnessCard
+            icon="water"
+            color="#3B82F6"
+            label="Eau"
+            value={wellness?.water_ml ?? 0}
+            target={profile?.water_target_ml || DEFAULT_WATER_TARGET_ML}
+            unit="ml"
+            shortcuts={[
+              { label: "+250", delta: 250 },
+              { label: "+500", delta: 500 },
+            ]}
+            onBump={(d) => bumpWellness("water_ml", d)}
+            onSet={(v) => setWellnessValue("water_ml", v)}
+            testId="widget-water"
+          />
+          <WellnessCard
+            icon="nutrition"
+            color="#F97316"
+            label="Calories"
+            value={wellness?.calories_kcal ?? 0}
+            target={profile?.calories_target_kcal || DEFAULT_CALORIES_TARGET_KCAL}
+            unit="kcal"
+            shortcuts={[
+              { label: "+200", delta: 200 },
+              { label: "+500", delta: 500 },
+            ]}
+            onBump={(d) => bumpWellness("calories_kcal", d)}
+            onSet={(v) => setWellnessValue("calories_kcal", v)}
+            testId="widget-calories"
+          />
+          <WellnessCard
+            icon="footsteps"
+            color="#10B981"
+            label="Pas"
+            value={wellness?.steps ?? 0}
+            target={profile?.steps_target || DEFAULT_STEPS_TARGET}
+            unit="pas"
+            shortcuts={[
+              { label: "+1000", delta: 1000 },
+              { label: "+2500", delta: 2500 },
+            ]}
+            onBump={(d) => bumpWellness("steps", d)}
+            onSet={(v) => setWellnessValue("steps", v)}
+            testId="widget-steps"
+          />
+          {/* Habits — excludes kinds already covered by the Eau / Calories /
+              Pas cards above, to avoid showing the same daily metric twice. */}
+          {habits
+            .filter((h) => !WELLNESS_DUPLICATE_KINDS.has(h.kind))
+            .map((h) => {
+              const cur =
+                logs.find((l) => l.habitId === h.id && l.date === today)?.value ?? 0;
+              const target = h.target && h.target > 0 ? h.target : 1;
+              return (
+                <HabitListItem
+                  key={h.id}
+                  habit={h}
+                  current={cur}
+                  target={target}
+                  onIncrement={async () => {
+                    const next = cur >= target ? 0 : cur + 1;
+                    await setHabitValue(h.id, today, next);
+                    load();
+                  }}
+                  onReset={async () => {
+                    await setHabitValue(h.id, today, 0);
+                    load();
+                  }}
+                  onOpen={() => router.push(`/habit/${h.id}` as any)}
+                />
+              );
+            })}
+          {/* Add habit */}
           <Pressable
             testID="add-habit-widget"
-            style={styles.addWidget}
+            style={styles.addListItem}
             onPress={() => router.push("/habit/new" as any)}
           >
-            <Ionicons name="add-circle" size={26} color={colors.brand} />
+            <Ionicons name="add-circle" size={20} color={colors.brand} />
             <Text style={styles.addWidgetLabel}>Nouvelle habitude</Text>
           </Pressable>
         </View>
@@ -343,18 +421,6 @@ export default function TodayScreen() {
           </View>
         </Pressable>
 
-        {/* Wellness quick widgets — Water / Calories / Steps */}
-        <Text style={styles.sectionTitle}>Bien-être du jour</Text>
-        <WellnessQuickWidgets
-          log={wellness}
-          targetWater={profile?.water_target_ml || DEFAULT_WATER_TARGET_ML}
-          targetCalories={
-            profile?.calories_target_kcal || DEFAULT_CALORIES_TARGET_KCAL
-          }
-          targetSteps={profile?.steps_target || DEFAULT_STEPS_TARGET}
-          onChange={load}
-        />
-
         {/* Quick stats — secondary */}
         <Text style={styles.sectionTitle}>Statistiques rapides</Text>
         <View style={styles.statsGrid}>
@@ -371,7 +437,7 @@ export default function TodayScreen() {
                 ? `${weightDelta >= 0 ? "+" : ""}${weightDelta.toFixed(1)} kg`
                 : undefined
             }
-            onPress={() => router.push("/progression")}
+            onPress={() => router.push(progressionHref("transformation") as any)}
           />
           <QuickStat
             icon="checkmark-done"
@@ -399,50 +465,44 @@ export default function TodayScreen() {
   );
 }
 
-function SessionWidget({
+function SessionListItem({
   done,
   onPress,
 }: {
   done: boolean;
   onPress: () => void;
 }) {
-  const bg = done ? "#FF572220" : colors.surfaceSecondary;
-  const border = done ? "#FF5722" : colors.border;
+  const color = "#FF5722";
   return (
     <Pressable
       testID="widget-session"
-      style={[
-        styles.widget,
-        { backgroundColor: bg, borderColor: border },
-      ]}
+      style={[styles.listItem, done && { borderColor: color }]}
       onPress={onPress}
     >
-      <View
-        style={[
-          styles.widgetIcon,
-          { backgroundColor: done ? "#FF5722" : colors.surfaceTertiary },
-        ]}
-      >
-        <Ionicons
-          name="barbell"
-          size={16}
-          color={done ? "#fff" : colors.onSurfaceTertiary}
-        />
-      </View>
-      <Text style={styles.widgetTitle} numberOfLines={1}>
-        Séance
-      </Text>
-      <Text style={styles.widgetProgress}>
-        {done ? "Fait ✓" : "À faire"}
-      </Text>
-      <View style={styles.widgetBar}>
+      <View style={styles.listItemHead}>
         <View
           style={[
-            styles.widgetBarFill,
-            {
-              width: done ? "100%" : "0%",
-              backgroundColor: "#FF5722",
-            },
+            styles.listItemIcon,
+            { backgroundColor: done ? color : colors.surfaceTertiary },
+          ]}
+        >
+          <Ionicons
+            name="barbell"
+            size={16}
+            color={done ? "#fff" : colors.onSurfaceTertiary}
+          />
+        </View>
+        <Text style={styles.listItemTitle}>Séance</Text>
+        <Text style={[styles.listItemPct, done && { color }]}>
+          {done ? "100%" : "0%"}
+        </Text>
+        {done && <Ionicons name="checkmark-circle" size={14} color={color} />}
+      </View>
+      <View style={styles.progressTrack}>
+        <View
+          style={[
+            styles.progressFill,
+            { width: done ? "100%" : "0%", backgroundColor: color },
           ]}
         />
       </View>
@@ -450,42 +510,38 @@ function SessionWidget({
   );
 }
 
-function HabitWidget({
+function HabitListItem({
   habit,
   current,
   target,
   onIncrement,
-  onLongPress,
+  onReset,
   onOpen,
 }: {
   habit: Habit;
   current: number;
   target: number;
   onIncrement: () => void;
-  onLongPress: () => void;
+  onReset: () => void;
   onOpen: () => void;
 }) {
   const done = current >= target;
   const color = habit.color ?? "#4CAF50";
-  const bg = done ? `${color}20` : colors.surfaceSecondary;
-  const border = done ? color : colors.border;
   const iconName = (habit.kind ? HABIT_KIND_ICON[habit.kind] : "star") as any;
   const pct = target > 0 ? Math.min(1, current / target) : 0;
+  const pctLabel = `${Math.round(pct * 100)}%`;
   return (
     <Pressable
       testID={`widget-${habit.id}`}
-      style={[styles.widget, { backgroundColor: bg, borderColor: border }]}
+      style={[styles.listItem, done && { borderColor: color }]}
       onPress={onIncrement}
-      onLongPress={() => {
-        // Long press: quick shortcut to open habit settings
-        onOpen();
-      }}
+      onLongPress={onOpen}
       delayLongPress={450}
     >
-      <View style={styles.widgetTopRow}>
+      <View style={styles.listItemHead}>
         <View
           style={[
-            styles.widgetIcon,
+            styles.listItemIcon,
             { backgroundColor: done ? color : colors.surfaceTertiary },
           ]}
         >
@@ -495,35 +551,34 @@ function HabitWidget({
             color={done ? "#fff" : colors.onSurfaceTertiary}
           />
         </View>
-        {target > 1 ? (
+        <Text style={styles.listItemTitle} numberOfLines={1}>
+          {habit.title}
+        </Text>
+        {target > 1 && (
+          <Text style={styles.listItemValue}>
+            {current}/{target}
+            {habit.unit ? ` ${habit.unit}` : ""}
+          </Text>
+        )}
+        <Text style={[styles.listItemPct, done && { color }]}>{pctLabel}</Text>
+        {done ? (
+          <Ionicons name="checkmark-circle" size={14} color={color} />
+        ) : target > 1 ? (
           <Pressable
             testID={`widget-${habit.id}-reset`}
             hitSlop={8}
-            onPress={onLongPress}
-            style={styles.widgetResetBtn}
+            onPress={onReset}
+            style={styles.listItemResetBtn}
           >
-            <Ionicons
-              name="refresh"
-              size={12}
-              color={colors.onSurfaceTertiary}
-            />
+            <Ionicons name="refresh" size={12} color={colors.onSurfaceTertiary} />
           </Pressable>
         ) : null}
       </View>
-      <Text style={styles.widgetTitle} numberOfLines={1}>
-        {habit.title}
-      </Text>
-      <Text style={[styles.widgetProgress, done && { color }]}>
-        {target > 1 ? `${current}/${target}${habit.unit ? " " + habit.unit : ""}` : done ? "Fait ✓" : "À faire"}
-      </Text>
-      <View style={styles.widgetBar}>
+      <View style={styles.progressTrack}>
         <View
           style={[
-            styles.widgetBarFill,
-            {
-              width: `${Math.round(pct * 100)}%`,
-              backgroundColor: color,
-            },
+            styles.progressFill,
+            { width: `${Math.round(pct * 100)}%`, backgroundColor: color },
           ]}
         />
       </View>
@@ -929,71 +984,69 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "700",
   },
-  widgetsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
+  listCol: {
+    gap: spacing.sm,
   },
-  widget: {
-    width: "48%",
+  listItem: {
     backgroundColor: colors.surfaceSecondary,
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.border,
     padding: spacing.md,
-    gap: 4,
-    minHeight: 108,
+    gap: 8,
   },
-  widgetTopRow: {
+  listItemHead: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
+    gap: 8,
   },
-  widgetIcon: {
-    width: 28,
-    height: 28,
+  listItemIcon: {
+    width: 30,
+    height: 30,
     borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
   },
-  widgetResetBtn: {
-    padding: 4,
-    borderRadius: 6,
-  },
-  widgetTitle: {
+  listItemTitle: {
+    flex: 1,
     color: colors.onSurface,
+    fontWeight: "800",
     fontSize: 13,
-    fontWeight: "700",
-    marginTop: 4,
   },
-  widgetProgress: {
+  listItemValue: {
     color: colors.onSurfaceTertiary,
     fontSize: 12,
     fontWeight: "600",
   },
-  widgetBar: {
-    height: 4,
+  listItemPct: {
+    color: colors.onSurfaceTertiary,
+    fontWeight: "800",
+    fontSize: 13,
+    minWidth: 34,
+    textAlign: "right",
+  },
+  listItemResetBtn: {
+    padding: 4,
+    borderRadius: 6,
+  },
+  progressTrack: {
+    height: 5,
+    borderRadius: 3,
     backgroundColor: colors.surfaceTertiary,
-    borderRadius: 2,
-    marginTop: 4,
     overflow: "hidden",
   },
-  widgetBarFill: {
-    height: "100%",
-    borderRadius: 2,
-  },
-  addWidget: {
-    width: "48%",
+  progressFill: { height: "100%", borderRadius: 3 },
+  addListItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
     backgroundColor: colors.surfaceSecondary,
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.brand,
     borderStyle: "dashed",
     padding: spacing.md,
-    minHeight: 108,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
   },
   addWidgetLabel: {
     color: colors.brand,

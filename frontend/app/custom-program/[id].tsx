@@ -17,6 +17,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing } from "@/src/theme";
 import ExercisePicture from "@/src/components/ExercisePicture";
 import ExercisePicturePicker from "@/src/components/ExercisePicturePicker";
+import { useConfirmDialog } from "@/src/hooks/use-confirm-dialog";
 import {
   COVER_COLORS,
   COVER_EMOJIS,
@@ -82,6 +83,7 @@ export default function CustomProgramEditor() {
   const [pickingIdx, setPickingIdx] = useState<{ sessionIdx: number; exIdx: number } | null>(null);
   const [importOpen, setImportOpen] = useState(false);
   const [availablePlans, setAvailablePlans] = useState<Plan[]>([]);
+  const { confirm, ConfirmModal } = useConfirmDialog();
 
   useEffect(() => {
     (async () => {
@@ -187,19 +189,14 @@ export default function CustomProgramEditor() {
 
   const remove = async () => {
     if (!program || isNew) return;
-    const msg = "Supprimer ce programme ?";
-    const doDel = async () => {
-      await deleteCustomProgram(program.id);
-      router.back();
-    };
-    if (Platform.OS === "web") {
-      if (window.confirm(msg)) doDel();
-      return;
-    }
-    Alert.alert(msg, "", [
-      { text: "Annuler", style: "cancel" },
-      { text: "Supprimer", style: "destructive", onPress: doDel },
-    ]);
+    const ok = await confirm({
+      title: "Supprimer ce programme ?",
+      confirmLabel: "SUPPRIMER",
+      destructive: true,
+    });
+    if (!ok) return;
+    await deleteCustomProgram(program.id);
+    router.back();
   };
 
   if (!program) {
@@ -555,6 +552,7 @@ export default function CustomProgramEditor() {
           setImportOpen(false);
         }}
       />
+      {ConfirmModal}
     </SafeAreaView>
   );
 }

@@ -15,6 +15,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing } from "@/src/theme";
+import { useConfirmDialog } from "@/src/hooks/use-confirm-dialog";
 import {
   deleteReminder,
   getReminders,
@@ -50,6 +51,7 @@ export default function ReminderEditor() {
   const router = useRouter();
   const isNew = id === "new";
   const [r, setR] = useState<Reminder | null>(null);
+  const { confirm, ConfirmModal } = useConfirmDialog();
 
   useEffect(() => {
     (async () => {
@@ -105,18 +107,14 @@ export default function ReminderEditor() {
 
   const remove = async () => {
     if (!r || isNew) return;
-    const doDel = async () => {
-      await deleteReminder(r.id);
-      router.back();
-    };
-    if (Platform.OS === "web") {
-      if (window.confirm("Supprimer ce rappel ?")) doDel();
-      return;
-    }
-    Alert.alert("Supprimer ce rappel ?", "", [
-      { text: "Annuler", style: "cancel" },
-      { text: "Supprimer", style: "destructive", onPress: doDel },
-    ]);
+    const ok = await confirm({
+      title: "Supprimer ce rappel ?",
+      confirmLabel: "SUPPRIMER",
+      destructive: true,
+    });
+    if (!ok) return;
+    await deleteReminder(r.id);
+    router.back();
   };
 
   return (
@@ -237,6 +235,7 @@ export default function ReminderEditor() {
           <View style={{ height: 40 }} />
         </ScrollView>
       </KeyboardAvoidingView>
+      {ConfirmModal}
     </SafeAreaView>
   );
 }

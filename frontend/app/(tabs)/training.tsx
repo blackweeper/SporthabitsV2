@@ -5,8 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   Pressable,
-  Alert,
-  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
@@ -14,6 +12,7 @@ import { Ionicons } from "@expo/vector-icons";
 import Swipeable from "react-native-gesture-handler/Swipeable";
 import { RectButton } from "react-native-gesture-handler";
 import { colors, radius, spacing } from "@/src/theme";
+import { useConfirmDialog } from "@/src/hooks/use-confirm-dialog";
 import {
   ActiveProgram,
   currentDayIndex,
@@ -301,37 +300,22 @@ function SwipeableSessionRow({
   onDeleted: () => void;
 }) {
   const swipeRef = useRef<Swipeable>(null);
+  const { confirm, ConfirmModal } = useConfirmDialog();
 
   const performDelete = async () => {
     await deleteSession(s.id);
     onDeleted();
   };
 
-  const confirmDelete = () => {
-    if (Platform.OS === "web") {
-      if (window.confirm(`Supprimer la séance "${s.planTitle}" ?`)) {
-        performDelete();
-      } else {
-        swipeRef.current?.close();
-      }
-      return;
-    }
-    Alert.alert(
-      "Supprimer cette séance ?",
-      `"${s.planTitle}" — cette action est définitive.`,
-      [
-        {
-          text: "Annuler",
-          style: "cancel",
-          onPress: () => swipeRef.current?.close(),
-        },
-        {
-          text: "Supprimer",
-          style: "destructive",
-          onPress: performDelete,
-        },
-      ],
-    );
+  const confirmDelete = async () => {
+    const ok = await confirm({
+      title: "Supprimer cette séance ?",
+      message: `"${s.planTitle}" — cette action est définitive.`,
+      confirmLabel: "SUPPRIMER",
+      destructive: true,
+    });
+    if (ok) await performDelete();
+    else swipeRef.current?.close();
   };
 
   const renderRightActions = () => (
@@ -346,30 +330,33 @@ function SwipeableSessionRow({
   );
 
   return (
-    <Swipeable
-      ref={swipeRef}
-      renderRightActions={renderRightActions}
-      overshootRight={false}
-      friction={1.6}
-      rightThreshold={40}
-      containerStyle={styles.swipeContainer}
-    >
-      <Pressable
-        testID={`session-item-${s.id}`}
-        style={styles.sessionCard}
-        onPress={onPress}
+    <>
+      <Swipeable
+        ref={swipeRef}
+        renderRightActions={renderRightActions}
+        overshootRight={false}
+        friction={1.6}
+        rightThreshold={40}
+        containerStyle={styles.swipeContainer}
       >
-        <Text style={styles.sessionTitle} numberOfLines={1}>
-          {s.planTitle}
-        </Text>
-        <Text style={styles.sessionDate}>{formatDate(s.startedAt)}</Text>
-        <View style={styles.sessionStatsRow}>
-          <Stat icon="time" value={formatDuration(s.durationSeconds)} />
-          <Stat icon="flame" value={`${s.caloriesBurned} kcal`} />
-          <Stat icon="barbell" value={`${s.exercises.length} ex.`} />
-        </View>
-      </Pressable>
-    </Swipeable>
+        <Pressable
+          testID={`session-item-${s.id}`}
+          style={styles.sessionCard}
+          onPress={onPress}
+        >
+          <Text style={styles.sessionTitle} numberOfLines={1}>
+            {s.planTitle}
+          </Text>
+          <Text style={styles.sessionDate}>{formatDate(s.startedAt)}</Text>
+          <View style={styles.sessionStatsRow}>
+            <Stat icon="time" value={formatDuration(s.durationSeconds)} />
+            <Stat icon="flame" value={`${s.caloriesBurned} kcal`} />
+            <Stat icon="barbell" value={`${s.exercises.length} ex.`} />
+          </View>
+        </Pressable>
+      </Swipeable>
+      {ConfirmModal}
+    </>
   );
 }
 
@@ -525,37 +512,22 @@ function SwipeablePlanRow({
   onDeleted: () => void;
 }) {
   const swipeRef = useRef<Swipeable>(null);
+  const { confirm, ConfirmModal } = useConfirmDialog();
 
   const performDelete = async () => {
     await deletePlan(p.id);
     onDeleted();
   };
 
-  const confirmDelete = () => {
-    if (Platform.OS === "web") {
-      if (window.confirm(`Supprimer la séance "${p.title}" ?`)) {
-        performDelete();
-      } else {
-        swipeRef.current?.close();
-      }
-      return;
-    }
-    Alert.alert(
-      "Supprimer cette séance ?",
-      `"${p.title}" — cette action est définitive.`,
-      [
-        {
-          text: "Annuler",
-          style: "cancel",
-          onPress: () => swipeRef.current?.close(),
-        },
-        {
-          text: "Supprimer",
-          style: "destructive",
-          onPress: performDelete,
-        },
-      ],
-    );
+  const confirmDelete = async () => {
+    const ok = await confirm({
+      title: "Supprimer cette séance ?",
+      message: `"${p.title}" — cette action est définitive.`,
+      confirmLabel: "SUPPRIMER",
+      destructive: true,
+    });
+    if (ok) await performDelete();
+    else swipeRef.current?.close();
   };
 
   const renderRightActions = () => (
@@ -570,39 +542,42 @@ function SwipeablePlanRow({
   );
 
   return (
-    <Swipeable
-      ref={swipeRef}
-      renderRightActions={renderRightActions}
-      overshootRight={false}
-      friction={1.6}
-      rightThreshold={40}
-      containerStyle={styles.swipeContainer}
-    >
-      <Pressable
-        testID={`plan-item-${p.id}`}
-        style={styles.planCard}
-        onPress={onPress}
+    <>
+      <Swipeable
+        ref={swipeRef}
+        renderRightActions={renderRightActions}
+        overshootRight={false}
+        friction={1.6}
+        rightThreshold={40}
+        containerStyle={styles.swipeContainer}
       >
-        <View style={{ flex: 1 }}>
-          <View style={styles.planTagsRow}>
-            <View style={styles.planTypeTag}>
-              <Text style={styles.planTypeText}>{planTypeLabel(p.type)}</Text>
-            </View>
-          </View>
-          <Text style={styles.planTitle}>{p.title}</Text>
-          <Text style={styles.planMeta}>
-            {p.exercises.length} exercice{p.exercises.length > 1 ? "s" : ""}
-          </Text>
-        </View>
         <Pressable
-          testID={`plan-start-${p.id}`}
-          style={styles.startBtn}
-          onPress={onStart}
+          testID={`plan-item-${p.id}`}
+          style={styles.planCard}
+          onPress={onPress}
         >
-          <Ionicons name="play" size={14} color="#fff" />
+          <View style={{ flex: 1 }}>
+            <View style={styles.planTagsRow}>
+              <View style={styles.planTypeTag}>
+                <Text style={styles.planTypeText}>{planTypeLabel(p.type)}</Text>
+              </View>
+            </View>
+            <Text style={styles.planTitle}>{p.title}</Text>
+            <Text style={styles.planMeta}>
+              {p.exercises.length} exercice{p.exercises.length > 1 ? "s" : ""}
+            </Text>
+          </View>
+          <Pressable
+            testID={`plan-start-${p.id}`}
+            style={styles.startBtn}
+            onPress={onStart}
+          >
+            <Ionicons name="play" size={14} color="#fff" />
+          </Pressable>
         </Pressable>
-      </Pressable>
-    </Swipeable>
+      </Swipeable>
+      {ConfirmModal}
+    </>
   );
 }
 

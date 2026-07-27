@@ -81,32 +81,34 @@ export default function AchievementsScreen() {
         </View>
       </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.catRow}
-      >
-        {CATEGORIES.map((c) => {
-          const active = cat === c.key;
-          return (
-            <Pressable
-              key={c.key}
-              testID={`cat-${c.key}`}
-              style={[styles.catChip, active && styles.catChipActive]}
-              onPress={() => setCat(c.key)}
-            >
-              <Text
-                style={[
-                  styles.catChipText,
-                  active && { color: "#fff" },
-                ]}
+      <View style={styles.catWrap}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.catRow}
+        >
+          {CATEGORIES.map((c) => {
+            const active = cat === c.key;
+            return (
+              <Pressable
+                key={c.key}
+                testID={`cat-${c.key}`}
+                style={[styles.catChip, active && styles.catChipActive]}
+                onPress={() => setCat(c.key)}
               >
-                {c.label}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </ScrollView>
+                <Text
+                  style={[
+                    styles.catChipText,
+                    active && { color: "#fff" },
+                  ]}
+                >
+                  {c.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+      </View>
 
       <ScrollView contentContainerStyle={styles.grid}>
         {filtered.map((a) => (
@@ -188,10 +190,12 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
   },
   summaryBadgeText: { color: "#fff", fontWeight: "800", fontSize: 15 },
+  catWrap: { maxHeight: 44 },
   catRow: {
     paddingHorizontal: spacing.lg,
     gap: 6,
     paddingBottom: spacing.sm,
+    alignItems: "center",
   },
   catChip: {
     paddingHorizontal: 12,
