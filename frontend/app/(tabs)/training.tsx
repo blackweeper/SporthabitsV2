@@ -1,18 +1,23 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   Pressable,
+  Alert,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import Swipeable from "react-native-gesture-handler/Swipeable";
+import { RectButton } from "react-native-gesture-handler";
 import { colors, radius, spacing } from "@/src/theme";
 import {
   ActiveProgram,
   currentDayIndex,
+  deleteSession,
   getActivePrograms,
   getPlans,
   getSessions,
@@ -129,7 +134,13 @@ export default function TrainingHub() {
           <MobilityView actives={stretchActives} router={router} />
         )}
         {tab === "sessions" && (
-          <SessionsView sessions={sessions} router={router} />
+          <SessionsView
+            sessions={sessions}
+            router={router}
+            onDeleted={async () => {
+              setSessions(await getSessions());
+            }}
+          />
         )}
         {tab === "individual" && (
           <IndividualView plans={plans} router={router} />
@@ -231,9 +242,11 @@ function ProgramView({
 function SessionsView({
   sessions,
   router,
+  onDeleted,
 }: {
   sessions: WorkoutSession[];
   router: any;
+  onDeleted: () => void;
 }) {
   if (sessions.length === 0) {
     return (
@@ -248,25 +261,101 @@ function SessionsView({
   }
   return (
     <>
+      <Text style={styles.hintText}>
+        <Ionicons name="hand-left" size={11} color={colors.onSurfaceTertiary} />
+        {"  "}Glisse vers la gauche pour supprimer une séance
+      </Text>
       {sessions.slice(0, 30).map((s) => (
-        <Pressable
+        <SwipeableSessionRow
           key={s.id}
-          testID={`session-item-${s.id}`}
-          style={styles.sessionCard}
+          session={s}
           onPress={() => router.push(`/session/${s.id}`)}
-        >
-          <Text style={styles.sessionTitle} numberOfLines={1}>
-            {s.planTitle}
-          </Text>
-          <Text style={styles.sessionDate}>{formatDate(s.startedAt)}</Text>
-          <View style={styles.sessionStatsRow}>
-            <Stat icon="time" value={formatDuration(s.durationSeconds)} />
-            <Stat icon="flame" value={`${s.caloriesBurned} kcal`} />
-            <Stat icon="barbell" value={`${s.exercises.length} ex.`} />
-          </View>
-        </Pressable>
+          onDeleted={onDeleted}
+        />
       ))}
     </>
+  );
+}
+
+function SwipeableSessionRow({
+  session: s,
+  onPress,
+  onDeleted,
+}: {
+  session: WorkoutSession;
+  onPress: () => void;
+  onDeleted: () => void;
+}) {
+  const swipeRef = useRef<Swipeable>(null);
+
+  const performDelete = async () => {
+    await deleteSession(s.id);
+    onDeleted();
+  };
+
+  const confirmDelete = () => {
+    if (Platform.OS === "web") {
+      if (window.confirm(`Supprimer la séance "${s.planTitle}" ?`)) {
+        performDelete();
+      } else {
+        swipeRef.current?.close();
+      }
+      return;
+    }
+    Alert.alert(
+      "Supprimer cette séance ?",
+      `"${s.planTitle}" — cette action est définitive.`,
+      [
+        {
+          text: "Annuler",
+          style: "cancel",
+          onPress: () => swipeRef.current?.close(),
+        },
+        {
+          text: "Supprimer",
+          style: "destructive",
+          onPress: performDelete,
+        },
+      ],
+    );
+  };
+
+  const renderRightActions = () => (
+    <RectButton
+      testID={`swipe-delete-${s.id}`}
+      style={styles.swipeAction}
+      onPress={confirmDelete}
+    >
+      <Ionicons name="trash" size={20} color="#fff" />
+      <Text style={styles.swipeActionText}>Supprimer</Text>
+    </RectButton>
+  );
+
+  return (
+    <Swipeable
+      ref={swipeRef}
+      renderRightActions={renderRightActions}
+      overshootRight={false}
+      friction={1.6}
+      rightThreshold={40}
+      containerStyle={styles.swipeContainer}
+    >
+      <Pressable
+        testID={`session-item-${s.id}`}
+        style={styles.sessionCard}
+        onPress={onPress}
+      >
+        <Text style={styles.sessionTitle} numberOfLines={1}>
+          {s.planTitle}
+        </Text>
+        <Text style={styles.sessionDate}>{formatDate(s.startedAt)}</Text>
+        <View style={styles.sessionStatsRow}>
+          <Stat icon="time" value={formatDuration(s.durationSeconds)} />
+          <Stat icon="flame" value={`${s.caloriesBurned} kcal`} />
+          <Stat icon="barbell" value={`${s.exercises.length} ex.`} />
+        </View>
+      </Pressable>
+    </Swipeable>
   );
 }
 
@@ -669,6 +758,32 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     gap: 4,
+  },
+  swipeContainer: {
+    borderRadius: radius.md,
+    overflow: "hidden",
+    marginBottom: 0,
+  },
+  swipeAction: {
+    backgroundColor: colors.error,
+    justifyContent: "center",
+    alignItems: "center",
+    width: 96,
+    flexDirection: "column",
+    gap: 4,
+  },
+  swipeActionText: {
+    color: "#fff",
+    fontWeight: "800",
+    fontSize: 11,
+    letterSpacing: 0.5,
+  },
+  hintText: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 11,
+    textAlign: "center",
+    fontStyle: "italic",
+    paddingVertical: 4,
   },
   sessionTitle: { color: colors.onSurface, fontWeight: "800", fontSize: 14 },
   sessionDate: { color: colors.onSurfaceTertiary, fontSize: 11 },
