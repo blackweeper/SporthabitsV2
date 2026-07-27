@@ -17,6 +17,7 @@ import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import * as ImageManipulator from "expo-image-manipulator";
 import { colors, radius, spacing } from "@/src/theme";
+import DatePickerField from "@/src/components/DatePickerField";
 import {
   deleteMeasurement,
   estimateBodyFatNavy,
@@ -197,8 +198,17 @@ export default function MeasurementEditScreen() {
         <Text style={styles.title}>
           {isNew ? "Nouvelle mesure" : "Modifier mesure"}
         </Text>
-        <Pressable testID="save-measurement" onPress={save} hitSlop={12}>
-          <Text style={styles.saveText}>SAUVER</Text>
+        <Pressable
+          testID="save-measurement"
+          onPress={save}
+          hitSlop={16}
+          style={({ pressed }) => [
+            styles.saveBtn,
+            pressed && { opacity: 0.75 },
+          ]}
+        >
+          <Ionicons name="checkmark" size={14} color="#fff" />
+          <Text style={styles.saveBtnText}>SAUVEGARDER</Text>
         </Pressable>
       </View>
 
@@ -212,16 +222,14 @@ export default function MeasurementEditScreen() {
           showsVerticalScrollIndicator={false}
         >
           <Text style={styles.label}>Date</Text>
-          <View style={styles.dateCard}>
-            <Ionicons name="calendar" size={16} color={colors.brand} />
-            <Text style={styles.dateText}>{formatDate(m.date)}</Text>
-            <Pressable
-              testID="today-btn"
-              onPress={() => set("date", new Date().toISOString())}
-            >
-              <Text style={styles.todayText}>AUJOURD&apos;HUI</Text>
-            </Pressable>
-          </View>
+          <DatePickerField
+            testID="measurement-date"
+            value={m.date}
+            onChange={(iso) => set("date", iso)}
+          />
+          <Text style={styles.fieldHint}>
+            Astuce : sélectionne une date passée pour saisir une mesure oubliée.
+          </Text>
 
           <Text style={styles.label}>Mesures corporelles</Text>
           <View style={styles.grid}>
@@ -450,6 +458,21 @@ const styles = StyleSheet.create({
   },
   title: { color: colors.onSurface, fontSize: 16, fontWeight: "700" },
   saveText: { color: colors.brand, fontWeight: "800", letterSpacing: 0.8 },
+  saveBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: colors.brand,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: radius.pill,
+  },
+  saveBtnText: {
+    color: "#fff",
+    fontWeight: "800",
+    letterSpacing: 0.6,
+    fontSize: 11,
+  },
   scroll: { padding: spacing.lg, gap: spacing.md },
   label: {
     color: colors.onSurfaceTertiary,
