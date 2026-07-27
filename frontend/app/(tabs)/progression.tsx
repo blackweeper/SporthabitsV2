@@ -32,6 +32,7 @@ import {
 } from "@/src/utils/xp";
 import {
   DailyJournalEntry,
+  PAIN_ZONE_LABEL,
   getDailyJournal,
   getGoals,
   getHabits,
@@ -52,11 +53,16 @@ import {
   Reminder,
   REMINDER_KIND_ICON,
   REMINDER_KIND_LABEL,
+  todayYYYYMMDD,
   UserProfile,
   WellnessLog,
   WorkoutSession,
 } from "@/src/utils/gym-storage";
-import { computeIronflowScore, IronflowScore } from "@/src/utils/scoring";
+import {
+  computeDailyIronflowScore,
+  DailyIronflowScore,
+  scoreQualitativeLabel,
+} from "@/src/utils/scoring";
 import { listAllExercises } from "@/src/utils/exercise-detail";
 import { ProgressionTab } from "@/src/utils/progression-nav";
 
@@ -91,6 +97,7 @@ export default function ProgressionHub() {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [wellness, setWellness] = useState<WellnessLog[]>([]);
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [dailyJournal, setDailyJournal] = useState<DailyJournalEntry[]>([]);
 
   // Re-sync the active tab whenever we're pushed here with a `?tab=...`
   // param — this screen stays mounted across tab-bar switches, so a plain
@@ -104,7 +111,7 @@ export default function ProgressionHub() {
   useFocusEffect(
     useCallback(() => {
       (async () => {
-        const [s, p, m, h, hl, r, g, w, pr] = await Promise.all([
+        const [s, p, m, h, hl, r, g, w, pr, dj] = await Promise.all([
           getSessions(),
           getPRs(),
           getMeasurements(),
@@ -114,6 +121,7 @@ export default function ProgressionHub() {
           getGoals(),
           getWellnessLogs(),
           getProfile(),
+          getDailyJournal(),
         ]);
         setSessions(s);
         setPRs(p);
@@ -124,22 +132,38 @@ export default function ProgressionHub() {
         setGoals(g);
         setWellness(w);
         setProfile(pr);
+        setDailyJournal(dj);
       })();
     }, []),
   );
 
-  const score = computeIronflowScore(
+  const scoreProfile = profile ?? {
+    weight_kg: null,
+    height_cm: null,
+    sex: null,
+    age: null,
+  };
+  const today = todayYYYYMMDD();
+  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  const score = computeDailyIronflowScore(
+    today,
     sessions,
     habits,
     logs,
     wellness,
-    profile ?? {
-      weight_kg: null,
-      height_cm: null,
-      sex: null,
-      age: null,
-    },
+    dailyJournal,
+    scoreProfile,
   );
+  const yesterdayScore = computeDailyIronflowScore(
+    yesterday,
+    sessions,
+    habits,
+    logs,
+    wellness,
+    dailyJournal,
+    scoreProfile,
+  );
+  const scoreDelta = score.score - yesterdayScore.score;
   const exercises = listAllExercises(sessions);
 
   return (
@@ -181,6 +205,7 @@ export default function ProgressionHub() {
         {tab === "overview" && (
           <OverviewView
             score={score}
+            scoreDelta={scoreDelta}
             goals={goals}
             sessions={sessions}
             prs={prs}
@@ -265,6 +290,7 @@ function ScoreCircle({ score }: { score: number }) {
 
 function OverviewView({
   score,
+  scoreDelta,
   goals,
   sessions,
   prs,
@@ -272,7 +298,8 @@ function OverviewView({
   onOpenStats,
   onOpenGoals,
 }: {
-  score: IronflowScore;
+  score: DailyIronflowScore;
+  scoreDelta: number;
   goals: Goal[];
   sessions: WorkoutSession[];
   prs: PersonalRecord[];
@@ -284,11 +311,27 @@ function OverviewView({
   return (
     <View style={{ gap: spacing.md }}>
       <View style={styles.overviewCard}>
-        <Text style={styles.overLabel}>SCORE IRONFLOW</Text>
+        <Text style={styles.overLabel}>IRONFLOW SCORE</Text>
         <ScoreCircle score={score.score} />
-        <Text style={styles.overHint}>
-          Basé sur régularité, sommeil, nutrition, hydratation, activité et habitudes.
-        </Text>
+        <Text style={styles.overQualitative}>{scoreQualitativeLabel(score.score)}</Text>
+        {scoreDelta !== 0 && (
+          <View style={styles.overDeltaRow}>
+            <Ionicons
+              name={scoreDelta > 0 ? "arrow-up" : "arrow-down"}
+              size={13}
+              color={scoreDelta > 0 ? colors.success : colors.error}
+            />
+            <Text
+              style={[
+                styles.overDeltaText,
+                { color: scoreDelta > 0 ? colors.success : colors.error },
+              ]}
+            >
+              {scoreDelta > 0 ? "+" : ""}
+              {scoreDelta}% par rapport à hier
+            </Text>
+          </View>
+        )}
       </View>
 
       {/* Objectifs en cours */}
@@ -355,6 +398,31 @@ function OverviewView({
           </View>
         );
       })}
+
+      {/* Résumé du jour — explains simply why the score moved */}
+      {(score.gains.length > 0 || score.losses.length > 0) && (
+        <>
+          <Text style={styles.sectionTitle}>Résumé du jour</Text>
+          <View style={styles.summaryBox}>
+            {score.gains.map((g) => (
+              <View key={g.label} style={styles.summaryRow}>
+                <Text style={[styles.summaryPoints, { color: colors.success }]}>
+                  +{g.points}
+                </Text>
+                <Text style={styles.summaryLabel}>{g.label}</Text>
+              </View>
+            ))}
+            {score.losses.map((l) => (
+              <View key={l.label} style={styles.summaryRow}>
+                <Text style={[styles.summaryPoints, { color: colors.error }]}>
+                  {l.points}
+                </Text>
+                <Text style={styles.summaryLabel}>{l.label}</Text>
+              </View>
+            ))}
+          </View>
+        </>
+      )}
 
       <Pressable
         testID="open-full-stats"
@@ -1849,9 +1917,12 @@ function JournalView({ router }: { router: any }) {
                   😴 {e.sleep_hours.toFixed(1)}h de sommeil
                 </Text>
               )}
-              {e.pain ? (
+              {e.pain_zones && e.pain_zones.length > 0 ? (
                 <Text style={styles.journalEntryMeta} numberOfLines={2}>
-                  🩹 {e.pain}
+                  🩹{" "}
+                  {e.pain_zones
+                    .map((z) => `${PAIN_ZONE_LABEL[z.zone]} ${z.intensity}/10`)
+                    .join(" · ")}
                 </Text>
               ) : null}
               {e.notes ? (
@@ -1971,13 +2042,24 @@ const styles = StyleSheet.create({
     letterSpacing: 2.5,
     fontWeight: "800",
   },
-  overHint: {
-    color: colors.onSurfaceTertiary,
-    fontSize: 11,
-    textAlign: "center",
-    lineHeight: 16,
-    paddingHorizontal: spacing.md,
+  overQualitative: {
+    color: colors.onSurface,
+    fontSize: 14,
+    fontWeight: "800",
   },
+  overDeltaRow: { flexDirection: "row", alignItems: "center", gap: 4 },
+  overDeltaText: { fontSize: 12, fontWeight: "700" },
+  summaryBox: {
+    backgroundColor: colors.surfaceSecondary,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md,
+    gap: 8,
+  },
+  summaryRow: { flexDirection: "row", alignItems: "center", gap: 10 },
+  summaryPoints: { fontWeight: "800", fontSize: 13, minWidth: 34 },
+  summaryLabel: { color: colors.onSurfaceSecondary, fontSize: 12, flex: 1 },
   scoreValueBig: { color: colors.onSurface, fontSize: 42, fontWeight: "800" },
   scoreOn100: { color: colors.onSurfaceTertiary, fontSize: 12, fontWeight: "600" },
   sectionTitle: {

@@ -21,12 +21,15 @@ import {
   FEELING_MOOD_LABEL,
   getDailyJournal,
   getWellnessLog,
+  PainEntry,
+  PAIN_ZONE_LABEL,
   patchWellnessLog,
   saveDailyJournal,
   todayYYYYMMDD,
   WellnessLog,
 } from "@/src/utils/gym-storage";
 import SleepInput, { SleepValue } from "@/src/components/SleepInput";
+import BodyPainMap from "@/src/components/BodyPainMap";
 
 export default function DailyJournalScreen() {
   const router = useRouter();
@@ -174,14 +177,10 @@ export default function DailyJournalScreen() {
           {/* Sleep: bedtime/wake-time (auto duration) or direct manual entry */}
           <SleepInput value={sleepValue} onChange={updateSleep} testID="dj-sleep-input" />
 
-          <Text style={styles.miniLabel}>Douleurs</Text>
-          <TextInput
-            style={styles.textArea}
-            value={entry.pain || ""}
-            onChangeText={(t) => setEntry({ ...entry, pain: t.trim() ? t : null })}
-            placeholder="Ex: petite tension aux lombaires"
-            placeholderTextColor={colors.onSurfaceTertiary}
-            multiline
+          <BodyPainMap
+            value={entry.pain_zones ?? []}
+            onChange={(zones) => setEntry({ ...entry, pain_zones: zones })}
+            testID="dj-pain-map"
           />
 
           <Text style={styles.miniLabel}>Notes</Text>
@@ -210,6 +209,14 @@ export default function DailyJournalScreen() {
                         {p.stress != null && <MiniBadge label="⚠️" value={p.stress} />}
                       </View>
                     </View>
+                    {p.pain_zones && p.pain_zones.length > 0 ? (
+                      <Text style={styles.pastPain} numberOfLines={2}>
+                        🩹{" "}
+                        {p.pain_zones
+                          .map((z: PainEntry) => `${PAIN_ZONE_LABEL[z.zone]} ${z.intensity}/10`)
+                          .join(" · ")}
+                      </Text>
+                    ) : null}
                     {p.notes ? (
                       <Text style={styles.pastNotes} numberOfLines={3}>
                         {p.notes}
@@ -423,4 +430,5 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   pastNotes: { color: colors.onSurfaceSecondary, fontSize: 12, lineHeight: 16 },
+  pastPain: { color: colors.onSurfaceSecondary, fontSize: 11, lineHeight: 15 },
 });

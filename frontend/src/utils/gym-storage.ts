@@ -953,9 +953,57 @@ export type DailyJournalEntry = {
   sleep_bedtime?: string | null; // "HH:MM"
   sleep_wake_time?: string | null; // "HH:MM"
   sleep_mode?: 'auto' | 'manual' | null;
+  /** @deprecated replaced by pain_zones (visual body map) — kept only so old
+   *  saved entries don't lose data; no longer written by the UI. */
   pain?: string | null;
+  pain_zones?: PainEntry[] | null;
   notes?: string | null;
 };
+
+export type PainZone =
+  | 'head'
+  | 'neck'
+  | 'shoulders'
+  | 'chest'
+  | 'back'
+  | 'lowerBack'
+  | 'arms'
+  | 'elbows'
+  | 'wrists'
+  | 'hips'
+  | 'knees'
+  | 'calves'
+  | 'ankles';
+
+export const PAIN_ZONE_LABEL: Record<PainZone, string> = {
+  head: 'Tête',
+  neck: 'Cou',
+  shoulders: 'Épaules',
+  chest: 'Poitrine',
+  back: 'Dos',
+  lowerBack: 'Lombaires',
+  arms: 'Bras',
+  elbows: 'Coudes',
+  wrists: 'Poignets',
+  hips: 'Hanches',
+  knees: 'Genoux',
+  calves: 'Mollets',
+  ankles: 'Chevilles',
+};
+
+export type PainEntry = {
+  zone: PainZone;
+  intensity: number; // 0-10
+  comment?: string | null;
+};
+
+/** Green -> yellow -> orange -> red as intensity climbs from 1 to 10. */
+export function painIntensityColor(intensity: number): string {
+  if (intensity <= 3) return '#4CAF50';
+  if (intensity <= 6) return '#FFC107';
+  if (intensity <= 8) return '#FF9800';
+  return '#F44336';
+}
 
 /**
  * Sleep duration (decimal hours) from a bedtime/wake-time pair, handling the

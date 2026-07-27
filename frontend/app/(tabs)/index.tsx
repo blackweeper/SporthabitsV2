@@ -15,19 +15,21 @@ import { colors, radius, spacing } from "@/src/theme";
 import {
   ActiveProgram,
   currentDayIndex,
+  DailyJournalEntry,
   DEFAULT_CALORIES_TARGET_KCAL,
   DEFAULT_STEPS_TARGET,
   DEFAULT_WATER_TARGET_ML,
   Measurement,
   setHabitValue,
   getActivePrograms,
+  getDailyJournal,
   getHabits,
   getHabitLogs,
   getMeasurements,
   getPRs,
   getProfile,
   getSessions,
-  getWellnessLog,
+  getWellnessLogs,
   patchWellnessLog,
   Habit,
   HabitKind,
@@ -41,7 +43,7 @@ import {
 } from "@/src/utils/gym-storage";
 import { findProgram } from "@/src/utils/programs";
 import { Program } from "@/src/data/programs";
-import { computeDailyScore } from "@/src/utils/scoring";
+import { computeDailyIronflowScore, scoreQualitativeLabel } from "@/src/utils/scoring";
 import { computeXPState } from "@/src/utils/xp";
 import { computeAdvancedStats } from "@/src/utils/stats";
 import { motivationMessage } from "@/src/data/motivation";
@@ -70,7 +72,8 @@ export default function TodayScreen() {
   const [name, setName] = useState<string>("");
   const [actives, setActives] = useState<ActiveWithProgram[]>([]);
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [wellness, setWellness] = useState<WellnessLog | null>(null);
+  const [wellnessLogs, setWellnessLogs] = useState<WellnessLog[]>([]);
+  const [dailyJournal, setDailyJournal] = useState<DailyJournalEntry[]>([]);
   const [prs, setPRs] = useState<PersonalRecord[]>([]);
   const [timerHabit, setTimerHabit] = useState<Habit | null>(null);
 
@@ -91,7 +94,8 @@ export default function TodayScreen() {
       if (prog) resolved.push({ active: a, program: prog });
     }
     setActives(resolved);
-    setWellness(await getWellnessLog(todayYYYYMMDD()));
+    setWellnessLogs(await getWellnessLogs());
+    setDailyJournal(await getDailyJournal());
 
     // Restore an in-progress habit timer (e.g. the app was backgrounded or
     // reloaded mid-countdown) so it keeps running instead of silently
@@ -109,12 +113,34 @@ export default function TodayScreen() {
     }, [load]),
   );
 
-  const daily = computeDailyScore(sessions, habits, logs, {
-    log: wellness,
-    waterTarget: profile?.water_target_ml || DEFAULT_WATER_TARGET_ML,
-    caloriesTarget: profile?.calories_target_kcal || DEFAULT_CALORIES_TARGET_KCAL,
-    stepsTarget: profile?.steps_target || DEFAULT_STEPS_TARGET,
-  });
+  const today = todayYYYYMMDD();
+  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  const wellness = wellnessLogs.find((w) => w.date === today) ?? null;
+  const scoreProfile = profile ?? {
+    weight_kg: null,
+    height_cm: null,
+    sex: null,
+    age: null,
+  };
+  const todayScore = computeDailyIronflowScore(
+    today,
+    sessions,
+    habits,
+    logs,
+    wellnessLogs,
+    dailyJournal,
+    scoreProfile,
+  );
+  const yesterdayScore = computeDailyIronflowScore(
+    yesterday,
+    sessions,
+    habits,
+    logs,
+    wellnessLogs,
+    dailyJournal,
+    scoreProfile,
+  );
+  const scoreDelta = todayScore.score - yesterdayScore.score;
   const stats = computeAdvancedStats(sessions);
   const xpState = computeXPState({ sessions, habits, habitLogs: logs, prs });
   const lastMeasurement = measurements[0];
@@ -130,14 +156,13 @@ export default function TodayScreen() {
     : null;
   const totalDays = primary?.program.durationDays ?? null;
 
-  const today = todayYYYYMMDD();
   const greetingHour = new Date().getHours();
   const greeting =
     greetingHour < 12 ? "Bonjour" : greetingHour < 18 ? "Salut" : "Bonsoir";
   const motivation = motivationMessage({
-    workoutDoneToday: daily.workoutDone,
+    workoutDoneToday: todayScore.workoutDone,
     streakDays: stats.currentStreakDays,
-    score: daily.score,
+    score: todayScore.score,
   });
 
   const bumpWellness = async (
@@ -188,18 +213,38 @@ export default function TodayScreen() {
           <Text style={styles.motivationText}>{motivation}</Text>
         </View>
 
-        {/* Score circle */}
-        <View style={styles.scoreCard}>
-          <ScoreCircle score={daily.score} />
+        {/* IronFlow Score — real-time, transparent daily score */}
+        <Pressable
+          testID="ironflow-score-card"
+          style={styles.scoreCard}
+          onPress={() => router.push(progressionHref("overview") as any)}
+        >
+          <ScoreCircle score={todayScore.score} />
           <View style={{ flex: 1 }}>
-            <Text style={styles.scoreLabel}>SCORE DU JOUR</Text>
-            <Text style={styles.scoreValue}>{daily.score}%</Text>
-            <Text style={styles.scoreHint}>
-              {daily.items.filter((i) => i.achieved >= 1).length}/
-              {daily.items.length} objectifs
-            </Text>
+            <Text style={styles.scoreLabel}>IRONFLOW SCORE</Text>
+            <Text style={styles.scoreValue}>{todayScore.score}%</Text>
+            <Text style={styles.scoreHint}>{scoreQualitativeLabel(todayScore.score)}</Text>
+            {scoreDelta !== 0 && (
+              <View style={styles.scoreDeltaRow}>
+                <Ionicons
+                  name={scoreDelta > 0 ? "arrow-up" : "arrow-down"}
+                  size={12}
+                  color={scoreDelta > 0 ? colors.success : colors.error}
+                />
+                <Text
+                  style={[
+                    styles.scoreDeltaText,
+                    { color: scoreDelta > 0 ? colors.success : colors.error },
+                  ]}
+                >
+                  {scoreDelta > 0 ? "+" : ""}
+                  {scoreDelta}% par rapport à hier
+                </Text>
+              </View>
+            )}
           </View>
-        </View>
+          <Ionicons name="chevron-forward" size={18} color={colors.onSurfaceTertiary} />
+        </Pressable>
 
         {/* XP + Level card */}
         <Pressable
@@ -327,7 +372,7 @@ export default function TodayScreen() {
         <View style={styles.listCol}>
           {/* Séance (workout) */}
           <SessionListItem
-            done={daily.workoutDone}
+            done={todayScore.workoutDone}
             onPress={() => router.push("/training")}
           />
           {/* Wellness quick-taps: Eau / Calories / Pas */}
@@ -827,6 +872,13 @@ const styles = StyleSheet.create({
   },
   scoreValue: { color: colors.onSurface, fontSize: 26, fontWeight: "800" },
   scoreHint: { color: colors.brand, fontSize: 12, fontWeight: "700", marginTop: 2 },
+  scoreDeltaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    marginTop: 4,
+  },
+  scoreDeltaText: { fontSize: 11, fontWeight: "700" },
   xpCard: {
     backgroundColor: colors.surfaceSecondary,
     borderRadius: radius.md,
