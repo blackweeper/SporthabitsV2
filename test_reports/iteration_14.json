@@ -1,0 +1,40 @@
+{
+  "summary": "Frontend-only testing of 7 new IronFlow features (6 tasks in test_plan.current_focus) at mobile viewport 390x844. All 6 features PASS end-to-end: (1) Sauvegarder button bug fix, (2) retroactive date picker, (3) custom cropper for progression photo, (4) custom cropper for profile photo, (5) multi-click habit widgets, (6) swipe-to-delete on Historique + Séances, (7) new Cardio sub-tab with custom program creation. No blocking issues found. One minor code hardening opportunity in src/utils/stats.ts (no defensive check when session.exercises[i].sets is not an array — throws red screen). Deprecated shadow* / pointerEvents warnings still present (pre-existing, non-blocking).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": [
+      {"component": "Deprecated shadow* style props", "issue": "Console warning: '\"shadow*\" style props are deprecated. Use \"boxShadow\".' Persists from previous iterations. Non-blocking."},
+      {"component": "pointerEvents prop", "issue": "Console warning: 'props.pointerEvents is deprecated. Use style.pointerEvents'. Non-blocking, from third-party libs."}
+    ]
+  },
+  "test_report_links": ["/app/test_reports/iteration_14.json"],
+  "detailed_test_results": {
+    "bug_fix_sauvegarder": "PASS — [data-testid='save-cp'] visible as orange pill with checkmark ionicon + 'SAUVEGARDER' text on /custom-program/new. Empty-title click does NOT navigate (stays on /custom-program/new?category=cardio) — validation blocks save (Alert.alert 'Titre requis'). After filling 'Run 5K', click navigates to /program/{id} and shows green 'Programme en cours' badge + 'Run 5K' title.",
+    "feature_1_date_picker": "PASS — On /measurement/new the Date card renders with calendar icon + French date + 'AUJOURD'HUI' pill. Hidden [data-testid='measurement-date-input'] present with max='2026-07-27' (today). Setting value to '2024-06-15' updates the visible label to 'samedi 15 juin 2024'. 'Astuce : sélectionne une date passée pour saisir une mesure oubliée.' text visible.",
+    "feature_2_photo_cropper_measurement": "PASS — Clicking [data-testid='photo-gallery'] on /measurement/new opens file chooser; after set_files the app navigates to /photo-crop with header 'Cadrer la photo', VALIDER button visible ([data-testid='crop-confirm']), controls crop-zoom-out / crop-zoom-in / crop-rotate / crop-reset all render, rule-of-thirds grid overlay + dimmed backdrop visible. After zoom-in + rotate + confirm, returns to /measurement/new; 'Photo (comparaison)' section shows the cropped image with [data-testid='remove-photo'] X-button.",
+    "feature_3_profile_cropper": "PASS — On /profile clicking [data-testid='avatar-gallery'] opens file chooser; after set_files navigates to /photo-crop with header 'Cadrer ta photo de profil' (1:1 aspect). Confirm returns to /profile and the avatar is updated (uploaded image visible in avatar circle).",
+    "feature_4_habit_widgets": "PASS — Dashboard 'Aujourd'hui' section shows widget grid. [data-testid='widget-session'] present, [data-testid='add-habit-widget'] present. Creating 'Brossage dents' with target=2 unit=fois via [data-testid='save-habit'] returns to dashboard and renders new widget showing '0/2 fois'. Click cycle validated: 0/2 → 1/2 → 2/2 (widget green, [data-testid='widget-{id}-reset'] refresh icon visible at full) → 0/2 (reset on 3rd tap).",
+    "feature_5a_swipe_delete_historique": "PASS — Seeded @ironflow/sessions with a valid session. Historique sub-tab ([data-testid='seg-sessions']) shows swipe hint and [data-testid='session-item-t1']. CDP touch swipe left revealed [data-testid='swipe-delete-t1']; clicking triggered confirm dialog 'Supprimer la séance \"Séance Test\" ?', accepting removed the item and 'Aucune séance' empty state appeared.",
+    "feature_5b_swipe_delete_seances": "PASS — Seeded @ironflow/plans. Séances sub-tab ([data-testid='seg-individual']) shows [data-testid='plan-item-p1']. CDP touch swipe revealed [data-testid='swipe-delete-plan-p1']; clicking + accepting confirm removed the plan.",
+    "feature_6_cardio_tab": "PASS — [data-testid='seg-cardio'] exists in Entraînements sub-tabs. Empty state shows 'Aucun programme cardio', [data-testid='browse-cardio'] and [data-testid='create-cardio-program'] visible. Clicking create navigates to /custom-program/new?category=cardio with defaults: title='' (empty), goal='Endurance & cardio', duration='Planning (28 jours)', emoji=🏃, color=#00B0FF (blue) inferred from active swatch. Save with 'Run 5K' navigates to /program/{id}, 'Programme en cours' badge visible. Returning to Cardio tab shows 'Run 5K' in the list; dashboard also shows 'Run 5K' in the active programs section."
+  },
+  "action_items": [
+    "Optional hardening: src/utils/stats.ts:41 does `for (const st of ex.sets ?? [])` — if ex.sets is a number (e.g., a legacy or mis-shaped session entry), this throws 'number 3 is not iterable' which surfaces as a full red-screen 'Uncaught Error' on the dashboard. Add `Array.isArray(ex.sets) ? ex.sets : []` guard. Not caused by this iteration; observed only when I seeded a malformed session per the exact spec in the review request (sets:3 instead of sets:[...])."
+  ],
+  "critical_code_review_comments": [
+    "custom-program/[id].tsx — 1400 lines, exceeds the 700-line threshold. Consider extracting SessionEditor, ExerciseEditor, PlanPickerModal, MiniField into /src/components/custom-program/*.tsx.",
+    "photo-crop.tsx — well-structured (~640 lines) with proper testIDs and robust crop math (clamp + rotation-aware pxPerDisplay). No issues.",
+    "DatePickerField.tsx — nice cross-platform impl (web hidden native input, iOS spinner, Android dialog). Max date guard enforced (max='2026-07-27' verified in DOM).",
+    "training.tsx — swipe-to-delete implementation via react-native-gesture-handler Swipeable works correctly with CDP touchStart/Move/End on web; testID naming consistent ('swipe-delete-{sessionId}' / 'swipe-delete-plan-{planId}')."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (skipped per request)", "frontend": "100% (6/6 tasks + bug fix passing)"},
+  "seed_data_creation": "Playwright injected localStorage['@ironflow/sessions'] (one session with sets as array of set objects, per real app shape) and localStorage['@ironflow/plans'] (one plan) via page.evaluate for the swipe-to-delete tests. Cleared localStorage for isolation before other tests. All state was seeded within the same test call.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "The photo cropper uses a bridge API (_consumePending / _resolvePending) in src/utils/imageCropper.ts — the caller sets a pending source, navigates to /photo-crop, and the crop screen resolves back the base64 result via router.back(). For file upload testing: use page.expect_file_chooser + fc.set_files with a small JPEG file. CDP Input.dispatchTouchEvent (touchStart→touchMove×n→touchEnd) reliably triggers react-native-gesture-handler Swipeable on web — mouse events are interpreted as clicks and do NOT trigger the pan gesture. Habit widget testID pattern is 'widget-{habitId}' and 'widget-{habitId}-reset' for the small refresh button (only shown when target>1 and count===target). Cardio custom program defaults are triggered by the ?category=cardio query param on /custom-program/new.",
+  "rca_of_issue": "N/A — no functional bugs. Only one hardening suggestion for stats.ts to gracefully handle malformed session data (Array.isArray guard)."
+}

@@ -101,3 +101,100 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+user_problem_statement: "Batch of 7 features/fixes on the IronFlow app: (1) retroactive date picker for body measurements, (2) custom cropper for progression photos, (3) custom cropper for profile photo, (4) interactive widget grid on dashboard with multi-click habits, (5) swipe-to-delete on training history, (6) fix broken save button on custom program creation, (7) new Cardio sub-tab in Entraînements with cardio program creation + display on dashboard. Extra: swipe-to-delete also on the Séances (individual plans) sub-tab."
+
+frontend:
+  - task: "Fix broken 'Sauvegarder' button on custom program creation + auto-activate new program"
+    implemented: true
+    working: "NA"
+    file: "app/custom-program/[id].tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Rebuilt as a proper CTA (pill with checkmark icon, larger hit area 16px). Renamed SAUVER→SAUVEGARDER. On new program save: auto-activates the program via addActiveProgram + router.replace to the created program page so the user gets clear feedback."
+
+  - task: "Retroactive date picker for body measurements"
+    implemented: true
+    working: "NA"
+    file: "app/measurement/[id].tsx, src/components/DatePickerField.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "New DatePickerField component (web=native input[type=date], iOS=modal spinner, Android=dialog) with 'AUJOURD'HUI' shortcut and max date=today. Also updated the save button style."
+
+  - task: "Custom photo cropper (zoom + rotation) integrated into progression and profile photo flows"
+    implemented: true
+    working: "NA"
+    file: "app/photo-crop.tsx, src/utils/imageCropper.ts, app/measurement/[id].tsx, app/profile.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Full custom cropper modal with pan+pinch (RN gesture handler + reanimated), rotate 90°, zoom +/- buttons, reset, rule-of-thirds grid overlay, dimmed background. Bridge API cropImage(uri, opts) returns Promise<CropperResult>. Aspect ratios: 3:4 for progression, 1:1 for profile."
+
+  - task: "Interactive daily widgets on Dashboard (multi-click habits)"
+    implemented: true
+    working: "NA"
+    file: "app/(tabs)/index.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Replaced the 'À faire aujourd'hui' checklist by a 2-col widget grid. Séance widget (auto-completed), habit widgets that increment on tap (0→1→2→0 loop), long-press to open habit settings, small refresh reset button when target>1, dashed '+' widget to create new habit inline. Habit editor save button also restyled."
+
+  - task: "Swipe-to-delete on training history AND on individual sessions"
+    implemented: true
+    working: "NA"
+    file: "app/(tabs)/training.tsx"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Wrapped session cards (Historique) and plan cards (Séances) with react-native-gesture-handler Swipeable. Red 'Supprimer' RectButton with trash icon revealed on left-swipe. Confirmation via window.confirm on web / Alert.alert on native. Cancel closes the swipe. Onboarding hint text at top of each list."
+
+  - task: "New Cardio sub-tab in Entraînements + custom cardio program creation + display on dashboard"
+    implemented: true
+    working: "NA"
+    file: "app/(tabs)/training.tsx, app/custom-program/[id].tsx, app/programs.tsx, src/data/programs.ts, src/utils/programs.ts"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+        - working: "NA"
+          agent: "main"
+          comment: "Added 'cardio' to Program.category union. New CardioView tab (blue theme, 🏃 emoji) with empty state and CTA. Custom-program editor auto-fills cardio defaults when opened with ?category=cardio (28 days, blue color, 🏃 emoji, 'Endurance & cardio' objective). programs.tsx handles category=cardio with dedicated empty state. Active cardio programs surface on the dashboard automatically via the existing 'Programmes actifs' section."
+
+metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 14
+  run_ui: true
+
+test_plan:
+  current_focus:
+    - "Fix broken 'Sauvegarder' button on custom program creation + auto-activate new program"
+    - "Retroactive date picker for body measurements"
+    - "Custom photo cropper (zoom + rotation) integrated into progression and profile photo flows"
+    - "Interactive daily widgets on Dashboard (multi-click habits)"
+    - "Swipe-to-delete on training history AND on individual sessions"
+    - "New Cardio sub-tab in Entraînements + custom cardio program creation + display on dashboard"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+    - agent: "main"
+      message: "Delivered 7 user requests + 1 extra (swipe-to-delete also on Séances). All flows work locally on web (validated via Playwright screenshots inline during development). Please validate end-to-end on frontend only — no backend changes were made. Focus specifically on: (a) the SAUVEGARDER button flow (form validation + auto-activation), (b) the multi-click habit widgets on the dashboard (increment/reset cycle with target>1), (c) both swipe-to-delete flows (Historique + Séances), (d) cardio creation with ?category=cardio defaults, (e) DatePickerField opens and stores a past date, (f) crop modal opens after image selection on both measurement and profile flows and returns to caller with the cropped image applied. All 'SAUVER' buttons were harmonized to 'SAUVEGARDER' pill CTAs."

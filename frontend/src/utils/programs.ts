@@ -10,10 +10,16 @@ export async function getAllPrograms(): Promise<Program[]> {
   return [...BUNDLED_PROGRAMS, ...BUNDLED_STRETCH_PROGRAMS, ...custom];
 }
 
-/** Only workout-category programs (custom with category!='stretch' + bundled workouts). */
+/** Only workout-category programs (custom with category!='stretch' & !='cardio' + bundled workouts). */
 export async function getWorkoutPrograms(): Promise<Program[]> {
   const all = await getAllPrograms();
   return all.filter((p) => (p.category ?? 'workout') === 'workout');
+}
+
+/** Only cardio-category programs (custom only for now). */
+export async function getCardioPrograms(): Promise<Program[]> {
+  const all = await getAllPrograms();
+  return all.filter((p) => p.category === 'cardio');
 }
 
 /** Only stretch-category programs. */

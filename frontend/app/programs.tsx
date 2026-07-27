@@ -16,6 +16,7 @@ export default function ProgramsScreen() {
   const router = useRouter();
   const { category } = useLocalSearchParams<{ category?: string }>();
   const isStretch = category === "stretch";
+  const isCardio = category === "cardio";
   const [customs, setCustoms] = useState<Program[]>([]);
 
   useFocusEffect(
@@ -23,19 +24,31 @@ export default function ProgramsScreen() {
       (async () => {
         const all = (await getCustomPrograms()) as Program[];
         setCustoms(
-          all.filter((p) =>
-            isStretch ? p.category === "stretch" : (p.category ?? "workout") === "workout",
-          ),
+          all.filter((p) => {
+            if (isStretch) return p.category === "stretch";
+            if (isCardio) return p.category === "cardio";
+            return (p.category ?? "workout") === "workout";
+          }),
         );
       })();
-    }, [isStretch]),
+    }, [isStretch, isCardio]),
   );
 
-  const bundled = isStretch ? BUNDLED_STRETCH_PROGRAMS : BUNDLED_PROGRAMS;
+  const bundled = isStretch
+    ? BUNDLED_STRETCH_PROGRAMS
+    : isCardio
+      ? []
+      : BUNDLED_PROGRAMS;
   const createHref = isStretch
     ? "/custom-program/new?category=stretch"
-    : "/custom-program/new";
-  const title = isStretch ? "Programmes d'étirement" : "Programmes";
+    : isCardio
+      ? "/custom-program/new?category=cardio"
+      : "/custom-program/new";
+  const title = isStretch
+    ? "Programmes d'étirement"
+    : isCardio
+      ? "Programmes cardio"
+      : "Programmes";
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
@@ -64,12 +77,18 @@ export default function ProgramsScreen() {
           </View>
           <View style={{ flex: 1 }}>
             <Text style={styles.createTitle}>
-              {isStretch ? "Créer mon programme d'étirement" : "Créer mon programme"}
+              {isStretch
+                ? "Créer mon programme d'étirement"
+                : isCardio
+                  ? "Créer mon programme cardio"
+                  : "Créer mon programme"}
             </Text>
             <Text style={styles.createSub}>
               {isStretch
                 ? "Étirements sur mesure avec durées personnalisées"
-                : "Programme personnalisé avec 1 ou plusieurs séances par jour"}
+                : isCardio
+                  ? "Séances cardio, HIIT ou intervalles sur plusieurs jours"
+                  : "Programme personnalisé avec 1 ou plusieurs séances par jour"}
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color={colors.brand} />
@@ -88,16 +107,29 @@ export default function ProgramsScreen() {
           </>
         )}
 
-        <Text style={styles.sectionLabel}>
-          {isStretch ? "PROGRAMMES INCLUS" : "PROGRAMMES INCLUS"}
-        </Text>
-        {bundled.map((p) => (
-          <ProgramCard
-            key={p.id}
-            program={p}
-            onPress={() => router.push(`/program/${p.id}`)}
-          />
-        ))}
+        {bundled.length > 0 && (
+          <>
+            <Text style={styles.sectionLabel}>
+              {isStretch ? "PROGRAMMES INCLUS" : "PROGRAMMES INCLUS"}
+            </Text>
+            {bundled.map((p) => (
+              <ProgramCard
+                key={p.id}
+                program={p}
+                onPress={() => router.push(`/program/${p.id}`)}
+              />
+            ))}
+          </>
+        )}
+        {isCardio && customs.length === 0 && (
+          <View style={styles.emptyCardio}>
+            <Ionicons name="stopwatch" size={36} color="#00B0FF" />
+            <Text style={styles.emptyCardioTitle}>Pas de programme cardio</Text>
+            <Text style={styles.emptyCardioSub}>
+              Crée un programme personnalisé pour structurer tes runs, séances de vélo, HIIT ou natation.
+            </Text>
+          </View>
+        )}
         <View style={{ height: spacing.xl2 }} />
       </ScrollView>
     </SafeAreaView>
@@ -243,4 +275,21 @@ const styles = StyleSheet.create({
   cardTitle: { color: colors.onSurface, fontSize: 15, fontWeight: "800" },
   cardGoal: { color: colors.brand, fontSize: 12, fontWeight: "600" },
   cardMeta: { color: colors.onSurfaceTertiary, fontSize: 11, marginTop: 2 },
+  emptyCardio: {
+    alignItems: "center",
+    padding: spacing.xl,
+    gap: spacing.md,
+    marginTop: spacing.md,
+  },
+  emptyCardioTitle: {
+    color: colors.onSurface,
+    fontSize: 15,
+    fontWeight: "800",
+  },
+  emptyCardioSub: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 12,
+    textAlign: "center",
+    lineHeight: 17,
+  },
 });

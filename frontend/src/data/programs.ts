@@ -27,8 +27,8 @@ export type Program = {
   color: string;
   days: ProgramDay[];
   isCustom?: boolean;
-  /** 'workout' (default) or 'stretch' — used to route to the right tab. */
-  category?: 'workout' | 'stretch';
+  /** 'workout' (default), 'cardio' or 'stretch' — used to route to the right tab. */
+  category?: 'workout' | 'cardio' | 'stretch';
 };
 
 // ---- Session template builders (reusable) ----

@@ -76,6 +76,7 @@ export default function CustomProgramEditor() {
   const router = useRouter();
   const isNew = id === "new";
   const isStretch = category === "stretch";
+  const isCardio = category === "cardio";
   const [program, setProgram] = useState<Program | null>(null);
   const [selectedDay, setSelectedDay] = useState(1);
   const [pickingIdx, setPickingIdx] = useState<{ sessionIdx: number; exIdx: number } | null>(null);
@@ -88,18 +89,27 @@ export default function CustomProgramEditor() {
       const plans = await getPlans();
       setAvailablePlans(plans);
       if (isNew) {
+        const defaultDuration = isStretch ? 14 : isCardio ? 28 : 30;
         setProgram({
           id: uid(),
           title: "",
           description: "",
-          durationDays: isStretch ? 14 : 30,
+          durationDays: defaultDuration,
           level: "debutant",
-          goal: isStretch ? "Souplesse & mobilité" : "",
-          coverEmoji: isStretch ? "🧘" : "💪",
-          color: isStretch ? "#00E676" : COVER_COLORS[0],
-          days: Array.from({ length: isStretch ? 14 : 30 }, () => emptyDay()),
+          goal: isStretch
+            ? "Souplesse & mobilité"
+            : isCardio
+              ? "Endurance & cardio"
+              : "",
+          coverEmoji: isStretch ? "🧘" : isCardio ? "🏃" : "💪",
+          color: isStretch
+            ? "#00E676"
+            : isCardio
+              ? "#00B0FF"
+              : COVER_COLORS[0],
+          days: Array.from({ length: defaultDuration }, () => emptyDay()),
           isCustom: true,
-          category: isStretch ? "stretch" : "workout",
+          category: isStretch ? "stretch" : isCardio ? "cardio" : "workout",
         });
       } else {
         const list = (await getCustomPrograms()) as Program[];
@@ -111,7 +121,7 @@ export default function CustomProgramEditor() {
         }
       }
     })();
-  }, [id, isNew, isStretch]);
+  }, [id, isNew, isStretch, isCardio]);
 
   const patch = useCallback(<K extends keyof Program>(k: K, v: Program[K]) => {
     setProgram((p) => (p ? { ...p, [k]: v } : p));

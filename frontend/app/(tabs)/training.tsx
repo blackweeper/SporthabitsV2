@@ -17,6 +17,7 @@ import { colors, radius, spacing } from "@/src/theme";
 import {
   ActiveProgram,
   currentDayIndex,
+  deletePlan,
   deleteSession,
   getActivePrograms,
   getPlans,
@@ -27,11 +28,12 @@ import {
 import { findProgram } from "@/src/utils/programs";
 import { Program } from "@/src/data/programs";
 
-type Tab = "program" | "mobility" | "sessions" | "individual";
+type Tab = "program" | "cardio" | "mobility" | "sessions" | "individual";
 type IndCat = "all" | "musculation" | "cardio" | "wod" | "stretch";
 
 const TABS: { key: Tab; label: string; icon: any }[] = [
   { key: "program", label: "Musculation", icon: "barbell" },
+  { key: "cardio", label: "Cardio", icon: "stopwatch" },
   { key: "mobility", label: "Mobilité", icon: "body" },
   { key: "individual", label: "Séances", icon: "list" },
   { key: "sessions", label: "Historique", icon: "time" },
@@ -85,6 +87,9 @@ export default function TrainingHub() {
   const workoutActives = actives.filter(
     (a) => (a.program.category ?? "workout") === "workout",
   );
+  const cardioActives = actives.filter(
+    (a) => a.program.category === "cardio",
+  );
   const stretchActives = actives.filter(
     (a) => a.program.category === "stretch",
   );
@@ -130,6 +135,9 @@ export default function TrainingHub() {
         {tab === "program" && (
           <ProgramView actives={workoutActives} router={router} />
         )}
+        {tab === "cardio" && (
+          <CardioView actives={cardioActives} router={router} />
+        )}
         {tab === "mobility" && (
           <MobilityView actives={stretchActives} router={router} />
         )}
@@ -143,7 +151,13 @@ export default function TrainingHub() {
           />
         )}
         {tab === "individual" && (
-          <IndividualView plans={plans} router={router} />
+          <IndividualView
+            plans={plans}
+            router={router}
+            onDeleted={async () => {
+              setPlans(await getPlans());
+            }}
+          />
         )}
       </ScrollView>
     </SafeAreaView>
@@ -359,7 +373,15 @@ function SwipeableSessionRow({
   );
 }
 
-function IndividualView({ plans, router }: { plans: Plan[]; router: any }) {
+function IndividualView({
+  plans,
+  router,
+  onDeleted,
+}: {
+  plans: Plan[];
+  router: any;
+  onDeleted: () => void;
+}) {
   const [cat, setCat] = useState<IndCat>("all");
   const [muscle, setMuscle] = useState<string | null>(null);
 
@@ -464,34 +486,18 @@ function IndividualView({ plans, router }: { plans: Plan[]; router: any }) {
         </View>
       ) : (
         <>
+          <Text style={styles.hintText}>
+            <Ionicons name="hand-left" size={11} color={colors.onSurfaceTertiary} />
+            {"  "}Glisse vers la gauche pour supprimer une séance
+          </Text>
           {filtered.map((p) => (
-            <Pressable
+            <SwipeablePlanRow
               key={p.id}
-              testID={`plan-item-${p.id}`}
-              style={styles.planCard}
+              plan={p}
               onPress={() => router.push(`/plan/${p.id}`)}
-            >
-              <View style={{ flex: 1 }}>
-                <View style={styles.planTagsRow}>
-                  <View style={styles.planTypeTag}>
-                    <Text style={styles.planTypeText}>
-                      {planTypeLabel(p.type)}
-                    </Text>
-                  </View>
-                </View>
-                <Text style={styles.planTitle}>{p.title}</Text>
-                <Text style={styles.planMeta}>
-                  {p.exercises.length} exercice{p.exercises.length > 1 ? "s" : ""}
-                </Text>
-              </View>
-              <Pressable
-                testID={`plan-start-${p.id}`}
-                style={styles.startBtn}
-                onPress={() => router.push(`/workout/${p.id}`)}
-              >
-                <Ionicons name="play" size={14} color="#fff" />
-              </Pressable>
-            </Pressable>
+              onStart={() => router.push(`/workout/${p.id}`)}
+              onDeleted={onDeleted}
+            />
           ))}
           <Pressable
             style={styles.linkBtn}
@@ -504,6 +510,99 @@ function IndividualView({ plans, router }: { plans: Plan[]; router: any }) {
         </>
       )}
     </>
+  );
+}
+
+function SwipeablePlanRow({
+  plan: p,
+  onPress,
+  onStart,
+  onDeleted,
+}: {
+  plan: Plan;
+  onPress: () => void;
+  onStart: () => void;
+  onDeleted: () => void;
+}) {
+  const swipeRef = useRef<Swipeable>(null);
+
+  const performDelete = async () => {
+    await deletePlan(p.id);
+    onDeleted();
+  };
+
+  const confirmDelete = () => {
+    if (Platform.OS === "web") {
+      if (window.confirm(`Supprimer la séance "${p.title}" ?`)) {
+        performDelete();
+      } else {
+        swipeRef.current?.close();
+      }
+      return;
+    }
+    Alert.alert(
+      "Supprimer cette séance ?",
+      `"${p.title}" — cette action est définitive.`,
+      [
+        {
+          text: "Annuler",
+          style: "cancel",
+          onPress: () => swipeRef.current?.close(),
+        },
+        {
+          text: "Supprimer",
+          style: "destructive",
+          onPress: performDelete,
+        },
+      ],
+    );
+  };
+
+  const renderRightActions = () => (
+    <RectButton
+      testID={`swipe-delete-plan-${p.id}`}
+      style={styles.swipeAction}
+      onPress={confirmDelete}
+    >
+      <Ionicons name="trash" size={20} color="#fff" />
+      <Text style={styles.swipeActionText}>Supprimer</Text>
+    </RectButton>
+  );
+
+  return (
+    <Swipeable
+      ref={swipeRef}
+      renderRightActions={renderRightActions}
+      overshootRight={false}
+      friction={1.6}
+      rightThreshold={40}
+      containerStyle={styles.swipeContainer}
+    >
+      <Pressable
+        testID={`plan-item-${p.id}`}
+        style={styles.planCard}
+        onPress={onPress}
+      >
+        <View style={{ flex: 1 }}>
+          <View style={styles.planTagsRow}>
+            <View style={styles.planTypeTag}>
+              <Text style={styles.planTypeText}>{planTypeLabel(p.type)}</Text>
+            </View>
+          </View>
+          <Text style={styles.planTitle}>{p.title}</Text>
+          <Text style={styles.planMeta}>
+            {p.exercises.length} exercice{p.exercises.length > 1 ? "s" : ""}
+          </Text>
+        </View>
+        <Pressable
+          testID={`plan-start-${p.id}`}
+          style={styles.startBtn}
+          onPress={onStart}
+        >
+          <Ionicons name="play" size={14} color="#fff" />
+        </Pressable>
+      </Pressable>
+    </Swipeable>
   );
 }
 
@@ -522,6 +621,120 @@ function planTypeLabel(t: Plan["type"]): string {
     default:
       return "SÉANCE";
   }
+}
+
+function CardioView({
+  actives,
+  router,
+}: {
+  actives: { active: ActiveProgram; program: Program }[];
+  router: any;
+}) {
+  const CARDIO_COLOR = "#00B0FF";
+  if (actives.length === 0) {
+    return (
+      <View style={styles.empty}>
+        <Ionicons name="stopwatch" size={40} color={CARDIO_COLOR} />
+        <Text style={styles.emptyTitle}>Aucun programme cardio</Text>
+        <Text style={styles.emptySub}>
+          Crée un programme cardio personnalisé pour tes runs, séances de vélo, HIIT ou natation.
+        </Text>
+        <Pressable
+          style={[styles.ctaBtn, { backgroundColor: CARDIO_COLOR }]}
+          onPress={() => router.push("/programs?category=cardio")}
+          testID="browse-cardio"
+        >
+          <Text style={styles.ctaText}>PARCOURIR</Text>
+        </Pressable>
+        <Pressable
+          onPress={() =>
+            router.push("/custom-program/new?category=cardio")
+          }
+          testID="create-cardio-program"
+          style={[styles.ctaBtnSecondary, { borderColor: CARDIO_COLOR }]}
+        >
+          <Text style={[styles.ctaTextSecondary, { color: CARDIO_COLOR }]}>
+            Créer mon programme cardio
+          </Text>
+        </Pressable>
+      </View>
+    );
+  }
+  return (
+    <>
+      {actives.map(({ active, program }) => {
+        const today = currentDayIndex(active, program.durationDays);
+        const done = active.completedSessions.length;
+        const total = program.days.reduce(
+          (a, d) => a + (d.rest ? 0 : d.sessions.length),
+          0,
+        );
+        return (
+          <Pressable
+            key={program.id}
+            testID={`cardio-${program.id}`}
+            style={[styles.progCard, { borderLeftColor: program.color }]}
+            onPress={() => router.push(`/program/${program.id}`)}
+          >
+            <View
+              style={[
+                styles.progEmoji,
+                { backgroundColor: `${program.color}30` },
+              ]}
+            >
+              <Text style={{ fontSize: 30 }}>{program.coverEmoji}</Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.progTitle} numberOfLines={1}>
+                {program.title}
+              </Text>
+              <Text style={styles.progMeta}>
+                Jour {today}/{program.durationDays} · {done}/{total} séances
+              </Text>
+              <View style={styles.progBar}>
+                <View
+                  style={[
+                    styles.progFill,
+                    {
+                      width: `${(done / Math.max(1, total)) * 100}%`,
+                      backgroundColor: program.color,
+                    },
+                  ]}
+                />
+              </View>
+            </View>
+            <Ionicons
+              name="chevron-forward"
+              size={18}
+              color={colors.onSurfaceTertiary}
+            />
+          </Pressable>
+        );
+      })}
+      <Pressable
+        style={styles.linkBtn}
+        onPress={() => router.push("/programs?category=cardio")}
+        testID="all-cardio"
+      >
+        <Ionicons name="library" size={14} color={CARDIO_COLOR} />
+        <Text style={[styles.linkBtnText, { color: CARDIO_COLOR }]}>
+          Parcourir les programmes cardio
+        </Text>
+        <Ionicons name="chevron-forward" size={14} color={CARDIO_COLOR} />
+      </Pressable>
+      <Pressable
+        onPress={() =>
+          router.push("/custom-program/new?category=cardio")
+        }
+        testID="create-cardio-program-2"
+        style={[styles.ctaBtnSecondary, { borderColor: CARDIO_COLOR }]}
+      >
+        <Text style={[styles.ctaTextSecondary, { color: CARDIO_COLOR }]}>
+          Créer mon programme cardio
+        </Text>
+      </Pressable>
+    </>
+  );
 }
 
 function MobilityView({
