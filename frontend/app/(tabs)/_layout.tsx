@@ -94,7 +94,6 @@ export default function TabsLayout() {
         <Tabs.Screen name="program" options={{ href: null }} />
         <Tabs.Screen name="plans" options={{ href: null }} />
         <Tabs.Screen name="stretching" options={{ href: null }} />
-        <Tabs.Screen name="progress" options={{ href: null }} />
         <Tabs.Screen name="history" options={{ href: null }} />
       </Tabs>
 

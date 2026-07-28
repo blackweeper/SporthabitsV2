@@ -1,4 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import type { ExerciseCategory } from '@/src/utils/exercise-category';
+import type { MuscleGroupKey } from '@/src/utils/muscle-groups';
 
 export type ExerciseMode = 'reps' | 'time' | 'amrap' | 'emom';
 
@@ -89,7 +91,9 @@ export type SessionJournal = {
   mood?: number | null; // 1-10
   energy?: number | null; // 1-10
   motivation?: number | null; // 1-10
+  /** @deprecated free-text pain field, superseded by `pain_zones` (body-map picker) */
   pain?: string | null;
+  pain_zones?: PainEntry[] | null;
   sleep_hours?: number | null;
   nutrition?: string | null;
   comment?: string | null;
@@ -1331,4 +1335,46 @@ export async function toggleFavoriteExercise(name: string): Promise<string[]> {
     : [...list, name];
   await AsyncStorage.setItem(FAVORITE_EXERCISES_KEY, JSON.stringify(next));
   return next;
+}
+
+// ---------- Custom exercises (user-created library entries) ----------
+const CUSTOM_EXERCISES_KEY = '@ironflow/customExercises';
+
+export type CustomExercise = {
+  id: string;
+  nameFr: string;
+  nameEn?: string | null;
+  category: ExerciseCategory;
+  muscleGroups?: MuscleGroupKey[];
+  equipment?: string | null;
+  description?: string | null;
+  /** WebP, base64, no `data:` prefix (matches the photoBase64 convention used elsewhere). */
+  imageBase64?: string | null;
+  createdAt: string;
+};
+
+export async function getCustomExercises(): Promise<CustomExercise[]> {
+  const raw = await AsyncStorage.getItem(CUSTOM_EXERCISES_KEY);
+  if (!raw) return [];
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
+}
+
+export async function saveCustomExercise(e: CustomExercise): Promise<void> {
+  const list = await getCustomExercises();
+  const idx = list.findIndex((x) => x.id === e.id);
+  if (idx >= 0) list[idx] = e;
+  else list.push(e);
+  await AsyncStorage.setItem(CUSTOM_EXERCISES_KEY, JSON.stringify(list));
+}
+
+export async function deleteCustomExercise(id: string): Promise<void> {
+  const list = await getCustomExercises();
+  await AsyncStorage.setItem(
+    CUSTOM_EXERCISES_KEY,
+    JSON.stringify(list.filter((e) => e.id !== id)),
+  );
 }

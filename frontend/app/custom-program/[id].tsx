@@ -31,16 +31,19 @@ import {
 } from "@/src/data/programs";
 import {
   addActiveProgram,
+  CustomExercise,
   deleteCustomProgram,
   ExerciseMode,
   getActivePrograms,
   getCustomPrograms,
   getPlans,
   Plan,
+  saveCustomExercise,
   saveCustomProgram,
   uid,
 } from "@/src/utils/gym-storage";
 import { estimateSessionDurationSeconds, formatEstimatedDuration } from "@/src/utils/session-estimate";
+import { NewExerciseSheet } from "@/src/components/ExerciseLibraryPicker";
 
 const LEVELS: ProgramLevel[] = ["debutant", "intermediaire", "avance"];
 const MODES: { key: ExerciseMode; label: string }[] = [
@@ -74,7 +77,11 @@ function newSession(): ProgramSession {
 }
 
 export default function CustomProgramEditor() {
-  const { id, category } = useLocalSearchParams<{ id: string; category?: string }>();
+  const { id, category, unrecognized } = useLocalSearchParams<{
+    id: string;
+    category?: string;
+    unrecognized?: string;
+  }>();
   const router = useRouter();
   const isNew = id === "new";
   const isStretch = category === "stretch";
@@ -85,6 +92,15 @@ export default function CustomProgramEditor() {
   const [importOpen, setImportOpen] = useState(false);
   const [availablePlans, setAvailablePlans] = useState<Plan[]>([]);
   const { confirm, ConfirmModal } = useConfirmDialog();
+
+  // Populated only right after "Importer un programme" — lets the user
+  // create the exercises the local parser couldn't match in the library.
+  const [unrecognizedNames, setUnrecognizedNames] = useState<string[]>(
+    unrecognized ? decodeURIComponent(unrecognized).split("|").filter(Boolean) : [],
+  );
+  const [newExerciseState, setNewExerciseState] = useState<
+    { mode: "create"; draft: CustomExercise } | null
+  >(null);
 
   useEffect(() => {
     (async () => {
@@ -232,6 +248,64 @@ export default function CustomProgramEditor() {
           <Text style={styles.saveBtnText}>SAUVEGARDER</Text>
         </Pressable>
       </View>
+
+      {unrecognizedNames.length > 0 && (
+        <View style={styles.unrecognizedBanner}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.unrecognizedTitle}>
+              {unrecognizedNames.length} exercice{unrecognizedNames.length > 1 ? "s" : ""} non
+              reconnu{unrecognizedNames.length > 1 ? "s" : ""}
+            </Text>
+            <Text style={styles.unrecognizedList} numberOfLines={2}>
+              {unrecognizedNames.join(", ")}
+            </Text>
+          </View>
+          <Pressable
+            testID="unrecognized-dismiss"
+            hitSlop={8}
+            onPress={() => setUnrecognizedNames([])}
+          >
+            <Ionicons name="close" size={18} color={colors.onSurfaceTertiary} />
+          </Pressable>
+        </View>
+      )}
+      {unrecognizedNames.length > 0 && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={{ maxHeight: 40 }}
+          contentContainerStyle={styles.unrecognizedChipRow}
+        >
+          {unrecognizedNames.map((name) => (
+            <Pressable
+              key={name}
+              testID={`unrecognized-create-${name}`}
+              style={styles.unrecognizedChip}
+              onPress={() => {
+                setNewExerciseState({
+                  mode: "create",
+                  draft: {
+                    id: uid(),
+                    nameFr: name,
+                    nameEn: null,
+                    category: "musculation",
+                    muscleGroups: [],
+                    equipment: null,
+                    description: null,
+                    imageBase64: null,
+                    createdAt: new Date().toISOString(),
+                  },
+                });
+              }}
+            >
+              <Ionicons name="add-circle" size={13} color={colors.brand} />
+              <Text style={styles.unrecognizedChipText} numberOfLines={1}>
+                Créer «{name}»
+              </Text>
+            </Pressable>
+          ))}
+        </ScrollView>
+      )}
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
@@ -553,6 +627,15 @@ export default function CustomProgramEditor() {
           setImportOpen(false);
         }}
       />
+      <NewExerciseSheet
+        state={newExerciseState}
+        onClose={() => setNewExerciseState(null)}
+        onSave={async (exercise: CustomExercise) => {
+          await saveCustomExercise(exercise);
+          setUnrecognizedNames((list) => list.filter((n) => n !== exercise.nameFr));
+          setNewExerciseState(null);
+        }}
+      />
       {ConfirmModal}
     </SafeAreaView>
   );
@@ -731,6 +814,24 @@ function SessionEditor({
             })
           }
           onPickPic={() => onPickExercisePic(ei)}
+          onMoveUp={
+            ei > 0
+              ? () => {
+                  const next = session.exercises.slice();
+                  [next[ei - 1], next[ei]] = [next[ei], next[ei - 1]];
+                  onChange({ exercises: next });
+                }
+              : undefined
+          }
+          onMoveDown={
+            ei < session.exercises.length - 1
+              ? () => {
+                  const next = session.exercises.slice();
+                  [next[ei], next[ei + 1]] = [next[ei + 1], next[ei]];
+                  onChange({ exercises: next });
+                }
+              : undefined
+          }
         />
       ))}
       <Pressable
@@ -767,12 +868,16 @@ function ExerciseEditor({
   onChange,
   onRemove,
   onPickPic,
+  onMoveUp,
+  onMoveDown,
 }: {
   exercise: ExerciseTemplate;
   index: number;
   onChange: (p: Partial<ExerciseTemplate>) => void;
   onRemove: () => void;
   onPickPic: () => void;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
 }) {
   const setMode = (m: ExerciseMode) => {
     const patch: Partial<ExerciseTemplate> = { mode: m };
@@ -815,6 +920,30 @@ function ExerciseEditor({
           placeholder="Nom de l'exercice"
           placeholderTextColor={colors.onSurfaceTertiary}
         />
+        <Pressable
+          testID={`move-ex-up-${index}`}
+          hitSlop={8}
+          disabled={!onMoveUp}
+          onPress={onMoveUp}
+        >
+          <Ionicons
+            name="chevron-up-circle"
+            size={18}
+            color={onMoveUp ? colors.onSurfaceSecondary : colors.surfaceTertiary}
+          />
+        </Pressable>
+        <Pressable
+          testID={`move-ex-down-${index}`}
+          hitSlop={8}
+          disabled={!onMoveDown}
+          onPress={onMoveDown}
+        >
+          <Ionicons
+            name="chevron-down-circle"
+            size={18}
+            color={onMoveDown ? colors.onSurfaceSecondary : colors.surfaceTertiary}
+          />
+        </Pressable>
         <Pressable
           testID={`remove-ex-${index}`}
           hitSlop={8}
@@ -1003,6 +1132,38 @@ function MiniField({
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.surface },
   loading: { color: colors.onSurfaceTertiary, textAlign: "center", marginTop: 40 },
+  unrecognizedBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    backgroundColor: colors.brandTertiary,
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.sm,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.brand,
+  },
+  unrecognizedTitle: { color: colors.onSurface, fontWeight: "800", fontSize: 13 },
+  unrecognizedList: { color: colors.brandSecondary, fontSize: 11, marginTop: 2 },
+  unrecognizedChipRow: {
+    flexDirection: "row",
+    gap: 6,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+  },
+  unrecognizedChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceSecondary,
+    borderWidth: 1,
+    borderColor: colors.brand,
+  },
+  unrecognizedChipText: { color: colors.brand, fontWeight: "700", fontSize: 11 },
   header: {
     flexDirection: "row",
     alignItems: "center",

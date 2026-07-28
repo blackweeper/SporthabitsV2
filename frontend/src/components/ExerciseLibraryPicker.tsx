@@ -8,25 +8,36 @@ import {
   TextInput,
   FlatList,
   ScrollView,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing } from "@/src/theme";
 import {
   EXERCISE_CATEGORY_COLOR,
   EXERCISE_CATEGORY_ICON,
+  EXERCISE_CATEGORY_LABEL,
   ExerciseCategory,
   resolveCategory,
   getOverrides,
 } from "@/src/utils/exercise-category";
 import { EXERCISE_LIBRARY } from "@/src/data/exercise-library";
 import {
+  CustomExercise,
+  deleteCustomExercise,
+  getCustomExercises,
   getFavoriteExercises,
   getSessions,
+  saveCustomExercise,
   toggleFavoriteExercise,
+  uid,
 } from "@/src/utils/gym-storage";
 import { listAllExercises } from "@/src/utils/exercise-detail";
 import { iconEmojiForExercise } from "@/src/data/exercise-icons";
 import { LIBRARY_MUSCLE_GROUPS, MuscleGroupKey } from "@/src/utils/muscle-groups";
+import { pickAndCompressImage } from "@/src/utils/image-compress";
+import SwipeableRow from "@/src/components/SwipeableRow";
 
 type Item = {
   name: string;
@@ -35,7 +46,12 @@ type Item = {
   count: number;
   favorite: boolean;
   muscleGroups?: MuscleGroupKey[];
+  isCustom?: boolean;
+  customId?: string;
+  imageBase64?: string | null;
 };
+
+const CATEGORIES: ExerciseCategory[] = ["musculation", "cardio_machine", "mobility"];
 
 type LibTab = "favorites" | "musculation" | "cardio_machine" | "mobility" | "all";
 
@@ -66,6 +82,12 @@ export default function ExerciseLibraryPicker({
   const [used, setUsed] = useState<{ name: string; count: number }[]>([]);
   const [tab, setTab] = useState<LibTab>("all");
   const [muscle, setMuscle] = useState<MuscleGroupKey | null>(null);
+  const [customExercises, setCustomExercises] = useState<CustomExercise[]>([]);
+  const [sheet, setSheet] = useState<{ mode: "create" | "edit"; draft: CustomExercise } | null>(
+    null,
+  );
+
+  const reloadCustom = async () => setCustomExercises(await getCustomExercises());
 
   useEffect(() => {
     if (!visible) return;
@@ -73,15 +95,17 @@ export default function ExerciseLibraryPicker({
     setTab("all");
     setMuscle(null);
     (async () => {
-      const [favs, sessions, overrides] = await Promise.all([
+      const [favs, sessions, overrides, customs] = await Promise.all([
         getFavoriteExercises(),
         getSessions(),
         getOverrides(),
+        getCustomExercises(),
       ]);
       setFavorites(favs);
       setUsed(listAllExercises(sessions));
       // stash overrides on the module-level closure via state below
       setOverridesState(overrides);
+      setCustomExercises(customs);
     })();
   }, [visible]);
 
@@ -91,8 +115,24 @@ export default function ExerciseLibraryPicker({
     const favSet = new Set(favorites.map((f) => f.toLowerCase().trim()));
     const merged: Item[] = [];
     const seen = new Set<string>();
+    for (const c of customExercises) {
+      const key = c.nameFr.toLowerCase().trim();
+      seen.add(key);
+      const done = used.find((u) => u.name.toLowerCase().trim() === key);
+      merged.push({
+        name: c.nameFr,
+        category: c.category,
+        count: done?.count ?? 0,
+        favorite: favSet.has(key),
+        muscleGroups: c.muscleGroups,
+        isCustom: true,
+        customId: c.id,
+        imageBase64: c.imageBase64,
+      });
+    }
     for (const lib of EXERCISE_LIBRARY) {
       const key = lib.name.toLowerCase().trim();
+      if (seen.has(key)) continue;
       seen.add(key);
       const done = used.find((u) => u.name.toLowerCase().trim() === key);
       merged.push({
@@ -115,7 +155,7 @@ export default function ExerciseLibraryPicker({
       });
     }
     return merged;
-  }, [favorites, used, overridesState]);
+  }, [favorites, used, overridesState, customExercises]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -240,7 +280,22 @@ export default function ExerciseLibraryPicker({
               <Pressable
                 testID="ex-library-create-new"
                 style={styles.createRow}
-                onPress={() => onPick(query.trim())}
+                onPress={() =>
+                  setSheet({
+                    mode: "create",
+                    draft: {
+                      id: uid(),
+                      nameFr: query.trim(),
+                      nameEn: null,
+                      category: "musculation",
+                      muscleGroups: [],
+                      equipment: null,
+                      description: null,
+                      imageBase64: null,
+                      createdAt: new Date().toISOString(),
+                    },
+                  })
+                }
               >
                 <Ionicons name="add-circle" size={22} color={colors.brand} />
                 <View style={{ flex: 1 }}>
@@ -265,21 +320,28 @@ export default function ExerciseLibraryPicker({
           }
           renderItem={({ item }) => {
             const color = EXERCISE_CATEGORY_COLOR[item.category];
-            return (
+            const row = (
               <Pressable
                 testID={`ex-library-item-${item.name}`}
                 style={styles.row}
                 onPress={() => onPick(item.name)}
               >
-                <View style={[styles.rowIcon, { backgroundColor: color + "26" }]}>
-                  {item.emoji ? (
-                    <Text style={{ fontSize: 16 }}>{item.emoji}</Text>
-                  ) : (
-                    <Text style={{ fontSize: 16 }}>
-                      {iconEmojiForExercise(item.name, null)}
-                    </Text>
-                  )}
-                </View>
+                {item.imageBase64 ? (
+                  <Image
+                    source={{ uri: `data:image/webp;base64,${item.imageBase64}` }}
+                    style={styles.rowImage}
+                  />
+                ) : (
+                  <View style={[styles.rowIcon, { backgroundColor: color + "26" }]}>
+                    {item.emoji ? (
+                      <Text style={{ fontSize: 16 }}>{item.emoji}</Text>
+                    ) : (
+                      <Text style={{ fontSize: 16 }}>
+                        {iconEmojiForExercise(item.name, null)}
+                      </Text>
+                    )}
+                  </View>
+                )}
                 <View style={{ flex: 1 }}>
                   <Text style={styles.rowTitle} numberOfLines={1}>
                     {item.name}
@@ -307,8 +369,247 @@ export default function ExerciseLibraryPicker({
                 </Pressable>
               </Pressable>
             );
+
+            if (!item.isCustom || !item.customId) return row;
+            const customId = item.customId;
+            return (
+              <SwipeableRow
+                testID={`ex-library-custom-${customId}`}
+                onDelete={async () => {
+                  await deleteCustomExercise(customId);
+                  reloadCustom();
+                }}
+                deleteConfirm={{
+                  title: "Supprimer cet exercice ?",
+                  message: `"${item.name}" sera retiré de ta bibliothèque personnalisée.`,
+                  confirmLabel: "SUPPRIMER",
+                  destructive: true,
+                }}
+                onEdit={() => {
+                  const full = customExercises.find((c) => c.id === customId);
+                  if (full) setSheet({ mode: "edit", draft: full });
+                }}
+              >
+                {row}
+              </SwipeableRow>
+            );
           }}
         />
+      </View>
+
+      <NewExerciseSheet
+        state={sheet}
+        onClose={() => setSheet(null)}
+        onSave={async (exercise) => {
+          await saveCustomExercise(exercise);
+          await reloadCustom();
+          setSheet(null);
+          if (sheet?.mode === "create") onPick(exercise.nameFr);
+        }}
+        onDelete={
+          sheet?.mode === "edit"
+            ? async () => {
+                await deleteCustomExercise(sheet.draft.id);
+                await reloadCustom();
+                setSheet(null);
+              }
+            : undefined
+        }
+      />
+    </Modal>
+  );
+}
+
+export function NewExerciseSheet({
+  state,
+  onClose,
+  onSave,
+  onDelete,
+}: {
+  state: { mode: "create" | "edit"; draft: CustomExercise } | null;
+  onClose: () => void;
+  onSave: (e: CustomExercise) => void;
+  onDelete?: () => void;
+}) {
+  const [draft, setDraft] = useState<CustomExercise | null>(null);
+
+  useEffect(() => {
+    if (state) setDraft(state.draft);
+  }, [state]);
+
+  if (!state || !draft) return null;
+
+  const set = <K extends keyof CustomExercise>(k: K, v: CustomExercise[K]) =>
+    setDraft((prev) => (prev ? { ...prev, [k]: v } : prev));
+
+  const toggleMuscle = (key: MuscleGroupKey) => {
+    const cur = draft.muscleGroups ?? [];
+    set("muscleGroups", cur.includes(key) ? cur.filter((m) => m !== key) : [...cur, key]);
+  };
+
+  const pickImage = async (source: "camera" | "library") => {
+    const base64 = await pickAndCompressImage(source);
+    if (base64) set("imageBase64", base64);
+  };
+
+  return (
+    <Modal
+      visible={!!state}
+      animationType="slide"
+      transparent
+      onRequestClose={onClose}
+    >
+      <View style={styles.sheetBackdrop}>
+        <Pressable style={{ flex: 1 }} onPress={onClose} />
+        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}>
+          <ScrollView style={styles.sheet} contentContainerStyle={{ gap: spacing.sm }}>
+            <View style={styles.sheetHandle} />
+            <Text style={styles.sheetTitle}>
+              {state.mode === "create" ? "Nouvel exercice" : "Modifier l'exercice"}
+            </Text>
+
+            <Text style={styles.miniLabel}>Nom (français)</Text>
+            <TextInput
+              testID="new-ex-name-fr"
+              style={styles.input}
+              value={draft.nameFr}
+              onChangeText={(t) => set("nameFr", t)}
+              placeholder="Ex: Développé incliné haltères"
+              placeholderTextColor={colors.onSurfaceTertiary}
+            />
+
+            <Text style={styles.miniLabel}>Nom (anglais, optionnel)</Text>
+            <TextInput
+              testID="new-ex-name-en"
+              style={styles.input}
+              value={draft.nameEn ?? ""}
+              onChangeText={(t) => set("nameEn", t || null)}
+              placeholder="Ex: Incline Dumbbell Press"
+              placeholderTextColor={colors.onSurfaceTertiary}
+            />
+
+            <Text style={styles.miniLabel}>Catégorie</Text>
+            <View style={styles.chipWrap}>
+              {CATEGORIES.map((c) => {
+                const active = draft.category === c;
+                return (
+                  <Pressable
+                    key={c}
+                    testID={`new-ex-cat-${c}`}
+                    style={[styles.tabChip, active && styles.tabChipActive]}
+                    onPress={() => set("category", c)}
+                  >
+                    <Ionicons
+                      name={EXERCISE_CATEGORY_ICON[c]}
+                      size={12}
+                      color={active ? "#fff" : EXERCISE_CATEGORY_COLOR[c]}
+                    />
+                    <Text style={[styles.tabChipText, active && { color: "#fff" }]}>
+                      {EXERCISE_CATEGORY_LABEL[c]}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            <Text style={styles.miniLabel}>Groupes musculaires</Text>
+            <View style={styles.chipWrap}>
+              {LIBRARY_MUSCLE_GROUPS.map((mg) => {
+                const active = (draft.muscleGroups ?? []).includes(mg.key);
+                return (
+                  <Pressable
+                    key={mg.key}
+                    testID={`new-ex-muscle-${mg.key}`}
+                    style={[styles.muscleChip, active && styles.muscleChipActive]}
+                    onPress={() => toggleMuscle(mg.key)}
+                  >
+                    <Text style={styles.tabEmoji}>{mg.emoji}</Text>
+                    <Text style={[styles.muscleChipText, active && { color: "#fff" }]}>
+                      {mg.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            <Text style={styles.miniLabel}>Matériel (optionnel)</Text>
+            <TextInput
+              testID="new-ex-equipment"
+              style={styles.input}
+              value={draft.equipment ?? ""}
+              onChangeText={(t) => set("equipment", t || null)}
+              placeholder="Ex: Haltères, banc incliné"
+              placeholderTextColor={colors.onSurfaceTertiary}
+            />
+
+            <Text style={styles.miniLabel}>Description (optionnel)</Text>
+            <TextInput
+              testID="new-ex-description"
+              style={[styles.input, { minHeight: 70, textAlignVertical: "top" }]}
+              value={draft.description ?? ""}
+              onChangeText={(t) => set("description", t || null)}
+              placeholder="Consignes, points de repère…"
+              placeholderTextColor={colors.onSurfaceTertiary}
+              multiline
+            />
+
+            <Text style={styles.miniLabel}>Photo (optionnel)</Text>
+            {draft.imageBase64 ? (
+              <View style={styles.imagePreviewWrap}>
+                <Image
+                  source={{ uri: `data:image/webp;base64,${draft.imageBase64}` }}
+                  style={styles.imagePreview}
+                />
+                <Pressable
+                  testID="new-ex-image-remove"
+                  style={styles.imageRemoveBtn}
+                  onPress={() => set("imageBase64", null)}
+                >
+                  <Ionicons name="trash" size={14} color={colors.error} />
+                  <Text style={{ color: colors.error, fontWeight: "700", fontSize: 11 }}>
+                    Retirer
+                  </Text>
+                </Pressable>
+              </View>
+            ) : (
+              <View style={styles.photoRow}>
+                <Pressable
+                  testID="new-ex-photo-camera"
+                  style={styles.photoBtn}
+                  onPress={() => pickImage("camera")}
+                >
+                  <Ionicons name="camera" size={16} color={colors.brand} />
+                  <Text style={styles.photoBtnText}>Caméra</Text>
+                </Pressable>
+                <Pressable
+                  testID="new-ex-photo-library"
+                  style={styles.photoBtn}
+                  onPress={() => pickImage("library")}
+                >
+                  <Ionicons name="images" size={16} color={colors.brand} />
+                  <Text style={styles.photoBtnText}>Galerie</Text>
+                </Pressable>
+              </View>
+            )}
+
+            <View style={styles.sheetActions}>
+              {onDelete && (
+                <Pressable testID="new-ex-delete" style={styles.deleteBtn} onPress={onDelete}>
+                  <Ionicons name="trash" size={16} color={colors.error} />
+                  <Text style={styles.deleteBtnText}>Supprimer</Text>
+                </Pressable>
+              )}
+              <Pressable
+                testID="new-ex-save"
+                style={[styles.saveBtn, { flex: onDelete ? 1 : undefined }]}
+                onPress={() => draft.nameFr.trim() && onSave({ ...draft, nameFr: draft.nameFr.trim() })}
+              >
+                <Text style={styles.saveBtnText}>ENREGISTRER</Text>
+              </Pressable>
+            </View>
+            <View style={{ height: 24 }} />
+          </ScrollView>
+        </KeyboardAvoidingView>
       </View>
     </Modal>
   );
@@ -426,4 +727,97 @@ const styles = StyleSheet.create({
     marginTop: spacing.xl,
     fontStyle: "italic",
   },
+  rowImage: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: colors.surfaceTertiary,
+  },
+  sheetBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.65)",
+    justifyContent: "flex-end",
+  },
+  sheet: {
+    backgroundColor: colors.surfaceSecondary,
+    padding: spacing.lg,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: "88%",
+  },
+  sheetHandle: {
+    width: 48,
+    height: 5,
+    backgroundColor: colors.border,
+    borderRadius: 3,
+    alignSelf: "center",
+    marginBottom: spacing.sm,
+  },
+  sheetTitle: {
+    color: colors.onSurface,
+    fontSize: 17,
+    fontWeight: "800",
+  },
+  miniLabel: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 10,
+    letterSpacing: 1,
+    fontWeight: "700",
+    marginTop: 4,
+  },
+  input: {
+    backgroundColor: colors.surfaceTertiary,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    color: colors.onSurface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  chipWrap: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
+  photoRow: { flexDirection: "row", gap: spacing.sm },
+  photoBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 12,
+    borderRadius: radius.md,
+    borderWidth: 1.5,
+    borderColor: colors.brand,
+    borderStyle: "dashed",
+    backgroundColor: colors.surfaceTertiary,
+  },
+  photoBtnText: { color: colors.brand, fontWeight: "800", fontSize: 12 },
+  imagePreviewWrap: { alignItems: "center", gap: 8 },
+  imagePreview: {
+    width: 140,
+    height: 140,
+    borderRadius: radius.md,
+    backgroundColor: colors.surfaceTertiary,
+  },
+  imageRemoveBtn: { flexDirection: "row", alignItems: "center", gap: 4 },
+  sheetActions: {
+    flexDirection: "row",
+    gap: spacing.sm,
+    marginTop: spacing.md,
+  },
+  deleteBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingHorizontal: spacing.lg,
+  },
+  deleteBtnText: { color: colors.error, fontWeight: "700", fontSize: 13 },
+  saveBtn: {
+    flex: 1,
+    backgroundColor: colors.brand,
+    padding: 14,
+    borderRadius: radius.md,
+    alignItems: "center",
+  },
+  saveBtnText: { color: "#fff", fontWeight: "800", letterSpacing: 1 },
 });

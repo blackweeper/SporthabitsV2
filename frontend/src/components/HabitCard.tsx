@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  Animated,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing } from "@/src/theme";
@@ -30,6 +31,7 @@ export default function HabitCard({
   target,
   unit,
   onPressValue,
+  onLongPress,
   actions,
 }: {
   testId?: string;
@@ -40,32 +42,55 @@ export default function HabitCard({
   target: number;
   unit?: string;
   onPressValue?: () => void;
+  onLongPress?: () => void;
   actions: ReactNode;
 }) {
   const pct = Math.min(1, target > 0 ? value / target : 0);
   const done = pct >= 1;
+  const bounce = useRef(new Animated.Value(1)).current;
+  const firstRender = useRef(true);
+
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
+    Animated.sequence([
+      Animated.spring(bounce, { toValue: 1.25, useNativeDriver: true, speed: 30, bounciness: 12 }),
+      Animated.spring(bounce, { toValue: 1, useNativeDriver: true, speed: 20, bounciness: 8 }),
+    ]).start();
+  }, [value, bounce]);
+
   return (
     <View style={[styles.card, done && { borderColor: color }]} testID={testId}>
-      <View style={styles.head}>
-        <View style={[styles.iconWrap, { backgroundColor: color + "26" }]}>
-          <Ionicons name={icon} size={15} color={color} />
-        </View>
-        <Text style={styles.title} numberOfLines={1}>
-          {title}
-        </Text>
-        <Text style={[styles.pct, done && { color }]}>{Math.round(pct * 100)}%</Text>
-        {done && <Ionicons name="checkmark-circle" size={13} color={color} />}
-      </View>
       <Pressable
-        testID={testId ? `${testId}-value` : undefined}
+        testID={testId ? `${testId}-body` : undefined}
         onPress={onPressValue}
-        style={styles.valueRow}
+        onLongPress={onLongPress}
+        delayLongPress={450}
       >
-        <Text style={styles.value}>{formatNumber(value)}</Text>
-        <Text style={styles.target}>
-          / {formatNumber(target)}
-          {unit ? ` ${unit}` : ""}
-        </Text>
+        <View style={styles.head}>
+          <Animated.View
+            style={[
+              styles.iconWrap,
+              { backgroundColor: color + "26", transform: [{ scale: bounce }] },
+            ]}
+          >
+            <Ionicons name={icon} size={15} color={color} />
+          </Animated.View>
+          <Text style={styles.title} numberOfLines={1}>
+            {title}
+          </Text>
+          <Text style={[styles.pct, done && { color }]}>{Math.round(pct * 100)}%</Text>
+          {done && <Ionicons name="checkmark-circle" size={13} color={color} />}
+        </View>
+        <View style={styles.valueRow}>
+          <Text style={styles.value}>{formatNumber(value)}</Text>
+          <Text style={styles.target}>
+            / {formatNumber(target)}
+            {unit ? ` ${unit}` : ""}
+          </Text>
+        </View>
       </Pressable>
       <View style={styles.track}>
         <View style={[styles.fill, { width: `${pct * 100}%`, backgroundColor: color }]} />

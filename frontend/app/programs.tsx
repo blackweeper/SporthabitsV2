@@ -97,6 +97,23 @@ export default function ProgramsScreen() {
           <Ionicons name="chevron-forward" size={20} color={colors.brand} />
         </Pressable>
 
+        <Pressable
+          testID="import-program"
+          style={styles.importCard}
+          onPress={() => router.push("/program-import" as any)}
+        >
+          <View style={styles.importIcon}>
+            <Ionicons name="sparkles" size={22} color={colors.brand} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.createTitle}>Importer un programme</Text>
+            <Text style={styles.createSub}>
+              Colle un programme (texte) — reconnaissance automatique des jours et exercices
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={colors.brand} />
+        </Pressable>
+
         {customs.length > 0 && (
           <>
             <Text style={styles.sectionLabel}>MES PROGRAMMES</Text>
@@ -236,6 +253,25 @@ const styles = StyleSheet.create({
     borderStyle: "dashed",
   },
   createIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: radius.md,
+    backgroundColor: colors.brandTertiary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  importCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    backgroundColor: colors.surfaceSecondary,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginTop: spacing.sm,
+  },
+  importIcon: {
     width: 52,
     height: 52,
     borderRadius: radius.md,

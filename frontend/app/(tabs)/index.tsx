@@ -1037,7 +1037,8 @@ function CustomHabitCard({
         value={current}
         target={target}
         unit={habit.unit ?? undefined}
-        onPressValue={onOpen}
+        onPressValue={isTimed ? undefined : isCheckbox ? onToggle : () => onBump(1)}
+        onLongPress={onOpen}
         actions={actions}
       />
     </SwipeableRow>

@@ -21,6 +21,7 @@ import {
   saveSession,
   WorkoutSession,
 } from "@/src/utils/gym-storage";
+import BodyPainMap from "@/src/components/BodyPainMap";
 
 const ACTIVITIES: CardioActivity[] = [
   "course",
@@ -195,15 +196,10 @@ export default function JournalScreen() {
               onChange={(v) => patchJournal({ motivation: v })}
             />
 
-            <Text style={styles.miniLabel}>Douleurs / gênes</Text>
-            <TextInput
-              testID="journal-pain"
-              style={styles.textArea}
-              value={j.pain || ""}
-              onChangeText={(t) => patchJournal({ pain: t.trim() ? t : null })}
-              placeholder="Ex: petite douleur à l'épaule droite"
-              placeholderTextColor={colors.onSurfaceTertiary}
-              multiline
+            <BodyPainMap
+              value={j.pain_zones ?? []}
+              onChange={(zones) => patchJournal({ pain_zones: zones })}
+              testID="journal-pain-map"
             />
 
             <Text style={styles.miniLabel}>Alimentation avant/après</Text>

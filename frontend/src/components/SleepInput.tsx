@@ -77,9 +77,6 @@ export default function SleepInput({
       <View style={styles.headRow}>
         <Ionicons name="moon" size={14} color={colors.brand} />
         <Text style={styles.label}>Sommeil</Text>
-        <Text style={styles.value}>
-          {computedHours != null ? formatSleepHM(computedHours) : "—"}
-        </Text>
       </View>
 
       <View style={styles.modeRow}>
@@ -136,6 +133,13 @@ export default function SleepInput({
         </Pressable>
       )}
 
+      <View style={styles.durationCallout} testID={testID ? `${testID}-duration` : undefined}>
+        <Text style={styles.durationLabel}>Temps de sommeil</Text>
+        <Text style={styles.durationValue}>
+          {computedHours != null ? formatSleepHM(computedHours) : "—"}
+        </Text>
+      </View>
+
       <WheelPickerModal
         visible={editing === "bedtime"}
         title="Heure de coucher"
@@ -174,7 +178,27 @@ const styles = StyleSheet.create({
   wrap: { gap: 8 },
   headRow: { flexDirection: "row", alignItems: "center", gap: 6 },
   label: { flex: 1, color: colors.onSurface, fontWeight: "800", fontSize: 13 },
-  value: { color: colors.brand, fontWeight: "800", fontSize: 15 },
+  durationCallout: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    justifyContent: "space-between",
+    backgroundColor: colors.brandTertiary,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.brand,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 10,
+  },
+  durationLabel: {
+    color: colors.brandSecondary,
+    fontWeight: "700",
+    fontSize: 12,
+  },
+  durationValue: {
+    color: colors.brand,
+    fontWeight: "800",
+    fontSize: 22,
+  },
   modeRow: {
     flexDirection: "row",
     backgroundColor: colors.surfaceTertiary,
