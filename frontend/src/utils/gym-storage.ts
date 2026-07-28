@@ -1265,6 +1265,40 @@ export async function patchWellnessLog(
   return updated;
 }
 
+// ---------- Meal presets (configurable quick-add shortcuts for Calories) ----------
+const MEAL_PRESETS_KEY = '@ironflow/mealPresets';
+
+export type MealPreset = {
+  id: string;
+  emoji: string;
+  label: string;
+  kcal: number;
+};
+
+export const DEFAULT_MEAL_PRESETS: MealPreset[] = [
+  { id: 'breakfast', emoji: '🍳', label: 'Petit-déjeuner', kcal: 400 },
+  { id: 'lunch', emoji: '🥗', label: 'Déjeuner', kcal: 700 },
+  { id: 'dinner', emoji: '🍝', label: 'Dîner', kcal: 600 },
+  { id: 'snack', emoji: '🥜', label: 'Collation', kcal: 200 },
+  { id: 'fruit', emoji: '🍎', label: 'Fruit', kcal: 80 },
+  { id: 'sugary_drink', emoji: '🥤', label: 'Boisson sucrée', kcal: 150 },
+];
+
+export async function getMealPresets(): Promise<MealPreset[]> {
+  const raw = await AsyncStorage.getItem(MEAL_PRESETS_KEY);
+  if (!raw) return DEFAULT_MEAL_PRESETS;
+  try {
+    const list = JSON.parse(raw);
+    return Array.isArray(list) && list.length > 0 ? list : DEFAULT_MEAL_PRESETS;
+  } catch {
+    return DEFAULT_MEAL_PRESETS;
+  }
+}
+
+export async function saveMealPresets(list: MealPreset[]): Promise<void> {
+  await AsyncStorage.setItem(MEAL_PRESETS_KEY, JSON.stringify(list));
+}
+
 /**
  * Convert decimal hours (e.g. 7.867) to "7h52" style label.
  */

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -32,12 +32,14 @@ import {
   getDailyJournal,
   getHabits,
   getHabitLogs,
+  getMealPresets,
   getMeasurements,
   getPRs,
   getProfile,
   getReminders,
   getSessions,
   getWellnessLogs,
+  MealPreset,
   patchWellnessLog,
   Habit,
   HabitKind,
@@ -56,12 +58,19 @@ import { computeDailyIronflowScore, scoreQualitativeLabel } from "@/src/utils/sc
 import { computeXPState } from "@/src/utils/xp";
 import { computeAdvancedStats } from "@/src/utils/stats";
 import { motivationMessage } from "@/src/data/motivation";
-import { WellnessCard } from "@/src/components/WellnessWidgets";
 import { progressionHref } from "@/src/utils/progression-nav";
 import HabitTimerModal from "@/src/components/HabitTimerModal";
 import SwipeableRow from "@/src/components/SwipeableRow";
 import CalendarView, { DayEventDot } from "@/src/components/CalendarView";
-import { getActiveHabitTimer } from "@/src/utils/habit-timer";
+import HabitCard, {
+  ActionChip,
+  ActionsRow,
+  ActionsScroll,
+  MinusButton,
+  QuantityModal,
+  WideActionButton,
+} from "@/src/components/HabitCard";
+import { ActiveHabitTimer, getActiveHabitTimer } from "@/src/utils/habit-timer";
 import {
   computeDueReminders,
   dismissReminderKey,
@@ -97,6 +106,12 @@ export default function TodayScreen() {
   const [calendarMonthOffset, setCalendarMonthOffset] = useState(0);
   const [dayModalDate, setDayModalDate] = useState<string | null>(null);
   const [dismissedReminders, setDismissedReminders] = useState<string[]>([]);
+  const [mealPresets, setMealPresets] = useState<MealPreset[]>([]);
+  const [activeTimerRaw, setActiveTimerRaw] = useState<ActiveHabitTimer | null>(null);
+  const [quantityModal, setQuantityModal] = useState<{
+    which: "water" | "calories" | "steps";
+    mode: "set" | "add";
+  } | null>(null);
   const notifiedRef = useRef<Set<string>>(new Set());
 
   const load = useCallback(async () => {
@@ -121,11 +136,13 @@ export default function TodayScreen() {
     setCalendarEvents(await getCalendarEvents());
     setReminders(await getReminders());
     setDismissedReminders(await getDismissedReminderKeys());
+    setMealPresets(await getMealPresets());
 
     // Restore an in-progress habit timer (e.g. the app was backgrounded or
     // reloaded mid-countdown) so it keeps running instead of silently
     // vanishing.
     const active = await getActiveHabitTimer();
+    setActiveTimerRaw(active);
     if (active) {
       const match = loadedHabits.find((h) => h.id === active.habitId);
       if (match) setTimerHabit(match);
@@ -352,6 +369,28 @@ export default function TodayScreen() {
     load();
   };
 
+  const wellnessField = (which: "water" | "calories" | "steps") =>
+    which === "water" ? "water_ml" : which === "calories" ? "calories_kcal" : "steps";
+
+  const submitQuantityModal = async (n: number) => {
+    if (!quantityModal) return;
+    const field = wellnessField(quantityModal.which);
+    if (quantityModal.mode === "add") await bumpWellness(field, n);
+    else await setWellnessValue(field, n);
+  };
+
+  const bumpHabit = async (habitId: string, current: number, delta: number) => {
+    Haptics.selectionAsync().catch(() => {});
+    await setHabitValue(habitId, today, Math.max(0, current + delta));
+    load();
+  };
+
+  const toggleHabit = async (habitId: string, current: number, target: number) => {
+    Haptics.selectionAsync().catch(() => {});
+    await setHabitValue(habitId, today, current > 0 ? 0 : target);
+    load();
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
       <ScrollView
@@ -573,50 +612,90 @@ export default function TodayScreen() {
             onPress={() => router.push("/training")}
           />
           {/* Wellness quick-taps: Eau / Calories / Pas */}
-          <WellnessCard
+          <HabitCard
+            testId="widget-water"
             icon="water"
             color="#3B82F6"
-            label="Eau"
+            title="Eau"
             value={wellness?.water_ml ?? 0}
             target={profile?.water_target_ml || DEFAULT_WATER_TARGET_ML}
             unit="ml"
-            shortcuts={[
-              { label: "+250", delta: 250 },
-              { label: "+500", delta: 500 },
-            ]}
-            onBump={(d) => bumpWellness("water_ml", d)}
-            onSet={(v) => setWellnessValue("water_ml", v)}
-            testId="widget-water"
+            onPressValue={() => setQuantityModal({ which: "water", mode: "set" })}
+            actions={
+              <ActionsScroll>
+                <MinusButton
+                  testID="widget-water-minus"
+                  onPress={() => bumpWellness("water_ml", -250)}
+                />
+                <ActionChip testID="widget-water-250" label="+250 ml" onPress={() => bumpWellness("water_ml", 250)} />
+                <ActionChip testID="widget-water-500" label="+500 ml" onPress={() => bumpWellness("water_ml", 500)} />
+                <ActionChip testID="widget-water-750" label="+750 ml" onPress={() => bumpWellness("water_ml", 750)} />
+                <ActionChip testID="widget-water-1000" label="+1 L" onPress={() => bumpWellness("water_ml", 1000)} />
+                <ActionChip
+                  testID="widget-water-modify"
+                  label="Modifier"
+                  color="#3B82F6"
+                  onPress={() => setQuantityModal({ which: "water", mode: "set" })}
+                />
+              </ActionsScroll>
+            }
           />
-          <WellnessCard
+          <HabitCard
+            testId="widget-calories"
             icon="nutrition"
             color="#F97316"
-            label="Calories"
+            title="Calories"
             value={wellness?.calories_kcal ?? 0}
             target={profile?.calories_target_kcal || DEFAULT_CALORIES_TARGET_KCAL}
             unit="kcal"
-            shortcuts={[
-              { label: "+200", delta: 200 },
-              { label: "+500", delta: 500 },
-            ]}
-            onBump={(d) => bumpWellness("calories_kcal", d)}
-            onSet={(v) => setWellnessValue("calories_kcal", v)}
-            testId="widget-calories"
+            onPressValue={() => setQuantityModal({ which: "calories", mode: "set" })}
+            actions={
+              <ActionsScroll>
+                {mealPresets.map((m) => (
+                  <ActionChip
+                    key={m.id}
+                    testID={`widget-calories-${m.id}`}
+                    emoji={m.emoji}
+                    label={`${m.label} · +${m.kcal}`}
+                    onPress={() => bumpWellness("calories_kcal", m.kcal)}
+                  />
+                ))}
+                <ActionChip
+                  testID="widget-calories-custom"
+                  emoji="✏️"
+                  label="Personnalisé"
+                  color="#F97316"
+                  onPress={() => setQuantityModal({ which: "calories", mode: "add" })}
+                />
+              </ActionsScroll>
+            }
           />
-          <WellnessCard
+          <HabitCard
+            testId="widget-steps"
             icon="footsteps"
             color="#10B981"
-            label="Pas"
+            title="Pas"
             value={wellness?.steps ?? 0}
             target={profile?.steps_target || DEFAULT_STEPS_TARGET}
             unit="pas"
-            shortcuts={[
-              { label: "+1000", delta: 1000 },
-              { label: "+2500", delta: 2500 },
-            ]}
-            onBump={(d) => bumpWellness("steps", d)}
-            onSet={(v) => setWellnessValue("steps", v)}
-            testId="widget-steps"
+            onPressValue={() => setQuantityModal({ which: "steps", mode: "set" })}
+            actions={
+              <ActionsScroll>
+                <MinusButton
+                  testID="widget-steps-minus"
+                  onPress={() => bumpWellness("steps", -500)}
+                />
+                <ActionChip testID="widget-steps-500" label="+500" onPress={() => bumpWellness("steps", 500)} />
+                <ActionChip testID="widget-steps-1000" label="+1000" onPress={() => bumpWellness("steps", 1000)} />
+                <ActionChip testID="widget-steps-2000" label="+2000" onPress={() => bumpWellness("steps", 2000)} />
+                <ActionChip
+                  testID="widget-steps-modify"
+                  label="Modifier"
+                  color="#10B981"
+                  onPress={() => setQuantityModal({ which: "steps", mode: "set" })}
+                />
+              </ActionsScroll>
+            }
           />
           {/* Habits — excludes kinds already covered by the Eau / Calories /
               Pas cards above, to avoid showing the same daily metric twice. */}
@@ -627,20 +706,14 @@ export default function TodayScreen() {
                 logs.find((l) => l.habitId === h.id && l.date === today)?.value ?? 0;
               const target = h.target && h.target > 0 ? h.target : 1;
               return (
-                <HabitListItem
+                <CustomHabitCard
                   key={h.id}
                   habit={h}
                   current={cur}
                   target={target}
-                  onIncrement={async () => {
-                    const next = cur >= target ? 0 : cur + 1;
-                    await setHabitValue(h.id, today, next);
-                    load();
-                  }}
-                  onReset={async () => {
-                    await setHabitValue(h.id, today, 0);
-                    load();
-                  }}
+                  activeTimer={activeTimerRaw}
+                  onBump={(delta) => bumpHabit(h.id, cur, delta)}
+                  onToggle={() => toggleHabit(h.id, cur, target)}
                   onOpen={() => router.push(`/habit/${h.id}` as any)}
                   onStartTimer={() => setTimerHabit(h)}
                   onDelete={async () => {
@@ -715,6 +788,33 @@ export default function TodayScreen() {
           setTimerHabit(null);
           load();
         }}
+      />
+      <QuantityModal
+        mode={quantityModal?.mode ?? null}
+        label={
+          quantityModal?.which === "water"
+            ? "Eau"
+            : quantityModal?.which === "calories"
+            ? "Calories"
+            : "Pas"
+        }
+        unit={quantityModal?.which === "water" ? "ml" : quantityModal?.which === "calories" ? "kcal" : "pas"}
+        currentValue={
+          quantityModal?.which === "water"
+            ? wellness?.water_ml ?? 0
+            : quantityModal?.which === "calories"
+            ? wellness?.calories_kcal ?? 0
+            : wellness?.steps ?? 0
+        }
+        color={
+          quantityModal?.which === "water"
+            ? "#3B82F6"
+            : quantityModal?.which === "calories"
+            ? "#F97316"
+            : "#10B981"
+        }
+        onClose={() => setQuantityModal(null)}
+        onSubmit={submitQuantityModal}
       />
       <Modal
         visible={dayModalDate !== null}
@@ -832,12 +932,22 @@ function SessionListItem({
   );
 }
 
-function HabitListItem({
+/** Rounds a habit's target down to a "nice" quick-add step (e.g. 8 -> 2,
+ * 10000 -> 3000) for the generic quantitative-habit shortcuts. */
+function niceStep(target: number): number {
+  if (target <= 1) return 0;
+  const raw = target / 4;
+  const pow10 = Math.pow(10, Math.floor(Math.log10(raw)));
+  return Math.max(1, Math.round(raw / pow10) * pow10);
+}
+
+function CustomHabitCard({
   habit,
   current,
   target,
-  onIncrement,
-  onReset,
+  activeTimer,
+  onBump,
+  onToggle,
   onOpen,
   onStartTimer,
   onDelete,
@@ -845,20 +955,68 @@ function HabitListItem({
   habit: Habit;
   current: number;
   target: number;
-  onIncrement: () => void;
-  onReset: () => void;
+  activeTimer: ActiveHabitTimer | null;
+  onBump: (delta: number) => void;
+  onToggle: () => void;
   onOpen: () => void;
   onStartTimer: () => void;
   onDelete: () => void | Promise<void>;
 }) {
-  const done = current >= target;
   const color = habit.color ?? "#4CAF50";
   const iconName = (habit.kind ? HABIT_KIND_ICON[habit.kind] : "star") as any;
-  const pct = target > 0 ? Math.min(1, current / target) : 0;
-  const pctLabel = `${Math.round(pct * 100)}%`;
-  // Habits tracked in minutes get a real countdown timer instead of a plain
-  // tap-to-increment counter.
   const isTimed = habit.unit === "min";
+  const isCheckbox = !isTimed && target <= 1;
+  const done = current >= target;
+
+  let actions: ReactNode;
+  if (isTimed) {
+    const forThis = activeTimer?.habitId === habit.id ? activeTimer : null;
+    const label = !forThis ? "Commencer" : forThis.status === "running" ? "En cours" : "Reprendre";
+    actions = (
+      <ActionsRow>
+        <WideActionButton
+          testID={`widget-${habit.id}-start`}
+          label={label}
+          icon="play"
+          color={color}
+          onPress={onStartTimer}
+        />
+      </ActionsRow>
+    );
+  } else if (isCheckbox) {
+    actions = (
+      <ActionsRow>
+        <WideActionButton
+          testID={`widget-${habit.id}-toggle`}
+          label={done ? "Fait aujourd'hui ✓" : "Marquer comme fait"}
+          icon={done ? "checkmark-circle" : "ellipse-outline"}
+          color={color}
+          onPress={onToggle}
+        />
+      </ActionsRow>
+    );
+  } else {
+    const step = niceStep(target);
+    actions = (
+      <ActionsRow>
+        <ActionChip testID={`widget-${habit.id}-plus1`} label="+1" onPress={() => onBump(1)} />
+        {step > 1 && (
+          <ActionChip
+            testID={`widget-${habit.id}-plusstep`}
+            label={`+${step}`}
+            onPress={() => onBump(step)}
+          />
+        )}
+        <ActionChip
+          testID={`widget-${habit.id}-modify`}
+          label="Modifier"
+          color={color}
+          onPress={onOpen}
+        />
+      </ActionsRow>
+    );
+  }
+
   return (
     <SwipeableRow
       testID={`widget-${habit.id}`}
@@ -871,67 +1029,17 @@ function HabitListItem({
       }}
       onEdit={onOpen}
     >
-    <Pressable
-      testID={`widget-${habit.id}`}
-      style={[styles.listItem, done && { borderColor: color }]}
-      onPress={isTimed ? undefined : onIncrement}
-      onLongPress={onOpen}
-      delayLongPress={450}
-    >
-      <View style={styles.listItemHead}>
-        <View
-          style={[
-            styles.listItemIcon,
-            { backgroundColor: done ? color : colors.surfaceTertiary },
-          ]}
-        >
-          <Ionicons
-            name={iconName}
-            size={16}
-            color={done ? "#fff" : colors.onSurfaceTertiary}
-          />
-        </View>
-        <Text style={styles.listItemTitle} numberOfLines={1}>
-          {habit.title}
-        </Text>
-        {target > 1 && !done && (
-          <Text style={styles.listItemValue}>
-            {isTimed ? `${target} min` : `${current}/${target}${habit.unit ? ` ${habit.unit}` : ""}`}
-          </Text>
-        )}
-        <Text style={[styles.listItemPct, done && { color }]}>{pctLabel}</Text>
-        {done ? (
-          <Ionicons name="checkmark-circle" size={14} color={color} />
-        ) : isTimed ? null : target > 1 ? (
-          <Pressable
-            testID={`widget-${habit.id}-reset`}
-            hitSlop={8}
-            onPress={onReset}
-            style={styles.listItemResetBtn}
-          >
-            <Ionicons name="refresh" size={12} color={colors.onSurfaceTertiary} />
-          </Pressable>
-        ) : null}
-      </View>
-      <View style={styles.progressTrack}>
-        <View
-          style={[
-            styles.progressFill,
-            { width: `${Math.round(pct * 100)}%`, backgroundColor: color },
-          ]}
-        />
-      </View>
-      {isTimed && !done && (
-        <Pressable
-          testID={`widget-${habit.id}-start`}
-          style={[styles.startTimerBtn, { backgroundColor: color }]}
-          onPress={onStartTimer}
-        >
-          <Ionicons name="play" size={13} color="#fff" />
-          <Text style={styles.startTimerBtnText}>COMMENCER</Text>
-        </Pressable>
-      )}
-    </Pressable>
+      <HabitCard
+        testId={`widget-${habit.id}`}
+        icon={iconName}
+        color={color}
+        title={habit.title}
+        value={current}
+        target={target}
+        unit={habit.unit ?? undefined}
+        onPressValue={onOpen}
+        actions={actions}
+      />
     </SwipeableRow>
   );
 }
@@ -1346,21 +1454,12 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     fontSize: 13,
   },
-  listItemValue: {
-    color: colors.onSurfaceTertiary,
-    fontSize: 12,
-    fontWeight: "600",
-  },
   listItemPct: {
     color: colors.onSurfaceTertiary,
     fontWeight: "800",
     fontSize: 13,
     minWidth: 34,
     textAlign: "right",
-  },
-  listItemResetBtn: {
-    padding: 4,
-    borderRadius: 6,
   },
   progressTrack: {
     height: 5,
@@ -1369,21 +1468,6 @@ const styles = StyleSheet.create({
     overflow: "hidden",
   },
   progressFill: { height: "100%", borderRadius: 3 },
-  startTimerBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-    paddingVertical: 10,
-    borderRadius: radius.md,
-    marginTop: 4,
-  },
-  startTimerBtnText: {
-    color: "#fff",
-    fontWeight: "800",
-    fontSize: 11,
-    letterSpacing: 0.6,
-  },
   addListItem: {
     flexDirection: "row",
     alignItems: "center",

@@ -122,6 +122,16 @@ export default function ProfileTab() {
           testID="row-history"
         />
 
+        <Text style={styles.sectionLabel}>PARAMÈTRES</Text>
+        <ListRow
+          icon="fast-food"
+          iconBg="#F97316"
+          title="Raccourcis repas"
+          subtitle="Personnalise les raccourcis de la carte Calories"
+          onPress={() => router.push("/meal-presets" as any)}
+          testID="row-meal-presets"
+        />
+
         <View style={{ height: 40 }} />
       </ScrollView>
     </SafeAreaView>
