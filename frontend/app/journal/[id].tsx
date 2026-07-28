@@ -8,20 +8,28 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 import { colors, radius, spacing } from "@/src/theme";
 import {
   CardioActivity,
   CARDIO_ACTIVITY_EMOJI,
   CARDIO_ACTIVITY_LABEL,
   getSession,
+  getWellnessLog,
+  MealLogEntry,
+  MealPreset,
+  patchWellnessLog,
   saveSession,
+  uid,
   WorkoutSession,
 } from "@/src/utils/gym-storage";
 import BodyPainMap from "@/src/components/BodyPainMap";
+import { getNutritionSuggestions } from "@/src/data/workout-nutrition";
 
 const ACTIVITIES: CardioActivity[] = [
   "course",
@@ -38,6 +46,9 @@ export default function JournalScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const [session, setSession] = useState<WorkoutSession | null>(null);
+  const [manualFor, setManualFor] = useState<"before" | "after" | null>(null);
+  const [manualLabel, setManualLabel] = useState("");
+  const [manualKcal, setManualKcal] = useState("");
 
   useEffect(() => {
     (async () => {
@@ -66,6 +77,82 @@ export default function JournalScreen() {
       ...session,
       cardio_metrics: { ...(session.cardio_metrics ?? {}), ...patch },
     });
+  };
+
+  // Meal actions save immediately (session + WellnessLog) instead of waiting
+  // for the main SAUVER button — a single tap should be enough, matching the
+  // rest of the app's "one gesture = done" quick actions.
+  const bumpWellnessCalories = async (delta: number) => {
+    if (!session) return;
+    const date = session.startedAt.slice(0, 10);
+    const cur = await getWellnessLog(date);
+    await patchWellnessLog(date, {
+      calories_kcal: Math.max(0, (cur?.calories_kcal ?? 0) + delta),
+    });
+  };
+
+  const commitMealLog = async (nextMealLog: MealLogEntry[]) => {
+    if (!session) return;
+    const updated: WorkoutSession = {
+      ...session,
+      journal: { ...(session.journal ?? {}), mealLog: nextMealLog },
+    };
+    setSession(updated);
+    await saveSession(updated);
+  };
+
+  const toggleSuggestion = async (timing: "before" | "after", suggestion: MealPreset) => {
+    if (!session) return;
+    Haptics.selectionAsync().catch(() => {});
+    const mealLog = session.journal?.mealLog ?? [];
+    const existing = mealLog.find(
+      (m) => m.timing === timing && m.label === suggestion.label && m.source === "suggestion",
+    );
+    if (existing) {
+      await bumpWellnessCalories(-existing.kcal);
+      await commitMealLog(mealLog.filter((m) => m.id !== existing.id));
+    } else {
+      await bumpWellnessCalories(suggestion.kcal);
+      await commitMealLog([
+        ...mealLog,
+        {
+          id: uid(),
+          timing,
+          emoji: suggestion.emoji ?? "🍽️",
+          label: suggestion.label,
+          kcal: suggestion.kcal,
+          source: "suggestion",
+        },
+      ]);
+    }
+  };
+
+  const removeMealEntry = async (entry: MealLogEntry) => {
+    if (!session) return;
+    Haptics.selectionAsync().catch(() => {});
+    await bumpWellnessCalories(-entry.kcal);
+    await commitMealLog((session.journal?.mealLog ?? []).filter((m) => m.id !== entry.id));
+  };
+
+  const submitManualMeal = async () => {
+    if (!session || !manualFor) return;
+    const kcal = parseInt(manualKcal.replace(/[^0-9]/g, ""), 10);
+    if (!manualLabel.trim() || !kcal) return;
+    await bumpWellnessCalories(kcal);
+    await commitMealLog([
+      ...(session.journal?.mealLog ?? []),
+      {
+        id: uid(),
+        timing: manualFor,
+        emoji: "✏️",
+        label: manualLabel.trim(),
+        kcal,
+        source: "manual",
+      },
+    ]);
+    setManualFor(null);
+    setManualLabel("");
+    setManualKcal("");
   };
 
   if (!session) {
@@ -202,15 +289,24 @@ export default function JournalScreen() {
               testID="journal-pain-map"
             />
 
-            <Text style={styles.miniLabel}>Alimentation avant/après</Text>
-            <TextInput
-              testID="journal-nutrition"
-              style={styles.textArea}
-              value={j.nutrition || ""}
-              onChangeText={(t) => patchJournal({ nutrition: t.trim() ? t : null })}
-              placeholder="Ex: banane + café avant, shake après"
-              placeholderTextColor={colors.onSurfaceTertiary}
-              multiline
+            <Text style={styles.sectionTitle}>Alimentation</Text>
+            <MealSection
+              timing="before"
+              title="Avant la séance"
+              suggestions={getNutritionSuggestions(session, "before")}
+              entries={(j.mealLog ?? []).filter((m) => m.timing === "before")}
+              onToggleSuggestion={(s) => toggleSuggestion("before", s)}
+              onRemove={removeMealEntry}
+              onAddManual={() => setManualFor("before")}
+            />
+            <MealSection
+              timing="after"
+              title="Après la séance"
+              suggestions={getNutritionSuggestions(session, "after")}
+              entries={(j.mealLog ?? []).filter((m) => m.timing === "after")}
+              onToggleSuggestion={(s) => toggleSuggestion("after", s)}
+              onRemove={removeMealEntry}
+              onAddManual={() => setManualFor("after")}
             />
 
             <Text style={styles.miniLabel}>Commentaire libre</Text>
@@ -228,7 +324,136 @@ export default function JournalScreen() {
           <View style={{ height: 40 }} />
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <Modal
+        visible={manualFor !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setManualFor(null)}
+      >
+        <View style={styles.modalBackdrop}>
+          <Pressable style={{ flex: 1 }} onPress={() => setManualFor(null)} />
+          <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}>
+            <View style={styles.modalCard}>
+              <Text style={styles.modalTitle}>
+                {manualFor === "before" ? "Avant la séance" : "Après la séance"}
+              </Text>
+              <TextInput
+                testID="manual-meal-label"
+                style={styles.input}
+                value={manualLabel}
+                onChangeText={setManualLabel}
+                placeholder="Ex: Tartines + fromage blanc"
+                placeholderTextColor={colors.onSurfaceTertiary}
+                autoFocus
+              />
+              <TextInput
+                testID="manual-meal-kcal"
+                style={styles.input}
+                value={manualKcal}
+                onChangeText={setManualKcal}
+                keyboardType="number-pad"
+                placeholder="Calories (ex: 300)"
+                placeholderTextColor={colors.onSurfaceTertiary}
+              />
+              <View style={styles.modalActions}>
+                <Pressable onPress={() => setManualFor(null)} style={styles.modalBtnGhost}>
+                  <Text style={styles.modalBtnGhostText}>Annuler</Text>
+                </Pressable>
+                <Pressable
+                  onPress={submitManualMeal}
+                  style={styles.modalBtn}
+                  testID="manual-meal-save"
+                >
+                  <Text style={styles.modalBtnText}>Ajouter</Text>
+                </Pressable>
+              </View>
+            </View>
+          </KeyboardAvoidingView>
+          <Pressable style={{ flex: 1 }} onPress={() => setManualFor(null)} />
+        </View>
+      </Modal>
     </SafeAreaView>
+  );
+}
+
+function MealSection({
+  timing,
+  title,
+  suggestions,
+  entries,
+  onToggleSuggestion,
+  onRemove,
+  onAddManual,
+}: {
+  timing: "before" | "after";
+  title: string;
+  suggestions: MealPreset[];
+  entries: MealLogEntry[];
+  onToggleSuggestion: (s: MealPreset) => void;
+  onRemove: (entry: MealLogEntry) => void;
+  onAddManual: () => void;
+}) {
+  const total = entries.reduce((a, e) => a + e.kcal, 0);
+  const acceptedLabels = new Set(
+    entries.filter((e) => e.source === "suggestion").map((e) => e.label),
+  );
+
+  return (
+    <View style={styles.mealSection}>
+      <Text style={styles.subTitle}>{title.toUpperCase()}</Text>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.mealChipRow}
+      >
+        {suggestions.map((s) => {
+          const active = acceptedLabels.has(s.label);
+          return (
+            <Pressable
+              key={s.id}
+              testID={`meal-suggestion-${timing}-${s.id}`}
+              style={[styles.mealChip, active && styles.mealChipActive]}
+              onPress={() => onToggleSuggestion(s)}
+            >
+              <Text style={styles.mealChipEmoji}>{s.emoji}</Text>
+              <Text style={[styles.mealChipText, active && { color: "#fff" }]} numberOfLines={1}>
+                {s.label} · {s.kcal} kcal
+              </Text>
+              {active && <Ionicons name="checkmark-circle" size={14} color="#fff" />}
+            </Pressable>
+          );
+        })}
+        <Pressable
+          testID={`meal-manual-${timing}`}
+          style={styles.mealChip}
+          onPress={onAddManual}
+        >
+          <Text style={styles.mealChipEmoji}>✏️</Text>
+          <Text style={styles.mealChipText}>Autre</Text>
+        </Pressable>
+      </ScrollView>
+
+      {entries.length > 0 && (
+        <View style={styles.mealEntriesBox}>
+          {entries.map((e) => (
+            <View key={e.id} style={styles.mealEntryRow}>
+              <Text style={styles.mealEntryText} numberOfLines={1}>
+                {e.emoji} {e.label} · {e.kcal} kcal
+              </Text>
+              <Pressable
+                testID={`meal-remove-${e.id}`}
+                hitSlop={8}
+                onPress={() => onRemove(e)}
+              >
+                <Ionicons name="close-circle" size={16} color={colors.onSurfaceTertiary} />
+              </Pressable>
+            </View>
+          ))}
+          <Text style={styles.mealTotalText}>Total : {total} kcal ajoutés au journal</Text>
+        </View>
+      )}
+    </View>
   );
 }
 
@@ -415,4 +640,79 @@ const styles = StyleSheet.create({
     backgroundColor: colors.brand,
     borderColor: colors.brand,
   },
+  mealSection: { gap: 6 },
+  mealChipRow: { gap: 6, paddingVertical: 2 },
+  mealChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceTertiary,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  mealChipActive: { backgroundColor: colors.brand, borderColor: colors.brand },
+  mealChipEmoji: { fontSize: 13 },
+  mealChipText: {
+    color: colors.onSurface,
+    fontWeight: "700",
+    fontSize: 11.5,
+    maxWidth: 200,
+  },
+  mealEntriesBox: {
+    backgroundColor: colors.surfaceTertiary,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.sm,
+    gap: 6,
+  },
+  mealEntryRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: spacing.sm,
+  },
+  mealEntryText: { flex: 1, color: colors.onSurface, fontSize: 12, fontWeight: "600" },
+  mealTotalText: {
+    color: colors.brand,
+    fontWeight: "800",
+    fontSize: 11,
+    marginTop: 2,
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.55)",
+    justifyContent: "center",
+    padding: spacing.lg,
+  },
+  modalCard: {
+    backgroundColor: colors.surfaceSecondary,
+    borderRadius: radius.md,
+    padding: spacing.lg,
+    gap: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  modalTitle: { color: colors.onSurface, fontWeight: "800", fontSize: 16 },
+  modalActions: { flexDirection: "row", gap: spacing.sm, marginTop: spacing.sm },
+  modalBtn: {
+    flex: 1,
+    padding: 12,
+    borderRadius: radius.md,
+    alignItems: "center",
+    backgroundColor: colors.brand,
+  },
+  modalBtnText: { color: "#fff", fontWeight: "800", letterSpacing: 0.8 },
+  modalBtnGhost: {
+    flex: 1,
+    padding: 12,
+    borderRadius: radius.md,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  modalBtnGhostText: { color: colors.onSurfaceSecondary, fontWeight: "800" },
 });

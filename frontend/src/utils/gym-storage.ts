@@ -87,6 +87,15 @@ export const CARDIO_ACTIVITY_EMOJI: Record<CardioActivity, string> = {
   autre: '💨',
 };
 
+export type MealLogEntry = {
+  id: string;
+  timing: 'before' | 'after';
+  emoji: string;
+  label: string;
+  kcal: number;
+  source: 'suggestion' | 'manual';
+};
+
 export type SessionJournal = {
   mood?: number | null; // 1-10
   energy?: number | null; // 1-10
@@ -95,7 +104,9 @@ export type SessionJournal = {
   pain?: string | null;
   pain_zones?: PainEntry[] | null;
   sleep_hours?: number | null;
+  /** @deprecated free-text nutrition field, superseded by `mealLog` (suggestion chips + manual entries synced to WellnessLog.calories_kcal) */
   nutrition?: string | null;
+  mealLog?: MealLogEntry[] | null;
   comment?: string | null;
 };
 
