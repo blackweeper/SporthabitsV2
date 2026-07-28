@@ -1042,6 +1042,14 @@ export async function saveDailyJournal(e: DailyJournalEntry): Promise<void> {
   await AsyncStorage.setItem(DAILY_JOURNAL_KEY, JSON.stringify(list));
 }
 
+export async function deleteDailyJournalEntry(date: string): Promise<void> {
+  const list = await getDailyJournal();
+  await AsyncStorage.setItem(
+    DAILY_JOURNAL_KEY,
+    JSON.stringify(list.filter((e) => e.date !== date)),
+  );
+}
+
 // ---------- Reminders (local config, hook up to notifications after build) ----------
 const REMINDERS_KEY = '@ironflow/reminders';
 
@@ -1107,6 +1115,92 @@ export async function deleteReminder(id: string): Promise<void> {
   );
 }
 
+// ---------- Calendar events (dashboard planning center) ----------
+const CALENDAR_EVENTS_KEY = '@ironflow/calendarEvents';
+
+export type CalendarEventKind =
+  | 'workout'
+  | 'running'
+  | 'mobility'
+  | 'rest'
+  | 'measurement'
+  | 'weighin'
+  | 'photo'
+  | 'competition'
+  | 'other';
+
+export const CALENDAR_EVENT_KIND_LABEL: Record<CalendarEventKind, string> = {
+  workout: 'Séance programmée',
+  running: 'Running',
+  mobility: 'Mobilité',
+  rest: 'Jour de repos',
+  measurement: 'Mensurations',
+  weighin: 'Pesée',
+  photo: 'Photo de progression',
+  competition: 'Compétition',
+  other: 'Autre',
+};
+
+export const CALENDAR_EVENT_KIND_ICON: Record<CalendarEventKind, any> = {
+  workout: 'barbell',
+  running: 'walk',
+  mobility: 'body',
+  rest: 'moon',
+  measurement: 'resize',
+  weighin: 'scale',
+  photo: 'camera',
+  competition: 'trophy',
+  other: 'calendar',
+};
+
+export const CALENDAR_EVENT_KIND_EMOJI: Record<CalendarEventKind, string> = {
+  workout: '🏋️',
+  running: '🏃',
+  mobility: '🧘',
+  rest: '😴',
+  measurement: '📏',
+  weighin: '⚖️',
+  photo: '📸',
+  competition: '🏆',
+  other: '📌',
+};
+
+export type CalendarEvent = {
+  id: string;
+  date: string; // YYYY-MM-DD
+  kind: CalendarEventKind;
+  title: string;
+  time?: string | null; // 'HH:MM'
+  linkedPlanId?: string | null;
+  reminderMinutesBefore?: number | null;
+  createdAt: string;
+};
+
+export async function getCalendarEvents(): Promise<CalendarEvent[]> {
+  const raw = await AsyncStorage.getItem(CALENDAR_EVENTS_KEY);
+  if (!raw) return [];
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
+}
+
+export async function saveCalendarEvent(e: CalendarEvent): Promise<void> {
+  const list = await getCalendarEvents();
+  const idx = list.findIndex((x) => x.id === e.id);
+  if (idx >= 0) list[idx] = e;
+  else list.push(e);
+  await AsyncStorage.setItem(CALENDAR_EVENTS_KEY, JSON.stringify(list));
+}
+
+export async function deleteCalendarEvent(id: string): Promise<void> {
+  const list = await getCalendarEvents();
+  await AsyncStorage.setItem(
+    CALENDAR_EVENTS_KEY,
+    JSON.stringify(list.filter((e) => e.id !== id)),
+  );
+}
 
 // ---------- Wellness (Water / Calories / Steps / Mood) daily logs ----------
 const WELLNESS_KEY = '@ironflow/wellness';

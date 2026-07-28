@@ -7,6 +7,7 @@ import {
   Pressable,
   TextInput,
   FlatList,
+  ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing } from "@/src/theme";
@@ -25,6 +26,7 @@ import {
 } from "@/src/utils/gym-storage";
 import { listAllExercises } from "@/src/utils/exercise-detail";
 import { iconEmojiForExercise } from "@/src/data/exercise-icons";
+import { LIBRARY_MUSCLE_GROUPS, MuscleGroupKey } from "@/src/utils/muscle-groups";
 
 type Item = {
   name: string;
@@ -32,7 +34,18 @@ type Item = {
   emoji?: string;
   count: number;
   favorite: boolean;
+  muscleGroups?: MuscleGroupKey[];
 };
+
+type LibTab = "favorites" | "musculation" | "cardio_machine" | "mobility" | "all";
+
+const TABS: { key: LibTab; label: string; emoji: string }[] = [
+  { key: "favorites", label: "Favoris", emoji: "⭐" },
+  { key: "musculation", label: "Musculation", emoji: "💪" },
+  { key: "cardio_machine", label: "Cardio", emoji: "🏃" },
+  { key: "mobility", label: "Étirements", emoji: "🧘" },
+  { key: "all", label: "Tous", emoji: "📋" },
+];
 
 /**
  * Exercise picker sourced from the same data as Progression → Exercices
@@ -51,12 +64,14 @@ export default function ExerciseLibraryPicker({
   const [query, setQuery] = useState("");
   const [favorites, setFavorites] = useState<string[]>([]);
   const [used, setUsed] = useState<{ name: string; count: number }[]>([]);
-  const [onlyFavorites, setOnlyFavorites] = useState(false);
+  const [tab, setTab] = useState<LibTab>("all");
+  const [muscle, setMuscle] = useState<MuscleGroupKey | null>(null);
 
   useEffect(() => {
     if (!visible) return;
     setQuery("");
-    setOnlyFavorites(false);
+    setTab("all");
+    setMuscle(null);
     (async () => {
       const [favs, sessions, overrides] = await Promise.all([
         getFavoriteExercises(),
@@ -86,6 +101,7 @@ export default function ExerciseLibraryPicker({
         emoji: lib.emoji,
         count: done?.count ?? 0,
         favorite: favSet.has(key),
+        muscleGroups: lib.muscleGroups,
       });
     }
     for (const u of used) {
@@ -104,14 +120,18 @@ export default function ExerciseLibraryPicker({
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     let list = items;
-    if (onlyFavorites) list = list.filter((i) => i.favorite);
+    if (tab === "favorites") list = list.filter((i) => i.favorite);
+    else if (tab !== "all") list = list.filter((i) => i.category === tab);
+    if (tab === "musculation" && muscle) {
+      list = list.filter((i) => i.muscleGroups?.includes(muscle));
+    }
     if (q) list = list.filter((i) => i.name.toLowerCase().includes(q));
     return list.slice().sort((a, b) => {
       if (a.favorite !== b.favorite) return a.favorite ? -1 : 1;
       if (b.count !== a.count) return b.count - a.count;
       return a.name.localeCompare(b.name);
     });
-  }, [items, query, onlyFavorites]);
+  }, [items, query, tab, muscle]);
 
   const exactMatch = filtered.some(
     (i) => i.name.toLowerCase().trim() === query.trim().toLowerCase(),
@@ -151,20 +171,64 @@ export default function ExerciseLibraryPicker({
           )}
         </View>
 
-        <Pressable
-          testID="ex-library-favorites-toggle"
-          style={[styles.favToggle, onlyFavorites && styles.favToggleActive]}
-          onPress={() => setOnlyFavorites((v) => !v)}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={{ maxHeight: 42 }}
+          contentContainerStyle={styles.tabRow}
         >
-          <Ionicons
-            name={onlyFavorites ? "star" : "star-outline"}
-            size={13}
-            color={onlyFavorites ? "#fff" : colors.onSurfaceTertiary}
-          />
-          <Text style={[styles.favToggleText, onlyFavorites && { color: "#fff" }]}>
-            FAVORIS
-          </Text>
-        </Pressable>
+          {TABS.map((t) => {
+            const active = tab === t.key;
+            return (
+              <Pressable
+                key={t.key}
+                testID={`ex-library-tab-${t.key}`}
+                style={[styles.tabChip, active && styles.tabChipActive]}
+                onPress={() => setTab(t.key)}
+              >
+                <Text style={styles.tabEmoji}>{t.emoji}</Text>
+                <Text style={[styles.tabChipText, active && { color: "#fff" }]}>
+                  {t.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+
+        {tab === "musculation" && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={{ maxHeight: 38 }}
+            contentContainerStyle={styles.tabRow}
+          >
+            <Pressable
+              testID="ex-library-muscle-all"
+              style={[styles.muscleChip, !muscle && styles.muscleChipActive]}
+              onPress={() => setMuscle(null)}
+            >
+              <Text style={[styles.muscleChipText, !muscle && { color: "#fff" }]}>
+                Tous
+              </Text>
+            </Pressable>
+            {LIBRARY_MUSCLE_GROUPS.map((mg) => {
+              const active = muscle === mg.key;
+              return (
+                <Pressable
+                  key={mg.key}
+                  testID={`ex-library-muscle-${mg.key}`}
+                  style={[styles.muscleChip, active && styles.muscleChipActive]}
+                  onPress={() => setMuscle(active ? null : mg.key)}
+                >
+                  <Text style={styles.tabEmoji}>{mg.emoji}</Text>
+                  <Text style={[styles.muscleChipText, active && { color: "#fff" }]}>
+                    {mg.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        )}
 
         <FlatList
           data={filtered}
@@ -192,7 +256,11 @@ export default function ExerciseLibraryPicker({
           }
           ListEmptyComponent={
             !query.trim() ? (
-              <Text style={styles.emptyText}>Aucun exercice favori pour l&apos;instant.</Text>
+              <Text style={styles.emptyText}>
+                {tab === "favorites"
+                  ? "Aucun exercice favori pour l'instant."
+                  : "Aucun exercice dans cette catégorie."}
+              </Text>
             ) : null
           }
           renderItem={({ item }) => {
@@ -276,13 +344,16 @@ const styles = StyleSheet.create({
     color: colors.onSurface,
     fontSize: 14,
   },
-  favToggle: {
+  tabRow: {
+    flexDirection: "row",
+    gap: 6,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.sm,
+  },
+  tabChip: {
     flexDirection: "row",
     alignItems: "center",
-    alignSelf: "flex-start",
     gap: 4,
-    marginHorizontal: spacing.lg,
-    marginBottom: spacing.sm,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: radius.pill,
@@ -290,12 +361,30 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  favToggleActive: { backgroundColor: "#FFC107", borderColor: "#FFC107" },
-  favToggleText: {
+  tabChipActive: { backgroundColor: colors.brand, borderColor: colors.brand },
+  tabEmoji: { fontSize: 12 },
+  tabChipText: {
     color: colors.onSurfaceTertiary,
     fontWeight: "800",
     fontSize: 10,
     letterSpacing: 0.5,
+  },
+  muscleChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceSecondary,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  muscleChipActive: { backgroundColor: colors.brand, borderColor: colors.brand },
+  muscleChipText: {
+    color: colors.onSurfaceTertiary,
+    fontWeight: "700",
+    fontSize: 10,
   },
   list: { paddingHorizontal: spacing.lg, paddingBottom: 40, gap: 8 },
   createRow: {

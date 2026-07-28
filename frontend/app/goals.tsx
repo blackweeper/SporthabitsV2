@@ -15,6 +15,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing } from "@/src/theme";
+import { useConfirmDialog } from "@/src/hooks/use-confirm-dialog";
+import SwipeableRow from "@/src/components/SwipeableRow";
 import {
   deleteGoal,
   Goal,
@@ -51,6 +53,20 @@ export default function GoalsScreen() {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [editing, setEditing] = useState<Goal | null>(null);
   const [ctxCurrentValues, setCtxCurrentValues] = useState<Record<string, number>>({});
+  const { confirm, ConfirmModal } = useConfirmDialog();
+
+  const confirmAndDelete = async (goal: Goal) => {
+    const ok = await confirm({
+      title: "Supprimer cet objectif ?",
+      message: `"${goal.title || GOAL_CATEGORY_LABEL[goal.category]}" — cette action est définitive.`,
+      confirmLabel: "SUPPRIMER",
+      destructive: true,
+    });
+    if (!ok) return;
+    await deleteGoal(goal.id);
+    setEditing(null);
+    load();
+  };
 
   const load = useCallback(async () => {
     const g = await getGoals();
@@ -137,8 +153,13 @@ export default function GoalsScreen() {
             const pct = Math.max(0, Math.min(1, raw));
             const done = pct >= 1;
             return (
-              <Pressable
+              <SwipeableRow
                 key={g.id}
+                testID={`goal-${g.id}`}
+                onDelete={() => confirmAndDelete(g)}
+                onEdit={() => setEditing(g)}
+              >
+              <Pressable
                 testID={`goal-${g.id}`}
                 style={[styles.goalCard, done && styles.goalCardDone]}
                 onPress={() => setEditing(g)}
@@ -189,6 +210,7 @@ export default function GoalsScreen() {
                   {Math.round(pct * 100)}% · démarré à {g.startValue} {g.unit}
                 </Text>
               </Pressable>
+              </SwipeableRow>
             );
           })
         )}
@@ -210,12 +232,12 @@ export default function GoalsScreen() {
           setEditing(null);
           load();
         }}
-        onDelete={async (id) => {
-          await deleteGoal(id);
-          setEditing(null);
-          load();
+        onDelete={(id) => {
+          const g = goals.find((x) => x.id === id) ?? editing;
+          if (g) confirmAndDelete(g);
         }}
       />
+      {ConfirmModal}
     </SafeAreaView>
   );
 }

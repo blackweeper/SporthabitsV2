@@ -33,6 +33,11 @@ import {
 import {
   DailyJournalEntry,
   PAIN_ZONE_LABEL,
+  deleteDailyJournalEntry,
+  deleteHabit,
+  deleteMeasurement,
+  deletePR,
+  deleteReminder,
   getDailyJournal,
   getGoals,
   getHabits,
@@ -58,6 +63,7 @@ import {
   WellnessLog,
   WorkoutSession,
 } from "@/src/utils/gym-storage";
+import SwipeableRow from "@/src/components/SwipeableRow";
 import {
   computeDailyIronflowScore,
   DailyIronflowScore,
@@ -108,33 +114,35 @@ export default function ProgressionHub() {
     }, [tabParam]),
   );
 
+  const reload = useCallback(async () => {
+    const [s, p, m, h, hl, r, g, w, pr, dj] = await Promise.all([
+      getSessions(),
+      getPRs(),
+      getMeasurements(),
+      getHabits(),
+      getHabitLogs(),
+      getReminders(),
+      getGoals(),
+      getWellnessLogs(),
+      getProfile(),
+      getDailyJournal(),
+    ]);
+    setSessions(s);
+    setPRs(p);
+    setMeasurements(m);
+    setHabits(h);
+    setLogs(hl);
+    setReminders(r);
+    setGoals(g);
+    setWellness(w);
+    setProfile(pr);
+    setDailyJournal(dj);
+  }, []);
+
   useFocusEffect(
     useCallback(() => {
-      (async () => {
-        const [s, p, m, h, hl, r, g, w, pr, dj] = await Promise.all([
-          getSessions(),
-          getPRs(),
-          getMeasurements(),
-          getHabits(),
-          getHabitLogs(),
-          getReminders(),
-          getGoals(),
-          getWellnessLogs(),
-          getProfile(),
-          getDailyJournal(),
-        ]);
-        setSessions(s);
-        setPRs(p);
-        setMeasurements(m);
-        setHabits(h);
-        setLogs(hl);
-        setReminders(r);
-        setGoals(g);
-        setWellness(w);
-        setProfile(pr);
-        setDailyJournal(dj);
-      })();
-    }, []),
+      reload();
+    }, [reload]),
   );
 
   const scoreProfile = profile ?? {
@@ -218,7 +226,7 @@ export default function ProgressionHub() {
           <ExercisesView exercises={exercises} router={router} />
         )}
         {tab === "records" && (
-          <RecordsView prs={prs} router={router} />
+          <RecordsView prs={prs} router={router} onChanged={reload} />
         )}
         {tab === "level" && (
           <LevelView sessions={sessions} habits={habits} habitLogs={logs} prs={prs} />
@@ -227,6 +235,7 @@ export default function ProgressionHub() {
           <TransformationView
             measurements={measurements}
             router={router}
+            onChanged={reload}
           />
         )}
         {tab === "habits" && (
@@ -235,9 +244,10 @@ export default function ProgressionHub() {
             reminders={reminders}
             goals={goals}
             router={router}
+            onChanged={reload}
           />
         )}
-        {tab === "journal" && <JournalView router={router} />}
+        {tab === "journal" && <JournalView router={router} onChanged={reload} />}
       </ScrollView>
     </SafeAreaView>
   );
@@ -731,9 +741,11 @@ function ExercisesView({
 function RecordsView({
   prs,
   router,
+  onChanged,
 }: {
   prs: PersonalRecord[];
   router: any;
+  onChanged: () => void;
 }) {
   const [expanded, setExpanded] = useState<string | null>(null);
   // Group PRs by exercise name (lowercased)
@@ -809,7 +821,7 @@ function RecordsView({
                     .slice()
                     .sort((a, b) => (b.date < a.date ? -1 : 1))
                     .map((pr) => (
-                      <RecordRow key={pr.id} pr={pr} />
+                      <RecordRow key={pr.id} pr={pr} onChanged={onChanged} />
                     ))}
 
                   {bestWeight && (
@@ -1178,7 +1190,13 @@ function RecordProgressionChart({ prs }: { prs: PersonalRecord[] }) {
   );
 }
 
-function RecordRow({ pr }: { pr: PersonalRecord }) {
+function RecordRow({
+  pr,
+  onChanged,
+}: {
+  pr: PersonalRecord;
+  onChanged: () => void;
+}) {
   const type = pr.type ?? "weight";
   let main = "—";
   let sub = "";
@@ -1202,13 +1220,27 @@ function RecordRow({ pr }: { pr: PersonalRecord }) {
     sub = time;
   }
   return (
-    <View style={styles.recordRow}>
-      <View style={{ flex: 1 }}>
-        <Text style={styles.recordRowMain}>{main}</Text>
-        {sub ? <Text style={styles.recordRowSub}>{sub}</Text> : null}
+    <SwipeableRow
+      testID={`record-row-${pr.id}`}
+      onDelete={async () => {
+        await deletePR(pr.id);
+        onChanged();
+      }}
+      deleteConfirm={{
+        title: "Supprimer ce record ?",
+        message: `${main} — cette action est définitive.`,
+        confirmLabel: "SUPPRIMER",
+        destructive: true,
+      }}
+    >
+      <View style={styles.recordRow}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.recordRowMain}>{main}</Text>
+          {sub ? <Text style={styles.recordRowSub}>{sub}</Text> : null}
+        </View>
+        <Text style={styles.recordRowDate}>{formatDateShort(pr.date)}</Text>
       </View>
-      <Text style={styles.recordRowDate}>{formatDateShort(pr.date)}</Text>
-    </View>
+    </SwipeableRow>
   );
 }
 
@@ -1397,9 +1429,11 @@ function formatDateShort(iso: string) {
 function TransformationView({
   measurements,
   router,
+  onChanged,
 }: {
   measurements: Measurement[];
   router: any;
+  onChanged: () => void;
 }) {
   const withPhotos = measurements.filter((m) => m.photoBase64);
   return (
@@ -1453,25 +1487,40 @@ function TransformationView({
           <BodyStatsChart measurements={measurements} />
           <Text style={styles.sectionTitle}>Historique</Text>
           {measurements.slice(0, 20).map((m) => (
-            <Pressable
+            <SwipeableRow
               key={m.id}
               testID={`m-item-${m.id}`}
-              style={styles.mCard}
-              onPress={() => router.push(`/measurement/${m.id}`)}
+              onDelete={async () => {
+                await deleteMeasurement(m.id);
+                onChanged();
+              }}
+              deleteConfirm={{
+                title: "Supprimer cette mesure ?",
+                message: `Mesure du ${formatDate(m.date)} — cette action est définitive.`,
+                confirmLabel: "SUPPRIMER",
+                destructive: true,
+              }}
+              onEdit={() => router.push(`/measurement/${m.id}`)}
             >
-              <Text style={styles.mDate}>{formatDate(m.date)}</Text>
-              <View style={styles.mMetrics}>
-                {m.weight_kg != null && (
-                  <MetricChip label={`${m.weight_kg} kg`} />
-                )}
-                {m.body_fat_pct != null && (
-                  <MetricChip label={`${m.body_fat_pct}% MG`} />
-                )}
-                {m.waist_cm != null && (
-                  <MetricChip label={`Taille ${m.waist_cm}`} />
-                )}
-              </View>
-            </Pressable>
+              <Pressable
+                testID={`m-item-${m.id}`}
+                style={styles.mCard}
+                onPress={() => router.push(`/measurement/${m.id}`)}
+              >
+                <Text style={styles.mDate}>{formatDate(m.date)}</Text>
+                <View style={styles.mMetrics}>
+                  {m.weight_kg != null && (
+                    <MetricChip label={`${m.weight_kg} kg`} />
+                  )}
+                  {m.body_fat_pct != null && (
+                    <MetricChip label={`${m.body_fat_pct}% MG`} />
+                  )}
+                  {m.waist_cm != null && (
+                    <MetricChip label={`Taille ${m.waist_cm}`} />
+                  )}
+                </View>
+              </Pressable>
+            </SwipeableRow>
           ))}
         </>
       )}
@@ -1671,11 +1720,13 @@ function HabitsView({
   reminders,
   goals,
   router,
+  onChanged,
 }: {
   habits: Habit[];
   reminders: Reminder[];
   goals: Goal[];
   router: any;
+  onChanged: () => void;
 }) {
   const [sub, setSub] = useState<"habits" | "reminders" | "goals">("habits");
   return (
@@ -1732,23 +1783,38 @@ function HabitsView({
             </View>
           ) : (
             habits.map((h) => (
-              <Pressable
+              <SwipeableRow
                 key={h.id}
                 testID={`habit-${h.id}`}
-                style={styles.habitCard}
-                onPress={() => router.push(`/habit/${h.id}`)}
+                onDelete={async () => {
+                  await deleteHabit(h.id);
+                  onChanged();
+                }}
+                deleteConfirm={{
+                  title: "Supprimer cette habitude ?",
+                  message: `"${h.title}" — cette action est définitive.`,
+                  confirmLabel: "SUPPRIMER",
+                  destructive: true,
+                }}
+                onEdit={() => router.push(`/habit/${h.id}`)}
               >
-                <View style={[styles.habitIcon, { backgroundColor: colors.brandTertiary }]}>
-                  <Ionicons name="checkbox" size={16} color={colors.brand} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.habitTitle}>{h.title}</Text>
-                  <Text style={styles.habitMeta}>
-                    Cible : {h.target ?? 1} {h.unit ?? ""}
-                  </Text>
-                </View>
-                <Ionicons name="chevron-forward" size={16} color={colors.onSurfaceTertiary} />
-              </Pressable>
+                <Pressable
+                  testID={`habit-${h.id}`}
+                  style={styles.habitCard}
+                  onPress={() => router.push(`/habit/${h.id}`)}
+                >
+                  <View style={[styles.habitIcon, { backgroundColor: colors.brandTertiary }]}>
+                    <Ionicons name="checkbox" size={16} color={colors.brand} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.habitTitle}>{h.title}</Text>
+                    <Text style={styles.habitMeta}>
+                      Cible : {h.target ?? 1} {h.unit ?? ""}
+                    </Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={16} color={colors.onSurfaceTertiary} />
+                </Pressable>
+              </SwipeableRow>
             ))
           )}
         </>
@@ -1780,28 +1846,43 @@ function HabitsView({
             </View>
           ) : (
             reminders.map((r) => (
-              <Pressable
+              <SwipeableRow
                 key={r.id}
                 testID={`reminder-${r.id}`}
-                style={styles.habitCard}
-                onPress={() => router.push(`/reminder/${r.id}`)}
+                onDelete={async () => {
+                  await deleteReminder(r.id);
+                  onChanged();
+                }}
+                deleteConfirm={{
+                  title: "Supprimer ce rappel ?",
+                  message: `"${r.title || REMINDER_KIND_LABEL[r.kind]}" — cette action est définitive.`,
+                  confirmLabel: "SUPPRIMER",
+                  destructive: true,
+                }}
+                onEdit={() => router.push(`/reminder/${r.id}`)}
               >
-                <View style={[styles.habitIcon, { backgroundColor: colors.brandTertiary }]}>
-                  <Ionicons
-                    name={REMINDER_KIND_ICON[r.kind]}
-                    size={16}
-                    color={colors.brand}
-                  />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.habitTitle}>{r.title || REMINDER_KIND_LABEL[r.kind]}</Text>
-                  <Text style={styles.habitMeta}>
-                    {r.time} · {formatDaysOfWeek(r.daysOfWeek)} ·{" "}
-                    {r.enabled ? "actif" : "désactivé"}
-                  </Text>
-                </View>
-                <Ionicons name="chevron-forward" size={16} color={colors.onSurfaceTertiary} />
-              </Pressable>
+                <Pressable
+                  testID={`reminder-${r.id}`}
+                  style={styles.habitCard}
+                  onPress={() => router.push(`/reminder/${r.id}`)}
+                >
+                  <View style={[styles.habitIcon, { backgroundColor: colors.brandTertiary }]}>
+                    <Ionicons
+                      name={REMINDER_KIND_ICON[r.kind]}
+                      size={16}
+                      color={colors.brand}
+                    />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.habitTitle}>{r.title || REMINDER_KIND_LABEL[r.kind]}</Text>
+                    <Text style={styles.habitMeta}>
+                      {r.time} · {formatDaysOfWeek(r.daysOfWeek)} ·{" "}
+                      {r.enabled ? "actif" : "désactivé"}
+                    </Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={16} color={colors.onSurfaceTertiary} />
+                </Pressable>
+              </SwipeableRow>
             ))
           )}
         </>
@@ -1861,18 +1942,26 @@ function formatDaysOfWeek(days: number[]): string {
   return days.map((d) => names[d]).join(", ");
 }
 
-function JournalView({ router }: { router: any }) {
+function JournalView({
+  router,
+  onChanged,
+}: {
+  router: any;
+  onChanged: () => void;
+}) {
   const [entries, setEntries] = useState<DailyJournalEntry[]>([]);
   const [loaded, setLoaded] = useState(false);
 
+  const reload = useCallback(async () => {
+    const list = await getDailyJournal();
+    setEntries(list.sort((a, b) => (a.date < b.date ? 1 : -1)));
+    setLoaded(true);
+  }, []);
+
   useFocusEffect(
     useCallback(() => {
-      (async () => {
-        const list = await getDailyJournal();
-        setEntries(list.sort((a, b) => (a.date < b.date ? 1 : -1)));
-        setLoaded(true);
-      })();
-    }, []),
+      reload();
+    }, [reload]),
   );
 
   return (
@@ -1898,39 +1987,54 @@ function JournalView({ router }: { router: any }) {
         <>
           <Text style={styles.sectionTitle}>Historique</Text>
           {entries.map((e) => (
-            <Pressable
+            <SwipeableRow
               key={e.date}
               testID={`journal-entry-${e.date}`}
-              style={styles.journalEntryCard}
-              onPress={() => router.push("/daily-journal")}
+              onDelete={async () => {
+                await deleteDailyJournalEntry(e.date);
+                await reload();
+                onChanged();
+              }}
+              deleteConfirm={{
+                title: "Supprimer cette entrée ?",
+                message: `Journal du ${formatJournalDate(e.date)} — cette action est définitive.`,
+                confirmLabel: "SUPPRIMER",
+                destructive: true,
+              }}
             >
-              <View style={styles.pastHead}>
-                <Text style={styles.pastDate}>{formatJournalDate(e.date)}</Text>
-                <View style={styles.pastRatings}>
-                  {e.energy != null && <MiniBadge label="⚡" value={e.energy} />}
-                  {e.mood != null && <MiniBadge label="🙂" value={e.mood} />}
-                  {e.stress != null && <MiniBadge label="⚠️" value={e.stress} />}
+              <Pressable
+                testID={`journal-entry-${e.date}`}
+                style={styles.journalEntryCard}
+                onPress={() => router.push("/daily-journal")}
+              >
+                <View style={styles.pastHead}>
+                  <Text style={styles.pastDate}>{formatJournalDate(e.date)}</Text>
+                  <View style={styles.pastRatings}>
+                    {e.energy != null && <MiniBadge label="⚡" value={e.energy} />}
+                    {e.mood != null && <MiniBadge label="🙂" value={e.mood} />}
+                    {e.stress != null && <MiniBadge label="⚠️" value={e.stress} />}
+                  </View>
                 </View>
-              </View>
-              {e.sleep_hours != null && (
-                <Text style={styles.journalEntryMeta}>
-                  😴 {e.sleep_hours.toFixed(1)}h de sommeil
-                </Text>
-              )}
-              {e.pain_zones && e.pain_zones.length > 0 ? (
-                <Text style={styles.journalEntryMeta} numberOfLines={2}>
-                  🩹{" "}
-                  {e.pain_zones
-                    .map((z) => `${PAIN_ZONE_LABEL[z.zone]} ${z.intensity}/10`)
-                    .join(" · ")}
-                </Text>
-              ) : null}
-              {e.notes ? (
-                <Text style={styles.pastNotes} numberOfLines={3}>
-                  {e.notes}
-                </Text>
-              ) : null}
-            </Pressable>
+                {e.sleep_hours != null && (
+                  <Text style={styles.journalEntryMeta}>
+                    😴 {e.sleep_hours.toFixed(1)}h de sommeil
+                  </Text>
+                )}
+                {e.pain_zones && e.pain_zones.length > 0 ? (
+                  <Text style={styles.journalEntryMeta} numberOfLines={2}>
+                    🩹{" "}
+                    {e.pain_zones
+                      .map((z) => `${PAIN_ZONE_LABEL[z.zone]} ${z.intensity}/10`)
+                      .join(" · ")}
+                  </Text>
+                ) : null}
+                {e.notes ? (
+                  <Text style={styles.pastNotes} numberOfLines={3}>
+                    {e.notes}
+                  </Text>
+                ) : null}
+              </Pressable>
+            </SwipeableRow>
           ))}
         </>
       )}

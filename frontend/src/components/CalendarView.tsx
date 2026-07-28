@@ -3,10 +3,16 @@ import { Ionicons } from '@expo/vector-icons';
 import { colors, radius, spacing } from '@/src/theme';
 import { WorkoutSession, CardioActivity } from '@/src/utils/gym-storage';
 
+export type DayEventDot = { emoji: string };
+
 type Props = {
   sessions: WorkoutSession[];
   monthOffset?: number;
   onChangeMonth?: (offset: number) => void;
+  /** Extra per-day event indicators (calendar events, measurements, reminders…)
+   * keyed by YYYY-MM-DD, layered on top of the session-derived coloring. */
+  events?: Record<string, DayEventDot[]>;
+  onDayPress?: (dateStr: string) => void;
 };
 
 /**
@@ -22,6 +28,8 @@ export default function CalendarView({
   sessions,
   monthOffset = 0,
   onChangeMonth,
+  events,
+  onDayPress,
 }: Props) {
   const now = new Date();
   const target = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1);
@@ -116,14 +124,18 @@ export default function CalendarView({
               const label = pickLabel(c.sessions);
               const isToday =
                 c.dateStr === new Date().toISOString().slice(0, 10);
+              const dayEvents = events?.[c.dateStr] ?? [];
+              const Cell = onDayPress ? Pressable : View;
               return (
-                <View
+                <Cell
                   key={ci}
+                  testID={onDayPress ? `cal-day-${c.dateStr}` : undefined}
                   style={[
                     styles.cell,
                     { backgroundColor: color },
                     isToday && styles.cellToday,
                   ]}
+                  onPress={onDayPress ? () => onDayPress(c.dateStr) : undefined}
                 >
                   <Text
                     style={[
@@ -133,8 +145,21 @@ export default function CalendarView({
                   >
                     {c.day}
                   </Text>
-                  {label ? <Text style={styles.dayLabel}>{label}</Text> : null}
-                </View>
+                  {dayEvents.length > 0 ? (
+                    <View style={styles.dotRow}>
+                      {dayEvents.slice(0, 3).map((ev, i) => (
+                        <Text key={i} style={styles.dotEmoji}>
+                          {ev.emoji}
+                        </Text>
+                      ))}
+                      {dayEvents.length > 3 && (
+                        <Text style={styles.dotMore}>+{dayEvents.length - 3}</Text>
+                      )}
+                    </View>
+                  ) : label ? (
+                    <Text style={styles.dayLabel}>{label}</Text>
+                  ) : null}
+                </Cell>
               );
             })}
           </View>
@@ -239,6 +264,17 @@ const styles = StyleSheet.create({
   cellToday: {
     borderColor: colors.brand,
     borderWidth: 2,
+  },
+  dotRow: {
+    flexDirection: 'row',
+    gap: 1,
+    marginTop: 1,
+  },
+  dotEmoji: { fontSize: 8 },
+  dotMore: {
+    fontSize: 7,
+    fontWeight: '800',
+    color: colors.onSurfaceTertiary,
   },
   dayNum: {
     color: '#000',

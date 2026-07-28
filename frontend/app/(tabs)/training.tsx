@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -9,10 +9,8 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import Swipeable from "react-native-gesture-handler/Swipeable";
-import { RectButton } from "react-native-gesture-handler";
 import { colors, radius, spacing } from "@/src/theme";
-import { useConfirmDialog } from "@/src/hooks/use-confirm-dialog";
+import SwipeableRow from "@/src/components/SwipeableRow";
 import {
   ActiveProgram,
   currentDayIndex,
@@ -26,6 +24,7 @@ import {
 } from "@/src/utils/gym-storage";
 import { findProgram } from "@/src/utils/programs";
 import { Program } from "@/src/data/programs";
+import { MUSCLE_GROUPS } from "@/src/utils/muscle-groups";
 
 type Tab = "program" | "cardio" | "mobility" | "sessions" | "individual";
 type IndCat = "all" | "musculation" | "cardio" | "wod" | "stretch";
@@ -44,18 +43,6 @@ const IND_CATS: { key: IndCat; label: string; icon: any }[] = [
   { key: "cardio", label: "Cardio", icon: "stopwatch" },
   { key: "wod", label: "WOD", icon: "flame" },
   { key: "stretch", label: "Mobilité", icon: "body" },
-];
-
-const MUSCLE_GROUPS: { key: string; label: string; emoji: string }[] = [
-  { key: "chest", label: "Pectoraux", emoji: "💪" },
-  { key: "back", label: "Dos", emoji: "🦵" },
-  { key: "shoulders", label: "Épaules", emoji: "🙆" },
-  { key: "arms", label: "Bras", emoji: "💪" },
-  { key: "legs", label: "Jambes", emoji: "🦵" },
-  { key: "glutes", label: "Fessiers", emoji: "🍑" },
-  { key: "core", label: "Abdos", emoji: "🌀" },
-  { key: "cardio", label: "Cardio", emoji: "🏃" },
-  { key: "full_body", label: "Full body", emoji: "🔥" },
 ];
 
 export default function TrainingHub() {
@@ -299,64 +286,37 @@ function SwipeableSessionRow({
   onPress: () => void;
   onDeleted: () => void;
 }) {
-  const swipeRef = useRef<Swipeable>(null);
-  const { confirm, ConfirmModal } = useConfirmDialog();
-
-  const performDelete = async () => {
-    await deleteSession(s.id);
-    onDeleted();
-  };
-
-  const confirmDelete = async () => {
-    const ok = await confirm({
-      title: "Supprimer cette séance ?",
-      message: `"${s.planTitle}" — cette action est définitive.`,
-      confirmLabel: "SUPPRIMER",
-      destructive: true,
-    });
-    if (ok) await performDelete();
-    else swipeRef.current?.close();
-  };
-
-  const renderRightActions = () => (
-    <RectButton
-      testID={`swipe-delete-${s.id}`}
-      style={styles.swipeAction}
-      onPress={confirmDelete}
-    >
-      <Ionicons name="trash" size={20} color="#fff" />
-      <Text style={styles.swipeActionText}>Supprimer</Text>
-    </RectButton>
-  );
-
   return (
-    <>
-      <Swipeable
-        ref={swipeRef}
-        renderRightActions={renderRightActions}
-        overshootRight={false}
-        friction={1.6}
-        rightThreshold={40}
-        containerStyle={styles.swipeContainer}
+    <SwipeableRow
+      testID={`session-item-${s.id}`}
+      style={styles.swipeContainer}
+      onDelete={async () => {
+        await deleteSession(s.id);
+        onDeleted();
+      }}
+      deleteConfirm={{
+        title: "Supprimer cette séance ?",
+        message: `"${s.planTitle}" — cette action est définitive.`,
+        confirmLabel: "SUPPRIMER",
+        destructive: true,
+      }}
+    >
+      <Pressable
+        testID={`session-item-${s.id}`}
+        style={styles.sessionCard}
+        onPress={onPress}
       >
-        <Pressable
-          testID={`session-item-${s.id}`}
-          style={styles.sessionCard}
-          onPress={onPress}
-        >
-          <Text style={styles.sessionTitle} numberOfLines={1}>
-            {s.planTitle}
-          </Text>
-          <Text style={styles.sessionDate}>{formatDate(s.startedAt)}</Text>
-          <View style={styles.sessionStatsRow}>
-            <Stat icon="time" value={formatDuration(s.durationSeconds)} />
-            <Stat icon="flame" value={`${s.caloriesBurned} kcal`} />
-            <Stat icon="barbell" value={`${s.exercises.length} ex.`} />
-          </View>
-        </Pressable>
-      </Swipeable>
-      {ConfirmModal}
-    </>
+        <Text style={styles.sessionTitle} numberOfLines={1}>
+          {s.planTitle}
+        </Text>
+        <Text style={styles.sessionDate}>{formatDate(s.startedAt)}</Text>
+        <View style={styles.sessionStatsRow}>
+          <Stat icon="time" value={formatDuration(s.durationSeconds)} />
+          <Stat icon="flame" value={`${s.caloriesBurned} kcal`} />
+          <Stat icon="barbell" value={`${s.exercises.length} ex.`} />
+        </View>
+      </Pressable>
+    </SwipeableRow>
   );
 }
 
@@ -511,73 +471,47 @@ function SwipeablePlanRow({
   onStart: () => void;
   onDeleted: () => void;
 }) {
-  const swipeRef = useRef<Swipeable>(null);
-  const { confirm, ConfirmModal } = useConfirmDialog();
-
-  const performDelete = async () => {
-    await deletePlan(p.id);
-    onDeleted();
-  };
-
-  const confirmDelete = async () => {
-    const ok = await confirm({
-      title: "Supprimer cette séance ?",
-      message: `"${p.title}" — cette action est définitive.`,
-      confirmLabel: "SUPPRIMER",
-      destructive: true,
-    });
-    if (ok) await performDelete();
-    else swipeRef.current?.close();
-  };
-
-  const renderRightActions = () => (
-    <RectButton
-      testID={`swipe-delete-plan-${p.id}`}
-      style={styles.swipeAction}
-      onPress={confirmDelete}
-    >
-      <Ionicons name="trash" size={20} color="#fff" />
-      <Text style={styles.swipeActionText}>Supprimer</Text>
-    </RectButton>
-  );
-
   return (
-    <>
-      <Swipeable
-        ref={swipeRef}
-        renderRightActions={renderRightActions}
-        overshootRight={false}
-        friction={1.6}
-        rightThreshold={40}
-        containerStyle={styles.swipeContainer}
+    <SwipeableRow
+      testID={`plan-item-${p.id}`}
+      style={styles.swipeContainer}
+      onDelete={async () => {
+        await deletePlan(p.id);
+        onDeleted();
+      }}
+      deleteConfirm={{
+        title: "Supprimer cette séance ?",
+        message: `"${p.title}" — cette action est définitive.`,
+        confirmLabel: "SUPPRIMER",
+        destructive: true,
+      }}
+      onEdit={onPress}
+    >
+      <Pressable
+        testID={`plan-item-${p.id}`}
+        style={styles.planCard}
+        onPress={onPress}
       >
-        <Pressable
-          testID={`plan-item-${p.id}`}
-          style={styles.planCard}
-          onPress={onPress}
-        >
-          <View style={{ flex: 1 }}>
-            <View style={styles.planTagsRow}>
-              <View style={styles.planTypeTag}>
-                <Text style={styles.planTypeText}>{planTypeLabel(p.type)}</Text>
-              </View>
+        <View style={{ flex: 1 }}>
+          <View style={styles.planTagsRow}>
+            <View style={styles.planTypeTag}>
+              <Text style={styles.planTypeText}>{planTypeLabel(p.type)}</Text>
             </View>
-            <Text style={styles.planTitle}>{p.title}</Text>
-            <Text style={styles.planMeta}>
-              {p.exercises.length} exercice{p.exercises.length > 1 ? "s" : ""}
-            </Text>
           </View>
-          <Pressable
-            testID={`plan-start-${p.id}`}
-            style={styles.startBtn}
-            onPress={onStart}
-          >
-            <Ionicons name="play" size={14} color="#fff" />
-          </Pressable>
+          <Text style={styles.planTitle}>{p.title}</Text>
+          <Text style={styles.planMeta}>
+            {p.exercises.length} exercice{p.exercises.length > 1 ? "s" : ""}
+          </Text>
+        </View>
+        <Pressable
+          testID={`plan-start-${p.id}`}
+          style={styles.startBtn}
+          onPress={onStart}
+        >
+          <Ionicons name="play" size={14} color="#fff" />
         </Pressable>
-      </Swipeable>
-      {ConfirmModal}
-    </>
+      </Pressable>
+    </SwipeableRow>
   );
 }
 

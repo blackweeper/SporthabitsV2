@@ -10,7 +10,8 @@ import {
   LEVEL_LABEL,
   Program,
 } from "@/src/data/programs";
-import { getCustomPrograms } from "@/src/utils/gym-storage";
+import { deleteCustomProgram, getCustomPrograms } from "@/src/utils/gym-storage";
+import SwipeableRow from "@/src/components/SwipeableRow";
 
 export default function ProgramsScreen() {
   const router = useRouter();
@@ -19,19 +20,21 @@ export default function ProgramsScreen() {
   const isCardio = category === "cardio";
   const [customs, setCustoms] = useState<Program[]>([]);
 
+  const reload = useCallback(async () => {
+    const all = (await getCustomPrograms()) as Program[];
+    setCustoms(
+      all.filter((p) => {
+        if (isStretch) return p.category === "stretch";
+        if (isCardio) return p.category === "cardio";
+        return (p.category ?? "workout") === "workout";
+      }),
+    );
+  }, [isStretch, isCardio]);
+
   useFocusEffect(
     useCallback(() => {
-      (async () => {
-        const all = (await getCustomPrograms()) as Program[];
-        setCustoms(
-          all.filter((p) => {
-            if (isStretch) return p.category === "stretch";
-            if (isCardio) return p.category === "cardio";
-            return (p.category ?? "workout") === "workout";
-          }),
-        );
-      })();
-    }, [isStretch, isCardio]),
+      reload();
+    }, [reload]),
   );
 
   const bundled = isStretch
@@ -102,6 +105,10 @@ export default function ProgramsScreen() {
                 key={p.id}
                 program={p}
                 onPress={() => router.push(`/program/${p.id}`)}
+                onDelete={async () => {
+                  await deleteCustomProgram(p.id);
+                  reload();
+                }}
               />
             ))}
           </>
@@ -139,16 +146,18 @@ export default function ProgramsScreen() {
 function ProgramCard({
   program,
   onPress,
+  onDelete,
 }: {
   program: Program;
   onPress: () => void;
+  onDelete?: () => void | Promise<void>;
 }) {
   const sessions = program.days.reduce(
     (a, d) => a + (d.rest ? 0 : d.sessions.length),
     0,
   );
   const rests = program.days.filter((d) => d.rest).length;
-  return (
+  const card = (
     <Pressable
       testID={`program-card-${program.id}`}
       style={[styles.card, { borderLeftColor: program.color }]}
@@ -181,6 +190,24 @@ function ProgramCard({
       </View>
       <Ionicons name="chevron-forward" size={20} color={colors.onSurfaceTertiary} />
     </Pressable>
+  );
+
+  if (!onDelete) return card;
+
+  return (
+    <SwipeableRow
+      testID={`program-card-${program.id}`}
+      onDelete={onDelete}
+      deleteConfirm={{
+        title: "Supprimer ce programme ?",
+        message: `"${program.title}" — cette action est définitive.`,
+        confirmLabel: "SUPPRIMER",
+        destructive: true,
+      }}
+      onEdit={onPress}
+    >
+      {card}
+    </SwipeableRow>
   );
 }
 

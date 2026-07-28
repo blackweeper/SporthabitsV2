@@ -1,10 +1,12 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   Pressable,
+  Modal,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
@@ -14,6 +16,9 @@ import * as Haptics from "expo-haptics";
 import { colors, radius, spacing } from "@/src/theme";
 import {
   ActiveProgram,
+  CalendarEvent,
+  CALENDAR_EVENT_KIND_EMOJI,
+  CALENDAR_EVENT_KIND_LABEL,
   currentDayIndex,
   DailyJournalEntry,
   DEFAULT_CALORIES_TARGET_KCAL,
@@ -21,13 +26,16 @@ import {
   DEFAULT_WATER_TARGET_ML,
   Measurement,
   setHabitValue,
+  deleteHabit,
   getActivePrograms,
+  getCalendarEvents,
   getDailyJournal,
   getHabits,
   getHabitLogs,
   getMeasurements,
   getPRs,
   getProfile,
+  getReminders,
   getSessions,
   getWellnessLogs,
   patchWellnessLog,
@@ -36,6 +44,7 @@ import {
   HabitLog,
   HABIT_KIND_ICON,
   PersonalRecord,
+  Reminder,
   todayYYYYMMDD,
   UserProfile,
   WellnessLog,
@@ -50,7 +59,14 @@ import { motivationMessage } from "@/src/data/motivation";
 import { WellnessCard } from "@/src/components/WellnessWidgets";
 import { progressionHref } from "@/src/utils/progression-nav";
 import HabitTimerModal from "@/src/components/HabitTimerModal";
+import SwipeableRow from "@/src/components/SwipeableRow";
+import CalendarView, { DayEventDot } from "@/src/components/CalendarView";
 import { getActiveHabitTimer } from "@/src/utils/habit-timer";
+import {
+  computeDueReminders,
+  dismissReminderKey,
+  getDismissedReminderKeys,
+} from "@/src/utils/reminders-due";
 
 type ActiveWithProgram = { active: ActiveProgram; program: Program };
 
@@ -76,6 +92,12 @@ export default function TodayScreen() {
   const [dailyJournal, setDailyJournal] = useState<DailyJournalEntry[]>([]);
   const [prs, setPRs] = useState<PersonalRecord[]>([]);
   const [timerHabit, setTimerHabit] = useState<Habit | null>(null);
+  const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
+  const [reminders, setReminders] = useState<Reminder[]>([]);
+  const [calendarMonthOffset, setCalendarMonthOffset] = useState(0);
+  const [dayModalDate, setDayModalDate] = useState<string | null>(null);
+  const [dismissedReminders, setDismissedReminders] = useState<string[]>([]);
+  const notifiedRef = useRef<Set<string>>(new Set());
 
   const load = useCallback(async () => {
     const loadedHabits = await getHabits();
@@ -96,6 +118,9 @@ export default function TodayScreen() {
     setActives(resolved);
     setWellnessLogs(await getWellnessLogs());
     setDailyJournal(await getDailyJournal());
+    setCalendarEvents(await getCalendarEvents());
+    setReminders(await getReminders());
+    setDismissedReminders(await getDismissedReminderKeys());
 
     // Restore an in-progress habit timer (e.g. the app was backgrounded or
     // reloaded mid-countdown) so it keeps running instead of silently
@@ -110,8 +135,21 @@ export default function TodayScreen() {
   useFocusEffect(
     useCallback(() => {
       load();
+      // Re-check every minute while the dashboard stays open, so in-app
+      // reminders (no OS push available) surface without a manual refresh.
+      const interval = setInterval(load, 60000);
+      return () => clearInterval(interval);
     }, [load]),
   );
+
+  // Best-effort browser notification companion — only fires while this tab
+  // is open; there is no native build/push server behind this app.
+  useEffect(() => {
+    if (Platform.OS !== "web" || typeof Notification === "undefined") return;
+    if (Notification.permission === "default") {
+      Notification.requestPermission().catch(() => {});
+    }
+  }, []);
 
   const today = todayYYYYMMDD();
   const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
@@ -143,12 +181,6 @@ export default function TodayScreen() {
   const scoreDelta = todayScore.score - yesterdayScore.score;
   const stats = computeAdvancedStats(sessions);
   const xpState = computeXPState({ sessions, habits, habitLogs: logs, prs });
-  const lastMeasurement = measurements[0];
-  const firstMeasurement = measurements[measurements.length - 1];
-  const weightDelta =
-    lastMeasurement?.weight_kg != null && firstMeasurement?.weight_kg != null
-      ? lastMeasurement.weight_kg - firstMeasurement.weight_kg
-      : null;
 
   const primary = actives[0];
   const dayIndex = primary
@@ -164,6 +196,143 @@ export default function TodayScreen() {
     streakDays: stats.currentStreakDays,
     score: todayScore.score,
   });
+
+  const dueReminders = useMemo(
+    () => computeDueReminders(reminders, calendarEvents, dismissedReminders),
+    [reminders, calendarEvents, dismissedReminders],
+  );
+
+  useEffect(() => {
+    if (typeof Notification === "undefined" || Notification.permission !== "granted") return;
+    for (const d of dueReminders) {
+      if (!notifiedRef.current.has(d.key)) {
+        notifiedRef.current.add(d.key);
+        try {
+          new Notification(d.title, { body: d.subtitle });
+        } catch {
+          // best-effort only
+        }
+      }
+    }
+  }, [dueReminders]);
+
+  const dismissDue = async (key: string) => {
+    await dismissReminderKey(key);
+    setDismissedReminders((prev) => [...prev, key]);
+  };
+
+  // Merge calendar events, dated measurements, and recurring reminders into
+  // per-day dot indicators for the visible month — nothing is duplicated in
+  // storage, this is purely computed at render time.
+  const calDayEvents = useMemo(() => {
+    const now = new Date();
+    const target = new Date(now.getFullYear(), now.getMonth() + calendarMonthOffset, 1);
+    const year = target.getFullYear();
+    const month = target.getMonth();
+    const map: Record<string, DayEventDot[]> = {};
+    const push = (dateStr: string, emoji: string) => {
+      if (!map[dateStr]) map[dateStr] = [];
+      map[dateStr].push({ emoji });
+    };
+    for (const ev of calendarEvents) {
+      const d = new Date(ev.date + "T12:00:00");
+      if (d.getFullYear() === year && d.getMonth() === month) {
+        push(ev.date, CALENDAR_EVENT_KIND_EMOJI[ev.kind]);
+      }
+    }
+    for (const m of measurements) {
+      const dateStr = m.date.slice(0, 10);
+      const d = new Date(dateStr + "T12:00:00");
+      if (d.getFullYear() !== year || d.getMonth() !== month) continue;
+      if (m.weight_kg != null) push(dateStr, "⚖️");
+      if (m.photoBase64) push(dateStr, "📸");
+    }
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    for (const r of reminders) {
+      if (!r.enabled) continue;
+      for (let day = 1; day <= daysInMonth; day++) {
+        const d = new Date(year, month, day);
+        if (r.daysOfWeek.includes(d.getDay())) {
+          push(d.toISOString().slice(0, 10), "🔔");
+        }
+      }
+    }
+    return map;
+  }, [calendarEvents, measurements, reminders, calendarMonthOffset]);
+
+  type DayEntry = {
+    key: string;
+    emoji: string;
+    title: string;
+    time?: string | null;
+    onPress: () => void;
+  };
+
+  function eventsForDate(dateStr: string): DayEntry[] {
+    const entries: DayEntry[] = [];
+    for (const ev of calendarEvents.filter((e) => e.date === dateStr)) {
+      entries.push({
+        key: `ev-${ev.id}`,
+        emoji: CALENDAR_EVENT_KIND_EMOJI[ev.kind],
+        title: ev.title || CALENDAR_EVENT_KIND_LABEL[ev.kind],
+        time: ev.time,
+        onPress: () => {
+          setDayModalDate(null);
+          router.push(`/calendar-event/${ev.id}` as any);
+        },
+      });
+    }
+    for (const s of sessions.filter(
+      (s) => new Date(s.startedAt).toISOString().slice(0, 10) === dateStr,
+    )) {
+      entries.push({
+        key: `s-${s.id}`,
+        emoji: "✅",
+        title: s.planTitle,
+        time: new Date(s.startedAt).toLocaleTimeString("fr-FR", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        onPress: () => {
+          setDayModalDate(null);
+          router.push(`/session/${s.id}` as any);
+        },
+      });
+    }
+    for (const m of measurements.filter((m) => m.date.slice(0, 10) === dateStr)) {
+      const parts: string[] = [];
+      if (m.weight_kg != null) parts.push(`⚖️ ${m.weight_kg} kg`);
+      if (m.photoBase64) parts.push("📸 Photo");
+      if (parts.length === 0) continue;
+      entries.push({
+        key: `m-${m.id}`,
+        emoji: "📏",
+        title: parts.join(" · "),
+        time: null,
+        onPress: () => {
+          setDayModalDate(null);
+          router.push(`/measurement/${m.id}` as any);
+        },
+      });
+    }
+    for (const r of reminders) {
+      if (!r.enabled) continue;
+      const d = new Date(dateStr + "T12:00:00");
+      if (r.daysOfWeek.includes(d.getDay())) {
+        entries.push({
+          key: `r-${r.id}`,
+          emoji: "🔔",
+          title: r.title || "Rappel",
+          time: r.time,
+          onPress: () => {
+            setDayModalDate(null);
+            router.push(`/reminder/${r.id}` as any);
+          },
+        });
+      }
+    }
+    return entries.sort((a, b) => (a.time ?? "99:99").localeCompare(b.time ?? "99:99"));
+  }
 
   const bumpWellness = async (
     field: "water_ml" | "calories_kcal" | "steps",
@@ -206,6 +375,34 @@ export default function TodayScreen() {
             </View>
           ) : null}
         </View>
+
+        {/* Reminders due now — in-app only, no OS push */}
+        {dueReminders.map((d) => (
+          <Pressable
+            key={d.key}
+            testID={`due-reminder-${d.key}`}
+            style={styles.reminderBanner}
+            onPress={() => router.push(d.href as any)}
+          >
+            <Text style={styles.reminderBannerEmoji}>{d.emoji}</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.reminderBannerTitle} numberOfLines={1}>
+                {d.title}
+              </Text>
+              <Text style={styles.reminderBannerSub}>{d.subtitle}</Text>
+            </View>
+            <Pressable
+              testID={`due-reminder-${d.key}-dismiss`}
+              hitSlop={10}
+              onPress={(ev) => {
+                ev.stopPropagation?.();
+                dismissDue(d.key);
+              }}
+            >
+              <Ionicons name="close" size={18} color={colors.onSurfaceTertiary} />
+            </Pressable>
+          </Pressable>
+        ))}
 
         {/* Motivation — contextual to today's progress */}
         <View style={styles.motivationCard}>
@@ -446,6 +643,10 @@ export default function TodayScreen() {
                   }}
                   onOpen={() => router.push(`/habit/${h.id}` as any)}
                   onStartTimer={() => setTimerHabit(h)}
+                  onDelete={async () => {
+                    await deleteHabit(h.id);
+                    load();
+                  }}
                 />
               );
             })}
@@ -459,6 +660,25 @@ export default function TodayScreen() {
             <Text style={styles.addWidgetLabel}>Nouvelle habitude</Text>
           </Pressable>
         </View>
+
+        {/* Calendar — planning center */}
+        <View style={styles.calHeaderRow}>
+          <Text style={styles.sectionTitle}>Calendrier</Text>
+          <Pressable
+            testID="cal-add-event"
+            onPress={() => router.push(`/calendar-event/new?date=${today}` as any)}
+            hitSlop={8}
+          >
+            <Ionicons name="add-circle" size={20} color={colors.brand} />
+          </Pressable>
+        </View>
+        <CalendarView
+          sessions={sessions}
+          monthOffset={calendarMonthOffset}
+          onChangeMonth={setCalendarMonthOffset}
+          events={calDayEvents}
+          onDayPress={setDayModalDate}
+        />
 
         {/* Streak — hero metric */}
         <Pressable
@@ -485,44 +705,6 @@ export default function TodayScreen() {
           </View>
         </Pressable>
 
-        {/* Quick stats — secondary */}
-        <Text style={styles.sectionTitle}>Statistiques rapides</Text>
-        <View style={styles.statsGrid}>
-          <QuickStat
-            icon="body"
-            value={
-              lastMeasurement?.weight_kg != null
-                ? `${lastMeasurement.weight_kg} kg`
-                : "—"
-            }
-            label="Poids actuel"
-            trend={
-              weightDelta != null
-                ? `${weightDelta >= 0 ? "+" : ""}${weightDelta.toFixed(1)} kg`
-                : undefined
-            }
-            onPress={() => router.push(progressionHref("transformation") as any)}
-          />
-          <QuickStat
-            icon="checkmark-done"
-            value={String(stats.totalSessions)}
-            label="Séances totales"
-            onPress={() => router.push("/training")}
-          />
-          <QuickStat
-            icon="barbell"
-            value={`${(stats.totalVolumeKg / 1000).toFixed(1)}t`}
-            label="Volume soulevé"
-            onPress={() => router.push("/stats")}
-          />
-          <QuickStat
-            icon="time"
-            value={formatShortDuration(stats.avgDurationSec)}
-            label="Durée moyenne"
-            onPress={() => router.push("/stats")}
-          />
-        </View>
-
         <View style={{ height: 40 }} />
       </ScrollView>
       <HabitTimerModal
@@ -534,8 +716,75 @@ export default function TodayScreen() {
           load();
         }}
       />
+      <Modal
+        visible={dayModalDate !== null}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setDayModalDate(null)}
+      >
+        <View style={styles.dayModalBackdrop}>
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={() => setDayModalDate(null)}
+          />
+          <View style={styles.dayModalSheet}>
+            <View style={styles.dayModalHandle} />
+            <View style={styles.dayModalHeaderRow}>
+              <Text style={styles.dayModalTitle}>
+                {dayModalDate ? formatDayModalDate(dayModalDate) : ""}
+              </Text>
+              <Pressable onPress={() => setDayModalDate(null)} hitSlop={12}>
+                <Ionicons name="close" size={22} color={colors.onSurfaceTertiary} />
+              </Pressable>
+            </View>
+            <ScrollView contentContainerStyle={{ gap: 8 }}>
+              {dayModalDate && eventsForDate(dayModalDate).length === 0 ? (
+                <Text style={styles.dayModalEmpty}>Rien de prévu ce jour-là.</Text>
+              ) : (
+                dayModalDate &&
+                eventsForDate(dayModalDate).map((entry) => (
+                  <Pressable
+                    key={entry.key}
+                    testID={`day-event-${entry.key}`}
+                    style={styles.dayModalRow}
+                    onPress={entry.onPress}
+                  >
+                    <Text style={styles.dayModalEmoji}>{entry.emoji}</Text>
+                    <Text style={styles.dayModalRowTitle} numberOfLines={1}>
+                      {entry.title}
+                    </Text>
+                    {entry.time && (
+                      <Text style={styles.dayModalRowTime}>{entry.time}</Text>
+                    )}
+                  </Pressable>
+                ))
+              )}
+            </ScrollView>
+            <Pressable
+              testID="day-modal-add"
+              style={styles.dayModalAddBtn}
+              onPress={() => {
+                const d = dayModalDate;
+                setDayModalDate(null);
+                router.push(`/calendar-event/new?date=${d}` as any);
+              }}
+            >
+              <Ionicons name="add-circle" size={16} color="#fff" />
+              <Text style={styles.dayModalAddText}>AJOUTER UN ÉVÉNEMENT</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
+}
+
+function formatDayModalDate(dateStr: string) {
+  return new Date(dateStr + "T12:00:00").toLocaleDateString("fr-FR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
 }
 
 function SessionListItem({
@@ -591,6 +840,7 @@ function HabitListItem({
   onReset,
   onOpen,
   onStartTimer,
+  onDelete,
 }: {
   habit: Habit;
   current: number;
@@ -599,6 +849,7 @@ function HabitListItem({
   onReset: () => void;
   onOpen: () => void;
   onStartTimer: () => void;
+  onDelete: () => void | Promise<void>;
 }) {
   const done = current >= target;
   const color = habit.color ?? "#4CAF50";
@@ -609,6 +860,17 @@ function HabitListItem({
   // tap-to-increment counter.
   const isTimed = habit.unit === "min";
   return (
+    <SwipeableRow
+      testID={`widget-${habit.id}`}
+      onDelete={onDelete}
+      deleteConfirm={{
+        title: "Supprimer cette habitude ?",
+        message: `"${habit.title}" — cette action est définitive.`,
+        confirmLabel: "SUPPRIMER",
+        destructive: true,
+      }}
+      onEdit={onOpen}
+    >
     <Pressable
       testID={`widget-${habit.id}`}
       style={[styles.listItem, done && { borderColor: color }]}
@@ -670,6 +932,7 @@ function HabitListItem({
         </Pressable>
       )}
     </Pressable>
+    </SwipeableRow>
   );
 }
 
@@ -712,31 +975,6 @@ function ScoreCircle({ score }: { score: number }) {
   );
 }
 
-function QuickStat({
-  icon,
-  value,
-  label,
-  trend,
-  onPress,
-}: {
-  icon: any;
-  value: string;
-  label: string;
-  trend?: string;
-  onPress?: () => void;
-}) {
-  return (
-    <Pressable style={styles.qStat} onPress={onPress}>
-      <View style={styles.qStatIcon}>
-        <Ionicons name={icon} size={14} color={colors.brand} />
-      </View>
-      <Text style={styles.qStatValue}>{value}</Text>
-      <Text style={styles.qStatLabel}>{label}</Text>
-      {trend ? <Text style={styles.qStatTrend}>{trend}</Text> : null}
-    </Pressable>
-  );
-}
-
 function formatFullDate() {
   return new Date().toLocaleDateString("fr-FR", {
     weekday: "long",
@@ -745,17 +983,22 @@ function formatFullDate() {
   });
 }
 
-function formatShortDuration(sec: number): string {
-  if (!sec) return "—";
-  const h = Math.floor(sec / 3600);
-  const m = Math.floor((sec % 3600) / 60);
-  if (h > 0) return `${h}h${m > 0 ? m : ""}`;
-  return `${m}m`;
-}
-
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.surface },
   scroll: { padding: spacing.lg, gap: spacing.md, paddingBottom: 40 },
+  reminderBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    backgroundColor: colors.brandTertiary,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.brand,
+    padding: spacing.md,
+  },
+  reminderBannerEmoji: { fontSize: 18 },
+  reminderBannerTitle: { color: colors.onSurface, fontWeight: "800", fontSize: 13 },
+  reminderBannerSub: { color: colors.brandSecondary, fontSize: 11, marginTop: 1 },
   motivationCard: {
     flexDirection: "row",
     alignItems: "center",
@@ -1159,43 +1402,72 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     textAlign: "center",
   },
-  statsGrid: {
+  calHeaderRow: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
+    alignItems: "center",
+    justifyContent: "space-between",
   },
-  qStat: {
-    width: "48%",
+  dayModalBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    justifyContent: "flex-end",
+  },
+  dayModalSheet: {
     backgroundColor: colors.surfaceSecondary,
+    borderTopLeftRadius: radius.lg,
+    borderTopRightRadius: radius.lg,
+    padding: spacing.lg,
+    paddingBottom: 32,
+    maxHeight: "75%",
+    gap: spacing.sm,
+  },
+  dayModalHandle: {
+    width: 48,
+    height: 5,
+    backgroundColor: colors.border,
+    borderRadius: 3,
+    alignSelf: "center",
+    marginBottom: spacing.sm,
+  },
+  dayModalHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  dayModalTitle: {
+    color: colors.onSurface,
+    fontSize: 16,
+    fontWeight: "800",
+    textTransform: "capitalize",
+  },
+  dayModalRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    backgroundColor: colors.surfaceTertiary,
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.border,
     padding: spacing.md,
-    gap: 4,
   },
-  qStatIcon: {
-    width: 26,
-    height: 26,
-    borderRadius: 8,
-    backgroundColor: colors.brandTertiary,
+  dayModalEmoji: { fontSize: 18 },
+  dayModalRowTitle: { color: colors.onSurface, fontWeight: "700", fontSize: 14, flex: 1 },
+  dayModalRowTime: { color: colors.onSurfaceTertiary, fontSize: 12, fontWeight: "700" },
+  dayModalEmpty: {
+    color: colors.onSurfaceTertiary,
+    fontStyle: "italic",
+    textAlign: "center",
+    paddingVertical: spacing.lg,
+  },
+  dayModalAddBtn: {
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    gap: 8,
+    backgroundColor: colors.brand,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    marginTop: spacing.sm,
   },
-  qStatValue: {
-    color: colors.onSurface,
-    fontSize: 20,
-    fontWeight: "800",
-    marginTop: 4,
-  },
-  qStatLabel: {
-    color: colors.onSurfaceTertiary,
-    fontSize: 11,
-    fontWeight: "600",
-  },
-  qStatTrend: {
-    color: colors.brand,
-    fontSize: 10,
-    fontWeight: "700",
-    marginTop: 2,
-  },
+  dayModalAddText: { color: "#fff", fontWeight: "800", letterSpacing: 0.5 },
 });
