@@ -1,3 +1,5 @@
+import { Platform } from 'react-native';
+
 export const colors = {
   surface: '#0E0E0E',
   surfaceSecondary: '#1A1A1A',
@@ -11,10 +13,84 @@ export const colors = {
   success: '#00E676',
   warning: '#FFC400',
   error: '#FF1744',
+  // Sémantique : bleu = information, violet = progression — pour que le
+  // regard distingue naturellement "à faire" (orange) de "déjà acquis /
+  // en cours d'évolution" (violet), au lieu de tout peindre en orange.
+  info: '#3B82F6',
+  progress: '#8B5CF6',
+  progressSecondary: '#C4B5FD',
+  progressTertiary: '#2E1F52',
   border: '#2A2A2A',
   borderStrong: '#3A3A3A',
   divider: '#1E1E1E',
   overlay: 'rgba(0,0,0,0.6)',
+} as const;
+
+// Ombre discrète réservée aux cartes "hero" (Score, XP, Streak) — jamais aux
+// lignes de liste plates, pour garder l'app minimaliste. `elevated` sert aux
+// éléments flottants (FAB, sheets) qui ont déjà un besoin de profondeur plus
+// marquée. Spread directement dans un StyleSheet.create (`...shadow.card`).
+// Web (react-native-web) déprécie les props `shadow*` au profit de
+// `boxShadow` (CSS) ; iOS/Android ne comprennent pas `boxShadow` et gardent
+// l'API native (`shadow*` + `elevation`) — d'où la double définition ici,
+// pour ne jamais avoir à y repenser ailleurs dans le code.
+export const shadow = {
+  card:
+    Platform.OS === 'web'
+      ? { boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.25)' }
+      : {
+          shadowColor: '#000000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.25,
+          shadowRadius: 10,
+          elevation: 3,
+        },
+  elevated:
+    Platform.OS === 'web'
+      ? { boxShadow: '0px 6px 16px rgba(0, 0, 0, 0.35)' }
+      : {
+          shadowColor: '#000000',
+          shadowOffset: { width: 0, height: 6 },
+          shadowOpacity: 0.35,
+          shadowRadius: 16,
+          elevation: 6,
+        },
+} as const;
+
+// Constantes d'animation partagées — courtes par construction pour qu'aucune
+// micro-interaction ne ralentisse l'app perçue.
+/** Same web/native split as `shadow` above, for the handful of "bespoke"
+ * colored shadows (FAB, Streak hero) that match their own background color
+ * instead of the neutral black `shadow.card`/`shadow.elevated` — kept as a
+ * helper rather than duplicating the Platform.OS branch at each call site. */
+export function coloredShadow(
+  color: string,
+  {
+    offsetY = 4,
+    opacity = 0.3,
+    radius = 8,
+    elevation = 4,
+  }: { offsetY?: number; opacity?: number; radius?: number; elevation?: number } = {},
+) {
+  if (Platform.OS === 'web') {
+    const alphaHex = Math.round(opacity * 255)
+      .toString(16)
+      .padStart(2, '0');
+    return { boxShadow: `0px ${offsetY}px ${radius}px ${color}${alphaHex}` };
+  }
+  return {
+    shadowColor: color,
+    shadowOffset: { width: 0, height: offsetY },
+    shadowOpacity: opacity,
+    shadowRadius: radius,
+    elevation,
+  };
+}
+
+export const motion = {
+  fast: 150,
+  base: 220,
+  slow: 320,
 } as const;
 
 export const spacing = {

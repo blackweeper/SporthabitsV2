@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -11,8 +11,16 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import Svg, { Circle } from "react-native-svg";
+import Animated, {
+  Easing,
+  useAnimatedProps,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 import { LineChart } from "react-native-gifted-charts";
 import { colors, radius, spacing } from "@/src/theme";
+import Card from "@/src/components/ui/Card";
+import PressableScale from "@/src/components/ui/PressableScale";
 import {
   PERIOD_LABEL,
   PeriodKey,
@@ -81,7 +89,23 @@ const TABS: { key: Tab; label: string; icon: any }[] = [
   { key: "level", label: "Niveau", icon: "star" },
   { key: "transformation", label: "Corps", icon: "body" },
   { key: "habits", label: "Habitudes", icon: "checkbox" },
+  { key: "goals", label: "Objectifs", icon: "flag" },
   { key: "journal", label: "Journal", icon: "book" },
+];
+
+/** The 4 sub-tabs grouped visually under the "Performances sportives" section. */
+const PERFORMANCE_TABS: Tab[] = ["overview", "exercises", "records", "level"];
+
+/** 5 top-level sections shown to the user: Transformation physique,
+ * Performances sportives (groups score/exercices/records/niveau),
+ * Habitudes, Objectifs, Journal. Purely a display grouping — the
+ * underlying `Tab` values (and progressionHref deep links) are unchanged. */
+const OUTER_GROUPS: { key: string; label: string; icon: any; tabs: Tab[] }[] = [
+  { key: "transformation", label: "Corps", icon: "body", tabs: ["transformation"] },
+  { key: "performance", label: "Performances", icon: "trophy", tabs: PERFORMANCE_TABS },
+  { key: "habits", label: "Habitudes", icon: "checkbox", tabs: ["habits"] },
+  { key: "goals", label: "Objectifs", icon: "flag", tabs: ["goals"] },
+  { key: "journal", label: "Journal", icon: "book", tabs: ["journal"] },
 ];
 
 function isProgressionTab(v: unknown): v is Tab {
@@ -177,7 +201,7 @@ export default function ProgressionHub() {
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
       <View style={styles.header}>
-        <Text style={styles.title}>Progression</Text>
+        <Text style={styles.title}>Mon évolution</Text>
       </View>
 
       <View style={styles.segWrap}>
@@ -186,28 +210,59 @@ export default function ProgressionHub() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.segRow}
         >
-          {TABS.map((t) => {
-            const active = tab === t.key;
+          {OUTER_GROUPS.map((g) => {
+            const active = g.tabs.includes(tab);
             return (
               <Pressable
-                key={t.key}
-                testID={`prog-seg-${t.key}`}
+                key={g.key}
+                testID={`prog-seg-${g.key}`}
                 style={[styles.segChip, active && styles.segChipActive]}
-                onPress={() => setTab(t.key)}
+                onPress={() => setTab(active ? tab : g.tabs[0])}
               >
                 <Ionicons
-                  name={t.icon}
+                  name={g.icon}
                   size={13}
                   color={active ? "#fff" : colors.onSurfaceTertiary}
                 />
                 <Text style={[styles.segLabel, active && { color: "#fff" }]}>
-                  {t.label}
+                  {g.label}
                 </Text>
               </Pressable>
             );
           })}
         </ScrollView>
       </View>
+
+      {PERFORMANCE_TABS.includes(tab) && (
+        <View style={styles.segWrap}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.segRow}
+          >
+            {TABS.filter((t) => PERFORMANCE_TABS.includes(t.key)).map((t) => {
+              const active = tab === t.key;
+              return (
+                <Pressable
+                  key={t.key}
+                  testID={`prog-seg-inner-${t.key}`}
+                  style={[styles.subTab, active && styles.subTabActive]}
+                  onPress={() => setTab(t.key)}
+                >
+                  <Ionicons
+                    name={t.icon}
+                    size={12}
+                    color={active ? "#fff" : colors.onSurfaceTertiary}
+                  />
+                  <Text style={[styles.subTabLabel, active && { color: "#fff" }]}>
+                    {t.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
+        </View>
+      )}
 
       <ScrollView contentContainerStyle={styles.scroll}>
         {tab === "overview" && (
@@ -242,23 +297,40 @@ export default function ProgressionHub() {
           <HabitsView
             habits={habits}
             reminders={reminders}
-            goals={goals}
             router={router}
             onChanged={reload}
           />
         )}
+        {tab === "goals" && <GoalsView goals={goals} router={router} />}
         {tab === "journal" && <JournalView router={router} onChanged={reload} />}
       </ScrollView>
     </SafeAreaView>
   );
 }
 
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
+
+/** Même traitement que le ScoreCircle du Dashboard (Phase 1) : violet,
+ * remplissage animé — la même donnée affichée à deux endroits doit se
+ * comporter et se colorer de façon identique. */
 function ScoreCircle({ score }: { score: number }) {
   const size = 140;
   const strokeWidth = 12;
   const r = (size - strokeWidth) / 2;
   const c = 2 * Math.PI * r;
-  const dashOffset = c - (Math.min(100, Math.max(0, score)) / 100) * c;
+  const progress = useSharedValue(0);
+
+  useEffect(() => {
+    progress.value = withTiming(Math.min(100, Math.max(0, score)) / 100, {
+      duration: 500,
+      easing: Easing.out(Easing.cubic),
+    });
+  }, [score, progress]);
+
+  const animatedProps = useAnimatedProps(() => ({
+    strokeDashoffset: c - progress.value * c,
+  }));
+
   return (
     <View
       style={{
@@ -277,16 +349,16 @@ function ScoreCircle({ score }: { score: number }) {
           strokeWidth={strokeWidth}
           fill="transparent"
         />
-        <Circle
+        <AnimatedCircle
           cx={size / 2}
           cy={size / 2}
           r={r}
-          stroke={colors.brand}
+          stroke={colors.progress}
           strokeWidth={strokeWidth}
           strokeLinecap="round"
           fill="transparent"
           strokeDasharray={c}
-          strokeDashoffset={dashOffset}
+          animatedProps={animatedProps}
           transform={`rotate(-90 ${size / 2} ${size / 2})`}
         />
       </Svg>
@@ -320,7 +392,7 @@ function OverviewView({
   const activeGoals = goals.filter((g) => !g.achievedAt);
   return (
     <View style={{ gap: spacing.md }}>
-      <View style={styles.overviewCard}>
+      <Card style={styles.overviewCard}>
         <Text style={styles.overLabel}>IRONFLOW SCORE</Text>
         <ScoreCircle score={score.score} />
         <Text style={styles.overQualitative}>{scoreQualitativeLabel(score.score)}</Text>
@@ -342,7 +414,7 @@ function OverviewView({
             </Text>
           </View>
         )}
-      </View>
+      </Card>
 
       {/* Objectifs en cours */}
       <View style={styles.sectionHeadRow}>
@@ -356,20 +428,18 @@ function OverviewView({
         </Pressable>
       </View>
       {activeGoals.length === 0 ? (
-        <Pressable
-          testID="empty-goals-hint"
-          style={styles.emptyGoalsCard}
-          onPress={onOpenGoals}
-        >
-          <Ionicons name="flag" size={18} color={colors.brand} />
-          <View style={{ flex: 1 }}>
-            <Text style={styles.emptyGoalsTitle}>Aucun objectif actif</Text>
-            <Text style={styles.emptyGoalsSub}>
-              Fixe-toi une cible : perte de poids, 20 tractions, 10 km…
-            </Text>
-          </View>
-          <Ionicons name="add-circle" size={20} color={colors.brand} />
-        </Pressable>
+        <PressableScale testID="empty-goals-hint" onPress={onOpenGoals}>
+          <Card style={styles.emptyGoalsCard}>
+            <Ionicons name="flag" size={18} color={colors.progress} />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.emptyGoalsTitle}>Aucun objectif actif</Text>
+              <Text style={styles.emptyGoalsSub}>
+                Fixe-toi une cible : perte de poids, 20 tractions, 10 km…
+              </Text>
+            </View>
+            <Ionicons name="add-circle" size={20} color={colors.brand} />
+          </Card>
+        </PressableScale>
       ) : (
         activeGoals.slice(0, 5).map((g) => (
           <GoalMiniCard
@@ -471,47 +541,47 @@ function GoalMiniCard({
   pct = Math.max(0, Math.min(1, pct));
   const done = pct >= 1;
   return (
-    <Pressable
-      testID={`overview-goal-${goal.id}`}
-      style={styles.miniGoal}
-      onPress={onPress}
-    >
-      <View style={styles.miniGoalHead}>
-        <View style={styles.miniGoalIcon}>
-          <Ionicons
-            name={GOAL_CATEGORY_ICON[goal.category]}
-            size={14}
-            color={done ? colors.success : colors.brand}
+    <PressableScale testID={`overview-goal-${goal.id}`} onPress={onPress}>
+      <Card style={styles.miniGoal}>
+        <View style={styles.miniGoalHead}>
+          <View style={styles.miniGoalIcon}>
+            <Ionicons
+              name={GOAL_CATEGORY_ICON[goal.category]}
+              size={14}
+              color={done ? colors.success : colors.progress}
+            />
+          </View>
+          <Text style={styles.miniGoalTitle} numberOfLines={1}>
+            {goal.title || GOAL_CATEGORY_LABEL[goal.category]}
+          </Text>
+          <Text
+            style={[
+              styles.miniGoalPct,
+              // progressSecondary : progress échoue le contraste AA à cette
+              // taille sur surfaceSecondary (vérifié, 4.1:1 < 4.5:1).
+              { color: done ? colors.success : colors.progressSecondary },
+            ]}
+          >
+            {Math.round(pct * 100)}%
+          </Text>
+        </View>
+        <View style={styles.brBar}>
+          <View
+            style={[
+              styles.brFill,
+              {
+                width: `${pct * 100}%`,
+                backgroundColor: done ? colors.success : colors.progress,
+              },
+            ]}
           />
         </View>
-        <Text style={styles.miniGoalTitle} numberOfLines={1}>
-          {goal.title || GOAL_CATEGORY_LABEL[goal.category]}
+        <Text style={styles.miniGoalMeta}>
+          {formatNum(current)} {goal.unit} · cible {formatNum(goal.targetValue)}{" "}
+          {goal.unit}
         </Text>
-        <Text
-          style={[
-            styles.miniGoalPct,
-            done && { color: colors.success },
-          ]}
-        >
-          {Math.round(pct * 100)}%
-        </Text>
-      </View>
-      <View style={styles.brBar}>
-        <View
-          style={[
-            styles.brFill,
-            {
-              width: `${pct * 100}%`,
-              backgroundColor: done ? colors.success : colors.brand,
-            },
-          ]}
-        />
-      </View>
-      <Text style={styles.miniGoalMeta}>
-        {formatNum(current)} {goal.unit} · cible {formatNum(goal.targetValue)}{" "}
-        {goal.unit}
-      </Text>
-    </Pressable>
+      </Card>
+    </PressableScale>
   );
 }
 
@@ -694,43 +764,44 @@ function ExercisesView({
         filtered.map((e) => {
           const color = EXERCISE_CATEGORY_COLOR[e.category];
           return (
-            <Pressable
+            <PressableScale
               key={e.name}
               testID={`ex-detail-${e.name}`}
-              style={styles.exerciseCard}
               onPress={() =>
                 router.push(`/exercise/${encodeURIComponent(e.name)}`)
               }
             >
-              <View
-                style={[styles.exIconBox, { backgroundColor: color + "26" }]}
-              >
-                {e.emoji ? (
-                  <Text style={{ fontSize: 15 }}>{e.emoji}</Text>
-                ) : (
-                  <Ionicons
-                    name={EXERCISE_CATEGORY_ICON[e.category]}
-                    size={16}
-                    color={color}
-                  />
-                )}
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.exName} numberOfLines={1}>
-                  {e.name}
-                </Text>
-                <Text style={styles.exMeta}>
-                  {e.count > 0
-                    ? `${e.count} séance${e.count > 1 ? "s" : ""}`
-                    : "Pas encore pratiqué"}
-                </Text>
-              </View>
-              <Ionicons
-                name="chevron-forward"
-                size={16}
-                color={colors.onSurfaceTertiary}
-              />
-            </Pressable>
+              <Card style={styles.exerciseCard}>
+                <View
+                  style={[styles.exIconBox, { backgroundColor: color + "26" }]}
+                >
+                  {e.emoji ? (
+                    <Text style={{ fontSize: 15 }}>{e.emoji}</Text>
+                  ) : (
+                    <Ionicons
+                      name={EXERCISE_CATEGORY_ICON[e.category]}
+                      size={16}
+                      color={color}
+                    />
+                  )}
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.exName} numberOfLines={1}>
+                    {e.name}
+                  </Text>
+                  <Text style={styles.exMeta}>
+                    {e.count > 0
+                      ? `${e.count} séance${e.count > 1 ? "s" : ""}`
+                      : "Pas encore pratiqué"}
+                  </Text>
+                </View>
+                <Ionicons
+                  name="chevron-forward"
+                  size={16}
+                  color={colors.onSurfaceTertiary}
+                />
+              </Card>
+            </PressableScale>
           );
         })
       )}
@@ -961,9 +1032,9 @@ function LevelView({
       )}
 
       {/* Overall progress toward MAX_LEVEL */}
-      <View style={styles.overallCard}>
+      <Card style={styles.overallCard}>
         <View style={styles.overallHead}>
-          <Ionicons name="trophy" size={14} color={colors.brand} />
+          <Ionicons name="trophy" size={14} color={colors.progress} />
           <Text style={styles.overallLabel}>PROGRESSION GLOBALE</Text>
           <Text style={styles.overallPct}>
             {Math.round(overallPct * 100)}%
@@ -980,23 +1051,23 @@ function LevelView({
         <Text style={styles.overallHint}>
           Niveau {xp.level} / {MAX_LEVEL} · {xp.xp} XP / {totalXPForMax} XP
         </Text>
-      </View>
+      </Card>
 
       {/* XP sources */}
-      <View style={styles.sourcesCard}>
+      <Card style={styles.sourcesCard}>
         <Text style={styles.sourcesTitle}>Comment gagner de l&apos;XP</Text>
         <SourceRow icon="barbell" label="Séance terminée" xp="+50" />
         <SourceRow icon="trophy" label="Nouveau record" xp="+100" />
         <SourceRow icon="checkbox" label="Habitude complétée du jour" xp="+10" />
         <SourceRow icon="flame" label="Journée active (séance)" xp="+5" />
-      </View>
+      </Card>
 
       {/* Upcoming levels */}
       {upcoming.length > 0 && (
         <>
           <Text style={styles.sectionTitle}>Prochains niveaux</Text>
           {upcoming.map((u) => (
-            <View
+            <Card
               key={u.level}
               style={[
                 styles.upNext,
@@ -1026,7 +1097,7 @@ function LevelView({
                   <Text style={styles.upBadgeChipEmoji}>{u.badge.emoji}</Text>
                 </View>
               )}
-            </View>
+            </Card>
           ))}
         </>
       )}
@@ -1257,7 +1328,7 @@ function OneRMCalculator({
   // Round to nearest 2.5 kg
   const roundedLoad = Math.round(load / 2.5) * 2.5;
   return (
-    <View style={styles.calcCard} testID={testID}>
+    <Card style={styles.calcCard} testID={testID}>
       <View style={styles.calcHead}>
         <Ionicons name="calculator" size={14} color={colors.brand} />
         <Text style={styles.calcTitle}>Calculateur % de 1RM</Text>
@@ -1294,7 +1365,7 @@ function OneRMCalculator({
         <Text style={styles.calcResultVal}>{roundedLoad.toFixed(1)} kg</Text>
         <Text style={styles.calcResultHint}>à {pct}% de 1RM</Text>
       </View>
-    </View>
+    </Card>
   );
 }
 
@@ -1309,7 +1380,7 @@ function RepsCalculator({
   const maxReps = pr.reps ?? 0;
   const target = Math.round((maxReps * pct) / 100);
   return (
-    <View style={styles.calcCard} testID={testID}>
+    <Card style={styles.calcCard} testID={testID}>
       <View style={styles.calcHead}>
         <Ionicons name="repeat" size={14} color={colors.brand} />
         <Text style={styles.calcTitle}>Calculateur % du record reps</Text>
@@ -1343,7 +1414,7 @@ function RepsCalculator({
         <Text style={styles.calcResultVal}>{target} reps</Text>
         <Text style={styles.calcResultHint}>à {pct}% du max</Text>
       </View>
-    </View>
+    </Card>
   );
 }
 
@@ -1375,7 +1446,7 @@ function CardioCalculator({
     !s || !isFinite(s) ? "—" : `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}/km`;
 
   return (
-    <View style={styles.calcCard} testID={testID}>
+    <Card style={styles.calcCard} testID={testID}>
       <View style={styles.calcHead}>
         <Ionicons name="speedometer" size={14} color={colors.brand} />
         <Text style={styles.calcTitle}>Calculateur % du record cardio</Text>
@@ -1415,7 +1486,7 @@ function CardioCalculator({
           ≈ {formatSec(targetTime)} pour {(distanceM / 1000).toFixed(1)} km à {pct}%
         </Text>
       </View>
-    </View>
+    </Card>
   );
 }
 
@@ -1502,24 +1573,25 @@ function TransformationView({
               }}
               onEdit={() => router.push(`/measurement/${m.id}`)}
             >
-              <Pressable
+              <PressableScale
                 testID={`m-item-${m.id}`}
-                style={styles.mCard}
                 onPress={() => router.push(`/measurement/${m.id}`)}
               >
-                <Text style={styles.mDate}>{formatDate(m.date)}</Text>
-                <View style={styles.mMetrics}>
-                  {m.weight_kg != null && (
-                    <MetricChip label={`${m.weight_kg} kg`} />
-                  )}
-                  {m.body_fat_pct != null && (
-                    <MetricChip label={`${m.body_fat_pct}% MG`} />
-                  )}
-                  {m.waist_cm != null && (
-                    <MetricChip label={`Taille ${m.waist_cm}`} />
-                  )}
-                </View>
-              </Pressable>
+                <Card style={styles.mCard}>
+                  <Text style={styles.mDate}>{formatDate(m.date)}</Text>
+                  <View style={styles.mMetrics}>
+                    {m.weight_kg != null && (
+                      <MetricChip label={`${m.weight_kg} kg`} />
+                    )}
+                    {m.body_fat_pct != null && (
+                      <MetricChip label={`${m.body_fat_pct}% MG`} />
+                    )}
+                    {m.waist_cm != null && (
+                      <MetricChip label={`Taille ${m.waist_cm}`} />
+                    )}
+                  </View>
+                </Card>
+              </PressableScale>
             </SwipeableRow>
           ))}
         </>
@@ -1718,24 +1790,21 @@ function shortDate(iso: string) {
 function HabitsView({
   habits,
   reminders,
-  goals,
   router,
   onChanged,
 }: {
   habits: Habit[];
   reminders: Reminder[];
-  goals: Goal[];
   router: any;
   onChanged: () => void;
 }) {
-  const [sub, setSub] = useState<"habits" | "reminders" | "goals">("habits");
+  const [sub, setSub] = useState<"habits" | "reminders">("habits");
   return (
     <>
       <View style={styles.subTabRow}>
         {[
           { key: "habits", label: "Habitudes", icon: "checkbox" },
           { key: "reminders", label: "Rappels", icon: "alarm" },
-          { key: "goals", label: "Objectifs", icon: "flag" },
         ].map((s) => {
           const active = sub === s.key;
           return (
@@ -1798,22 +1867,23 @@ function HabitsView({
                 }}
                 onEdit={() => router.push(`/habit/${h.id}`)}
               >
-                <Pressable
+                <PressableScale
                   testID={`habit-${h.id}`}
-                  style={styles.habitCard}
                   onPress={() => router.push(`/habit/${h.id}`)}
                 >
-                  <View style={[styles.habitIcon, { backgroundColor: colors.brandTertiary }]}>
-                    <Ionicons name="checkbox" size={16} color={colors.brand} />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.habitTitle}>{h.title}</Text>
-                    <Text style={styles.habitMeta}>
-                      Cible : {h.target ?? 1} {h.unit ?? ""}
-                    </Text>
-                  </View>
-                  <Ionicons name="chevron-forward" size={16} color={colors.onSurfaceTertiary} />
-                </Pressable>
+                  <Card style={styles.habitCard}>
+                    <View style={[styles.habitIcon, { backgroundColor: colors.brandTertiary }]}>
+                      <Ionicons name="checkbox" size={16} color={colors.brand} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.habitTitle}>{h.title}</Text>
+                      <Text style={styles.habitMeta}>
+                        Cible : {h.target ?? 1} {h.unit ?? ""}
+                      </Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={16} color={colors.onSurfaceTertiary} />
+                  </Card>
+                </PressableScale>
               </SwipeableRow>
             ))
           )}
@@ -1861,75 +1931,82 @@ function HabitsView({
                 }}
                 onEdit={() => router.push(`/reminder/${r.id}`)}
               >
-                <Pressable
+                <PressableScale
                   testID={`reminder-${r.id}`}
-                  style={styles.habitCard}
                   onPress={() => router.push(`/reminder/${r.id}`)}
                 >
-                  <View style={[styles.habitIcon, { backgroundColor: colors.brandTertiary }]}>
-                    <Ionicons
-                      name={REMINDER_KIND_ICON[r.kind]}
-                      size={16}
-                      color={colors.brand}
-                    />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.habitTitle}>{r.title || REMINDER_KIND_LABEL[r.kind]}</Text>
-                    <Text style={styles.habitMeta}>
-                      {r.time} · {formatDaysOfWeek(r.daysOfWeek)} ·{" "}
-                      {r.enabled ? "actif" : "désactivé"}
-                    </Text>
-                  </View>
-                  <Ionicons name="chevron-forward" size={16} color={colors.onSurfaceTertiary} />
-                </Pressable>
+                  <Card style={styles.habitCard}>
+                    <View style={[styles.habitIcon, { backgroundColor: colors.brandTertiary }]}>
+                      <Ionicons
+                        name={REMINDER_KIND_ICON[r.kind]}
+                        size={16}
+                        color={colors.brand}
+                      />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.habitTitle}>{r.title || REMINDER_KIND_LABEL[r.kind]}</Text>
+                      <Text style={styles.habitMeta}>
+                        {r.time} · {formatDaysOfWeek(r.daysOfWeek)} ·{" "}
+                        {r.enabled ? "actif" : "désactivé"}
+                      </Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={16} color={colors.onSurfaceTertiary} />
+                  </Card>
+                </PressableScale>
               </SwipeableRow>
             ))
           )}
         </>
       )}
 
-      {sub === "goals" && (
-        <>
-          <Pressable
-            testID="open-goals-full"
-            style={styles.ctaFull}
+    </>
+  );
+}
+
+function GoalsView({ goals, router }: { goals: Goal[]; router: any }) {
+  return (
+    <>
+      <Pressable
+        testID="open-goals-full"
+        style={styles.ctaFull}
+        onPress={() => router.push("/goals")}
+      >
+        <Ionicons name="flag" size={18} color="#fff" />
+        <Text style={styles.ctaFullText}>GÉRER LES OBJECTIFS</Text>
+      </Pressable>
+      {goals.length === 0 ? (
+        <View style={styles.empty}>
+          <Ionicons name="flag" size={40} color={colors.progress} />
+          <Text style={styles.emptyTitle}>Aucun objectif</Text>
+          <Text style={styles.emptySub}>
+            Fixe-toi une cible : 20 tractions, 10 km, 12% de masse grasse…
+          </Text>
+        </View>
+      ) : (
+        goals.slice(0, 10).map((g) => (
+          <PressableScale
+            key={g.id}
+            testID={`goal-preview-${g.id}`}
             onPress={() => router.push("/goals")}
           >
-            <Ionicons name="flag" size={18} color="#fff" />
-            <Text style={styles.ctaFullText}>GÉRER LES OBJECTIFS</Text>
-          </Pressable>
-          {goals.length === 0 ? (
-            <View style={styles.empty}>
-              <Ionicons name="flag" size={40} color={colors.brand} />
-              <Text style={styles.emptyTitle}>Aucun objectif</Text>
-              <Text style={styles.emptySub}>
-                Fixe-toi une cible : 20 tractions, 10 km, 12% de masse grasse…
-              </Text>
-            </View>
-          ) : (
-            goals.slice(0, 10).map((g) => (
-              <Pressable
-                key={g.id}
-                testID={`goal-preview-${g.id}`}
-                style={styles.habitCard}
-                onPress={() => router.push("/goals")}
-              >
-                <View style={[styles.habitIcon, { backgroundColor: colors.brandTertiary }]}>
-                  <Ionicons name="flag" size={16} color={colors.brand} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.habitTitle} numberOfLines={1}>
-                    {g.title || g.category}
-                  </Text>
-                  <Text style={styles.habitMeta}>
-                    Cible : {g.targetValue} {g.unit}
-                  </Text>
-                </View>
-                <Ionicons name="chevron-forward" size={16} color={colors.onSurfaceTertiary} />
-              </Pressable>
-            ))
-          )}
-        </>
+            <Card style={styles.habitCard}>
+              {/* Objectif = progression (comme "Objectifs" du profil), pas
+                  une action à faire — violet, pas l'orange des habitudes. */}
+              <View style={[styles.habitIcon, { backgroundColor: colors.progressTertiary }]}>
+                <Ionicons name="flag" size={16} color={colors.progress} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.habitTitle} numberOfLines={1}>
+                  {g.title || g.category}
+                </Text>
+                <Text style={styles.habitMeta}>
+                  Cible : {g.targetValue} {g.unit}
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color={colors.onSurfaceTertiary} />
+            </Card>
+          </PressableScale>
+        ))
       )}
     </>
   );
@@ -2002,38 +2079,39 @@ function JournalView({
                 destructive: true,
               }}
             >
-              <Pressable
+              <PressableScale
                 testID={`journal-entry-${e.date}`}
-                style={styles.journalEntryCard}
                 onPress={() => router.push("/daily-journal")}
               >
-                <View style={styles.pastHead}>
-                  <Text style={styles.pastDate}>{formatJournalDate(e.date)}</Text>
-                  <View style={styles.pastRatings}>
-                    {e.energy != null && <MiniBadge label="⚡" value={e.energy} />}
-                    {e.mood != null && <MiniBadge label="🙂" value={e.mood} />}
-                    {e.stress != null && <MiniBadge label="⚠️" value={e.stress} />}
+                <Card style={styles.journalEntryCard}>
+                  <View style={styles.pastHead}>
+                    <Text style={styles.pastDate}>{formatJournalDate(e.date)}</Text>
+                    <View style={styles.pastRatings}>
+                      {e.energy != null && <MiniBadge label="⚡" value={e.energy} />}
+                      {e.mood != null && <MiniBadge label="🙂" value={e.mood} />}
+                      {e.stress != null && <MiniBadge label="⚠️" value={e.stress} />}
+                    </View>
                   </View>
-                </View>
-                {e.sleep_hours != null && (
-                  <Text style={styles.journalEntryMeta}>
-                    😴 {e.sleep_hours.toFixed(1)}h de sommeil
-                  </Text>
-                )}
-                {e.pain_zones && e.pain_zones.length > 0 ? (
-                  <Text style={styles.journalEntryMeta} numberOfLines={2}>
-                    🩹{" "}
-                    {e.pain_zones
-                      .map((z) => `${PAIN_ZONE_LABEL[z.zone]} ${z.intensity}/10`)
-                      .join(" · ")}
-                  </Text>
-                ) : null}
-                {e.notes ? (
-                  <Text style={styles.pastNotes} numberOfLines={3}>
-                    {e.notes}
-                  </Text>
-                ) : null}
-              </Pressable>
+                  {e.sleep_hours != null && (
+                    <Text style={styles.journalEntryMeta}>
+                      😴 {e.sleep_hours.toFixed(1)}h de sommeil
+                    </Text>
+                  )}
+                  {e.pain_zones && e.pain_zones.length > 0 ? (
+                    <Text style={styles.journalEntryMeta} numberOfLines={2}>
+                      🩹{" "}
+                      {e.pain_zones
+                        .map((z) => `${PAIN_ZONE_LABEL[z.zone]} ${z.intensity}/10`)
+                        .join(" · ")}
+                    </Text>
+                  ) : null}
+                  {e.notes ? (
+                    <Text style={styles.pastNotes} numberOfLines={3}>
+                      {e.notes}
+                    </Text>
+                  ) : null}
+                </Card>
+              </PressableScale>
             </SwipeableRow>
           ))}
         </>
@@ -2131,23 +2209,23 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   scroll: { padding: spacing.lg, gap: spacing.sm, paddingBottom: 60 },
-  overviewCard: {
-    backgroundColor: colors.surfaceSecondary,
-    padding: spacing.lg,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    alignItems: "center",
-    gap: spacing.md,
-  },
+  // Forme de carte déléguée au composant Card partagé — ne reste ici que
+  // la mise en page interne (le padding par défaut de Card est spacing.md,
+  // ce card veut un padding plus généreux, d'où le padding explicite malgré
+  // le composant partagé).
+  overviewCard: { padding: spacing.lg, alignItems: "center", gap: spacing.md },
+  // Même traitement que le Score du Dashboard (Phase 1) : le libellé reste
+  // discret (gris), la mention qualitative ("Peut mieux faire"...) en violet.
   overLabel: {
-    color: colors.brand,
+    color: colors.onSurfaceTertiary,
     fontSize: 11,
     letterSpacing: 2.5,
     fontWeight: "800",
   },
+  // progressSecondary : à cette taille, progress tombe sous le seuil AA
+  // (4.1:1, vérifié) sur surfaceSecondary — progressSecondary passe à 9.4:1.
   overQualitative: {
-    color: colors.onSurface,
+    color: colors.progressSecondary,
     fontSize: 14,
     fontWeight: "800",
   },
@@ -2228,12 +2306,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
-    backgroundColor: colors.surfaceSecondary,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
     borderStyle: "dashed",
-    padding: spacing.md,
   },
   emptyGoalsTitle: {
     color: colors.onSurface,
@@ -2245,14 +2318,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     marginTop: 2,
   },
-  miniGoal: {
-    backgroundColor: colors.surfaceSecondary,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.md,
-    gap: 8,
-  },
+  miniGoal: { gap: 8 },
   miniGoalHead: { flexDirection: "row", alignItems: "center", gap: 8 },
   miniGoalIcon: {
     width: 26,
@@ -2325,16 +2391,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontSize: 13,
   },
-  exerciseCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
-    backgroundColor: colors.surfaceSecondary,
-    padding: spacing.md,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
+  exerciseCard: { flexDirection: "row", alignItems: "center", gap: spacing.md },
   exIconBox: {
     width: 36,
     height: 36,
@@ -2399,14 +2456,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   ctaFullText: { color: "#fff", fontWeight: "800", letterSpacing: 1 },
-  mCard: {
-    backgroundColor: colors.surfaceSecondary,
-    padding: spacing.md,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    gap: 4,
-  },
+  mCard: { gap: 4 },
   mDate: {
     color: colors.brand,
     fontSize: 11,
@@ -2422,14 +2472,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   metricChipText: { color: colors.onSurface, fontSize: 11, fontWeight: "700" },
-  journalEntryCard: {
-    backgroundColor: colors.surfaceSecondary,
-    padding: spacing.md,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    gap: 6,
-  },
+  journalEntryCard: { gap: 6 },
   journalEntryMeta: {
     color: colors.onSurfaceSecondary,
     fontSize: 12,
@@ -2521,10 +2564,11 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "700",
   },
+  // Pas de bordure d'origine (contrairement au Card partagé) — override
+  // borderWidth:0 pour ne pas en faire apparaître une silencieusement.
   calcCard: {
     backgroundColor: colors.brandTertiary,
-    borderRadius: radius.md,
-    padding: spacing.md,
+    borderWidth: 0,
     gap: 8,
     marginTop: 4,
   },
@@ -2636,12 +2680,14 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     flex: 1,
   },
+  // Niveau/XP est de la "progression" (même famille que le Score/XP du
+  // Dashboard) — violet, pas l'orange réservé aux actions.
   levelHero: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
     padding: spacing.lg,
-    backgroundColor: colors.brand,
+    backgroundColor: colors.progress,
     borderRadius: radius.md,
   },
   levelHeroLeft: {
@@ -2657,9 +2703,9 @@ const styles = StyleSheet.create({
     borderWidth: 4,
     borderColor: "#ffffff40",
   },
-  levelBigNum: { color: colors.brand, fontSize: 32, fontWeight: "800" },
+  levelBigNum: { color: colors.progress, fontSize: 32, fontWeight: "800" },
   levelBigLbl: {
-    color: colors.brand,
+    color: colors.progress,
     fontSize: 9,
     fontWeight: "800",
     letterSpacing: 0.8,
@@ -2703,7 +2749,7 @@ const styles = StyleSheet.create({
     fontWeight: "800",
   },
   levelProgressPct: {
-    color: colors.brand,
+    color: colors.progressSecondary,
     fontSize: 15,
     fontWeight: "800",
   },
@@ -2716,30 +2762,32 @@ const styles = StyleSheet.create({
   levelBigFill: {
     height: "100%",
     borderRadius: 5,
-    backgroundColor: colors.brand,
+    backgroundColor: colors.progress,
   },
+  // Fond/bordure violets propres à cette carte (délibérément différents du
+  // Card partagé par défaut) — d'où les overrides malgré le composant Card.
   overallCard: {
-    backgroundColor: colors.brandTertiary,
-    borderRadius: radius.md,
-    padding: spacing.md,
+    backgroundColor: colors.progressTertiary,
+    borderColor: colors.progress + "50",
     gap: 8,
-    borderWidth: 1,
-    borderColor: colors.brand + "50",
   },
   overallHead: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
   },
+  // progressSecondary : progress tombe à 3.5:1 sur le fond progressTertiary
+  // de cette carte (vérifié) — sous le seuil AA pour du texte de cette
+  // taille. progressSecondary passe à 7.9:1.
   overallLabel: {
     flex: 1,
-    color: colors.brand,
+    color: colors.progressSecondary,
     fontSize: 11,
     fontWeight: "800",
     letterSpacing: 0.6,
   },
   overallPct: {
-    color: colors.brand,
+    color: colors.progressSecondary,
     fontSize: 15,
     fontWeight: "800",
   },
@@ -2752,21 +2800,14 @@ const styles = StyleSheet.create({
   overallFill: {
     height: "100%",
     borderRadius: 3,
-    backgroundColor: colors.brand,
+    backgroundColor: colors.progress,
   },
   overallHint: {
-    color: colors.brandSecondary,
+    color: colors.progressSecondary,
     fontSize: 11,
     fontWeight: "700",
   },
-  sourcesCard: {
-    backgroundColor: colors.surfaceSecondary,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.md,
-    gap: 8,
-  },
+  sourcesCard: { gap: 8 },
   sourcesTitle: {
     color: colors.onSurface,
     fontSize: 13,
@@ -2800,17 +2841,7 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     letterSpacing: 0.5,
   },
-  upNext: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-    backgroundColor: colors.surfaceSecondary,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.md,
-    marginBottom: 6,
-  },
+  upNext: { flexDirection: "row", alignItems: "center", gap: spacing.sm, marginBottom: 6 },
   upBadge: {
     width: 32,
     height: 32,
@@ -2883,16 +2914,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     lineHeight: 20,
   },
-  habitCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
-    backgroundColor: colors.surfaceSecondary,
-    padding: spacing.md,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
+  habitCard: { flexDirection: "row", alignItems: "center", gap: spacing.md },
   habitIcon: {
     width: 40,
     height: 40,

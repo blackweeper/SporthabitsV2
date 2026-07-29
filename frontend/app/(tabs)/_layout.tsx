@@ -1,8 +1,45 @@
 import { Tabs, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { View, Pressable, StyleSheet, Text, Modal, Platform } from "react-native";
-import { useState } from "react";
-import { colors, radius, spacing } from "@/src/theme";
+import { View, Pressable, StyleSheet } from "react-native";
+import { useEffect, useState } from "react";
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
+import { colors, coloredShadow, motion } from "@/src/theme";
+import QuickAddModal from "@/src/components/QuickAddModal";
+
+// Taille d'icône explicite et cohérente (au lieu de la taille par défaut
+// transmise sans intention) — s'accorde avec la pastille d'onglet actif
+// ci-dessous.
+const TAB_ICON_SIZE = 22;
+
+/** Icône d'onglet + pastille discrète sous l'icône active — le seul repère
+ * visuel manquant de cette tab bar (le changement de couleur icône/label
+ * suffisait à peine à signaler "où je suis"). La pastille s'estompe en
+ * fondu plutôt qu'en coupure nette, cohérent avec le reste des
+ * micro-interactions introduites ailleurs. */
+function TabIcon({
+  name,
+  focused,
+  color,
+}: {
+  name: keyof typeof Ionicons.glyphMap;
+  focused: boolean;
+  color: string;
+}) {
+  const opacity = useSharedValue(focused ? 1 : 0);
+
+  useEffect(() => {
+    opacity.value = withTiming(focused ? 1 : 0, { duration: motion.fast });
+  }, [focused, opacity]);
+
+  const animatedStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
+
+  return (
+    <View style={styles.iconWrap}>
+      <Ionicons name={name} color={color} size={TAB_ICON_SIZE} />
+      <Animated.View style={[styles.activeDot, animatedStyle]} />
+    </View>
+  );
+}
 
 export default function TabsLayout() {
   const router = useRouter();
@@ -34,8 +71,8 @@ export default function TabsLayout() {
           name="index"
           options={{
             title: "Aujourd'hui",
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="today" color={color} size={size} />
+            tabBarIcon: ({ color, focused }) => (
+              <TabIcon name="today" focused={focused} color={color} />
             ),
             tabBarButtonTestID: "tab-today",
           }}
@@ -44,38 +81,28 @@ export default function TabsLayout() {
           name="training"
           options={{
             title: "Entraînements",
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="barbell" color={color} size={size} />
+            tabBarIcon: ({ color, focused }) => (
+              <TabIcon name="barbell" focused={focused} color={color} />
             ),
             tabBarButtonTestID: "tab-training",
           }}
         />
-        {/* Center + button (empty tab, uses custom listener) */}
         <Tabs.Screen
-          name="add"
+          name="library"
           options={{
-            title: "",
-            tabBarButtonTestID: "tab-add",
-            tabBarIcon: () => (
-              <View style={styles.fab}>
-                <Ionicons name="add" size={30} color="#fff" />
-              </View>
+            title: "Bibliothèque",
+            tabBarIcon: ({ color, focused }) => (
+              <TabIcon name="library" focused={focused} color={color} />
             ),
-            tabBarLabelStyle: { display: "none" },
-          }}
-          listeners={{
-            tabPress: (e) => {
-              e.preventDefault();
-              setAddOpen(true);
-            },
+            tabBarButtonTestID: "tab-library",
           }}
         />
         <Tabs.Screen
           name="progression"
           options={{
-            title: "Progression",
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="trending-up" color={color} size={size} />
+            title: "Mon évolution",
+            tabBarIcon: ({ color, focused }) => (
+              <TabIcon name="trending-up" focused={focused} color={color} />
             ),
             tabBarButtonTestID: "tab-progression",
           }}
@@ -84,8 +111,8 @@ export default function TabsLayout() {
           name="profile-tab"
           options={{
             title: "Profil",
-            tabBarIcon: ({ color, size }) => (
-              <Ionicons name="person" color={color} size={size} />
+            tabBarIcon: ({ color, focused }) => (
+              <TabIcon name="person" focused={focused} color={color} />
             ),
             tabBarButtonTestID: "tab-profile",
           }}
@@ -96,6 +123,14 @@ export default function TabsLayout() {
         <Tabs.Screen name="stretching" options={{ href: null }} />
         <Tabs.Screen name="history" options={{ href: null }} />
       </Tabs>
+
+      {/* Global "Actions rapides" button — floats above the tab bar on every
+          tab, no longer a tab-bar slot itself. */}
+      <View pointerEvents="box-none" style={styles.fabWrap}>
+        <Pressable testID="tab-add" style={styles.fab} onPress={() => setAddOpen(true)}>
+          <Ionicons name="add" size={30} color="#fff" />
+        </Pressable>
+      </View>
 
       <QuickAddModal
         visible={addOpen}
@@ -110,188 +145,33 @@ export default function TabsLayout() {
   );
 }
 
-function QuickAddModal({
-  visible,
-  onClose,
-  onPick,
-}: {
-  visible: boolean;
-  onClose: () => void;
-  onPick: (path: string) => void;
-}) {
-  const items: {
-    id: string;
-    title: string;
-    subtitle: string;
-    icon: any;
-    color: string;
-    path: string;
-    testID: string;
-  }[] = [
-    {
-      id: "session",
-      title: "Démarrer une séance",
-      subtitle: "Choisir un plan et commencer",
-      icon: "flame",
-      color: colors.brand,
-      path: "/plans",
-      testID: "qa-session",
-    },
-    {
-      id: "measure",
-      title: "Nouvelle mesure",
-      subtitle: "Poids, tour de bras, masse grasse…",
-      icon: "resize",
-      color: "#4FC3F7",
-      path: "/measurement/new",
-      testID: "qa-measure",
-    },
-    {
-      id: "meal",
-      title: "Ajouter un repas",
-      subtitle: "Saisie rapide de calories",
-      icon: "fast-food",
-      color: "#AB47BC",
-      path: "/meal/new",
-      testID: "qa-meal",
-    },
-    {
-      id: "habit",
-      title: "Ajouter une habitude",
-      subtitle: "Eau, marche, mobilité…",
-      icon: "checkbox",
-      color: "#00E676",
-      path: "/habit/new",
-      testID: "qa-habit",
-    },
-    {
-      id: "journal",
-      title: "Note du jour",
-      subtitle: "Ressenti, énergie, stress",
-      icon: "book",
-      color: "#FFC107",
-      path: "/daily-journal",
-      testID: "qa-journal",
-    },
-    {
-      id: "pr",
-      title: "Nouveau record",
-      subtitle: "Poids, reps, temps de course",
-      icon: "trophy",
-      color: "#FF9800",
-      path: "/pr/new",
-      testID: "qa-pr",
-    },
-  ];
-
-  return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={onClose}
-    >
-      <View style={styles.backdrop}>
-        <Pressable style={{ flex: 1 }} onPress={onClose} />
-        <View style={styles.sheet}>
-          <View style={styles.handle} />
-          <Text style={styles.title}>Ajouter rapidement</Text>
-          <View style={styles.grid}>
-            {items.map((i) => (
-              <Pressable
-                key={i.id}
-                testID={i.testID}
-                style={styles.item}
-                onPress={() => onPick(i.path)}
-              >
-                <View style={[styles.itemIcon, { backgroundColor: `${i.color}22` }]}>
-                  <Ionicons name={i.icon} size={22} color={i.color} />
-                </View>
-                <Text style={styles.itemTitle} numberOfLines={1}>
-                  {i.title}
-                </Text>
-                <Text style={styles.itemSub} numberOfLines={2}>
-                  {i.subtitle}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-          {Platform.OS === "ios" && <View style={{ height: 20 }} />}
-        </View>
-      </View>
-    </Modal>
-  );
-}
-
 const styles = StyleSheet.create({
+  iconWrap: { alignItems: "center", gap: 3 },
+  activeDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.brand,
+  },
+  fabWrap: {
+    // Sits clear above the 72px-tall tab bar so it never overlaps a tab's
+    // touch target (the Bibliothèque tab now occupies the center slot).
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 82,
+    alignItems: "center",
+    zIndex: 20,
+  },
   fab: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     backgroundColor: colors.brand,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 18,
-    shadowColor: colors.brand,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 8,
-    elevation: 6,
     borderWidth: 3,
     borderColor: colors.surfaceSecondary,
-  },
-  backdrop: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.6)",
-    justifyContent: "flex-end",
-  },
-  sheet: {
-    backgroundColor: colors.surfaceSecondary,
-    padding: spacing.lg,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingBottom: 24,
-  },
-  handle: {
-    width: 48,
-    height: 5,
-    backgroundColor: colors.border,
-    borderRadius: 3,
-    alignSelf: "center",
-    marginBottom: spacing.md,
-  },
-  title: {
-    color: colors.onSurface,
-    fontSize: 18,
-    fontWeight: "800",
-    marginBottom: spacing.md,
-  },
-  grid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  item: {
-    width: "48%",
-    backgroundColor: colors.surfaceTertiary,
-    padding: spacing.md,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    gap: 4,
-  },
-  itemIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 4,
-  },
-  itemTitle: { color: colors.onSurface, fontWeight: "800", fontSize: 13 },
-  itemSub: {
-    color: colors.onSurfaceTertiary,
-    fontSize: 11,
-    lineHeight: 14,
+    ...coloredShadow(colors.brand, { opacity: 0.5, radius: 8, elevation: 6 }),
   },
 });

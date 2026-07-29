@@ -13,6 +13,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing } from "@/src/theme";
+import PressableScale from "@/src/components/ui/PressableScale";
 
 /**
  * Single shared visual shell for every "track something daily" card on the
@@ -48,7 +49,9 @@ export default function HabitCard({
   const pct = Math.min(1, target > 0 ? value / target : 0);
   const done = pct >= 1;
   const bounce = useRef(new Animated.Value(1)).current;
+  const checkPop = useRef(new Animated.Value(done ? 1 : 0)).current;
   const firstRender = useRef(true);
+  const wasDone = useRef(done);
 
   useEffect(() => {
     if (firstRender.current) {
@@ -61,9 +64,21 @@ export default function HabitCard({
     ]).start();
   }, [value, bounce]);
 
+  useEffect(() => {
+    if (done && !wasDone.current) {
+      // Fraîchement complété : le check apparaît en pop plutôt qu'en cut —
+      // renforce la sensation "validation satisfaisante" demandée.
+      checkPop.setValue(0);
+      Animated.spring(checkPop, { toValue: 1, useNativeDriver: true, speed: 22, bounciness: 10 }).start();
+    } else if (!done) {
+      checkPop.setValue(0);
+    }
+    wasDone.current = done;
+  }, [done, checkPop]);
+
   return (
     <View style={[styles.card, done && { borderColor: color }]} testID={testId}>
-      <Pressable
+      <PressableScale
         testID={testId ? `${testId}-body` : undefined}
         onPress={onPressValue}
         onLongPress={onLongPress}
@@ -82,7 +97,11 @@ export default function HabitCard({
             {title}
           </Text>
           <Text style={[styles.pct, done && { color }]}>{Math.round(pct * 100)}%</Text>
-          {done && <Ionicons name="checkmark-circle" size={13} color={color} />}
+          {done && (
+            <Animated.View style={{ transform: [{ scale: checkPop }] }}>
+              <Ionicons name="checkmark-circle" size={13} color={color} />
+            </Animated.View>
+          )}
         </View>
         <View style={styles.valueRow}>
           <Text style={styles.value}>{formatNumber(value)}</Text>
@@ -91,7 +110,7 @@ export default function HabitCard({
             {unit ? ` ${unit}` : ""}
           </Text>
         </View>
-      </Pressable>
+      </PressableScale>
       <View style={styles.track}>
         <View style={[styles.fill, { width: `${pct * 100}%`, backgroundColor: color }]} />
       </View>
@@ -133,7 +152,7 @@ export function ActionChip({
   testID?: string;
 }) {
   return (
-    <Pressable
+    <PressableScale
       testID={testID}
       style={[styles.chip, color && { borderColor: color }]}
       onPress={onPress}
@@ -142,15 +161,15 @@ export function ActionChip({
       <Text style={[styles.chipText, color && { color }]} numberOfLines={1}>
         {label}
       </Text>
-    </Pressable>
+    </PressableScale>
   );
 }
 
 export function MinusButton({ onPress, testID }: { onPress: () => void; testID?: string }) {
   return (
-    <Pressable testID={testID} style={styles.minusBtn} onPress={onPress} hitSlop={6}>
+    <PressableScale testID={testID} style={styles.minusBtn} onPress={onPress} hitSlop={6}>
       <Ionicons name="remove" size={14} color={colors.onSurface} />
-    </Pressable>
+    </PressableScale>
   );
 }
 
@@ -169,14 +188,14 @@ export function WideActionButton({
   testID?: string;
 }) {
   return (
-    <Pressable
+    <PressableScale
       testID={testID}
       style={[styles.wideBtn, { backgroundColor: color }]}
       onPress={onPress}
     >
       {icon && <Ionicons name={icon} size={14} color="#fff" />}
       <Text style={styles.wideBtnText}>{label}</Text>
-    </Pressable>
+    </PressableScale>
   );
 }
 
@@ -189,6 +208,7 @@ export function QuantityModal({
   unit,
   currentValue,
   color,
+  quickActions,
   onClose,
   onSubmit,
 }: {
@@ -197,6 +217,10 @@ export function QuantityModal({
   unit: string;
   currentValue: number;
   color: string;
+  /** Optional preset shortcuts (e.g. +250 ml, meal presets) shown above the
+   * manual input — moved in here from the Dashboard's rings so nothing that
+   * existed inline before is actually lost, just one tap deeper. */
+  quickActions?: ReactNode;
   onClose: () => void;
   onSubmit: (n: number) => void;
 }) {
@@ -227,6 +251,7 @@ export function QuantityModal({
             <Text style={styles.modalTitle}>
               {mode === "add" ? `Ajouter ${label.toLowerCase()}` : `Saisir ${label.toLowerCase()}`}
             </Text>
+            {quickActions}
             <TextInput
               testID="quantity-modal-input"
               style={styles.modalInput}
@@ -269,18 +294,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: radius.md,
-    padding: 12,
-    gap: 6,
+    padding: 10,
+    gap: 5,
   },
   head: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    gap: 7,
   },
   iconWrap: {
-    width: 26,
-    height: 26,
-    borderRadius: 8,
+    width: 24,
+    height: 24,
+    borderRadius: 7,
     alignItems: "center",
     justifyContent: "center",
   },

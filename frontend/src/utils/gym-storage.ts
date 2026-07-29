@@ -53,6 +53,11 @@ export type SessionExerciseLog = {
   targetRestSeconds: number;
   targetDurationSeconds: number | null;
   sets: SetLog[];
+  /** Links to `ExerciseRecord.id` (src/utils/exercise-records.ts) when this
+   * exercise was picked from the professional library. Optional and only
+   * set on new entries — older logs keep matching by `name` (see
+   * computeExerciseProgress in src/utils/exercise-progress.ts). */
+  libraryExerciseId?: string | null;
 };
 
 export type CardioActivity =

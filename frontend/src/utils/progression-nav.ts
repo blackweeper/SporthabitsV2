@@ -9,6 +9,7 @@ export type ProgressionTab =
   | "level"
   | "transformation"
   | "habits"
+  | "goals"
   | "journal";
 
 export function progressionHref(tab: ProgressionTab): string {

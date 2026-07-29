@@ -12,8 +12,15 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import Svg, { Circle } from "react-native-svg";
+import Animated, {
+  Easing,
+  FadeInDown,
+  useAnimatedProps,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
-import { colors, radius, spacing } from "@/src/theme";
+import { colors, motion, radius, shadow, spacing } from "@/src/theme";
 import {
   ActiveProgram,
   CalendarEvent,
@@ -70,6 +77,8 @@ import HabitCard, {
   QuantityModal,
   WideActionButton,
 } from "@/src/components/HabitCard";
+import PressableScale from "@/src/components/ui/PressableScale";
+import RingChip from "@/src/components/ui/RingChip";
 import { ActiveHabitTimer, getActiveHabitTimer } from "@/src/utils/habit-timer";
 import {
   computeDueReminders,
@@ -449,90 +458,182 @@ export default function TodayScreen() {
           <Text style={styles.motivationText}>{motivation}</Text>
         </View>
 
-        {/* IronFlow Score — real-time, transparent daily score */}
-        <Pressable
-          testID="ironflow-score-card"
-          style={styles.scoreCard}
-          onPress={() => router.push(progressionHref("overview") as any)}
-        >
-          <ScoreCircle score={todayScore.score} />
-          <View style={{ flex: 1 }}>
-            <Text style={styles.scoreLabel}>IRONFLOW SCORE</Text>
-            <Text style={styles.scoreValue}>{todayScore.score}%</Text>
-            <Text style={styles.scoreHint}>{scoreQualitativeLabel(todayScore.score)}</Text>
-            {scoreDelta !== 0 && (
-              <View style={styles.scoreDeltaRow}>
-                <Ionicons
-                  name={scoreDelta > 0 ? "arrow-up" : "arrow-down"}
-                  size={12}
-                  color={scoreDelta > 0 ? colors.success : colors.error}
-                />
-                <Text
-                  style={[
-                    styles.scoreDeltaText,
-                    { color: scoreDelta > 0 ? colors.success : colors.error },
-                  ]}
-                >
-                  {scoreDelta > 0 ? "+" : ""}
-                  {scoreDelta}% par rapport à hier
-                </Text>
-              </View>
-            )}
-          </View>
-          <Ionicons name="chevron-forward" size={18} color={colors.onSurfaceTertiary} />
-        </Pressable>
+        {/* Héros — module unique : Score + statut séance + CTA, plutôt que
+            trois cartes séparées de poids égal. Point focal réel de l'écran
+            (anneau agrandi), esprit Oura/Whoop. */}
+        <View style={styles.heroCard}>
+          <PressableScale
+            testID="ironflow-score-card"
+            style={styles.heroScoreRow}
+            onPress={() => router.push(progressionHref("overview") as any)}
+          >
+            <ScoreCircle score={todayScore.score} size={156} />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.scoreLabel}>IRONFLOW SCORE</Text>
+              <Text style={styles.scoreValue}>{todayScore.score}%</Text>
+              <Text style={styles.scoreHint}>{scoreQualitativeLabel(todayScore.score)}</Text>
+              {scoreDelta !== 0 && (
+                <View style={styles.scoreDeltaRow}>
+                  <Ionicons
+                    name={scoreDelta > 0 ? "arrow-up" : "arrow-down"}
+                    size={12}
+                    color={scoreDelta > 0 ? colors.success : colors.error}
+                  />
+                  <Text
+                    style={[
+                      styles.scoreDeltaText,
+                      { color: scoreDelta > 0 ? colors.success : colors.error },
+                    ]}
+                  >
+                    {scoreDelta > 0 ? "+" : ""}
+                    {scoreDelta}% par rapport à hier
+                  </Text>
+                </View>
+              )}
+            </View>
+          </PressableScale>
 
-        {/* XP + Level card */}
-        <Pressable
-          style={styles.xpCard}
-          testID="xp-card"
-          onPress={() => router.push("/profile")}
-        >
-          <View style={styles.xpHeadRow}>
-            <View style={styles.xpBadge}>
-              <Text style={styles.xpLevelNum}>{xpState.level}</Text>
+          {/* Le CTA porte lui-même le statut de la séance du jour — plus
+              besoin d'une carte "Séance" séparée juste pour l'afficher. */}
+          <PressableScale
+            testID="start-session"
+            style={[styles.mainCta, todayScore.workoutDone && styles.mainCtaDone]}
+            onPress={() => router.push(todayScore.workoutDone ? "/training" : "/plans")}
+          >
+            <Ionicons
+              name={todayScore.workoutDone ? "checkmark-circle" : "flame"}
+              size={20}
+              color={todayScore.workoutDone ? colors.success : "#fff"}
+            />
+            <Text
+              style={[styles.mainCtaText, todayScore.workoutDone && styles.mainCtaTextDone]}
+            >
+              {todayScore.workoutDone ? "SÉANCE TERMINÉE" : "DÉMARRER LA SÉANCE"}
+            </Text>
+          </PressableScale>
+        </View>
+
+        {/* Bande de stats — Niveau + Streak côte à côte, remplace deux
+            cartes pleine largeur ; le détail (barre XP, badges) reste à un
+            tap de distance sur /profile, rien n'est supprimé. */}
+        <View style={styles.statsStrip}>
+          <PressableScale
+            testID="xp-card"
+            style={styles.statPill}
+            onPress={() => router.push("/profile")}
+          >
+            <View style={styles.statPillBadge}>
+              <Text style={styles.statPillBadgeNum}>{xpState.level}</Text>
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.xpLabel}>NIVEAU {xpState.level}</Text>
-              <Text style={styles.xpValue}>{xpState.xp} XP</Text>
-              <Text style={styles.xpHint}>
-                {xpState.nextBadge
-                  ? `${xpState.xpToNext} XP → niveau ${xpState.level + 1} · badge ${xpState.nextBadge.emoji} ${xpState.nextBadge.title} au N${xpState.nextBadge.level}`
-                  : `${xpState.xpToNext} XP → niveau ${xpState.level + 1}`}
+              <Text style={styles.statPillLabel}>NIVEAU {xpState.level}</Text>
+              <Text style={styles.statPillValue}>
+                {xpState.xpToNext} XP → N{xpState.level + 1}
               </Text>
             </View>
-          </View>
-          <View style={styles.xpBar}>
-            <View
-              style={[
-                styles.xpFill,
-                { width: `${xpState.progress * 100}%` },
-              ]}
+          </PressableScale>
+          <PressableScale
+            testID="streak-hero"
+            style={styles.statPill}
+            onPress={() => router.push("/stats")}
+          >
+            <View style={[styles.statPillBadge, { backgroundColor: "#FF5722" }]}>
+              <Ionicons name="flame" size={18} color="#fff" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.statPillLabel}>STREAK</Text>
+              <Text style={styles.statPillValue}>
+                {stats.currentStreakDays} jour{stats.currentStreakDays > 1 ? "s" : ""}
+              </Text>
+            </View>
+          </PressableScale>
+        </View>
+
+        {/* Aujourd'hui — anneaux compacts pour Eau/Calories/Pas (remplace 3
+            cartes pleine largeur empilées) : plus glanceable, esprit
+            Oura/Whoop. Le statut "Séance" vit désormais dans le CTA du
+            héros ci-dessus, plus besoin d'une ligne dédiée ici. */}
+        <View style={styles.widgetsHead}>
+          <Text style={styles.sectionTitle}>Aujourd&apos;hui</Text>
+          <Pressable
+            testID="manage-habits"
+            hitSlop={8}
+            onPress={() => router.push(progressionHref("habits") as any)}
+          >
+            <Text style={styles.widgetsMoreLink}>Gérer</Text>
+          </Pressable>
+        </View>
+        <EnterItem index={0}>
+          <View style={styles.ringsRow}>
+            <RingChip
+              testID="widget-water"
+              icon="water"
+              color={colors.info}
+              label="Eau"
+              value={wellness?.water_ml ?? 0}
+              target={profile?.water_target_ml || DEFAULT_WATER_TARGET_ML}
+              onPress={() => setQuantityModal({ which: "water", mode: "set" })}
+              onQuickAdd={() => bumpWellness("water_ml", 250)}
+            />
+            <RingChip
+              testID="widget-calories"
+              icon="nutrition"
+              color="#F97316"
+              label="Calories"
+              value={wellness?.calories_kcal ?? 0}
+              target={profile?.calories_target_kcal || DEFAULT_CALORIES_TARGET_KCAL}
+              onPress={() => setQuantityModal({ which: "calories", mode: "set" })}
+            />
+            <RingChip
+              testID="widget-steps"
+              icon="footsteps"
+              color="#10B981"
+              label="Pas"
+              value={wellness?.steps ?? 0}
+              target={profile?.steps_target || DEFAULT_STEPS_TARGET}
+              onPress={() => setQuantityModal({ which: "steps", mode: "set" })}
+              onQuickAdd={() => bumpWellness("steps", 1000)}
             />
           </View>
-          {xpState.unlockedBadges.length > 0 && (
-            <View style={styles.badgeRow}>
-              {xpState.unlockedBadges.slice(-6).map((b) => (
-                <View
-                  key={b.level}
-                  style={[styles.badge, { backgroundColor: b.color + "30", borderColor: b.color }]}
-                >
-                  <Text style={styles.badgeEmoji}>{b.emoji}</Text>
-                </View>
-              ))}
-            </View>
-          )}
-        </Pressable>
-
-        {/* CTA principal */}
-        <Pressable
-          testID="start-session"
-          style={styles.mainCta}
-          onPress={() => router.push("/plans")}
-        >
-          <Ionicons name="flame" size={22} color="#fff" />
-          <Text style={styles.mainCtaText}>DÉMARRER LA SÉANCE</Text>
-        </Pressable>
+        </EnterItem>
+        <View style={styles.listCol}>
+          {/* Habits — excludes kinds already covered by the Eau / Calories /
+              Pas rings above, to avoid showing the same daily metric twice. */}
+          {habits
+            .filter((h) => !WELLNESS_DUPLICATE_KINDS.has(h.kind))
+            .map((h, i) => {
+              const cur =
+                logs.find((l) => l.habitId === h.id && l.date === today)?.value ?? 0;
+              const target = h.target && h.target > 0 ? h.target : 1;
+              return (
+                <EnterItem key={h.id} index={4 + i}>
+                  <CustomHabitCard
+                    habit={h}
+                    current={cur}
+                    target={target}
+                    activeTimer={activeTimerRaw}
+                    onBump={(delta) => bumpHabit(h.id, cur, delta)}
+                    onToggle={() => toggleHabit(h.id, cur, target)}
+                    onOpen={() => router.push(`/habit/${h.id}` as any)}
+                    onStartTimer={() => setTimerHabit(h)}
+                    onDelete={async () => {
+                      await deleteHabit(h.id);
+                      load();
+                    }}
+                  />
+                </EnterItem>
+              );
+            })}
+          {/* Add habit */}
+          <PressableScale
+            testID="add-habit-widget"
+            style={styles.addListItem}
+            onPress={() => router.push("/habit/new" as any)}
+          >
+            <Ionicons name="add-circle" size={20} color={colors.brand} />
+            <Text style={styles.addWidgetLabel}>Nouvelle habitude</Text>
+          </PressableScale>
+        </View>
 
         {/* Programmes actifs — jusqu'à 2 en parallèle */}
         {actives.length > 0 && (
@@ -550,7 +651,7 @@ export default function TodayScreen() {
                 const done = active.completedSessions.length;
                 const pct = totalSess ? done / totalSess : 0;
                 return (
-                  <Pressable
+                  <PressableScale
                     key={program.id}
                     testID={`active-program-${program.id}`}
                     style={[
@@ -587,152 +688,12 @@ export default function TodayScreen() {
                         ]}
                       />
                     </View>
-                  </Pressable>
+                  </PressableScale>
                 );
               })}
             </View>
           </>
         )}
-
-        {/* Unified daily list: séance, wellness quick-taps, and habits */}
-        <View style={styles.widgetsHead}>
-          <Text style={styles.sectionTitle}>Aujourd&apos;hui</Text>
-          <Pressable
-            testID="manage-habits"
-            hitSlop={8}
-            onPress={() => router.push(progressionHref("habits") as any)}
-          >
-            <Text style={styles.widgetsMoreLink}>Gérer</Text>
-          </Pressable>
-        </View>
-        <View style={styles.listCol}>
-          {/* Séance (workout) */}
-          <SessionListItem
-            done={todayScore.workoutDone}
-            onPress={() => router.push("/training")}
-          />
-          {/* Wellness quick-taps: Eau / Calories / Pas */}
-          <HabitCard
-            testId="widget-water"
-            icon="water"
-            color="#3B82F6"
-            title="Eau"
-            value={wellness?.water_ml ?? 0}
-            target={profile?.water_target_ml || DEFAULT_WATER_TARGET_ML}
-            unit="ml"
-            onPressValue={() => setQuantityModal({ which: "water", mode: "set" })}
-            actions={
-              <ActionsScroll>
-                <MinusButton
-                  testID="widget-water-minus"
-                  onPress={() => bumpWellness("water_ml", -250)}
-                />
-                <ActionChip testID="widget-water-250" label="+250 ml" onPress={() => bumpWellness("water_ml", 250)} />
-                <ActionChip testID="widget-water-500" label="+500 ml" onPress={() => bumpWellness("water_ml", 500)} />
-                <ActionChip testID="widget-water-750" label="+750 ml" onPress={() => bumpWellness("water_ml", 750)} />
-                <ActionChip testID="widget-water-1000" label="+1 L" onPress={() => bumpWellness("water_ml", 1000)} />
-                <ActionChip
-                  testID="widget-water-modify"
-                  label="Modifier"
-                  color="#3B82F6"
-                  onPress={() => setQuantityModal({ which: "water", mode: "set" })}
-                />
-              </ActionsScroll>
-            }
-          />
-          <HabitCard
-            testId="widget-calories"
-            icon="nutrition"
-            color="#F97316"
-            title="Calories"
-            value={wellness?.calories_kcal ?? 0}
-            target={profile?.calories_target_kcal || DEFAULT_CALORIES_TARGET_KCAL}
-            unit="kcal"
-            onPressValue={() => setQuantityModal({ which: "calories", mode: "set" })}
-            actions={
-              <ActionsScroll>
-                {mealPresets.map((m) => (
-                  <ActionChip
-                    key={m.id}
-                    testID={`widget-calories-${m.id}`}
-                    emoji={m.emoji}
-                    label={`${m.label} · +${m.kcal}`}
-                    onPress={() => bumpWellness("calories_kcal", m.kcal)}
-                  />
-                ))}
-                <ActionChip
-                  testID="widget-calories-custom"
-                  emoji="✏️"
-                  label="Personnalisé"
-                  color="#F97316"
-                  onPress={() => setQuantityModal({ which: "calories", mode: "add" })}
-                />
-              </ActionsScroll>
-            }
-          />
-          <HabitCard
-            testId="widget-steps"
-            icon="footsteps"
-            color="#10B981"
-            title="Pas"
-            value={wellness?.steps ?? 0}
-            target={profile?.steps_target || DEFAULT_STEPS_TARGET}
-            unit="pas"
-            onPressValue={() => setQuantityModal({ which: "steps", mode: "set" })}
-            actions={
-              <ActionsScroll>
-                <MinusButton
-                  testID="widget-steps-minus"
-                  onPress={() => bumpWellness("steps", -500)}
-                />
-                <ActionChip testID="widget-steps-500" label="+500" onPress={() => bumpWellness("steps", 500)} />
-                <ActionChip testID="widget-steps-1000" label="+1000" onPress={() => bumpWellness("steps", 1000)} />
-                <ActionChip testID="widget-steps-2000" label="+2000" onPress={() => bumpWellness("steps", 2000)} />
-                <ActionChip
-                  testID="widget-steps-modify"
-                  label="Modifier"
-                  color="#10B981"
-                  onPress={() => setQuantityModal({ which: "steps", mode: "set" })}
-                />
-              </ActionsScroll>
-            }
-          />
-          {/* Habits — excludes kinds already covered by the Eau / Calories /
-              Pas cards above, to avoid showing the same daily metric twice. */}
-          {habits
-            .filter((h) => !WELLNESS_DUPLICATE_KINDS.has(h.kind))
-            .map((h) => {
-              const cur =
-                logs.find((l) => l.habitId === h.id && l.date === today)?.value ?? 0;
-              const target = h.target && h.target > 0 ? h.target : 1;
-              return (
-                <CustomHabitCard
-                  key={h.id}
-                  habit={h}
-                  current={cur}
-                  target={target}
-                  activeTimer={activeTimerRaw}
-                  onBump={(delta) => bumpHabit(h.id, cur, delta)}
-                  onToggle={() => toggleHabit(h.id, cur, target)}
-                  onOpen={() => router.push(`/habit/${h.id}` as any)}
-                  onStartTimer={() => setTimerHabit(h)}
-                  onDelete={async () => {
-                    await deleteHabit(h.id);
-                    load();
-                  }}
-                />
-              );
-            })}
-          {/* Add habit */}
-          <Pressable
-            testID="add-habit-widget"
-            style={styles.addListItem}
-            onPress={() => router.push("/habit/new" as any)}
-          >
-            <Ionicons name="add-circle" size={20} color={colors.brand} />
-            <Text style={styles.addWidgetLabel}>Nouvelle habitude</Text>
-          </Pressable>
-        </View>
 
         {/* Calendar — planning center */}
         <View style={styles.calHeaderRow}>
@@ -752,31 +713,6 @@ export default function TodayScreen() {
           events={calDayEvents}
           onDayPress={setDayModalDate}
         />
-
-        {/* Streak — hero metric */}
-        <Pressable
-          testID="streak-hero"
-          style={styles.streakHero}
-          onPress={() => router.push("/stats")}
-        >
-          <View style={styles.streakLeft}>
-            <Ionicons name="flame" size={30} color="#fff" />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.streakLabel}>STREAK ACTUEL</Text>
-            <Text style={styles.streakBig}>
-              {stats.currentStreakDays}
-              <Text style={styles.streakUnit}> jours</Text>
-            </Text>
-            <Text style={styles.streakSub}>
-              {stats.currentStreakDays === 0
-                ? "Fais une séance aujourd'hui pour lancer ta série 🔥"
-                : stats.currentStreakDays >= stats.bestStreakDays
-                ? "Tu es sur ton record ! Continue ↗"
-                : `Record : ${stats.bestStreakDays} jours`}
-            </Text>
-          </View>
-        </Pressable>
 
         <View style={{ height: 40 }} />
       </ScrollView>
@@ -808,17 +744,61 @@ export default function TodayScreen() {
         }
         color={
           quantityModal?.which === "water"
-            ? "#3B82F6"
+            ? colors.info
             : quantityModal?.which === "calories"
             ? "#F97316"
             : "#10B981"
+        }
+        // Les raccourcis existent toujours à l'identique (mêmes handlers) —
+        // simplement déplacés depuis les anciennes cartes pleine largeur
+        // vers l'intérieur de ce modal, ouvert au tap sur l'anneau.
+        quickActions={
+          quantityModal?.which === "water" ? (
+            <ActionsScroll>
+              <MinusButton testID="widget-water-minus" onPress={() => bumpWellness("water_ml", -250)} />
+              <ActionChip testID="widget-water-250" label="+250 ml" onPress={() => bumpWellness("water_ml", 250)} />
+              <ActionChip testID="widget-water-500" label="+500 ml" onPress={() => bumpWellness("water_ml", 500)} />
+              <ActionChip testID="widget-water-750" label="+750 ml" onPress={() => bumpWellness("water_ml", 750)} />
+              <ActionChip testID="widget-water-1000" label="+1 L" onPress={() => bumpWellness("water_ml", 1000)} />
+            </ActionsScroll>
+          ) : quantityModal?.which === "calories" ? (
+            <ActionsScroll>
+              {mealPresets.map((m) => (
+                <ActionChip
+                  key={m.id}
+                  testID={`widget-calories-${m.id}`}
+                  emoji={m.emoji}
+                  label={`${m.label} · +${m.kcal}`}
+                  onPress={() => bumpWellness("calories_kcal", m.kcal)}
+                />
+              ))}
+              <ActionChip
+                testID="widget-calories-custom"
+                emoji="✏️"
+                label="Personnalisé"
+                color="#F97316"
+                onPress={() => setQuantityModal({ which: "calories", mode: "add" })}
+              />
+            </ActionsScroll>
+          ) : quantityModal?.which === "steps" ? (
+            <ActionsScroll>
+              <MinusButton testID="widget-steps-minus" onPress={() => bumpWellness("steps", -500)} />
+              <ActionChip testID="widget-steps-500" label="+500" onPress={() => bumpWellness("steps", 500)} />
+              <ActionChip testID="widget-steps-1000" label="+1000" onPress={() => bumpWellness("steps", 1000)} />
+              <ActionChip testID="widget-steps-2000" label="+2000" onPress={() => bumpWellness("steps", 2000)} />
+            </ActionsScroll>
+          ) : null
         }
         onClose={() => setQuantityModal(null)}
         onSubmit={submitQuantityModal}
       />
       <Modal
         visible={dayModalDate !== null}
-        animationType="fade"
+        // Feuille du bas (coins arrondis en haut, ancrée en bas via
+        // dayModalBackdrop.justifyContent:"flex-end") — "slide" comme
+        // toutes les autres feuilles du bas de l'app, pas "fade" (réservé
+        // aux dialogues centrés).
+        animationType="slide"
         transparent
         onRequestClose={() => setDayModalDate(null)}
       >
@@ -885,51 +865,6 @@ function formatDayModalDate(dateStr: string) {
     day: "numeric",
     month: "long",
   });
-}
-
-function SessionListItem({
-  done,
-  onPress,
-}: {
-  done: boolean;
-  onPress: () => void;
-}) {
-  const color = "#FF5722";
-  return (
-    <Pressable
-      testID="widget-session"
-      style={[styles.listItem, done && { borderColor: color }]}
-      onPress={onPress}
-    >
-      <View style={styles.listItemHead}>
-        <View
-          style={[
-            styles.listItemIcon,
-            { backgroundColor: done ? color : colors.surfaceTertiary },
-          ]}
-        >
-          <Ionicons
-            name="barbell"
-            size={16}
-            color={done ? "#fff" : colors.onSurfaceTertiary}
-          />
-        </View>
-        <Text style={styles.listItemTitle}>Séance</Text>
-        <Text style={[styles.listItemPct, done && { color }]}>
-          {done ? "100%" : "0%"}
-        </Text>
-        {done && <Ionicons name="checkmark-circle" size={14} color={color} />}
-      </View>
-      <View style={styles.progressTrack}>
-        <View
-          style={[
-            styles.progressFill,
-            { width: done ? "100%" : "0%", backgroundColor: color },
-          ]}
-        />
-      </View>
-    </Pressable>
-  );
 }
 
 /** Rounds a habit's target down to a "nice" quick-add step (e.g. 8 -> 2,
@@ -1045,12 +980,28 @@ function CustomHabitCard({
   );
 }
 
-function ScoreCircle({ score }: { score: number }) {
-  const size = 84;
-  const strokeWidth = 8;
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
+
+/** Progression (score, XP) is deliberately violet, not brand orange — the
+ * single orange CTA on this screen ("DÉMARRER LA SÉANCE") stays the one
+ * unambiguous "action" signal instead of competing with "already achieved". */
+function ScoreCircle({ score, size = 96 }: { score: number; size?: number }) {
+  const strokeWidth = size >= 140 ? 12 : 9;
   const r = (size - strokeWidth) / 2;
   const c = 2 * Math.PI * r;
-  const dashOffset = c - (Math.min(100, Math.max(0, score)) / 100) * c;
+  const progress = useSharedValue(0);
+
+  useEffect(() => {
+    progress.value = withTiming(Math.min(100, Math.max(0, score)) / 100, {
+      duration: 500,
+      easing: Easing.out(Easing.cubic),
+    });
+  }, [score, progress]);
+
+  const animatedProps = useAnimatedProps(() => ({
+    strokeDashoffset: c - progress.value * c,
+  }));
+
   return (
     <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>
       <Svg width={size} height={size}>
@@ -1062,25 +1013,42 @@ function ScoreCircle({ score }: { score: number }) {
           strokeWidth={strokeWidth}
           fill="transparent"
         />
-        <Circle
+        <AnimatedCircle
           cx={size / 2}
           cy={size / 2}
           r={r}
-          stroke={colors.brand}
+          stroke={colors.progress}
           strokeWidth={strokeWidth}
           strokeLinecap="round"
           fill="transparent"
           strokeDasharray={c}
-          strokeDashoffset={dashOffset}
+          animatedProps={animatedProps}
           transform={`rotate(-90 ${size / 2} ${size / 2})`}
         />
       </Svg>
       <View style={{ position: "absolute", alignItems: "center" }}>
-        <Text style={{ color: colors.onSurface, fontSize: 20, fontWeight: "800" }}>
+        <Text
+          style={{
+            color: colors.onSurface,
+            fontSize: size >= 140 ? 36 : 22,
+            fontWeight: "800",
+          }}
+        >
           {score}%
         </Text>
       </View>
     </View>
+  );
+}
+
+/** Cascade d'entrée pour la liste "Aujourd'hui" — un fondu + léger glissement
+ * décalé par carte, plafonné pour qu'une longue liste d'habitudes ne fasse
+ * jamais attendre les dernières cartes plus que les premières. */
+function EnterItem({ index, children }: { index: number; children: ReactNode }) {
+  return (
+    <Animated.View entering={FadeInDown.delay(Math.min(index, 8) * 30).duration(motion.base)}>
+      {children}
+    </Animated.View>
   );
 }
 
@@ -1122,53 +1090,6 @@ const styles = StyleSheet.create({
     lineHeight: 17,
     fontStyle: "italic",
   },
-  streakHero: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
-    backgroundColor: "#FF5722",
-    padding: spacing.lg,
-    borderRadius: radius.md,
-    shadowColor: "#FF5722",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  streakLeft: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "rgba(255,255,255,0.15)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  streakLabel: {
-    color: "#fff",
-    fontSize: 10,
-    letterSpacing: 2,
-    fontWeight: "800",
-    opacity: 0.9,
-  },
-  streakBig: {
-    color: "#fff",
-    fontSize: 42,
-    fontWeight: "800",
-    marginTop: 2,
-  },
-  streakUnit: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "700",
-    opacity: 0.9,
-  },
-  streakSub: {
-    color: "#fff",
-    fontSize: 11,
-    fontWeight: "600",
-    opacity: 0.9,
-    marginTop: 2,
-  },
   header: {
     flexDirection: "row",
     alignItems: "flex-start",
@@ -1191,30 +1112,38 @@ const styles = StyleSheet.create({
     marginTop: 2,
     textTransform: "capitalize",
   },
+  // "Jour X/Y" est un indicateur de progression (dans un programme), pas une
+  // action — même famille violette que le Score/XP, pas l'orange du CTA.
   dayBadge: {
     alignItems: "center",
-    backgroundColor: colors.brandTertiary,
+    backgroundColor: colors.progressTertiary,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: radius.md,
   },
   dayLabel: {
-    color: colors.brandSecondary,
+    color: colors.progressSecondary,
     fontSize: 9,
     letterSpacing: 1,
     fontWeight: "800",
   },
-  dayValue: { color: colors.brand, fontSize: 22, fontWeight: "800" },
-  daySub: { color: colors.brandSecondary, fontSize: 11, fontWeight: "700" },
-  scoreCard: {
+  dayValue: { color: colors.progress, fontSize: 22, fontWeight: "800" },
+  daySub: { color: colors.progressSecondary, fontSize: 11, fontWeight: "700" },
+  // Module héros : un seul bloc élevé (Score + CTA) au lieu de trois cartes
+  // de poids égal — devient le point focal réel de l'écran.
+  heroCard: {
+    backgroundColor: colors.surfaceSecondary,
+    padding: spacing.lg,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    gap: spacing.md,
+    ...shadow.elevated,
+  },
+  heroScoreRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
-    backgroundColor: colors.surfaceSecondary,
-    padding: spacing.md,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
   },
   scoreLabel: {
     color: colors.onSurfaceTertiary,
@@ -1223,7 +1152,10 @@ const styles = StyleSheet.create({
     fontWeight: "800",
   },
   scoreValue: { color: colors.onSurface, fontSize: 26, fontWeight: "800" },
-  scoreHint: { color: colors.brand, fontSize: 12, fontWeight: "700", marginTop: 2 },
+  // progressSecondary, pas progress : à 12px sur surfaceSecondary, progress
+  // (#8B5CF6) tombe à 4.1:1 (sous le seuil AA 4.5:1 pour du petit texte) —
+  // progressSecondary passe à 9.4:1, vérifié par calcul de contraste réel.
+  scoreHint: { color: colors.progressSecondary, fontSize: 12, fontWeight: "700", marginTop: 2 },
   scoreDeltaRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -1231,61 +1163,41 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   scoreDeltaText: { fontSize: 11, fontWeight: "700" },
-  xpCard: {
+  // Bande de stats — 2 pastilles compactes remplaçant les anciennes cartes
+  // XP et Streak pleine largeur.
+  statsStrip: { flexDirection: "row", gap: spacing.sm },
+  statPill: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
     backgroundColor: colors.surfaceSecondary,
     borderRadius: radius.md,
-    padding: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
-    gap: 10,
+    padding: spacing.sm,
   },
-  xpHeadRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
-  xpBadge: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    backgroundColor: colors.brand,
+  statPillBadge: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.progress,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 2,
-    borderColor: "#fff",
   },
-  xpLevelNum: { color: "#fff", fontWeight: "800", fontSize: 20 },
-  xpLabel: {
-    color: colors.brand,
-    fontSize: 10,
+  statPillBadgeNum: { color: "#fff", fontWeight: "800", fontSize: 15 },
+  statPillLabel: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 9,
     fontWeight: "800",
     letterSpacing: 0.6,
   },
-  xpValue: {
+  statPillValue: {
     color: colors.onSurface,
-    fontSize: 17,
+    fontSize: 12,
     fontWeight: "800",
-    marginTop: 2,
+    marginTop: 1,
   },
-  xpHint: {
-    color: colors.onSurfaceTertiary,
-    fontSize: 10,
-    fontWeight: "600",
-    marginTop: 2,
-  },
-  xpBar: {
-    height: 6,
-    backgroundColor: colors.surfaceTertiary,
-    borderRadius: 3,
-    overflow: "hidden",
-  },
-  xpFill: { height: "100%", borderRadius: 3, backgroundColor: colors.brand },
-  badgeRow: { flexDirection: "row", gap: 6, marginTop: 2 },
-  badge: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-  },
-  badgeEmoji: { fontSize: 15 },
   mainCta: {
     backgroundColor: colors.brand,
     padding: 18,
@@ -1295,12 +1207,20 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: spacing.sm,
   },
+  // Une fois la séance faite, le CTA devient une confirmation discrète
+  // (contour) plutôt qu'une action pressante identique à avant.
+  mainCtaDone: {
+    backgroundColor: colors.surfaceTertiary,
+    borderWidth: 1,
+    borderColor: colors.success,
+  },
   mainCtaText: {
     color: "#fff",
     fontWeight: "800",
     fontSize: 15,
     letterSpacing: 1.5,
   },
+  mainCtaTextDone: { color: colors.success },
   progCard: {
     flexDirection: "row",
     alignItems: "center",
@@ -1429,46 +1349,16 @@ const styles = StyleSheet.create({
   listCol: {
     gap: spacing.sm,
   },
-  listItem: {
+  ringsRow: {
+    flexDirection: "row",
     backgroundColor: colors.surfaceSecondary,
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.border,
-    padding: spacing.md,
-    gap: 8,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.sm,
+    marginBottom: spacing.sm,
   },
-  listItemHead: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  listItemIcon: {
-    width: 30,
-    height: 30,
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  listItemTitle: {
-    flex: 1,
-    color: colors.onSurface,
-    fontWeight: "800",
-    fontSize: 13,
-  },
-  listItemPct: {
-    color: colors.onSurfaceTertiary,
-    fontWeight: "800",
-    fontSize: 13,
-    minWidth: 34,
-    textAlign: "right",
-  },
-  progressTrack: {
-    height: 5,
-    borderRadius: 3,
-    backgroundColor: colors.surfaceTertiary,
-    overflow: "hidden",
-  },
-  progressFill: { height: "100%", borderRadius: 3 },
   addListItem: {
     flexDirection: "row",
     alignItems: "center",

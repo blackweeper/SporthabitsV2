@@ -10,18 +10,35 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing } from "@/src/theme";
+import { colors, spacing } from "@/src/theme";
 import { getProfile, UserProfile } from "@/src/utils/gym-storage";
 import { progressionHref } from "@/src/utils/progression-nav";
+import { getLibraryMeta } from "@/src/utils/exercise-records";
+import Card from "@/src/components/ui/Card";
+import PressableScale from "@/src/components/ui/PressableScale";
 
 export default function ProfileTab() {
   const router = useRouter();
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [librarySubtitle, setLibrarySubtitle] = useState("Chargement…");
 
   useFocusEffect(
     useCallback(() => {
       (async () => {
         setProfile(await getProfile());
+        const meta = await getLibraryMeta();
+        const dateStr = meta.lastUpdatedAt
+          ? new Date(meta.lastUpdatedAt).toLocaleDateString("fr-FR", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+            })
+          : "jamais";
+        setLibrarySubtitle(
+          meta.exerciseCount > 0
+            ? `${meta.exerciseCount} exercices · Dernière mise à jour : ${dateStr}`
+            : "Version, mises à jour et sauvegarde",
+        );
       })();
     }, []),
   );
@@ -34,38 +51,40 @@ export default function ProfileTab() {
 
       <ScrollView contentContainerStyle={styles.scroll}>
         {/* Photo + Name — clickable → edit profile */}
-        <Pressable
+        <PressableScale
           testID="profile-header-row"
-          style={styles.headerRow}
+          style={styles.headerRowSpacing}
           onPress={() => router.push("/profile")}
         >
-          <View style={styles.avatarCircle}>
-            {profile?.photoBase64 ? (
-              <Image
-                source={{ uri: `data:image/jpeg;base64,${profile.photoBase64}` }}
-                style={styles.avatarImg}
-              />
-            ) : (
-              <Ionicons name="person" size={30} color={colors.onSurfaceTertiary} />
-            )}
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.userName}>
-              {profile?.name || "Ajouter ton prénom"}
-            </Text>
-            <Text style={styles.userSub}>
-              {[
-                profile?.sex ? capitalize(profile.sex) : null,
-                profile?.age ? `${profile.age} ans` : null,
-                profile?.weight_kg ? `${profile.weight_kg} kg` : null,
-                profile?.height_cm ? `${profile.height_cm} cm` : null,
-              ]
-                .filter(Boolean)
-                .join(" · ") || "Renseigne tes infos personnelles"}
-            </Text>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color={colors.onSurfaceTertiary} />
-        </Pressable>
+          <Card style={styles.headerRowLayout}>
+            <View style={styles.avatarCircle}>
+              {profile?.photoBase64 ? (
+                <Image
+                  source={{ uri: `data:image/jpeg;base64,${profile.photoBase64}` }}
+                  style={styles.avatarImg}
+                />
+              ) : (
+                <Ionicons name="person" size={30} color={colors.onSurfaceTertiary} />
+              )}
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.userName}>
+                {profile?.name || "Ajouter ton prénom"}
+              </Text>
+              <Text style={styles.userSub}>
+                {[
+                  profile?.sex ? capitalize(profile.sex) : null,
+                  profile?.age ? `${profile.age} ans` : null,
+                  profile?.weight_kg ? `${profile.weight_kg} kg` : null,
+                  profile?.height_cm ? `${profile.height_cm} cm` : null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ") || "Renseigne tes infos personnelles"}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={colors.onSurfaceTertiary} />
+          </Card>
+        </PressableScale>
 
         {/* Sections list */}
         <Text style={styles.sectionLabel}>SUIVI CORPOREL</Text>
@@ -97,7 +116,7 @@ export default function ProfileTab() {
         />
         <ListRow
           icon="flag"
-          iconBg="#B39DDB"
+          iconBg={colors.progressSecondary}
           title="Objectifs"
           subtitle="Cibles personnelles"
           onPress={() => router.push("/goals")}
@@ -105,7 +124,7 @@ export default function ProfileTab() {
         />
         <ListRow
           icon="stats-chart"
-          iconBg="#00E676"
+          iconBg={colors.success}
           title="Statistiques avancées"
           subtitle="Volume, streak, calendrier…"
           onPress={() => router.push("/stats")}
@@ -131,6 +150,14 @@ export default function ProfileTab() {
           onPress={() => router.push("/meal-presets" as any)}
           testID="row-meal-presets"
         />
+        <ListRow
+          icon="library"
+          iconBg="#26A69A"
+          title="Bibliothèque d'exercices"
+          subtitle={librarySubtitle}
+          onPress={() => router.push("/exercise-library-settings" as any)}
+          testID="row-exercise-library"
+        />
 
         <View style={{ height: 40 }} />
       </ScrollView>
@@ -154,16 +181,18 @@ function ListRow({
   testID?: string;
 }) {
   return (
-    <Pressable testID={testID} style={styles.row} onPress={onPress}>
-      <View style={[styles.rowIcon, { backgroundColor: iconBg }]}>
-        <Ionicons name={icon} size={18} color="#fff" />
-      </View>
-      <View style={{ flex: 1 }}>
-        <Text style={styles.rowTitle}>{title}</Text>
-        <Text style={styles.rowSub}>{subtitle}</Text>
-      </View>
-      <Ionicons name="chevron-forward" size={18} color={colors.onSurfaceTertiary} />
-    </Pressable>
+    <PressableScale testID={testID} onPress={onPress}>
+      <Card style={styles.rowLayout}>
+        <View style={[styles.rowIcon, { backgroundColor: iconBg }]}>
+          <Ionicons name={icon} size={18} color="#fff" />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.rowTitle}>{title}</Text>
+          <Text style={styles.rowSub}>{subtitle}</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={18} color={colors.onSurfaceTertiary} />
+      </Card>
+    </PressableScale>
   );
 }
 
@@ -180,17 +209,10 @@ const styles = StyleSheet.create({
   },
   title: { color: colors.onSurface, fontSize: 26, fontWeight: "800" },
   scroll: { padding: spacing.lg, gap: 6, paddingBottom: 60 },
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
-    backgroundColor: colors.surfaceSecondary,
-    padding: spacing.md,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    marginBottom: spacing.sm,
-  },
+  // Forme de carte (fond/bordure/radius/padding) déléguée au composant Card
+  // partagé — ces styles ne portent plus que la mise en page interne.
+  headerRowSpacing: { marginBottom: spacing.sm },
+  headerRowLayout: { flexDirection: "row", alignItems: "center", gap: spacing.md },
   avatarCircle: {
     width: 64,
     height: 64,
@@ -221,16 +243,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
     marginBottom: 4,
   },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
-    backgroundColor: colors.surfaceSecondary,
-    padding: spacing.md,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
+  rowLayout: { flexDirection: "row", alignItems: "center", gap: spacing.md },
   rowIcon: {
     width: 40,
     height: 40,

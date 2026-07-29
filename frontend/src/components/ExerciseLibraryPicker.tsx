@@ -6,7 +6,7 @@ import {
   Modal,
   Pressable,
   TextInput,
-  FlatList,
+  SectionList,
   ScrollView,
   Image,
   KeyboardAvoidingView,
@@ -19,49 +19,21 @@ import {
   EXERCISE_CATEGORY_ICON,
   EXERCISE_CATEGORY_LABEL,
   ExerciseCategory,
-  resolveCategory,
-  getOverrides,
 } from "@/src/utils/exercise-category";
-import { EXERCISE_LIBRARY } from "@/src/data/exercise-library";
 import {
   CustomExercise,
   deleteCustomExercise,
-  getCustomExercises,
-  getFavoriteExercises,
-  getSessions,
   saveCustomExercise,
-  toggleFavoriteExercise,
   uid,
 } from "@/src/utils/gym-storage";
-import { listAllExercises } from "@/src/utils/exercise-detail";
 import { iconEmojiForExercise } from "@/src/data/exercise-icons";
 import { LIBRARY_MUSCLE_GROUPS, MuscleGroupKey } from "@/src/utils/muscle-groups";
 import { pickAndCompressImage } from "@/src/utils/image-compress";
 import SwipeableRow from "@/src/components/SwipeableRow";
-
-type Item = {
-  name: string;
-  category: ExerciseCategory;
-  emoji?: string;
-  count: number;
-  favorite: boolean;
-  muscleGroups?: MuscleGroupKey[];
-  isCustom?: boolean;
-  customId?: string;
-  imageBase64?: string | null;
-};
+import { ExerciseLibraryItem, useExerciseLibraryItems } from "@/src/hooks/useExerciseLibraryItems";
+import { CategoryTabRow, LibTab, MuscleChipRow } from "@/src/components/exercise-library/ExerciseFilterChips";
 
 const CATEGORIES: ExerciseCategory[] = ["musculation", "cardio_machine", "mobility"];
-
-type LibTab = "favorites" | "musculation" | "cardio_machine" | "mobility" | "all";
-
-const TABS: { key: LibTab; label: string; emoji: string }[] = [
-  { key: "favorites", label: "Favoris", emoji: "⭐" },
-  { key: "musculation", label: "Musculation", emoji: "💪" },
-  { key: "cardio_machine", label: "Cardio", emoji: "🏃" },
-  { key: "mobility", label: "Étirements", emoji: "🧘" },
-  { key: "all", label: "Tous", emoji: "📋" },
-];
 
 /**
  * Exercise picker sourced from the same data as Progression → Exercices
@@ -78,84 +50,23 @@ export default function ExerciseLibraryPicker({
   onPick: (name: string) => void;
 }) {
   const [query, setQuery] = useState("");
-  const [favorites, setFavorites] = useState<string[]>([]);
-  const [used, setUsed] = useState<{ name: string; count: number }[]>([]);
   const [tab, setTab] = useState<LibTab>("all");
   const [muscle, setMuscle] = useState<MuscleGroupKey | null>(null);
-  const [customExercises, setCustomExercises] = useState<CustomExercise[]>([]);
   const [sheet, setSheet] = useState<{ mode: "create" | "edit"; draft: CustomExercise } | null>(
     null,
   );
 
-  const reloadCustom = async () => setCustomExercises(await getCustomExercises());
+  const { items, customExercises, reload, reloadCustom, toggleFavorite, toggleLibrary } =
+    useExerciseLibraryItems(visible);
 
   useEffect(() => {
     if (!visible) return;
     setQuery("");
     setTab("all");
     setMuscle(null);
-    (async () => {
-      const [favs, sessions, overrides, customs] = await Promise.all([
-        getFavoriteExercises(),
-        getSessions(),
-        getOverrides(),
-        getCustomExercises(),
-      ]);
-      setFavorites(favs);
-      setUsed(listAllExercises(sessions));
-      // stash overrides on the module-level closure via state below
-      setOverridesState(overrides);
-      setCustomExercises(customs);
-    })();
+    reload();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible]);
-
-  const [overridesState, setOverridesState] = useState<Record<string, ExerciseCategory>>({});
-
-  const items = useMemo<Item[]>(() => {
-    const favSet = new Set(favorites.map((f) => f.toLowerCase().trim()));
-    const merged: Item[] = [];
-    const seen = new Set<string>();
-    for (const c of customExercises) {
-      const key = c.nameFr.toLowerCase().trim();
-      seen.add(key);
-      const done = used.find((u) => u.name.toLowerCase().trim() === key);
-      merged.push({
-        name: c.nameFr,
-        category: c.category,
-        count: done?.count ?? 0,
-        favorite: favSet.has(key),
-        muscleGroups: c.muscleGroups,
-        isCustom: true,
-        customId: c.id,
-        imageBase64: c.imageBase64,
-      });
-    }
-    for (const lib of EXERCISE_LIBRARY) {
-      const key = lib.name.toLowerCase().trim();
-      if (seen.has(key)) continue;
-      seen.add(key);
-      const done = used.find((u) => u.name.toLowerCase().trim() === key);
-      merged.push({
-        name: lib.name,
-        category: lib.category,
-        emoji: lib.emoji,
-        count: done?.count ?? 0,
-        favorite: favSet.has(key),
-        muscleGroups: lib.muscleGroups,
-      });
-    }
-    for (const u of used) {
-      const key = u.name.toLowerCase().trim();
-      if (seen.has(key)) continue;
-      merged.push({
-        name: u.name,
-        category: resolveCategory(u.name, overridesState),
-        count: u.count,
-        favorite: favSet.has(key),
-      });
-    }
-    return merged;
-  }, [favorites, used, overridesState, customExercises]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -177,10 +88,23 @@ export default function ExerciseLibraryPicker({
     (i) => i.name.toLowerCase().trim() === query.trim().toLowerCase(),
   );
 
-  async function onToggleFavorite(name: string) {
-    const next = await toggleFavoriteExercise(name);
-    setFavorites(next);
-  }
+  const onToggleFavorite = toggleFavorite;
+
+  // Recherche unifiée, sans changement de contexte : une seule liste, juste
+  // partitionnée en 2 sections. Une section vide n'affiche pas d'en-tête —
+  // pas de "Ma bibliothèque (0)" qui casserait l'effet de continuité.
+  const sections = useMemo(() => {
+    const inLibrary = filtered.filter((i) => i.inLibrary);
+    const catalogue = filtered.filter((i) => !i.inLibrary);
+    const result: { key: string; title: string; data: ExerciseLibraryItem[] }[] = [];
+    if (inLibrary.length > 0) {
+      result.push({ key: "library", title: "Ma bibliothèque", data: inLibrary });
+    }
+    if (catalogue.length > 0) {
+      result.push({ key: "catalogue", title: "Catalogue IronFlow", data: catalogue });
+    }
+    return result;
+  }, [filtered]);
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
@@ -211,70 +135,19 @@ export default function ExerciseLibraryPicker({
           )}
         </View>
 
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={{ maxHeight: 42 }}
-          contentContainerStyle={styles.tabRow}
-        >
-          {TABS.map((t) => {
-            const active = tab === t.key;
-            return (
-              <Pressable
-                key={t.key}
-                testID={`ex-library-tab-${t.key}`}
-                style={[styles.tabChip, active && styles.tabChipActive]}
-                onPress={() => setTab(t.key)}
-              >
-                <Text style={styles.tabEmoji}>{t.emoji}</Text>
-                <Text style={[styles.tabChipText, active && { color: "#fff" }]}>
-                  {t.label}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
+        <CategoryTabRow tab={tab} onChange={setTab} />
 
-        {tab === "musculation" && (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={{ maxHeight: 38 }}
-            contentContainerStyle={styles.tabRow}
-          >
-            <Pressable
-              testID="ex-library-muscle-all"
-              style={[styles.muscleChip, !muscle && styles.muscleChipActive]}
-              onPress={() => setMuscle(null)}
-            >
-              <Text style={[styles.muscleChipText, !muscle && { color: "#fff" }]}>
-                Tous
-              </Text>
-            </Pressable>
-            {LIBRARY_MUSCLE_GROUPS.map((mg) => {
-              const active = muscle === mg.key;
-              return (
-                <Pressable
-                  key={mg.key}
-                  testID={`ex-library-muscle-${mg.key}`}
-                  style={[styles.muscleChip, active && styles.muscleChipActive]}
-                  onPress={() => setMuscle(active ? null : mg.key)}
-                >
-                  <Text style={styles.tabEmoji}>{mg.emoji}</Text>
-                  <Text style={[styles.muscleChipText, active && { color: "#fff" }]}>
-                    {mg.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </ScrollView>
-        )}
+        {tab === "musculation" && <MuscleChipRow muscle={muscle} onChange={setMuscle} />}
 
-        <FlatList
-          data={filtered}
-          keyExtractor={(i) => i.name}
+        <SectionList
+          sections={sections}
+          keyExtractor={(i) => i.id}
           contentContainerStyle={styles.list}
           keyboardShouldPersistTaps="handled"
+          stickySectionHeadersEnabled={false}
+          renderSectionHeader={({ section }) => (
+            <Text style={styles.sectionHeader}>{section.title}</Text>
+          )}
           ListHeaderComponent={
             query.trim() && !exactMatch ? (
               <Pressable
@@ -324,6 +197,11 @@ export default function ExerciseLibraryPicker({
               <Pressable
                 testID={`ex-library-item-${item.name}`}
                 style={styles.row}
+                // Choisir un exercice du Catalogue pour la séance en cours
+                // ne l'ajoute PAS automatiquement à la bibliothèque — action
+                // volontairement distincte du bouton dédié ci-dessous.
+                // L'ajout automatique par usage réel relève de l'Étape G
+                // (pas encore construite), pas de ce picker.
                 onPress={() => onPick(item.name)}
               >
                 {item.imageBase64 ? (
@@ -352,12 +230,25 @@ export default function ExerciseLibraryPicker({
                       : "Pas encore pratiqué"}
                   </Text>
                 </View>
+                {!item.inLibrary && (
+                  <Pressable
+                    testID={`ex-library-add-library-${item.name}`}
+                    hitSlop={10}
+                    onPress={(e) => {
+                      e.stopPropagation?.();
+                      toggleLibrary(item.id);
+                    }}
+                    style={styles.favBtn}
+                  >
+                    <Ionicons name="add-circle-outline" size={20} color={colors.brand} />
+                  </Pressable>
+                )}
                 <Pressable
                   testID={`ex-library-fav-${item.name}`}
                   hitSlop={10}
                   onPress={(e) => {
                     e.stopPropagation?.();
-                    onToggleFavorite(item.name);
+                    onToggleFavorite(item.id);
                   }}
                   style={styles.favBtn}
                 >
@@ -688,6 +579,15 @@ const styles = StyleSheet.create({
     fontSize: 10,
   },
   list: { paddingHorizontal: spacing.lg, paddingBottom: 40, gap: 8 },
+  sectionHeader: {
+    color: colors.onSurfaceTertiary,
+    fontWeight: "800",
+    fontSize: 11,
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+    marginTop: spacing.sm,
+    marginBottom: 6,
+  },
   createRow: {
     flexDirection: "row",
     alignItems: "center",
