@@ -1,15 +1,17 @@
-import { View, Text, Pressable, Image, StyleSheet } from "react-native";
+import { View, Text, Image, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing } from "@/src/theme";
 import { EXERCISE_CATEGORY_COLOR } from "@/src/utils/exercise-category";
 import { iconEmojiForExercise } from "@/src/data/exercise-icons";
 import { MUSCLE_GROUPS } from "@/src/utils/muscle-groups";
 import { ExerciseLibraryItem } from "@/src/hooks/useExerciseLibraryItems";
+import PressableScale from "@/src/components/ui/PressableScale";
 
 /**
- * Premium exercise card for the Bibliothèque tab — richer and more "aéré"
- * than the compact picker row, so browsing feels like exploring a real
- * library rather than just picking an item for a session.
+ * Grid tile for the Bibliothèque tab — image/emoji fills the tile like a
+ * cover art, name + meta below. Deliberately not a compact row (that's what
+ * the mid-workout picker uses): browsing the library should feel like a
+ * visual catalogue, not a data list.
  */
 export default function ExerciseCard({
   item,
@@ -30,45 +32,23 @@ export default function ExerciseCard({
     : undefined;
 
   return (
-    <Pressable testID={testID} style={styles.card} onPress={onPress}>
-      <View style={styles.topRow}>
+    <PressableScale testID={testID} style={styles.card} onPress={onPress}>
+      <View style={[styles.artwork, { borderColor: `${color}55`, backgroundColor: `${color}1A` }]}>
         {item.imageBase64 ? (
           <Image
             source={{ uri: `data:image/webp;base64,${item.imageBase64}` }}
-            style={styles.thumb}
+            style={styles.artworkImage}
           />
         ) : (
-          <View style={[styles.thumb, styles.thumbFallback, { backgroundColor: color + "26" }]}>
-            <Text style={{ fontSize: 24 }}>
-              {item.emoji ?? iconEmojiForExercise(item.name, null)}
-            </Text>
-          </View>
-        )}
-        <View style={{ flex: 1 }}>
-          <Text style={styles.name} numberOfLines={2}>
-            {item.name}
+          <Text style={styles.artworkEmoji}>
+            {item.emoji ?? iconEmojiForExercise(item.name, null)}
           </Text>
-          <Text style={styles.count}>
-            {item.count > 0
-              ? `${item.count} séance${item.count > 1 ? "s" : ""}`
-              : "Pas encore pratiqué"}
-          </Text>
-        </View>
-        {onToggleLibrary && !item.inLibrary && (
-          <Pressable
-            testID={testID ? `${testID}-add-library` : undefined}
-            hitSlop={10}
-            onPress={(e) => {
-              e.stopPropagation?.();
-              onToggleLibrary();
-            }}
-          >
-            <Ionicons name="add-circle-outline" size={22} color={colors.brand} />
-          </Pressable>
         )}
-        <Pressable
+
+        <PressableScale
           testID={testID ? `${testID}-fav` : undefined}
-          hitSlop={10}
+          hitSlop={8}
+          style={styles.favBadge}
           onPress={(e) => {
             e.stopPropagation?.();
             onToggleFavorite();
@@ -76,56 +56,88 @@ export default function ExerciseCard({
         >
           <Ionicons
             name={item.favorite ? "star" : "star-outline"}
-            size={20}
-            color={item.favorite ? "#FFC107" : colors.onSurfaceTertiary}
+            size={15}
+            color={item.favorite ? "#FFC107" : "#fff"}
           />
-        </Pressable>
+        </PressableScale>
+
+        {onToggleLibrary && !item.inLibrary && (
+          <PressableScale
+            testID={testID ? `${testID}-add-library` : undefined}
+            hitSlop={8}
+            style={[styles.libBadge, { backgroundColor: colors.brand }]}
+            onPress={(e) => {
+              e.stopPropagation?.();
+              onToggleLibrary();
+            }}
+          >
+            <Ionicons name="add" size={14} color="#fff" />
+          </PressableScale>
+        )}
       </View>
 
+      <Text style={styles.name} numberOfLines={2}>
+        {item.name}
+      </Text>
+
       <View style={styles.metaRow}>
-        {primaryMuscle && (
-          <View style={styles.metaChip}>
-            <Text style={{ fontSize: 11 }}>{primaryMuscle.emoji}</Text>
-            <Text style={styles.metaChipText}>{primaryMuscle.label}</Text>
-          </View>
-        )}
-        <View style={styles.metaChip}>
-          <Ionicons name="barbell-outline" size={11} color={colors.onSurfaceTertiary} />
-          <Text style={styles.metaChipText}>{item.equipment ?? "—"}</Text>
-        </View>
+        {primaryMuscle && <Text style={styles.metaEmoji}>{primaryMuscle.emoji}</Text>}
+        <Text style={styles.metaText} numberOfLines={1}>
+          {item.equipment ?? (item.count > 0 ? `${item.count}×` : "Nouveau")}
+        </Text>
       </View>
-    </Pressable>
+    </PressableScale>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.surfaceSecondary,
+  card: { gap: 6 },
+  artwork: {
+    aspectRatio: 1,
     borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.md,
-    gap: spacing.sm,
-  },
-  topRow: { flexDirection: "row", alignItems: "center", gap: spacing.md },
-  thumb: {
-    width: 56,
-    height: 56,
-    borderRadius: radius.md,
-    backgroundColor: colors.surfaceTertiary,
-  },
-  thumbFallback: { alignItems: "center", justifyContent: "center" },
-  name: { color: colors.onSurface, fontWeight: "800", fontSize: 15, lineHeight: 19 },
-  count: { color: colors.onSurfaceTertiary, fontSize: 11, marginTop: 3 },
-  metaRow: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
-  metaChip: {
-    flexDirection: "row",
+    borderWidth: 1.5,
     alignItems: "center",
-    gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: radius.sm,
-    backgroundColor: colors.surfaceTertiary,
+    justifyContent: "center",
+    overflow: "hidden",
   },
-  metaChipText: { color: colors.onSurfaceTertiary, fontSize: 10, fontWeight: "700" },
+  artworkImage: { width: "100%", height: "100%" },
+  artworkEmoji: { fontSize: 40 },
+  favBadge: {
+    position: "absolute",
+    top: 6,
+    right: 6,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  libBadge: {
+    position: "absolute",
+    bottom: 6,
+    right: 6,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: colors.surface,
+  },
+  name: {
+    color: colors.onSurface,
+    fontWeight: "800",
+    fontSize: 13,
+    lineHeight: 17,
+    minHeight: 34,
+  },
+  metaRow: { flexDirection: "row", alignItems: "center", gap: 4 },
+  metaEmoji: { fontSize: 11 },
+  metaText: {
+    flex: 1,
+    color: colors.onSurfaceTertiary,
+    fontSize: 10,
+    fontWeight: "700",
+  },
 });

@@ -4,16 +4,24 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  Pressable,
   Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, spacing } from "@/src/theme";
-import { getProfile, UserProfile } from "@/src/utils/gym-storage";
+import { colors, radius, spacing } from "@/src/theme";
+import {
+  getGoals,
+  getHabitLogs,
+  getHabits,
+  getPRs,
+  getProfile,
+  getSessions,
+  UserProfile,
+} from "@/src/utils/gym-storage";
 import { progressionHref } from "@/src/utils/progression-nav";
 import { getLibraryMeta } from "@/src/utils/exercise-records";
+import { computeXPState, XPState } from "@/src/utils/xp";
 import Card from "@/src/components/ui/Card";
 import PressableScale from "@/src/components/ui/PressableScale";
 
@@ -21,11 +29,22 @@ export default function ProfileTab() {
   const router = useRouter();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [librarySubtitle, setLibrarySubtitle] = useState("Chargement…");
+  const [xpState, setXpState] = useState<XPState | null>(null);
+  const [activeGoalsCount, setActiveGoalsCount] = useState(0);
 
   useFocusEffect(
     useCallback(() => {
       (async () => {
         setProfile(await getProfile());
+        const [sessions, habits, habitLogs, prs, goals] = await Promise.all([
+          getSessions(),
+          getHabits(),
+          getHabitLogs(),
+          getPRs(),
+          getGoals(),
+        ]);
+        setXpState(computeXPState({ sessions, habits, habitLogs, prs }));
+        setActiveGoalsCount(goals.filter((g) => !g.achievedAt).length);
         const meta = await getLibraryMeta();
         const dateStr = meta.lastUpdatedAt
           ? new Date(meta.lastUpdatedAt).toLocaleDateString("fr-FR", {
@@ -85,6 +104,46 @@ export default function ProfileTab() {
             <Ionicons name="chevron-forward" size={20} color={colors.onSurfaceTertiary} />
           </Card>
         </PressableScale>
+
+        {/* Niveau + Objectifs — l'identité du profil ne doit pas se réduire
+            à une liste de réglages : le niveau et les objectifs en cours
+            doivent être visibles dès l'ouverture, pas seulement à un tap
+            de distance. Même langage visuel que la bande de stats du
+            Dashboard, pour que "niveau" se lise pareil partout. */}
+        <View style={styles.statsStrip}>
+          <PressableScale
+            testID="profile-level-pill"
+            style={styles.statPill}
+            onPress={() => router.push(progressionHref("level") as any)}
+          >
+            <View style={styles.statPillBadge}>
+              <Text style={styles.statPillBadgeNum}>{xpState?.level ?? "…"}</Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.statPillLabel}>NIVEAU</Text>
+              <Text style={styles.statPillValue}>
+                {xpState ? `${xpState.xpToNext} XP → N${xpState.level + 1}` : "Chargement…"}
+              </Text>
+            </View>
+          </PressableScale>
+          <PressableScale
+            testID="profile-goals-pill"
+            style={styles.statPill}
+            onPress={() => router.push("/goals")}
+          >
+            <View style={[styles.statPillBadge, { backgroundColor: colors.brand }]}>
+              <Ionicons name="flag" size={16} color="#fff" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.statPillLabel}>OBJECTIFS</Text>
+              <Text style={styles.statPillValue}>
+                {activeGoalsCount > 0
+                  ? `${activeGoalsCount} en cours`
+                  : "Aucun objectif"}
+              </Text>
+            </View>
+          </PressableScale>
+        </View>
 
         {/* Sections list */}
         <Text style={styles.sectionLabel}>SUIVI CORPOREL</Text>
@@ -234,6 +293,39 @@ const styles = StyleSheet.create({
     color: colors.onSurfaceTertiary,
     fontSize: 12,
     marginTop: 4,
+  },
+  statsStrip: { flexDirection: "row", gap: spacing.sm, marginBottom: spacing.md },
+  statPill: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    backgroundColor: colors.surfaceSecondary,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.sm,
+  },
+  statPillBadge: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.progress,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  statPillBadgeNum: { color: "#fff", fontWeight: "800", fontSize: 15 },
+  statPillLabel: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 9,
+    fontWeight: "800",
+    letterSpacing: 0.6,
+  },
+  statPillValue: {
+    color: colors.onSurface,
+    fontSize: 12,
+    fontWeight: "800",
+    marginTop: 1,
   },
   sectionLabel: {
     color: colors.onSurfaceTertiary,

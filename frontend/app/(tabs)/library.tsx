@@ -102,10 +102,16 @@ export default function LibraryScreen() {
     (i) => i.name.toLowerCase().trim() === query.trim().toLowerCase(),
   );
 
+  const scopeCount = scope === "library" ? items.filter((i) => i.inLibrary).length : items.length;
+
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
       <View style={styles.header}>
         <Text style={styles.title}>Bibliothèque</Text>
+        <Text style={styles.subtitle}>
+          {scopeCount} exercice{scopeCount > 1 ? "s" : ""}
+          {scope === "library" ? " dans ta bibliothèque" : " au catalogue"}
+        </Text>
       </View>
 
       <View style={styles.searchWrap}>
@@ -149,6 +155,8 @@ export default function LibraryScreen() {
       <FlatList
         data={filtered}
         keyExtractor={(i) => i.id}
+        numColumns={2}
+        columnWrapperStyle={styles.row}
         contentContainerStyle={styles.list}
         ListHeaderComponent={
           query.trim() && !exactMatch ? (
@@ -274,6 +282,7 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.md,
   },
   title: { color: colors.onSurface, fontSize: 22, fontWeight: "800" },
+  subtitle: { color: colors.onSurfaceTertiary, fontSize: 12, fontWeight: "600", marginTop: 2 },
   searchWrap: { paddingHorizontal: spacing.lg, marginBottom: spacing.sm },
   scopeRow: {
     flexDirection: "row",
@@ -302,8 +311,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.brand,
   },
   emptyCatalogueButtonText: { color: "#fff", fontWeight: "800", fontSize: 13 },
-  list: { padding: spacing.lg, paddingTop: spacing.sm, gap: spacing.sm },
-  cardWrap: { marginBottom: spacing.sm },
+  list: { padding: spacing.lg, paddingTop: spacing.sm },
+  row: { gap: spacing.sm },
+  cardWrap: { flex: 1, marginBottom: spacing.sm },
   createRow: {
     flexDirection: "row",
     alignItems: "center",

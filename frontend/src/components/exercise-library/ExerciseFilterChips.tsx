@@ -1,6 +1,7 @@
-import { ScrollView, Pressable, Text, StyleSheet } from "react-native";
+import { ScrollView, Text, StyleSheet } from "react-native";
 import { colors, radius, spacing } from "@/src/theme";
 import { LIBRARY_MUSCLE_GROUPS, MuscleGroupKey } from "@/src/utils/muscle-groups";
+import PressableScale from "@/src/components/ui/PressableScale";
 
 export type LibTab = "favorites" | "musculation" | "cardio_machine" | "mobility" | "all";
 
@@ -33,7 +34,7 @@ export function CategoryTabRow({
       {LIB_TABS.map((t) => {
         const active = tab === t.key;
         return (
-          <Pressable
+          <PressableScale
             key={t.key}
             testID={`${testIDPrefix}-${t.key}`}
             style={[styles.chip, active && styles.chipActive]}
@@ -41,7 +42,7 @@ export function CategoryTabRow({
           >
             <Text style={styles.emoji}>{t.emoji}</Text>
             <Text style={[styles.chipText, active && { color: "#fff" }]}>{t.label}</Text>
-          </Pressable>
+          </PressableScale>
         );
       })}
     </ScrollView>
@@ -65,17 +66,17 @@ export function MuscleChipRow({
       style={{ maxHeight: 38 }}
       contentContainerStyle={styles.row}
     >
-      <Pressable
+      <PressableScale
         testID={`${testIDPrefix}-all`}
         style={[styles.miniChip, !muscle && styles.chipActive]}
         onPress={() => onChange(null)}
       >
         <Text style={[styles.miniChipText, !muscle && { color: "#fff" }]}>Tous</Text>
-      </Pressable>
+      </PressableScale>
       {LIBRARY_MUSCLE_GROUPS.map((mg) => {
         const active = muscle === mg.key;
         return (
-          <Pressable
+          <PressableScale
             key={mg.key}
             testID={`${testIDPrefix}-${mg.key}`}
             style={[styles.miniChip, active && styles.chipActive]}
@@ -83,7 +84,7 @@ export function MuscleChipRow({
           >
             <Text style={styles.emoji}>{mg.emoji}</Text>
             <Text style={[styles.miniChipText, active && { color: "#fff" }]}>{mg.label}</Text>
-          </Pressable>
+          </PressableScale>
         );
       })}
     </ScrollView>
@@ -114,7 +115,7 @@ export function EquipmentChipRow({
       style={{ maxHeight: 38 }}
       contentContainerStyle={styles.row}
     >
-      <Pressable
+      <PressableScale
         testID={`${testIDPrefix}-all`}
         style={[styles.miniChip, !equipment && styles.chipActive]}
         onPress={() => onChange(null)}
@@ -122,18 +123,18 @@ export function EquipmentChipRow({
         <Text style={[styles.miniChipText, !equipment && { color: "#fff" }]}>
           Tout matériel
         </Text>
-      </Pressable>
+      </PressableScale>
       {options.map((eq) => {
         const active = equipment === eq;
         return (
-          <Pressable
+          <PressableScale
             key={eq}
             testID={`${testIDPrefix}-${eq}`}
             style={[styles.miniChip, active && styles.chipActive]}
             onPress={() => onChange(active ? null : eq)}
           >
             <Text style={[styles.miniChipText, active && { color: "#fff" }]}>{eq}</Text>
-          </Pressable>
+          </PressableScale>
         );
       })}
     </ScrollView>

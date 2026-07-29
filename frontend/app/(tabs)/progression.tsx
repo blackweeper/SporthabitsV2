@@ -6,6 +6,7 @@ import {
   ScrollView,
   Pressable,
   Dimensions,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
@@ -1507,14 +1508,84 @@ function TransformationView({
   onChanged: () => void;
 }) {
   const withPhotos = measurements.filter((m) => m.photoBase64);
+  const hasComparison = withPhotos.length >= 2;
+  // measurements is sorted newest-first (getMeasurements) — same for the
+  // withPhotos subset, so [0] is the latest photo and the last one is the
+  // oldest, i.e. the true "avant" reference point.
+  const latestPhoto = withPhotos[0];
+  const firstPhoto = withPhotos[withPhotos.length - 1];
+  const weightDelta =
+    hasComparison && firstPhoto.weight_kg != null && latestPhoto.weight_kg != null
+      ? latestPhoto.weight_kg - firstPhoto.weight_kg
+      : null;
+
   return (
     <>
+      {hasComparison ? (
+        <PressableScale testID="transformation-hero" onPress={() => router.push("/compare")}>
+          <Card style={styles.transformHero}>
+            <View style={styles.transformPhotoRow}>
+              <View style={styles.transformPhotoCol}>
+                <Image
+                  source={{ uri: `data:image/jpeg;base64,${firstPhoto.photoBase64}` }}
+                  style={styles.transformPhoto}
+                />
+                <Text style={styles.transformPhotoLabel}>Avant · {formatDateShort(firstPhoto.date)}</Text>
+              </View>
+              <Ionicons name="arrow-forward" size={18} color={colors.brand} />
+              <View style={styles.transformPhotoCol}>
+                <Image
+                  source={{ uri: `data:image/jpeg;base64,${latestPhoto.photoBase64}` }}
+                  style={styles.transformPhoto}
+                />
+                <Text style={styles.transformPhotoLabel}>Aujourd&apos;hui · {formatDateShort(latestPhoto.date)}</Text>
+              </View>
+            </View>
+            {weightDelta != null && Math.abs(weightDelta) > 0.05 && (
+              <View style={styles.transformDeltaRow}>
+                <Ionicons
+                  name={weightDelta <= 0 ? "trending-down" : "trending-up"}
+                  size={14}
+                  color={colors.progress}
+                />
+                <Text style={styles.transformDeltaText}>
+                  {weightDelta > 0 ? "+" : ""}
+                  {weightDelta.toFixed(1)} kg depuis le début
+                </Text>
+              </View>
+            )}
+            <View style={styles.transformCta}>
+              <Ionicons name="images" size={14} color={colors.brand} />
+              <Text style={styles.transformCtaText}>Voir la comparaison complète</Text>
+              <Ionicons name="chevron-forward" size={14} color={colors.brand} />
+            </View>
+          </Card>
+        </PressableScale>
+      ) : (
+        <PressableScale
+          testID="transformation-empty-hero"
+          onPress={() => router.push("/measurement/new")}
+        >
+          <Card style={styles.transformEmptyHero}>
+            <Ionicons name="camera" size={32} color={colors.brand} />
+            <Text style={styles.transformEmptyTitle}>
+              {withPhotos.length === 0 ? "Commence ta transformation" : "Encore une photo pour comparer"}
+            </Text>
+            <Text style={styles.transformEmptySub}>
+              {withPhotos.length === 0
+                ? "Ajoute une première photo pour visualiser ton évolution dans le temps."
+                : "Ajoute une 2ᵉ photo pour voir un avant/après."}
+            </Text>
+          </Card>
+        </PressableScale>
+      )}
+
       <View style={styles.summaryGrid}>
         <SummaryTile
           icon="camera"
           value={String(withPhotos.length)}
           label="Photos"
-          onPress={() => withPhotos.length >= 2 && router.push("/compare")}
+          onPress={() => hasComparison && router.push("/compare")}
         />
         <SummaryTile
           icon="resize"
@@ -1532,18 +1603,6 @@ function TransformationView({
         <Ionicons name="add-circle" size={18} color="#fff" />
         <Text style={styles.ctaFullText}>NOUVELLE MESURE</Text>
       </Pressable>
-
-      {withPhotos.length >= 2 && (
-        <Pressable
-          testID="open-compare"
-          style={styles.linkBtn}
-          onPress={() => router.push("/compare")}
-        >
-          <Ionicons name="images" size={14} color={colors.brand} />
-          <Text style={styles.linkBtnText}>Comparer avant/après</Text>
-          <Ionicons name="chevron-forward" size={14} color={colors.brand} />
-        </Pressable>
-      )}
 
       {measurements.length === 0 ? (
         <View style={styles.empty}>
@@ -2428,6 +2487,50 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "800",
     letterSpacing: 0.4,
+  },
+  transformHero: { gap: spacing.sm },
+  transformPhotoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.sm,
+  },
+  transformPhotoCol: { flex: 1, alignItems: "center", gap: 6 },
+  transformPhoto: {
+    width: "100%",
+    aspectRatio: 3 / 4,
+    borderRadius: radius.md,
+    backgroundColor: colors.surfaceTertiary,
+  },
+  transformPhotoLabel: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 11,
+    fontWeight: "700",
+  },
+  transformDeltaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+  },
+  transformDeltaText: { color: colors.progressSecondary, fontSize: 13, fontWeight: "800" },
+  transformCta: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.sm,
+    paddingTop: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  transformCtaText: { color: colors.brand, fontWeight: "800", fontSize: 13 },
+  transformEmptyHero: { alignItems: "center", gap: spacing.sm, paddingVertical: spacing.lg },
+  transformEmptyTitle: { color: colors.onSurface, fontSize: 16, fontWeight: "800" },
+  transformEmptySub: {
+    color: colors.onSurfaceTertiary,
+    textAlign: "center",
+    fontSize: 12,
+    lineHeight: 17,
   },
   summaryGrid: { flexDirection: "row", gap: 8 },
   sumTile: {
