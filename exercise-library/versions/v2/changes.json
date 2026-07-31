@@ -1,0 +1,132 @@
+{
+  "totalExistingBefore": 1348,
+  "totalCustomKept": 0,
+  "totalIncoming": 1327,
+  "updatedCount": 1315,
+  "replacedCount": 0,
+  "addedCount": 0,
+  "unmatchedExistingKept": 33,
+  "duplicatesSkipped": 12,
+  "warnings": [],
+  "possibleMatches": [
+    {
+      "systemId": "sys_squat_avec_barre",
+      "systemName": "Squat avec barre",
+      "candidateId": "wx_1435",
+      "candidateName": "Squat barre basse avec barre",
+      "score": 0.88
+    },
+    {
+      "systemId": "sys_developpe_couche",
+      "systemName": "Développé couché",
+      "candidateId": "wx_1254",
+      "candidateName": "Développé couché avec bande",
+      "score": 0.79
+    },
+    {
+      "systemId": "sys_souleve_de_terre",
+      "systemName": "Soulevé de terre",
+      "candidateId": "wx_0032",
+      "candidateName": "Soulevé de terre à la barre",
+      "score": 0.8
+    },
+    {
+      "systemId": "sys_fentes_arriere_aux_halteres",
+      "systemName": "Fentes arrière aux haltères",
+      "candidateId": "wx_0381",
+      "candidateName": "Fente arrière avec haltères",
+      "score": 0.81
+    },
+    {
+      "systemId": "sys_developpe_militaire_aux_halteres",
+      "systemName": "Développé militaire aux haltères",
+      "candidateId": "wx_0287",
+      "candidateName": "Développé Arnold aux haltères",
+      "score": 0.75
+    },
+    {
+      "systemId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+      "systemName": "Soulevés de terre jambes tendues aux haltères",
+      "candidateId": "wx_0434",
+      "candidateName": "Soulevé de terre jambes tendues avec haltères",
+      "score": 0.91
+    },
+    {
+      "systemId": "sys_dumbbell_snatches_alternes",
+      "systemName": "Dumbbell Snatches alternés",
+      "candidateId": "wx_0286",
+      "candidateName": "Développé latéral alterné avec haltères",
+      "score": 0.72
+    },
+    {
+      "systemId": "sys_tirage_poitrine_a_la_poulie",
+      "systemName": "Tirage poitrine à la poulie",
+      "candidateId": "wx_0204",
+      "candidateName": "Tirage arrière à la poulie",
+      "score": 0.79
+    },
+    {
+      "systemId": "sys_pompes",
+      "systemName": "Pompes",
+      "candidateId": "wx_0662",
+      "candidateName": "Pompe",
+      "score": 0.89
+    },
+    {
+      "systemId": "sys_tractions_strictes",
+      "systemName": "Tractions strictes",
+      "candidateId": "wx_0841",
+      "candidateName": "Traction lestée",
+      "score": 0.69
+    },
+    {
+      "systemId": "sys_tapis_de_course_marche_inclinee",
+      "systemName": "Tapis de course (Marche inclinée)",
+      "candidateId": "wx_3666",
+      "candidateName": "Marche sur tapis incliné",
+      "score": 0.71
+    },
+    {
+      "systemId": "sys_world_s_greatest_stretch",
+      "systemName": "World's Greatest Stretch",
+      "candidateId": "wx_1604",
+      "candidateName": "Le meilleur étirement du monde",
+      "score": 0.9
+    },
+    {
+      "systemId": "wx_0055",
+      "systemName": "Barbell Lying Close-grip Press",
+      "candidateId": "wx_0030",
+      "candidateName": "Développé couché prise serrée à la barre",
+      "score": 0.81
+    },
+    {
+      "systemId": "wx_0834",
+      "systemName": "Weighted Front Raise",
+      "candidateId": "wx_2135",
+      "candidateName": "Planche frontale lestée",
+      "score": 0.74
+    },
+    {
+      "systemId": "wx_1307",
+      "systemName": "Push Up On Bosu Ball",
+      "candidateId": "wx_0653",
+      "candidateName": "Pompe sur ballon Bosu",
+      "score": 0.72
+    },
+    {
+      "systemId": "wx_1731",
+      "systemName": "Dumbbell Close Grip Press",
+      "candidateId": "wx_0296",
+      "candidateName": "Développé avec haltères en prise serrée",
+      "score": 0.92
+    },
+    {
+      "systemId": "wx_2189",
+      "systemName": "Dumbbells Seated Triceps Extension",
+      "candidateId": "wx_2188",
+      "candidateName": "Extension triceps assise avec haltère",
+      "score": 0.97
+    }
+  ]
+}
