@@ -8,6 +8,7 @@ import { LineChart } from "react-native-gifted-charts";
 import { colors, coloredShadow, motion, radius, spacing, withAlpha } from "@/src/theme";
 import Card from "@/src/components/ui/Card";
 import ExerciseMediaFrame from "@/src/components/exercise-library/ExerciseMediaFrame";
+import ExerciseThumbnail from "@/src/components/ExerciseThumbnail";
 import { EXERCISE_CATEGORY_COLOR, EXERCISE_CATEGORY_ICON, EXERCISE_CATEGORY_LABEL } from "@/src/utils/exercise-category";
 import { iconEmojiForExercise } from "@/src/data/exercise-icons";
 import { MUSCLE_GROUPS } from "@/src/utils/muscle-groups";
@@ -300,16 +301,6 @@ export default function ExerciseDetailFiche() {
               minHeight={240}
               maxHeight={340}
             />
-            {workoutxUri && (
-              <ExerciseMediaFrame
-                testID="ex-detail-execution-media"
-                source={{ uri: workoutxUri }}
-                minHeight={240}
-                maxHeight={340}
-                badgeIcon="play"
-                badgeLabel="Exécution"
-              />
-            )}
           </Card>
         </Animated.View>
 
@@ -488,6 +479,18 @@ export default function ExerciseDetailFiche() {
 
         <Animated.View entering={FadeInDown.delay(140).duration(motion.base)}>
           <Card style={styles.sectionCard} padding={spacing.lg} title="Étapes d'exécution" icon="list-outline">
+            {workoutxUri && (
+              <View style={{ marginBottom: spacing.md }}>
+                <ExerciseMediaFrame
+                  testID="ex-detail-execution-media"
+                  source={{ uri: workoutxUri }}
+                  minHeight={200}
+                  maxHeight={280}
+                  badgeIcon="play"
+                  badgeLabel="Exécution"
+                />
+              </View>
+            )}
             {(fr?.instructions ?? libraryRecord?.instructions)?.length ? (
               <View style={{ gap: 10 }}>
                 {(fr?.instructions ?? libraryRecord?.instructions ?? []).map((step, i) => (
@@ -685,9 +688,7 @@ export default function ExerciseDetailFiche() {
                         style={styles.similarCard}
                         onPress={() => router.push(`/exercise-detail/${encodeURIComponent(r.nameFr)}` as any)}
                       >
-                        <Text style={styles.similarEmoji}>
-                          {iconEmojiForExercise(r.nameFr, null)}
-                        </Text>
+                        <ExerciseThumbnail name={r.nameFr} records={allRecords} size={44} square />
                         <Text style={styles.similarCardText} numberOfLines={2}>
                           {r.nameFr}
                         </Text>
@@ -1095,7 +1096,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 4,
   },
-  similarEmoji: { fontSize: 28 },
   similarCardText: { color: colors.onSurface, fontSize: 11, fontWeight: "700", textAlign: "center" },
   statHeroRow: { flexDirection: "row", gap: 8, flexWrap: "wrap" },
   progressChartCard: {

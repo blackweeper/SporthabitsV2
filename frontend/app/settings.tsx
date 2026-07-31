@@ -29,13 +29,7 @@ const CALENDAR_OPTIONS: {
     key: "month",
     label: "Mois",
     icon: "calendar",
-    hint: "Grille mensuelle complète, comme aujourd'hui",
-  },
-  {
-    key: "auto",
-    label: "Auto",
-    icon: "phone-portrait",
-    hint: "Semaine sur mobile, mois sur tablette et web",
+    hint: "Grille mensuelle complète",
   },
 ];
 

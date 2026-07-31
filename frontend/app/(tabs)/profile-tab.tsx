@@ -14,6 +14,7 @@ import {
   getGoals,
   getHabitLogs,
   getHabits,
+  getMeasurements,
   getPRs,
   getProfile,
   getSessions,
@@ -22,8 +23,11 @@ import {
 import { progressionHref } from "@/src/utils/progression-nav";
 import { getLibraryMeta } from "@/src/utils/exercise-records";
 import { computeXPState, XPState } from "@/src/utils/xp";
+import { computeAdvancedStats } from "@/src/utils/stats";
+import { computeAchievements } from "@/src/utils/achievements";
 import Card from "@/src/components/ui/Card";
 import PressableScale from "@/src/components/ui/PressableScale";
+import CockpitCard from "@/src/components/CockpitCard";
 
 export default function ProfileTab() {
   const router = useRouter();
@@ -31,20 +35,31 @@ export default function ProfileTab() {
   const [librarySubtitle, setLibrarySubtitle] = useState("Chargement…");
   const [xpState, setXpState] = useState<XPState | null>(null);
   const [activeGoalsCount, setActiveGoalsCount] = useState(0);
+  const [currentStreakDays, setCurrentStreakDays] = useState(0);
+  const [bestStreakDays, setBestStreakDays] = useState(0);
+  const [unlockedAchievements, setUnlockedAchievements] = useState(0);
+  const [totalAchievements, setTotalAchievements] = useState(0);
 
   useFocusEffect(
     useCallback(() => {
       (async () => {
         setProfile(await getProfile());
-        const [sessions, habits, habitLogs, prs, goals] = await Promise.all([
+        const [sessions, habits, habitLogs, prs, goals, measurements] = await Promise.all([
           getSessions(),
           getHabits(),
           getHabitLogs(),
           getPRs(),
           getGoals(),
+          getMeasurements(),
         ]);
         setXpState(computeXPState({ sessions, habits, habitLogs, prs }));
         setActiveGoalsCount(goals.filter((g) => !g.achievedAt).length);
+        const stats = computeAdvancedStats(sessions);
+        setCurrentStreakDays(stats.currentStreakDays);
+        setBestStreakDays(stats.bestStreakDays);
+        const achievementsList = computeAchievements({ sessions, prs, measurements });
+        setUnlockedAchievements(achievementsList.filter((a) => a.unlocked).length);
+        setTotalAchievements(achievementsList.length);
         const meta = await getLibraryMeta();
         const dateStr = meta.lastUpdatedAt
           ? new Date(meta.lastUpdatedAt).toLocaleDateString("fr-FR", {
@@ -105,45 +120,42 @@ export default function ProfileTab() {
           </Card>
         </PressableScale>
 
-        {/* Niveau + Objectifs — l'identité du profil ne doit pas se réduire
-            à une liste de réglages : le niveau et les objectifs en cours
-            doivent être visibles dès l'ouverture, pas seulement à un tap
-            de distance. Même langage visuel que la bande de stats du
-            Dashboard, pour que "niveau" se lise pareil partout. */}
-        <View style={styles.statsStrip}>
-          <PressableScale
-            testID="profile-level-pill"
-            style={styles.statPill}
-            onPress={() => router.push(progressionHref("level") as any)}
-          >
-            <View style={styles.statPillBadge}>
-              <Text style={styles.statPillBadgeNum}>{xpState?.level ?? "…"}</Text>
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.statPillLabel}>NIVEAU</Text>
-              <Text style={styles.statPillValue}>
-                {xpState ? `${xpState.xpToNext} XP → N${xpState.level + 1}` : "Chargement…"}
-              </Text>
-            </View>
-          </PressableScale>
-          <PressableScale
-            testID="profile-goals-pill"
-            style={styles.statPill}
-            onPress={() => router.push("/goals")}
-          >
-            <View style={[styles.statPillBadge, { backgroundColor: colors.brand }]}>
-              <Ionicons name="flag" size={16} color="#fff" />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.statPillLabel}>OBJECTIFS</Text>
-              <Text style={styles.statPillValue}>
-                {activeGoalsCount > 0
-                  ? `${activeGoalsCount} en cours`
-                  : "Aucun objectif"}
-              </Text>
-            </View>
-          </PressableScale>
-        </View>
+        {/* Niveau/XP/Streak/Trophées — le Profil est désormais la destination
+            permanente de ce résumé (retiré du Dashboard, qui reste un
+            cockpit quotidien) : visible dès l'ouverture, pas seulement à un
+            tap de distance. Composant partagé avec le Dashboard le cas
+            échéant, pour un rendu identique partout où il apparaît. */}
+        {xpState && (
+          <View style={styles.cockpitSpacing}>
+            <CockpitCard
+              testID="profile-cockpit-card"
+              xpState={xpState}
+              currentStreakDays={currentStreakDays}
+              bestStreakDays={bestStreakDays}
+              unlockedAchievements={unlockedAchievements}
+              totalAchievements={totalAchievements}
+            />
+          </View>
+        )}
+
+        <PressableScale
+          testID="profile-goals-pill"
+          style={[styles.statPill, styles.goalsPillSpacing]}
+          onPress={() => router.push("/goals")}
+        >
+          <View style={[styles.statPillBadge, { backgroundColor: colors.brand }]}>
+            <Ionicons name="flag" size={16} color="#fff" />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.statPillLabel}>OBJECTIFS</Text>
+            <Text style={styles.statPillValue}>
+              {activeGoalsCount > 0
+                ? `${activeGoalsCount} en cours`
+                : "Aucun objectif"}
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={colors.onSurfaceTertiary} />
+        </PressableScale>
 
         {/* Sections list */}
         <Text style={styles.sectionLabel}>SUIVI CORPOREL</Text>
@@ -302,9 +314,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 4,
   },
-  statsStrip: { flexDirection: "row", gap: spacing.sm, marginBottom: spacing.md },
+  cockpitSpacing: { marginBottom: spacing.sm },
+  goalsPillSpacing: { marginBottom: spacing.md },
   statPill: {
-    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,

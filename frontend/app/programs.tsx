@@ -5,12 +5,14 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing } from "@/src/theme";
 import {
+  BUNDLED_CARDIO_PROGRAMS,
   BUNDLED_PROGRAMS,
   BUNDLED_STRETCH_PROGRAMS,
   LEVEL_LABEL,
   Program,
 } from "@/src/data/programs";
-import { deleteCustomProgram, getCustomPrograms } from "@/src/utils/gym-storage";
+import { deleteCustomProgram, getCustomPrograms, getProfile, UserProfile } from "@/src/utils/gym-storage";
+import { scoreProgramForProfile } from "@/src/utils/programs";
 import SwipeableRow from "@/src/components/SwipeableRow";
 
 export default function ProgramsScreen() {
@@ -19,6 +21,7 @@ export default function ProgramsScreen() {
   const isStretch = category === "stretch";
   const isCardio = category === "cardio";
   const [customs, setCustoms] = useState<Program[]>([]);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
 
   const reload = useCallback(async () => {
     const all = (await getCustomPrograms()) as Program[];
@@ -29,6 +32,7 @@ export default function ProgramsScreen() {
         return (p.category ?? "workout") === "workout";
       }),
     );
+    setProfile(await getProfile());
   }, [isStretch, isCardio]);
 
   useFocusEffect(
@@ -37,11 +41,18 @@ export default function ProgramsScreen() {
     }, [reload]),
   );
 
-  const bundled = isStretch
+  const rawBundled = isStretch
     ? BUNDLED_STRETCH_PROGRAMS
     : isCardio
-      ? []
+      ? BUNDLED_CARDIO_PROGRAMS
       : BUNDLED_PROGRAMS;
+  // Tri par pertinence pour le profil (objectif/niveau) quand renseigné —
+  // jamais un filtre, juste un ordre ; sans profil renseigné, ordre
+  // d'origine inchangé (tri stable, tous les scores valent 0).
+  const bundled = [...rawBundled].sort(
+    (a, b) => scoreProgramForProfile(b, profile) - scoreProgramForProfile(a, profile),
+  );
+  const topScore = bundled.length > 0 ? scoreProgramForProfile(bundled[0], profile) : 0;
   const createHref = isStretch
     ? "/custom-program/new?category=stretch"
     : isCardio
@@ -140,12 +151,13 @@ export default function ProgramsScreen() {
               <ProgramCard
                 key={p.id}
                 program={p}
+                recommended={topScore > 0 && scoreProgramForProfile(p, profile) === topScore}
                 onPress={() => router.push(`/program/${p.id}`)}
               />
             ))}
           </>
         )}
-        {isCardio && customs.length === 0 && (
+        {isCardio && customs.length === 0 && bundled.length === 0 && (
           <View style={styles.emptyCardio}>
             <Ionicons name="stopwatch" size={36} color="#00B0FF" />
             <Text style={styles.emptyCardioTitle}>Pas de programme cardio</Text>
@@ -164,10 +176,12 @@ function ProgramCard({
   program,
   onPress,
   onDelete,
+  recommended = false,
 }: {
   program: Program;
   onPress: () => void;
   onDelete?: () => void | Promise<void>;
+  recommended?: boolean;
 }) {
   const sessions = program.days.reduce(
     (a, d) => a + (d.rest ? 0 : d.sessions.length),
@@ -185,6 +199,12 @@ function ProgramCard({
       </View>
       <View style={{ flex: 1, gap: 4 }}>
         <View style={styles.tagRow}>
+          {recommended && (
+            <View style={styles.recommendedTag}>
+              <Ionicons name="sparkles" size={9} color="#fff" />
+              <Text style={styles.tagText}>RECOMMANDÉ</Text>
+            </View>
+          )}
           <View style={[styles.tag, { backgroundColor: program.color }]}>
             <Text style={styles.tagText}>{LEVEL_LABEL[program.level]}</Text>
           </View>
@@ -316,6 +336,15 @@ const styles = StyleSheet.create({
   },
   emojiText: { fontSize: 30 },
   tagRow: { flexDirection: "row", gap: 6, flexWrap: "wrap" },
+  recommendedTag: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: radius.sm,
+    backgroundColor: colors.progress,
+  },
   tag: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: radius.sm },
   tagText: {
     color: "#fff",

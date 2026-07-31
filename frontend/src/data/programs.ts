@@ -2,6 +2,24 @@ import { Exercise, ExerciseMode } from '@/src/utils/gym-storage';
 
 export type ProgramLevel = 'debutant' | 'intermediaire' | 'avance';
 
+/** Objectif principal d'un programme — sert à la fois à l'affichage et,
+ * couplé à `UserProfile.primaryGoal`/`experienceLevel`, à recommander les
+ * programmes les plus pertinents pour le profil de l'utilisateur. */
+export type ProgramGoal =
+  | 'perte_de_poids'
+  | 'prise_de_masse'
+  | 'force'
+  | 'forme_generale'
+  | 'mobilite';
+
+export const GOAL_LABEL: Record<ProgramGoal, string> = {
+  perte_de_poids: 'Perte de poids',
+  prise_de_masse: 'Prise de masse',
+  force: 'Force',
+  forme_generale: 'Forme générale',
+  mobilite: 'Mobilité',
+};
+
 export type ExerciseTemplate = Omit<Exercise, 'id'>;
 
 export type ProgramSession = {
@@ -23,6 +41,10 @@ export type Program = {
   durationDays: number;
   level: ProgramLevel;
   goal: string;
+  /** Objectif typé (additif à `goal`, texte libre conservé pour l'affichage) —
+   * absent pour les programmes créés avant cette passe, jamais utilisé pour
+   * exclure un programme, seulement pour trier par pertinence. */
+  goalTag?: ProgramGoal;
   coverEmoji: string;
   color: string;
   days: ProgramDay[];
@@ -244,6 +266,7 @@ export const BUNDLED_PROGRAMS: Program[] = [
     durationDays: 30,
     level: 'debutant',
     goal: 'Remise en forme complète',
+    goalTag: 'forme_generale',
     coverEmoji: '💪',
     color: '#FF3D00',
     days: buildFullBody30(),
@@ -256,6 +279,7 @@ export const BUNDLED_PROGRAMS: Program[] = [
     durationDays: 30,
     level: 'intermediaire',
     goal: 'Perte de graisse',
+    goalTag: 'perte_de_poids',
     coverEmoji: '🔥',
     color: '#FF6B00',
     days: buildHIIT30(),
@@ -268,6 +292,7 @@ export const BUNDLED_PROGRAMS: Program[] = [
     durationDays: 30,
     level: 'avance',
     goal: 'Prise de masse musculaire',
+    goalTag: 'prise_de_masse',
     coverEmoji: '🏋️',
     color: '#E53935',
     days: buildMass30(),
@@ -352,6 +377,7 @@ export const BUNDLED_STRETCH_PROGRAMS: Program[] = [
     durationDays: 14,
     level: 'debutant',
     goal: 'Souplesse & récupération',
+    goalTag: 'mobilite',
     coverEmoji: '🧘',
     color: '#00E676',
     category: 'stretch',
@@ -365,10 +391,90 @@ export const BUNDLED_STRETCH_PROGRAMS: Program[] = [
     durationDays: 7,
     level: 'debutant',
     goal: 'Mobilité générale',
+    goalTag: 'mobilite',
     coverEmoji: '🌱',
     color: '#00B0FF',
     category: 'stretch',
     days: buildStretch7(),
+  },
+];
+
+// ---- Cardio Endurance 21 jours (category: 'cardio') ----
+// Comble un manque confirmé : l'onglet Cardio de l'app existe déjà mais
+// n'avait jusqu'ici aucun programme prédéfini, seulement des programmes
+// personnalisés créés par l'utilisateur.
+const CARDIO_EASY = day('Cardio léger (30 min)', [
+  ex(
+    'Marche rapide / vélo doux',
+    1,
+    '1',
+    0,
+    null,
+    'time',
+    1800,
+    'Endurance fondamentale, 60-65% FC max',
+  ),
+]);
+const CARDIO_INTERVALS = day('Fractionné (20 min)', [
+  ex('Sprint', 8, '30s', 60, null, 'time', 30),
+  ex('Récupération active', 8, '60s', 0, null, 'time', 60),
+]);
+const CARDIO_TEMPO = day('Tempo run (25 min)', [
+  ex(
+    'Course allure soutenue',
+    1,
+    '1',
+    0,
+    null,
+    'time',
+    1500,
+    '75-80% FC max, rythme régulier',
+  ),
+]);
+const CARDIO_HILLS = day('Côtes / Résistance (20 min)', [
+  ex('Répétitions côtes ou résistance vélo', 6, '90s', 90, null, 'time', 90),
+]);
+const CARDIO_LONG = day('Sortie longue (40 min)', [
+  ex(
+    'Course/vélo endurance longue',
+    1,
+    '1',
+    0,
+    null,
+    'time',
+    2400,
+    'Allure confortable, 65-70% FC max',
+  ),
+]);
+
+const CARDIO_ROTATION = [CARDIO_EASY, CARDIO_INTERVALS, CARDIO_TEMPO, CARDIO_HILLS, CARDIO_LONG];
+const buildCardio21 = (): ProgramDay[] => {
+  const days: ProgramDay[] = [];
+  let ri = 0;
+  for (let d = 1; d <= 21; d++) {
+    if (d % 4 === 0) days.push(rest(d));
+    else {
+      days.push({ ...CARDIO_ROTATION[ri % CARDIO_ROTATION.length] });
+      ri++;
+    }
+  }
+  return days;
+};
+
+export const BUNDLED_CARDIO_PROGRAMS: Program[] = [
+  {
+    id: 'cardio-endurance-21',
+    title: 'Cardio Endurance 21 jours',
+    description:
+      "Progression cardio équilibrée sur 3 semaines : sorties faciles, fractionné, tempo et côtes pour développer ton endurance, quel que soit le sport (course, vélo, rameur...).",
+    durationDays: 21,
+    level: 'debutant',
+    goal: 'Endurance & perte de poids',
+    goalTag: 'perte_de_poids',
+    coverEmoji: '🏃',
+    color: '#00B0FF',
+    category: 'cardio',
+    days: buildCardio21(),
   },
 ];
 

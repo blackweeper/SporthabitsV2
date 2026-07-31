@@ -23,11 +23,26 @@ import {
   Sex,
   UserProfile,
 } from "@/src/utils/gym-storage";
+import { GOAL_LABEL, LEVEL_LABEL, ProgramGoal, ProgramLevel } from "@/src/data/programs";
 
 const SEXES: { key: Sex; label: string; icon: any }[] = [
   { key: "homme", label: "Homme", icon: "male" },
   { key: "femme", label: "Femme", icon: "female" },
   { key: "autre", label: "Autre", icon: "person" },
+];
+
+const GOALS: { key: ProgramGoal; icon: any }[] = [
+  { key: "perte_de_poids", icon: "flame" },
+  { key: "prise_de_masse", icon: "barbell" },
+  { key: "force", icon: "fitness" },
+  { key: "forme_generale", icon: "heart" },
+  { key: "mobilite", icon: "body" },
+];
+
+const LEVELS: { key: ProgramLevel }[] = [
+  { key: "debutant" },
+  { key: "intermediaire" },
+  { key: "avance" },
 ];
 
 export default function ProfileScreen() {
@@ -39,6 +54,8 @@ export default function ProfileScreen() {
     sex: null,
     age: null,
     photoBase64: null,
+    experienceLevel: null,
+    primaryGoal: null,
   });
   const [loading, setLoading] = useState(true);
 
@@ -217,6 +234,52 @@ export default function ProfileScreen() {
                     ]}
                   >
                     {s.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          <Text style={styles.label}>Objectif principal</Text>
+          <Text style={styles.sectionHelp}>
+            Sert à te recommander les programmes prédéfinis les plus pertinents — n&apos;exclut jamais les autres.
+          </Text>
+          <View style={styles.goalRow}>
+            {GOALS.map((g) => {
+              const active = profile.primaryGoal === g.key;
+              return (
+                <Pressable
+                  key={g.key}
+                  testID={`goal-${g.key}`}
+                  style={[styles.goalChip, active && styles.goalChipActive]}
+                  onPress={() => set("primaryGoal", active ? null : g.key)}
+                >
+                  <Ionicons
+                    name={g.icon}
+                    size={14}
+                    color={active ? "#fff" : colors.onSurfaceTertiary}
+                  />
+                  <Text style={[styles.goalChipText, active && { color: "#fff" }]}>
+                    {GOAL_LABEL[g.key]}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+
+          <Text style={styles.label}>Niveau d&apos;expérience</Text>
+          <View style={styles.sexRow}>
+            {LEVELS.map((l) => {
+              const active = profile.experienceLevel === l.key;
+              return (
+                <Pressable
+                  key={l.key}
+                  testID={`level-${l.key}`}
+                  style={[styles.sexBtn, active && styles.sexBtnActive]}
+                  onPress={() => set("experienceLevel", active ? null : l.key)}
+                >
+                  <Text style={[styles.sexLabel, active && { color: "#fff" }]}>
+                    {LEVEL_LABEL[l.key]}
                   </Text>
                 </Pressable>
               );
@@ -447,6 +510,27 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     fontWeight: "700",
     marginTop: spacing.sm,
+  },
+  goalRow: { flexDirection: "row", flexWrap: "wrap", gap: spacing.sm },
+  goalChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceSecondary,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  goalChipActive: {
+    backgroundColor: colors.brand,
+    borderColor: colors.brand,
+  },
+  goalChipText: {
+    color: colors.onSurfaceTertiary,
+    fontWeight: "700",
+    fontSize: 12,
   },
   sexRow: { flexDirection: "row", gap: spacing.sm },
   sexBtn: {

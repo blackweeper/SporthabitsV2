@@ -22,7 +22,8 @@ import {
   savePlan,
   uid,
 } from "@/src/utils/gym-storage";
-import ExercisePicture from "@/src/components/ExercisePicture";
+import { ExerciseRecord, getExerciseRecords } from "@/src/utils/exercise-records";
+import ExerciseThumbnail from "@/src/components/ExerciseThumbnail";
 import ExercisePicturePicker from "@/src/components/ExercisePicturePicker";
 import ExerciseLibraryPicker from "@/src/components/ExerciseLibraryPicker";
 import DurationField from "@/src/components/DurationField";
@@ -43,6 +44,11 @@ export default function PlanDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [pickingExerciseId, setPickingExerciseId] = useState<string | null>(null);
   const [libraryOpen, setLibraryOpen] = useState(false);
+  const [records, setRecords] = useState<ExerciseRecord[]>([]);
+
+  useEffect(() => {
+    getExerciseRecords().then(setRecords);
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -244,10 +250,11 @@ export default function PlanDetailScreen() {
                   onPress={() => setPickingExerciseId(ex.id)}
                   style={styles.exPicWrap}
                 >
-                  <ExercisePicture
+                  <ExerciseThumbnail
                     photoBase64={ex.photoBase64}
                     iconKey={ex.iconKey}
                     name={ex.name}
+                    records={records}
                     size={48}
                   />
                   <View style={styles.exPicEdit}>

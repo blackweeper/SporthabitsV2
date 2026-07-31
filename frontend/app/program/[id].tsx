@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -35,6 +35,10 @@ import {
   formatPlannedDate,
   plannedDateForDayIndex,
 } from "@/src/utils/session-estimate";
+import { ExerciseRecord, getExerciseRecords } from "@/src/utils/exercise-records";
+import ExerciseThumbnail from "@/src/components/ExerciseThumbnail";
+import SegmentedTabRow from "@/src/components/ui/SegmentedTabRow";
+import { formatDateRange } from "@/src/utils/program-week-grouping";
 
 export default function ProgramDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -48,6 +52,9 @@ export default function ProgramDetailScreen() {
     sessionIndex: number;
     session: ProgramSession;
   } | null>(null);
+  const [records, setRecords] = useState<ExerciseRecord[]>([]);
+  const [view, setView] = useState<"week" | "full">("week");
+  const [weekOffset, setWeekOffset] = useState(0);
   const { confirm, ConfirmModal } = useConfirmDialog();
 
   const load = useCallback(async () => {
@@ -63,6 +70,24 @@ export default function ProgramDetailScreen() {
       load();
     }, [load]),
   );
+
+  useEffect(() => {
+    getExerciseRecords().then(setRecords);
+  }, []);
+
+  // Ouvre la vue Semaine sur la semaine contenant "aujourd'hui" (programme
+  // actif) plutôt que la première — recalculé une fois par programme chargé,
+  // pas à chaque changement de weekOffset (sinon la navigation de
+  // l'utilisateur serait annulée à chaque re-render).
+  useEffect(() => {
+    if (!program) return;
+    const idx =
+      active?.programId === program.id
+        ? currentDayIndex(active, program.durationDays)
+        : 1;
+    setWeekOffset(Math.floor((idx - 1) / 7));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [program?.id]);
 
   if (loading) {
     return (
@@ -253,27 +278,54 @@ export default function ProgramDetailScreen() {
         <Text style={styles.sectionTitle}>
           Planning ({program.durationDays} jours)
         </Text>
-        <View style={styles.daysList}>
-          {program.days.map((day, i) => (
-            <ProgramDayCard
-              key={i}
-              dayIndex={i + 1}
-              day={day}
-              active={active}
-              isToday={isActive && i + 1 === todayIdx}
-              color={program.color}
-              onLaunch={launchSession}
-              onPreview={(di, si, s) =>
-                setPreview({ dayIndex: di, sessionIndex: si, session: s })
-              }
-              plannedDate={
-                active
-                  ? plannedDateForDayIndex(active.startedAt, i + 1)
-                  : null
-              }
-            />
-          ))}
-        </View>
+        <SegmentedTabRow
+          testIDPrefix="program-view"
+          options={[
+            { key: "week", label: "Semaine" },
+            { key: "full", label: "Vue complète" },
+          ]}
+          value={view}
+          onChange={setView}
+        />
+
+        {view === "full" ? (
+          <View style={styles.daysList}>
+            {program.days.map((day, i) => (
+              <ProgramDayCard
+                key={i}
+                dayIndex={i + 1}
+                day={day}
+                active={active}
+                isToday={isActive && i + 1 === todayIdx}
+                color={program.color}
+                records={records}
+                onLaunch={launchSession}
+                onPreview={(di, si, s) =>
+                  setPreview({ dayIndex: di, sessionIndex: si, session: s })
+                }
+                plannedDate={
+                  active
+                    ? plannedDateForDayIndex(active.startedAt, i + 1)
+                    : null
+                }
+              />
+            ))}
+          </View>
+        ) : (
+          <ProgramWeekView
+            program={program}
+            active={active}
+            isActive={isActive}
+            todayIdx={todayIdx}
+            records={records}
+            weekOffset={weekOffset}
+            onChangeWeekOffset={setWeekOffset}
+            onLaunch={launchSession}
+            onPreview={(di, si, s) =>
+              setPreview({ dayIndex: di, sessionIndex: si, session: s })
+            }
+          />
+        )}
 
         {editable && (
           <Pressable style={styles.delBtn} onPress={removeCustom}>
@@ -288,6 +340,7 @@ export default function ProgramDetailScreen() {
         visible={preview !== null}
         preview={preview}
         color={program.color}
+        records={records}
         plannedDate={
           preview && active
             ? plannedDateForDayIndex(active.startedAt, preview.dayIndex)
@@ -300,10 +353,100 @@ export default function ProgramDetailScreen() {
   );
 }
 
+function ProgramWeekView({
+  program,
+  active,
+  isActive,
+  todayIdx,
+  records,
+  weekOffset,
+  onChangeWeekOffset,
+  onLaunch,
+  onPreview,
+}: {
+  program: Program;
+  active: ActiveProgram | null;
+  isActive: boolean;
+  todayIdx: number;
+  records: ExerciseRecord[];
+  weekOffset: number;
+  onChangeWeekOffset: (o: number) => void;
+  onLaunch: (di: number, si: number, s: ProgramSession) => void;
+  onPreview: (di: number, si: number, s: ProgramSession) => void;
+}) {
+  const totalWeeks = Math.ceil(program.durationDays / 7);
+  const startIdx = weekOffset * 7; // 0-based index into program.days
+  const weekDays = program.days.slice(startIdx, startIdx + 7);
+
+  let label: string;
+  if (active) {
+    const rangeStart = plannedDateForDayIndex(active.startedAt, startIdx + 1);
+    const rangeEndDayIndex = Math.min(startIdx + weekDays.length, program.durationDays);
+    const rangeEnd = plannedDateForDayIndex(active.startedAt, rangeEndDayIndex);
+    label = formatDateRange(rangeStart, rangeEnd);
+  } else {
+    label = `Semaine ${weekOffset + 1}`;
+  }
+
+  return (
+    <View style={{ gap: spacing.sm }}>
+      <View style={styles.weekNavRow}>
+        <Pressable
+          testID="program-week-prev"
+          onPress={() => onChangeWeekOffset(weekOffset - 1)}
+          hitSlop={12}
+          disabled={weekOffset <= 0}
+        >
+          <Ionicons
+            name="chevron-back"
+            size={18}
+            color={weekOffset <= 0 ? colors.surfaceTertiary : colors.onSurface}
+          />
+        </Pressable>
+        <Text style={styles.weekNavLabel}>{label}</Text>
+        <Pressable
+          testID="program-week-next"
+          onPress={() => onChangeWeekOffset(weekOffset + 1)}
+          hitSlop={12}
+          disabled={weekOffset >= totalWeeks - 1}
+        >
+          <Ionicons
+            name="chevron-forward"
+            size={18}
+            color={weekOffset >= totalWeeks - 1 ? colors.surfaceTertiary : colors.onSurface}
+          />
+        </Pressable>
+      </View>
+      <View style={styles.daysList}>
+        {weekDays.map((day, i) => {
+          const dayIndex = startIdx + i + 1;
+          return (
+            <ProgramDayCard
+              key={dayIndex}
+              dayIndex={dayIndex}
+              day={day}
+              active={active}
+              isToday={isActive && dayIndex === todayIdx}
+              color={program.color}
+              records={records}
+              onLaunch={onLaunch}
+              onPreview={onPreview}
+              plannedDate={
+                active ? plannedDateForDayIndex(active.startedAt, dayIndex) : null
+              }
+            />
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
 function SessionPreviewModal({
   visible,
   preview,
   color,
+  records,
   plannedDate,
   onClose,
 }: {
@@ -314,6 +457,7 @@ function SessionPreviewModal({
     session: ProgramSession;
   } | null;
   color: string;
+  records: ExerciseRecord[];
   plannedDate: Date | null;
   onClose: () => void;
 }) {
@@ -384,21 +528,14 @@ function SessionPreviewModal({
           >
             {session.exercises.map((ex, ei) => (
               <View key={ei} style={styles.previewExRow}>
-                <View
-                  style={[styles.exIcon, { backgroundColor: color + "26" }]}
-                >
-                  <Ionicons
-                    name={
-                      ex.mode === "time" ||
-                      ex.mode === "emom" ||
-                      ex.mode === "amrap"
-                        ? "time"
-                        : "barbell"
-                    }
-                    size={12}
-                    color={color}
-                  />
-                </View>
+                <ExerciseThumbnail
+                  name={ex.name}
+                  records={records}
+                  photoBase64={ex.photoBase64}
+                  iconKey={ex.iconKey}
+                  size={32}
+                  square
+                />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.exName}>{ex.name}</Text>
                   <Text style={styles.exDetail}>{formatExerciseDetail(ex)}</Text>
@@ -424,6 +561,7 @@ function ProgramDayCard({
   active,
   isToday,
   color,
+  records,
   onLaunch,
   onPreview,
   plannedDate,
@@ -433,6 +571,7 @@ function ProgramDayCard({
   active: ActiveProgram | null;
   isToday: boolean;
   color: string;
+  records: ExerciseRecord[];
   onLaunch: (di: number, si: number, s: ProgramSession) => void;
   onPreview: (di: number, si: number, s: ProgramSession) => void;
   plannedDate: Date | null;
@@ -572,17 +711,14 @@ function ProgramDayCard({
               <View style={styles.exList}>
                 {s.exercises.map((ex, ei) => (
                   <View key={ei} style={styles.exRow}>
-                    <View style={[styles.exIcon, { backgroundColor: color + "26" }]}>
-                      <Ionicons
-                        name={
-                          ex.mode === "time" || ex.mode === "emom" || ex.mode === "amrap"
-                            ? "time"
-                            : "barbell"
-                        }
-                        size={11}
-                        color={color}
-                      />
-                    </View>
+                    <ExerciseThumbnail
+                      name={ex.name}
+                      records={records}
+                      photoBase64={ex.photoBase64}
+                      iconKey={ex.iconKey}
+                      size={32}
+                      square
+                    />
                     <View style={{ flex: 1 }}>
                       <Text style={styles.exName} numberOfLines={1}>
                         {ex.name}
@@ -808,6 +944,18 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
   daysList: { gap: spacing.sm },
+  weekNavRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 4,
+  },
+  weekNavLabel: {
+    color: colors.onSurface,
+    fontSize: 13,
+    fontWeight: "800",
+    textTransform: "capitalize",
+  },
   dayCard: {
     backgroundColor: colors.surfaceSecondary,
     padding: spacing.md,

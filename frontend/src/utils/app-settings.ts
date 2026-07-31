@@ -9,7 +9,7 @@ export type AppSettings = {
 const SETTINGS_KEY = '@ironflow/settings';
 
 const DEFAULT_SETTINGS: AppSettings = {
-  calendarView: 'auto',
+  calendarView: 'week',
 };
 
 export async function getAppSettings(): Promise<AppSettings> {

@@ -13,9 +13,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
+import { LinearGradient } from "expo-linear-gradient";
 import Svg, { Circle } from "react-native-svg";
 import { colors, radius, spacing, withAlpha } from "@/src/theme";
-import Card from "@/src/components/ui/Card";
 import ExerciseMediaFrame from "@/src/components/exercise-library/ExerciseMediaFrame";
 import { useExerciseMediaSources } from "@/src/hooks/useExerciseMedia";
 import { CORE_LIBRARY_ASSETS } from "@/src/data/core-library-assets.generated";
@@ -459,6 +459,8 @@ export default function WorkoutScreen() {
   );
   const totalSets = logs.reduce((a, l) => a + l.sets.length, 0);
   const progress = totalSets ? totalCompleted / totalSets : 0;
+  const currentSetIdx = currentEx.sets.findIndex((s) => !s.completed);
+  const statChips = buildStatChips(currentEx, completedSets);
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
@@ -518,7 +520,7 @@ export default function WorkoutScreen() {
               {done && (
                 <Ionicons
                   name="checkmark-circle"
-                  size={14}
+                  size={12}
                   color={active ? "#fff" : colors.success}
                 />
               )}
@@ -540,58 +542,72 @@ export default function WorkoutScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <Card elevated padding={spacing.lg} style={styles.exHeaderCard}>
-          <View style={styles.mediaWrap}>
-            <ExerciseMediaFrame
-              testID="workout-media-frame"
-              source={mediaMode === "gif" ? (gifSource ?? illustrationSource) : illustrationSource}
-              fallbackEmoji={iconEmojiForExercise(currentEx.name, planEx?.iconKey)}
-              fallbackTint={colors.brand}
-              minHeight={150}
-              maxHeight={230}
-            />
-            <View style={styles.mediaControls}>
-              {gifSource && (
-                <Pressable
-                  testID="media-toggle-gif"
-                  hitSlop={4}
-                  style={[styles.mediaBtn, mediaMode === "gif" && styles.mediaBtnActive]}
-                  onPress={() => setMediaMode((m) => (m === "gif" ? "photo" : "gif"))}
-                >
-                  <Ionicons name={mediaMode === "gif" ? "image" : "film"} size={16} color="#fff" />
-                </Pressable>
-              )}
+        <View style={styles.mediaWrap}>
+          <ExerciseMediaFrame
+            testID="workout-media-frame"
+            source={mediaMode === "gif" ? (gifSource ?? illustrationSource) : illustrationSource}
+            fallbackEmoji={iconEmojiForExercise(currentEx.name, planEx?.iconKey)}
+            fallbackTint={colors.brand}
+            minHeight={200}
+            maxHeight={280}
+          />
+          <LinearGradient
+            colors={["transparent", withAlpha("#000000", 88)]}
+            style={styles.mediaGradient}
+            pointerEvents="none"
+          />
+          <View style={styles.mediaControls}>
+            {gifSource && (
               <Pressable
-                testID="media-open-fiche"
+                testID="media-toggle-gif"
                 hitSlop={4}
-                style={styles.mediaBtn}
-                onPress={() => router.push(`/exercise-detail/${encodeURIComponent(currentEx.name)}` as any)}
+                style={[styles.mediaBtn, mediaMode === "gif" && styles.mediaBtnActive]}
+                onPress={() => setMediaMode((m) => (m === "gif" ? "photo" : "gif"))}
               >
-                <Ionicons name="information-circle" size={16} color="#fff" />
+                <Ionicons name={mediaMode === "gif" ? "image" : "film"} size={16} color="#fff" />
               </Pressable>
-            </View>
+            )}
+            <Pressable
+              testID="media-open-fiche"
+              hitSlop={4}
+              style={styles.mediaBtn}
+              onPress={() => router.push(`/exercise-detail/${encodeURIComponent(currentEx.name)}` as any)}
+            >
+              <Ionicons name="information-circle" size={16} color="#fff" />
+            </Pressable>
           </View>
-          <View style={styles.modeBadgeRow}>
+          <View style={styles.mediaOverlayInfo} pointerEvents="none">
             <View style={styles.modeBadge}>
               <Text style={styles.modeBadgeText}>
                 {currentEx.mode.toUpperCase()}
               </Text>
             </View>
-          </View>
-          <Text style={styles.exNameBig}>{currentEx.name}</Text>
-          <Text style={styles.exMeta}>{describeTarget(currentEx)}</Text>
-          <View style={styles.setProgressRow}>
-            <Text style={styles.setProgressText}>
-              {completedSets}/{currentEx.sets.length}{" "}
-              {currentEx.mode === "amrap" ? "AMRAP" : "séries"}
+            <Text style={styles.exNameBig} numberOfLines={2}>
+              {currentEx.name}
             </Text>
           </View>
-        </Card>
+        </View>
+
+        <View style={styles.statChipsRow}>
+          {statChips.map((c, i) => (
+            <View key={i} style={styles.statChip}>
+              <Ionicons name={c.icon} size={14} color={colors.brand} />
+              <View>
+                <Text style={styles.statChipValue}>{c.value}</Text>
+                <Text style={styles.statChipLabel}>{c.label}</Text>
+              </View>
+            </View>
+          ))}
+        </View>
 
         {currentEx.sets.map((s, i) => (
           <View
             key={i}
-            style={[styles.setRow, s.completed && styles.setRowDone]}
+            style={[
+              styles.setRow,
+              s.completed && styles.setRowDone,
+              !s.completed && i === currentSetIdx && styles.setRowCurrent,
+            ]}
             testID={`set-row-${i}`}
           >
             <View style={styles.setBadge}>
@@ -841,17 +857,33 @@ export default function WorkoutScreen() {
   );
 }
 
-function describeTarget(ex: SessionExerciseLog) {
+/** Compact icon+value chips replacing the old single-line verbose meta text. */
+function buildStatChips(
+  ex: SessionExerciseLog,
+  completedSets: number,
+): { icon: keyof typeof Ionicons.glyphMap; value: string; label: string }[] {
+  const chips: { icon: keyof typeof Ionicons.glyphMap; value: string; label: string }[] = [];
   if (ex.mode === "reps") {
-    return `${ex.targetSets} séries × ${ex.targetReps} reps · Repos ${ex.targetRestSeconds}s${ex.targetWeight ? ` · ${ex.targetWeight}` : ""}`;
+    chips.push({ icon: "layers-outline", value: `${completedSets}/${ex.targetSets}`, label: "Séries" });
+    chips.push({ icon: "barbell-outline", value: ex.targetWeight || "—", label: "Poids" });
+    if (ex.targetRestSeconds) {
+      chips.push({ icon: "time-outline", value: `${ex.targetRestSeconds}s`, label: "Repos" });
+    }
+  } else if (ex.mode === "time") {
+    chips.push({ icon: "layers-outline", value: `${completedSets}/${ex.targetSets}`, label: "Séries" });
+    chips.push({ icon: "stopwatch-outline", value: formatDur(ex.targetDurationSeconds ?? 0), label: "Durée" });
+    if (ex.targetRestSeconds) {
+      chips.push({ icon: "time-outline", value: `${ex.targetRestSeconds}s`, label: "Repos" });
+    }
+  } else if (ex.mode === "emom") {
+    chips.push({ icon: "repeat-outline", value: `${completedSets}/${ex.targetSets}`, label: "Rounds" });
+    chips.push({ icon: "stopwatch-outline", value: formatDur(ex.targetDurationSeconds ?? 60), label: "Round" });
+    chips.push({ icon: "flag-outline", value: ex.targetReps, label: "Cible" });
+  } else {
+    chips.push({ icon: "stopwatch-outline", value: formatDur(ex.targetDurationSeconds ?? 0), label: "AMRAP" });
+    chips.push({ icon: "layers-outline", value: `${completedSets}/${ex.targetSets}`, label: "Séries" });
   }
-  if (ex.mode === "time") {
-    return `${ex.targetSets} × ${formatDur(ex.targetDurationSeconds ?? 0)}${ex.targetRestSeconds ? ` · Repos ${ex.targetRestSeconds}s` : ""}`;
-  }
-  if (ex.mode === "emom") {
-    return `EMOM · ${ex.targetSets} rounds × ${formatDur(ex.targetDurationSeconds ?? 60)} · ${ex.targetReps} reps`;
-  }
-  return `AMRAP · ${formatDur(ex.targetDurationSeconds ?? 0)}`;
+  return chips;
 }
 
 function TimerCircle({
@@ -948,7 +980,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8,
   },
   progressBg: {
-    height: 3,
+    height: 2,
     backgroundColor: colors.surfaceTertiary,
     marginHorizontal: spacing.lg,
     borderRadius: 2,
@@ -960,21 +992,21 @@ const styles = StyleSheet.create({
   },
   chipsRow: {
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    gap: spacing.sm,
+    paddingVertical: spacing.sm,
+    gap: 6,
   },
   exChip: {
     flexShrink: 0,
-    height: 36,
-    paddingHorizontal: spacing.md,
+    height: 30,
+    paddingHorizontal: spacing.sm,
     borderRadius: radius.pill,
-    backgroundColor: colors.surfaceSecondary,
+    backgroundColor: withAlpha(colors.surfaceSecondary, 70),
     borderWidth: 1,
     borderColor: colors.border,
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    maxWidth: 220,
+    maxWidth: 200,
   },
   exChipActive: {
     backgroundColor: colors.brand,
@@ -990,8 +1022,14 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   content: { padding: spacing.lg, gap: spacing.md },
-  exHeaderCard: { gap: spacing.sm },
-  mediaWrap: { position: "relative" },
+  mediaWrap: { position: "relative", borderRadius: radius.lg, overflow: "hidden" },
+  mediaGradient: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 110,
+  },
   mediaControls: {
     position: "absolute",
     top: 10,
@@ -1008,28 +1046,45 @@ const styles = StyleSheet.create({
     backgroundColor: withAlpha("#000000", 55),
   },
   mediaBtnActive: { backgroundColor: colors.brand },
-  modeBadgeRow: { flexDirection: "row", marginTop: spacing.sm },
+  mediaOverlayInfo: {
+    position: "absolute",
+    left: spacing.md,
+    right: spacing.md,
+    bottom: spacing.md,
+    gap: 4,
+  },
   modeBadge: {
-    backgroundColor: colors.brandTertiary,
+    alignSelf: "flex-start",
+    backgroundColor: withAlpha(colors.brand, 85),
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 4,
   },
   modeBadgeText: {
-    color: colors.brandSecondary,
+    color: "#fff",
     fontSize: 10,
     fontWeight: "800",
     letterSpacing: 1,
   },
-  exNameBig: { color: colors.onSurface, fontSize: 22, fontWeight: "800", marginTop: 6 },
-  exMeta: { color: colors.onSurfaceTertiary, fontSize: 12, marginTop: 2 },
-  setProgressRow: { marginTop: 4 },
-  setProgressText: {
-    color: colors.brand,
-    fontWeight: "700",
-    fontSize: 12,
-    letterSpacing: 0.5,
+  exNameBig: { color: "#fff", fontSize: 20, fontWeight: "800" },
+  statChipsRow: {
+    flexDirection: "row",
+    gap: spacing.sm,
   },
+  statChip: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: colors.surfaceSecondary,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 8,
+  },
+  statChipValue: { color: colors.onSurface, fontWeight: "800", fontSize: 13 },
+  statChipLabel: { color: colors.onSurfaceTertiary, fontSize: 9, letterSpacing: 0.4 },
   setRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -1039,6 +1094,11 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.border,
+  },
+  setRowCurrent: {
+    borderColor: colors.brand,
+    borderWidth: 1.5,
+    backgroundColor: withAlpha(colors.brand, 10),
   },
   setRowDone: {
     backgroundColor: withAlpha(colors.success, 12),

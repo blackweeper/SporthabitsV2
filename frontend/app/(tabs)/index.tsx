@@ -7,7 +7,6 @@ import {
   Pressable,
   Modal,
   Platform,
-  Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
@@ -21,7 +20,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
-import { colors, motion, radius, shadow, spacing } from "@/src/theme";
+import { colors, motion, radius, spacing } from "@/src/theme";
 import {
   ActiveProgram,
   CalendarEvent,
@@ -63,9 +62,7 @@ import {
 import { findProgram } from "@/src/utils/programs";
 import { Program } from "@/src/data/programs";
 import { computeDailyIronflowScore, scoreQualitativeLabel } from "@/src/utils/scoring";
-import { computeXPState } from "@/src/utils/xp";
 import { computeAdvancedStats } from "@/src/utils/stats";
-import { computeAchievements } from "@/src/utils/achievements";
 import { motivationMessage } from "@/src/data/motivation";
 import { progressionHref } from "@/src/utils/progression-nav";
 import HabitTimerModal from "@/src/components/HabitTimerModal";
@@ -207,10 +204,6 @@ export default function TodayScreen() {
   );
   const scoreDelta = todayScore.score - yesterdayScore.score;
   const stats = computeAdvancedStats(sessions);
-  const xpState = computeXPState({ sessions, habits, habitLogs: logs, prs });
-  const achievementsList = computeAchievements({ sessions, prs, measurements });
-  const unlockedAchievements = achievementsList.filter((a) => a.unlocked).length;
-  const totalAchievements = achievementsList.length;
 
   const primary = actives[0];
   const dayIndex = primary
@@ -234,18 +227,11 @@ export default function TodayScreen() {
     score: todayScore.score,
   });
 
-  // 'auto' résout sur la largeur d'écran (même seuil que les autres points
-  // de bascule mobile/tablette de l'app) : semaine sur mobile, mois sur
-  // tablette/web — recalculé à chaque rendu, la largeur ne change pas très
-  // souvent et ce n'est pas un calcul coûteux.
+  // Semaine par défaut (préférence explicite) — la vue mois reste un choix
+  // manuel via les réglages, plus de bascule automatique selon la largeur
+  // d'écran (contredisait la préférence "semaine par défaut" sur tablette/web).
   const effectiveCalendarView: Exclude<CalendarViewMode, "auto"> =
-    appSettings?.calendarView === "week"
-      ? "week"
-      : appSettings?.calendarView === "month"
-        ? "month"
-        : Dimensions.get("window").width >= 768
-          ? "month"
-          : "week";
+    appSettings?.calendarView === "month" ? "month" : "week";
 
   const dueReminders = useMemo(
     () => computeDueReminders(reminders, calendarEvents, dismissedReminders),
@@ -481,12 +467,25 @@ export default function TodayScreen() {
             </Text>
             <Text style={styles.date}>{formatFullDate()}</Text>
           </View>
-          {dayIndex && totalDays ? (
-            <View style={styles.dayBadge}>
-              <Text style={styles.dayLabel}>JOUR</Text>
-              <AnimatedNumber value={dayIndex} style={styles.dayValue} />
-              <Text style={styles.daySub}>/ {totalDays}</Text>
-            </View>
+          {dayIndex && totalDays && primary ? (
+            <PressableScale
+              testID="dashboard-program-badge"
+              style={styles.dayBadge}
+              onPress={() => router.push(`/program/${primary.program.id}`)}
+            >
+              {isRestDay ? (
+                <View style={styles.dayRestRow}>
+                  <Ionicons name="moon" size={14} color={colors.progress} />
+                  <Text style={styles.dayRestLabel}>REPOS</Text>
+                </View>
+              ) : (
+                <>
+                  <Text style={styles.dayLabel}>JOUR</Text>
+                  <AnimatedNumber value={dayIndex} style={styles.dayValue} />
+                  <Text style={styles.daySub}>/ {totalDays}</Text>
+                </>
+              )}
+            </PressableScale>
           ) : null}
         </View>
 
@@ -619,67 +618,6 @@ export default function TodayScreen() {
           )}
         </View>
 
-        {/* Carte "cockpit" Niveau/XP/Streak/Trophées — remplace les deux
-            pastilles Niveau+Streak par une seule carte héros premium :
-            aucune donnée nouvelle à calculer, tout (progression XP, prochain
-            badge, streak actuel/record, trophées débloqués) est déjà
-            exposé par xp.ts/stats.ts/achievements.ts, juste jamais composé
-            visuellement ensemble jusqu'ici. */}
-        <PressableScale testID="xp-card" style={styles.cockpitCard} onPress={() => router.push("/profile")}>
-          <View style={styles.cockpitTop}>
-            <View style={styles.cockpitLevelBadge}>
-              <Text style={styles.cockpitLevelBadgeNum}>{xpState.level}</Text>
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.cockpitLevelLabel}>NIVEAU {xpState.level}</Text>
-              <View style={styles.cockpitXpBar}>
-                <View style={[styles.cockpitXpFill, { width: `${xpState.progress * 100}%` }]} />
-              </View>
-              <Text style={styles.cockpitXpCaption}>
-                {xpState.xpToNext} XP → N{xpState.level + 1}
-                {xpState.nextBadge
-                  ? ` · Prochain badge : ${xpState.nextBadge.emoji} ${xpState.nextBadge.title}`
-                  : ""}
-              </Text>
-            </View>
-          </View>
-          <View style={styles.cockpitDivider} />
-          <View style={styles.cockpitBottom}>
-            <View style={styles.cockpitStat}>
-              <Ionicons name="flame-outline" size={14} color={colors.onSurfaceTertiary} />
-              <AnimatedNumber
-                value={stats.currentStreakDays}
-                formatter={(n) => `${Math.round(n)} j`}
-                style={styles.cockpitStatValue}
-              />
-              <Text style={styles.cockpitStatLabel}>Streak</Text>
-            </View>
-            <View style={styles.cockpitStat}>
-              <Ionicons name="trophy-outline" size={14} color={colors.onSurfaceTertiary} />
-              <AnimatedNumber
-                value={stats.bestStreakDays}
-                formatter={(n) => `${Math.round(n)} j`}
-                style={styles.cockpitStatValue}
-              />
-              <Text style={styles.cockpitStatLabel}>Record</Text>
-            </View>
-            <Pressable
-              testID="achievements-link"
-              style={styles.cockpitStat}
-              onPress={(e) => {
-                e.stopPropagation?.();
-                router.push("/achievements");
-              }}
-            >
-              <Ionicons name="ribbon-outline" size={14} color={colors.onSurfaceTertiary} />
-              <Text style={styles.cockpitStatValue}>
-                {unlockedAchievements}/{totalAchievements}
-              </Text>
-              <Text style={styles.cockpitStatLabel}>Trophées</Text>
-            </Pressable>
-          </View>
-        </PressableScale>
-
         {/* Aujourd'hui — anneaux compacts pour Eau/Calories/Pas (remplace 3
             cartes pleine largeur empilées) : plus glanceable, esprit
             Oura/Whoop. Le statut "Séance" vit désormais dans le CTA du
@@ -805,12 +743,15 @@ export default function TodayScreen() {
           </PressableScale>
         </View>
 
-        {/* Programmes actifs — jusqu'à 2 en parallèle */}
-        {actives.length > 0 && (
+        {/* Programmes actifs — jusqu'à 2 en parallèle. Le badge "Jour X/Y" du
+            header ne reflète que le programme principal (actives[0]) ; cette
+            rangée ne reste donc utile (et visible) que s'il y a un 2e
+            programme actif en parallèle — sinon elle ne ferait que dupliquer
+            le badge header, d'où sa suppression pour le cas courant à un
+            seul programme actif. */}
+        {actives.length > 1 && (
           <>
-            <Text style={styles.sectionTitle}>
-              {actives.length > 1 ? "Programmes actifs" : "Programme actif"}
-            </Text>
+            <Text style={styles.sectionTitle}>Programmes actifs</Text>
             <View style={styles.programsRow}>
               {actives.map(({ active, program }) => {
                 const di = currentDayIndex(active, program.durationDays);
@@ -1190,6 +1131,13 @@ const styles = StyleSheet.create({
   },
   dayValue: { color: colors.progress, fontSize: 22, fontWeight: "800" },
   daySub: { color: colors.progressSecondary, fontSize: 11, fontWeight: "700" },
+  dayRestRow: { flexDirection: "row", alignItems: "center", gap: 4 },
+  dayRestLabel: {
+    color: colors.progressSecondary,
+    fontSize: 11,
+    letterSpacing: 1,
+    fontWeight: "800",
+  },
   // Module héros : un seul bloc élevé (Score + CTA) au lieu de trois cartes
   // de poids égal — devient le point focal réel de l'écran.
   // Plus de carte bordée autour du score — l'anneau doit être l'ancre
@@ -1221,57 +1169,6 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   scoreDeltaText: { fontSize: 11, fontWeight: "700" },
-  // Carte "cockpit" (POLISH V2) — remplace les 2 pastilles Niveau/Streak par
-  // une seule carte héros (shadow.card : c'est une des 1-2 cartes les plus
-  // importantes de l'écran, cf. la règle documentée dans Card.tsx/theme.ts).
-  cockpitCard: {
-    backgroundColor: colors.surfaceSecondary,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.md,
-    gap: spacing.sm,
-    ...shadow.card,
-  },
-  cockpitTop: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
-  cockpitLevelBadge: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: colors.progress,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  cockpitLevelBadgeNum: { color: "#fff", fontWeight: "800", fontSize: 12 },
-  cockpitLevelLabel: {
-    color: colors.onSurfaceTertiary,
-    fontSize: 9,
-    fontWeight: "800",
-    letterSpacing: 0.6,
-    marginBottom: 3,
-  },
-  cockpitXpBar: {
-    height: 5,
-    borderRadius: 3,
-    backgroundColor: colors.surfaceTertiary,
-    overflow: "hidden",
-  },
-  cockpitXpFill: { height: "100%", borderRadius: 3, backgroundColor: colors.progress },
-  cockpitXpCaption: {
-    color: colors.onSurface,
-    fontSize: 11,
-    fontWeight: "700",
-    marginTop: 4,
-  },
-  cockpitDivider: { height: 1, backgroundColor: colors.divider },
-  cockpitBottom: { flexDirection: "row" },
-  cockpitStat: { flex: 1, alignItems: "center", gap: 2 },
-  cockpitStatValue: { color: colors.onSurface, fontSize: 13, fontWeight: "800" },
-  cockpitStatLabel: {
-    color: colors.onSurfaceTertiary,
-    fontSize: 9,
-    fontWeight: "700",
-  },
   mainCta: {
     backgroundColor: colors.brand,
     padding: 18,

@@ -193,7 +193,6 @@ export default function ProgressionHub() {
     age: null,
   };
   const today = todayYYYYMMDD();
-  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
   const score = computeDailyIronflowScore(
     today,
     sessions,
@@ -203,16 +202,6 @@ export default function ProgressionHub() {
     dailyJournal,
     scoreProfile,
   );
-  const yesterdayScore = computeDailyIronflowScore(
-    yesterday,
-    sessions,
-    habits,
-    logs,
-    wellness,
-    dailyJournal,
-    scoreProfile,
-  );
-  const scoreDelta = score.score - yesterdayScore.score;
   const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10);
   const score7dAgo = computeDailyIronflowScore(
     sevenDaysAgo,
@@ -302,7 +291,6 @@ export default function ProgressionHub() {
         {tab === "overview" && (
           <OverviewView
             score={score}
-            scoreDelta={scoreDelta}
             highlights={highlights}
             goals={goals}
             sessions={sessions}
@@ -407,7 +395,6 @@ function ScoreCircle({ score }: { score: number }) {
 
 function OverviewView({
   score,
-  scoreDelta,
   highlights,
   goals,
   sessions,
@@ -417,7 +404,6 @@ function OverviewView({
   onOpenGoals,
 }: {
   score: DailyIronflowScore;
-  scoreDelta: number;
   highlights: Highlight[];
   goals: Goal[];
   sessions: WorkoutSession[];
@@ -459,24 +445,6 @@ function OverviewView({
         <Text style={styles.overLabel}>IRONFLOW SCORE</Text>
         <ScoreCircle score={score.score} />
         <Text style={styles.overQualitative}>{scoreQualitativeLabel(score.score)}</Text>
-        {scoreDelta !== 0 && (
-          <View style={styles.overDeltaRow}>
-            <Ionicons
-              name={scoreDelta > 0 ? "arrow-up" : "arrow-down"}
-              size={13}
-              color={scoreDelta > 0 ? colors.success : colors.error}
-            />
-            <Text
-              style={[
-                styles.overDeltaText,
-                { color: scoreDelta > 0 ? colors.success : colors.error },
-              ]}
-            >
-              {scoreDelta > 0 ? "+" : ""}
-              {scoreDelta}% par rapport à hier
-            </Text>
-          </View>
-        )}
       </Card>
 
       {/* Objectifs en cours */}
@@ -2432,8 +2400,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "800",
   },
-  overDeltaRow: { flexDirection: "row", alignItems: "center", gap: 4 },
-  overDeltaText: { fontSize: 12, fontWeight: "700" },
   summaryBox: {
     backgroundColor: colors.surfaceSecondary,
     borderRadius: radius.md,

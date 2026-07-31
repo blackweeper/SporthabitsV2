@@ -51,7 +51,8 @@ async function getIndex(): Promise<CacheIndex> {
   if (!raw) return {};
   try {
     return JSON.parse(raw);
-  } catch {
+  } catch (err) {
+    console.warn("[media-cache] corrupt index, resetting", err);
     return {};
   }
 }
@@ -79,7 +80,9 @@ async function touchAndEvict(
       .sort((a, b) => a.lastAccessedAt - b.lastAccessedAt);
     for (const entry of oldestFirst) {
       if (total <= MAX_CACHE_BYTES) break;
-      await deleteFile(entry.key).catch(() => {});
+      await deleteFile(entry.key).catch((err) =>
+        console.warn(`[media-cache] eviction delete failed for ${entry.key}`, err),
+      );
       delete index[entry.key];
       total -= entry.sizeBytes;
     }
@@ -128,7 +131,8 @@ async function ensureMediaCachedNative(url: string): Promise<string | null> {
       if (f.exists) f.delete();
     });
     return downloaded.uri;
-  } catch {
+  } catch (err) {
+    console.warn(`[media-cache] native download failed for ${url}`, err);
     return null;
   }
 }
@@ -146,7 +150,10 @@ async function evictMediaNative(url: string): Promise<void> {
 const webObjectUrlCache = new Map<string, string>();
 
 async function ensureMediaCachedWeb(url: string): Promise<string | null> {
-  if (typeof caches === "undefined") return null;
+  if (typeof caches === "undefined") {
+    console.warn(`[media-cache] Cache Storage API unavailable, cannot cache ${url}`);
+    return null;
+  }
   const key = keyFromUrl(url);
 
   const existingObjectUrl = webObjectUrlCache.get(key);
@@ -160,7 +167,10 @@ async function ensureMediaCachedWeb(url: string): Promise<string | null> {
     let response = await cache.match(url);
     if (!response) {
       const res = await fetch(url);
-      if (!res.ok) return null;
+      if (!res.ok) {
+        console.warn(`[media-cache] fetch failed for ${url}: HTTP ${res.status}`);
+        return null;
+      }
       await cache.put(url, res.clone());
       response = res;
     }
@@ -169,7 +179,8 @@ async function ensureMediaCachedWeb(url: string): Promise<string | null> {
     webObjectUrlCache.set(key, objectUrl);
     await touchAndEvict(key, url, blob.size, async (k) => evictWebCacheEntry(k));
     return objectUrl;
-  } catch {
+  } catch (err) {
+    console.warn(`[media-cache] web cache error for ${url}`, err);
     return null;
   }
 }

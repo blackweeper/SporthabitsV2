@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { View, Text, Image, StyleSheet, ImageSourcePropType } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, shadow, withAlpha } from "@/src/theme";
@@ -6,21 +7,19 @@ import { iconEmojiForExercise } from "@/src/data/exercise-icons";
 import { MUSCLE_GROUPS } from "@/src/utils/muscle-groups";
 import { EXERCISE_DIFFICULTY_COLOR, EXERCISE_DIFFICULTY_LABEL } from "@/src/utils/exercise-difficulty";
 import { ExerciseLibraryItem } from "@/src/hooks/useExerciseLibraryItems";
-import { useExerciseMedia } from "@/src/hooks/useExerciseMedia";
-import { useDynamicMediaHeight } from "@/src/hooks/useDynamicMediaHeight";
+import { useExerciseMediaSources } from "@/src/hooks/useExerciseMedia";
 import PressableScale from "@/src/components/ui/PressableScale";
 
 /**
  * Grid tile for the Bibliothèque tab — "cover art" tile, image/emoji fills
- * an artwork block, name stays on its own line, muscle/équipement sit in
- * small pill "meta chips" below. The artwork height is measured from the
- * media's real aspect ratio (`useDynamicMediaHeight`, shared with the
- * exercise-detail fiche's `ExerciseMediaFrame`) rather than a fixed
- * `aspectRatio`, so it never crops/stretches a non-square asset — matching
- * the fiche's premium rendering instead of diverging from it. Given nearly
- * all current media is square, most tiles land at the same height in
- * practice; only genuinely non-square media grows/shrinks a tile, by
- * design ("ne pas forcer un format unique si cela dégrade le rendu").
+ * a square artwork block, name stays on its own line, muscle/équipement sit
+ * in small pill "meta chips" below. The artwork is a fixed square
+ * (`aspectRatio: 1`) rather than a dynamic ratio — a deliberate choice for
+ * this grid specifically (the fiche's `ExerciseMediaFrame` keeps its
+ * adaptive ratio): a uniform grid reads as more premium than one with
+ * varying tile heights, and `resizeMode="contain"` still guarantees no
+ * crop/stretch for non-square media (it just letterboxes within the square
+ * instead of growing/shrinking the tile).
  */
 export default function ExerciseCard({
   item,
@@ -39,30 +38,28 @@ export default function ExerciseCard({
   const primaryMuscle = item.muscleGroups?.[0]
     ? MUSCLE_GROUPS.find((m) => m.key === item.muscleGroups![0])
     : undefined;
-  // Chaque carte résout sa propre image en autonomie (id -> IronFlow -> WorkoutX
-  // -> null) plutôt que de dépendre d'un champ précalculé — voir useExerciseMedia.ts.
-  const { uri: mediaUri } = useExerciseMedia(item.isCustom ? null : item.id);
-  const mediaSource: ImageSourcePropType | null = mediaUri
-    ? { uri: mediaUri }
+  // Chaque carte résout ses deux médias en parallèle (illustration/GIF)
+  // plutôt que de dépendre d'un champ précalculé — voir useExerciseMedia.ts.
+  // "photo" (illustration) reste l'affichage par défaut ; le bouton GIF
+  // (visible seulement si un GIF existe) bascule mediaMode en place, sans
+  // navigation, même patron que la fiche/l'écran de séance active.
+  const { ironflowUri, workoutxUri } = useExerciseMediaSources(item.isCustom ? null : item.id);
+  const [mediaMode, setMediaMode] = useState<"photo" | "gif">("photo");
+  const photoSource: ImageSourcePropType | null = ironflowUri
+    ? { uri: ironflowUri }
     : item.imageBase64
       ? { uri: `data:image/webp;base64,${item.imageBase64}` }
       : null;
-  // Hauteur mesurée depuis le ratio réel du média (même hook que la fiche
-  // exercice) — bornes resserrées pour une colonne de grille plutôt que la
-  // pleine largeur de la fiche.
-  const { height: artworkHeight, onLayout: onArtworkLayout } = useDynamicMediaHeight(mediaSource, {
-    minHeight: 120,
-    maxHeight: 220,
-  });
+  const mediaSource: ImageSourcePropType | null =
+    mediaMode === "gif" && workoutxUri ? { uri: workoutxUri } : photoSource;
 
   return (
     <PressableScale testID={testID} style={styles.card} onPress={onPress}>
       <View
         style={[
           styles.artwork,
-          { height: artworkHeight, borderColor: withAlpha(color, 33), backgroundColor: withAlpha(color, 10) },
+          { borderColor: withAlpha(color, 33), backgroundColor: withAlpha(color, 10) },
         ]}
-        onLayout={onArtworkLayout}
       >
         {mediaSource ? (
           <Image source={mediaSource} style={styles.artworkImage} resizeMode="contain" />
@@ -93,6 +90,20 @@ export default function ExerciseCard({
             <View style={[styles.diffDot, { backgroundColor: EXERCISE_DIFFICULTY_COLOR[item.difficulty] }]} />
             <Text style={styles.diffBadgeText}>{EXERCISE_DIFFICULTY_LABEL[item.difficulty]}</Text>
           </View>
+        )}
+
+        {workoutxUri && (
+          <PressableScale
+            testID={testID ? `${testID}-gif-toggle` : undefined}
+            hitSlop={8}
+            style={[styles.gifBadge, mediaMode === "gif" && { backgroundColor: colors.brand }]}
+            onPress={(e) => {
+              e.stopPropagation?.();
+              setMediaMode((m) => (m === "gif" ? "photo" : "gif"));
+            }}
+          >
+            <Ionicons name={mediaMode === "gif" ? "image" : "play"} size={11} color={colors.onSurface} />
+          </PressableScale>
         )}
 
         {onToggleLibrary && !item.inLibrary && (
@@ -141,6 +152,7 @@ const styles = StyleSheet.create({
   card: { gap: 4, ...shadow.card },
   artwork: {
     width: "100%",
+    aspectRatio: 1,
     borderRadius: radius.md,
     borderWidth: 1.5,
     alignItems: "center",
@@ -185,6 +197,17 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderWidth: 2,
     borderColor: colors.surface,
+  },
+  gifBadge: {
+    position: "absolute",
+    bottom: 5,
+    left: 5,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: withAlpha("#000000", 55),
   },
   name: {
     color: colors.onSurface,

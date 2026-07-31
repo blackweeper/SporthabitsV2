@@ -15,6 +15,7 @@ import {
   MuscleChipRow,
 } from "@/src/components/exercise-library/ExerciseFilterChips";
 import ExerciseCard from "@/src/components/exercise-library/ExerciseCard";
+import FilterSheet, { FilterCountBadge } from "@/src/components/ui/FilterSheet";
 import SwipeableRow from "@/src/components/SwipeableRow";
 import { MuscleGroupKey } from "@/src/utils/muscle-groups";
 import { CustomExercise, deleteCustomExercise, saveCustomExercise, uid } from "@/src/utils/gym-storage";
@@ -133,6 +134,12 @@ export default function LibraryScreen() {
   // supprimé, son contenu vit désormais en permanence dans "library".
   const [scope, setScope] = useState<"library" | "discover">("library");
   const [collectionFilter, setCollectionFilter] = useState<FutureCollection | null>(null);
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
+  const activeFilterCount =
+    (tab !== "all" ? 1 : 0) +
+    (muscle ? 1 : 0) +
+    (equipment ? 1 : 0) +
+    (collectionFilter ? 1 : 0);
 
   useFocusEffect(
     useCallback(() => {
@@ -236,7 +243,17 @@ export default function LibraryScreen() {
       </View>
 
       <View style={styles.searchWrap}>
-        <ExerciseSearchBar value={query} onChange={setQuery} testID="lib-search" />
+        <View style={{ flex: 1 }}>
+          <ExerciseSearchBar value={query} onChange={setQuery} testID="lib-search" />
+        </View>
+        <PressableScale
+          testID="lib-open-filters"
+          style={styles.filterBtn}
+          onPress={() => setFilterSheetOpen(true)}
+        >
+          <Ionicons name="options-outline" size={18} color={colors.onSurface} />
+          <FilterCountBadge count={activeFilterCount} />
+        </PressableScale>
       </View>
 
       <View style={styles.scopeRow}>
@@ -268,24 +285,6 @@ export default function LibraryScreen() {
           </Text>
         </View>
       )}
-      {scope === "discover" && (
-        <CollectionChipRow
-          collection={collectionFilter}
-          onChange={setCollectionFilter}
-          testIDPrefix="lib-collection"
-        />
-      )}
-
-      <CategoryTabRow tab={tab} onChange={setTab} testIDPrefix="lib-tab" />
-      {tab === "musculation" && (
-        <MuscleChipRow muscle={muscle} onChange={setMuscle} testIDPrefix="lib-muscle" />
-      )}
-      <EquipmentChipRow
-        equipment={equipment}
-        options={equipmentOptions}
-        onChange={setEquipment}
-        testIDPrefix="lib-equipment"
-      />
 
       <FlatList
         // Rejoue la cascade d'apparition à chaque changement de filtre —
@@ -422,6 +421,38 @@ export default function LibraryScreen() {
         }
       />
 
+      <FilterSheet visible={filterSheetOpen} onClose={() => setFilterSheetOpen(false)}>
+        {scope === "discover" && (
+          <>
+            <Text style={styles.filterSectionLabel}>Collection</Text>
+            <CollectionChipRow
+              collection={collectionFilter}
+              onChange={setCollectionFilter}
+              testIDPrefix="lib-collection"
+            />
+          </>
+        )}
+        <Text style={styles.filterSectionLabel}>Catégorie</Text>
+        <CategoryTabRow tab={tab} onChange={setTab} testIDPrefix="lib-tab" />
+        {tab === "musculation" && (
+          <>
+            <Text style={styles.filterSectionLabel}>Muscle</Text>
+            <MuscleChipRow muscle={muscle} onChange={setMuscle} testIDPrefix="lib-muscle" />
+          </>
+        )}
+        {equipmentOptions.length > 0 && (
+          <>
+            <Text style={styles.filterSectionLabel}>Équipement</Text>
+            <EquipmentChipRow
+              equipment={equipment}
+              options={equipmentOptions}
+              onChange={setEquipment}
+              testIDPrefix="lib-equipment"
+            />
+          </>
+        )}
+      </FilterSheet>
+
       <NewExerciseSheet
         state={sheet}
         onClose={() => setSheet(null)}
@@ -453,7 +484,33 @@ const styles = StyleSheet.create({
   },
   title: { color: colors.onSurface, fontSize: 22, fontWeight: "800" },
   subtitle: { color: colors.onSurfaceTertiary, fontSize: 12, fontWeight: "600", marginTop: 2 },
-  searchWrap: { paddingHorizontal: spacing.lg, marginBottom: spacing.sm },
+  searchWrap: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    marginBottom: spacing.sm,
+  },
+  filterBtn: {
+    position: "relative",
+    width: 40,
+    height: 40,
+    borderRadius: radius.md,
+    backgroundColor: colors.surfaceSecondary,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  filterSectionLabel: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 11,
+    fontWeight: "800",
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+    marginTop: spacing.sm,
+    marginBottom: 2,
+  },
   scopeRow: {
     flexDirection: "row",
     gap: spacing.sm,

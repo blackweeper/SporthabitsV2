@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { ExerciseCategory } from '@/src/utils/exercise-category';
 import type { MuscleGroupKey } from '@/src/utils/muscle-groups';
+import type { ProgramGoal, ProgramLevel } from '@/src/data/programs';
 
 export type ExerciseMode = 'reps' | 'time' | 'amrap' | 'emom';
 
@@ -181,6 +182,11 @@ export type UserProfile = {
   water_target_ml?: number | null;
   calories_target_kcal?: number | null;
   steps_target?: number | null;
+  /** Utilisés uniquement pour trier/recommander les programmes prédéfinis
+   * par pertinence (voir `scoreProgramForProfile`) — jamais pour exclure
+   * un programme. */
+  experienceLevel?: ProgramLevel | null;
+  primaryGoal?: ProgramGoal | null;
 };
 
 export const DEFAULT_WATER_TARGET_ML = 2000;

@@ -15,8 +15,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing } from "@/src/theme";
-import ExercisePicture from "@/src/components/ExercisePicture";
+import ExerciseThumbnail from "@/src/components/ExerciseThumbnail";
 import ExercisePicturePicker from "@/src/components/ExercisePicturePicker";
+import { ExerciseRecord, getExerciseRecords } from "@/src/utils/exercise-records";
 import DurationField from "@/src/components/DurationField";
 import { useConfirmDialog } from "@/src/hooks/use-confirm-dialog";
 import {
@@ -95,7 +96,12 @@ export default function CustomProgramEditor() {
   const [libraryPickerSessionIdx, setLibraryPickerSessionIdx] = useState<number | null>(null);
   const [importOpen, setImportOpen] = useState(false);
   const [availablePlans, setAvailablePlans] = useState<Plan[]>([]);
+  const [records, setRecords] = useState<ExerciseRecord[]>([]);
   const { confirm, ConfirmModal } = useConfirmDialog();
+
+  useEffect(() => {
+    getExerciseRecords().then(setRecords);
+  }, []);
 
   // Populated only right after "Importer un programme" — lets the user
   // create the exercises the local parser couldn't match in the library.
@@ -529,6 +535,7 @@ export default function CustomProgramEditor() {
                     }
                     onAddFromLibrary={() => setLibraryPickerSessionIdx(si)}
                     index={si}
+                    records={records}
                   />
                 ))}
                 <View style={styles.addSessRow}>
@@ -790,6 +797,7 @@ function SessionEditor({
   onPickExercisePic,
   onAddFromLibrary,
   index,
+  records,
 }: {
   session: ProgramSession;
   onChange: (p: Partial<ProgramSession>) => void;
@@ -797,6 +805,7 @@ function SessionEditor({
   onPickExercisePic: (exIdx: number) => void;
   onAddFromLibrary: () => void;
   index: number;
+  records: ExerciseRecord[];
 }) {
   return (
     <View style={styles.sessBox} testID={`session-editor-${index}`}>
@@ -840,6 +849,7 @@ function SessionEditor({
           key={ei}
           exercise={e}
           index={ei}
+          records={records}
           onChange={(patch) =>
             onChange({
               exercises: session.exercises.map((x, i) =>
@@ -919,6 +929,7 @@ function ExerciseEditor({
   onPickPic,
   onMoveUp,
   onMoveDown,
+  records,
 }: {
   exercise: ExerciseTemplate;
   index: number;
@@ -927,6 +938,7 @@ function ExerciseEditor({
   onPickPic: () => void;
   onMoveUp?: () => void;
   onMoveDown?: () => void;
+  records: ExerciseRecord[];
 }) {
   const setMode = (m: ExerciseMode) => {
     const patch: Partial<ExerciseTemplate> = { mode: m };
@@ -954,10 +966,11 @@ function ExerciseEditor({
     <View style={styles.exCard} testID={`ex-editor-${index}`}>
       <View style={styles.exHead}>
         <Pressable onPress={onPickPic} testID={`ex-pic-editor-${index}`}>
-          <ExercisePicture
+          <ExerciseThumbnail
             photoBase64={(exercise as any).photoBase64}
             iconKey={(exercise as any).iconKey}
             name={exercise.name}
+            records={records}
             size={40}
           />
         </Pressable>

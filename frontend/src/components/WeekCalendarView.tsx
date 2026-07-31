@@ -16,6 +16,10 @@ export type DayEntry = {
 
 const WEEKDAY_LETTERS = ["L", "M", "M", "J", "V", "S", "D"];
 const MS_PER_DAY = 86400000;
+// Permet de prévisualiser les semaines à venir (ex. un CalendarEvent déjà
+// planifié) — plafonné plutôt qu'illimité pour rester un vrai raccourci de
+// consultation, pas un calendrier de planification à long terme.
+const MAX_FORWARD_WEEKS = 12;
 
 /** Every date in the app is keyed as `new Date(x).toISOString().slice(0,10)`
  * (sessions, habit logs, `todayYYYYMMDD()`…) — that's the current *instant*
@@ -97,12 +101,12 @@ export default function WeekCalendarView({
           testID={`${testIDPrefix}-next`}
           onPress={() => setWeekOffset((o) => o + 1)}
           hitSlop={12}
-          disabled={weekOffset >= 0}
+          disabled={weekOffset >= MAX_FORWARD_WEEKS}
         >
           <Ionicons
             name="chevron-forward"
             size={18}
-            color={weekOffset >= 0 ? colors.surfaceTertiary : colors.onSurface}
+            color={weekOffset >= MAX_FORWARD_WEEKS ? colors.surfaceTertiary : colors.onSurface}
           />
         </PressableScale>
       </View>
