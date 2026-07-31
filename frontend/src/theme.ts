@@ -87,6 +87,17 @@ export function coloredShadow(
   };
 }
 
+/** `color + "26"`-style hex-alpha concatenation appeared hand-rolled at
+ * ~12 call sites across the app (tinted chip backgrounds, badge fills) —
+ * this is the one shared helper, so a call site reads as "20% opacity"
+ * instead of an opaque two-digit hex literal. `pct` is 0-100. */
+export function withAlpha(color: string, pct: number): string {
+  const alphaHex = Math.round((pct / 100) * 255)
+    .toString(16)
+    .padStart(2, '0');
+  return `${color}${alphaHex}`;
+}
+
 export const motion = {
   fast: 150,
   base: 220,

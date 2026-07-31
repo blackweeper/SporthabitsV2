@@ -43,7 +43,7 @@ import {
   uid,
 } from "@/src/utils/gym-storage";
 import { estimateSessionDurationSeconds, formatEstimatedDuration } from "@/src/utils/session-estimate";
-import { NewExerciseSheet } from "@/src/components/ExerciseLibraryPicker";
+import ExerciseLibraryPicker, { NewExerciseSheet } from "@/src/components/ExerciseLibraryPicker";
 
 const LEVELS: ProgramLevel[] = ["debutant", "intermediaire", "avance"];
 const MODES: { key: ExerciseMode; label: string }[] = [
@@ -89,6 +89,10 @@ export default function CustomProgramEditor() {
   const [program, setProgram] = useState<Program | null>(null);
   const [selectedDay, setSelectedDay] = useState(1);
   const [pickingIdx, setPickingIdx] = useState<{ sessionIdx: number; exIdx: number } | null>(null);
+  // Cible la séance à laquelle ajouter un exercice depuis la bibliothèque —
+  // réutilise ExerciseLibraryPicker tel quel (comme plan/[id].tsx), aucun
+  // doublon de code.
+  const [libraryPickerSessionIdx, setLibraryPickerSessionIdx] = useState<number | null>(null);
   const [importOpen, setImportOpen] = useState(false);
   const [availablePlans, setAvailablePlans] = useState<Plan[]>([]);
   const { confirm, ConfirmModal } = useConfirmDialog();
@@ -523,6 +527,7 @@ export default function CustomProgramEditor() {
                     onPickExercisePic={(exIdx) =>
                       setPickingIdx({ sessionIdx: si, exIdx })
                     }
+                    onAddFromLibrary={() => setLibraryPickerSessionIdx(si)}
                     index={si}
                   />
                 ))}
@@ -625,6 +630,38 @@ export default function CustomProgramEditor() {
             sessions: [...(d.rest ? [] : d.sessions), importedSession],
           }));
           setImportOpen(false);
+        }}
+      />
+      <ExerciseLibraryPicker
+        visible={libraryPickerSessionIdx !== null}
+        onClose={() => setLibraryPickerSessionIdx(null)}
+        onPick={(name) => {
+          if (libraryPickerSessionIdx === null) return;
+          const targetSessionIdx = libraryPickerSessionIdx;
+          updateDay(selectedDay, (d) => ({
+            ...d,
+            sessions: d.sessions.map((s, si) =>
+              si !== targetSessionIdx
+                ? s
+                : {
+                    ...s,
+                    exercises: [
+                      ...s.exercises,
+                      {
+                        name,
+                        mode: "reps",
+                        sets: 3,
+                        reps: "10",
+                        weight: null,
+                        rest_seconds: 60,
+                        duration_seconds: null,
+                        notes: null,
+                      },
+                    ],
+                  },
+            ),
+          }));
+          setLibraryPickerSessionIdx(null);
         }}
       />
       <NewExerciseSheet
@@ -751,12 +788,14 @@ function SessionEditor({
   onChange,
   onRemove,
   onPickExercisePic,
+  onAddFromLibrary,
   index,
 }: {
   session: ProgramSession;
   onChange: (p: Partial<ProgramSession>) => void;
   onRemove: () => void;
   onPickExercisePic: (exIdx: number) => void;
+  onAddFromLibrary: () => void;
   index: number;
 }) {
   return (
@@ -834,30 +873,40 @@ function SessionEditor({
           }
         />
       ))}
-      <Pressable
-        testID={`add-ex-${index}`}
-        style={styles.addExBtn}
-        onPress={() =>
-          onChange({
-            exercises: [
-              ...session.exercises,
-              {
-                name: "Exercice",
-                mode: "reps",
-                sets: 3,
-                reps: "10",
-                weight: null,
-                rest_seconds: 60,
-                duration_seconds: null,
-                notes: null,
-              },
-            ],
-          })
-        }
-      >
-        <Ionicons name="add" size={14} color={colors.brand} />
-        <Text style={styles.addExText}>Ajouter un exercice</Text>
-      </Pressable>
+      <View style={styles.addExRow}>
+        <Pressable
+          testID={`add-ex-${index}`}
+          style={[styles.addExBtn, { flex: 1 }]}
+          onPress={() =>
+            onChange({
+              exercises: [
+                ...session.exercises,
+                {
+                  name: "Exercice",
+                  mode: "reps",
+                  sets: 3,
+                  reps: "10",
+                  weight: null,
+                  rest_seconds: 60,
+                  duration_seconds: null,
+                  notes: null,
+                },
+              ],
+            })
+          }
+        >
+          <Ionicons name="add" size={14} color={colors.brand} />
+          <Text style={styles.addExText}>Manuel</Text>
+        </Pressable>
+        <Pressable
+          testID={`add-ex-library-${index}`}
+          style={[styles.addExBtn, { flex: 1 }]}
+          onPress={onAddFromLibrary}
+        >
+          <Ionicons name="library" size={14} color={colors.brand} />
+          <Text style={styles.addExText}>Bibliothèque</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -1423,10 +1472,18 @@ const styles = StyleSheet.create({
   addExBtn: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
     gap: 4,
     padding: 6,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.sm,
   },
   addExText: { color: colors.brand, fontWeight: "700", fontSize: 11 },
+  addExRow: {
+    flexDirection: "row",
+    gap: spacing.sm,
+  },
   addSessBtn: {
     flexDirection: "row",
     alignItems: "center",

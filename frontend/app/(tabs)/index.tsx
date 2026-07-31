@@ -1,4 +1,4 @@
-import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   Pressable,
   Modal,
   Platform,
+  Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
@@ -64,21 +65,18 @@ import { Program } from "@/src/data/programs";
 import { computeDailyIronflowScore, scoreQualitativeLabel } from "@/src/utils/scoring";
 import { computeXPState } from "@/src/utils/xp";
 import { computeAdvancedStats } from "@/src/utils/stats";
+import { computeAchievements } from "@/src/utils/achievements";
 import { motivationMessage } from "@/src/data/motivation";
 import { progressionHref } from "@/src/utils/progression-nav";
 import HabitTimerModal from "@/src/components/HabitTimerModal";
-import SwipeableRow from "@/src/components/SwipeableRow";
 import CalendarView, { DayEventDot } from "@/src/components/CalendarView";
-import HabitCard, {
-  ActionChip,
-  ActionsRow,
-  ActionsScroll,
-  MinusButton,
-  QuantityModal,
-  WideActionButton,
-} from "@/src/components/HabitCard";
+import WeekCalendarView from "@/src/components/WeekCalendarView";
+import { AppSettings, CalendarViewMode, getAppSettings } from "@/src/utils/app-settings";
+import { ActionChip, ActionsScroll, MinusButton, QuantityModal } from "@/src/components/HabitCard";
 import PressableScale from "@/src/components/ui/PressableScale";
 import RingChip from "@/src/components/ui/RingChip";
+import StatHero from "@/src/components/ui/StatHero";
+import AnimatedNumber from "@/src/components/ui/AnimatedNumber";
 import { ActiveHabitTimer, getActiveHabitTimer } from "@/src/utils/habit-timer";
 import {
   computeDueReminders,
@@ -114,6 +112,8 @@ export default function TodayScreen() {
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [calendarMonthOffset, setCalendarMonthOffset] = useState(0);
   const [dayModalDate, setDayModalDate] = useState<string | null>(null);
+  const [appSettings, setAppSettings] = useState<AppSettings | null>(null);
+  const [selectedWeekDate, setSelectedWeekDate] = useState(todayYYYYMMDD());
   const [dismissedReminders, setDismissedReminders] = useState<string[]>([]);
   const [mealPresets, setMealPresets] = useState<MealPreset[]>([]);
   const [activeTimerRaw, setActiveTimerRaw] = useState<ActiveHabitTimer | null>(null);
@@ -146,6 +146,7 @@ export default function TodayScreen() {
     setReminders(await getReminders());
     setDismissedReminders(await getDismissedReminderKeys());
     setMealPresets(await getMealPresets());
+    setAppSettings(await getAppSettings());
 
     // Restore an in-progress habit timer (e.g. the app was backgrounded or
     // reloaded mid-countdown) so it keeps running instead of silently
@@ -207,12 +208,22 @@ export default function TodayScreen() {
   const scoreDelta = todayScore.score - yesterdayScore.score;
   const stats = computeAdvancedStats(sessions);
   const xpState = computeXPState({ sessions, habits, habitLogs: logs, prs });
+  const achievementsList = computeAchievements({ sessions, prs, measurements });
+  const unlockedAchievements = achievementsList.filter((a) => a.unlocked).length;
+  const totalAchievements = achievementsList.length;
 
   const primary = actives[0];
   const dayIndex = primary
     ? currentDayIndex(primary.active, primary.program.durationDays)
     : null;
   const totalDays = primary?.program.durationDays ?? null;
+  // "Mon prochain entraînement" doit être nommé, pas juste "démarrer la
+  // séance" générique — on sait déjà quel jour du programme actif on est.
+  const todayProgramDay =
+    primary && dayIndex ? primary.program.days[dayIndex - 1] : null;
+  const isRestDay = todayProgramDay?.rest ?? false;
+  const nextSessionTitle =
+    todayProgramDay && !isRestDay ? todayProgramDay.sessions[0]?.title : null;
 
   const greetingHour = new Date().getHours();
   const greeting =
@@ -222,6 +233,19 @@ export default function TodayScreen() {
     streakDays: stats.currentStreakDays,
     score: todayScore.score,
   });
+
+  // 'auto' résout sur la largeur d'écran (même seuil que les autres points
+  // de bascule mobile/tablette de l'app) : semaine sur mobile, mois sur
+  // tablette/web — recalculé à chaque rendu, la largeur ne change pas très
+  // souvent et ce n'est pas un calcul coûteux.
+  const effectiveCalendarView: Exclude<CalendarViewMode, "auto"> =
+    appSettings?.calendarView === "week"
+      ? "week"
+      : appSettings?.calendarView === "month"
+        ? "month"
+        : Dimensions.get("window").width >= 768
+          ? "month"
+          : "week";
 
   const dueReminders = useMemo(
     () => computeDueReminders(reminders, calendarEvents, dismissedReminders),
@@ -357,6 +381,27 @@ export default function TodayScreen() {
         });
       }
     }
+    // Habitudes du jour — les logs sont déjà indexés par date, donc ça
+    // fonctionne aussi bien pour un jour passé de la semaine que pour
+    // aujourd'hui (contrairement au calendrier mois, qui ne montrait que
+    // des points colorés, jamais le détail des habitudes).
+    for (const h of habits) {
+      if (WELLNESS_DUPLICATE_KINDS.has(h.kind)) continue;
+      const log = logs.find((l) => l.habitId === h.id && l.date === dateStr);
+      const cur = log?.value ?? 0;
+      const target = h.target && h.target > 0 ? h.target : 1;
+      const done = cur >= target;
+      entries.push({
+        key: `h-${h.id}`,
+        emoji: done ? "✅" : "⬜",
+        title: h.unit ? `${h.title} — ${cur}/${target} ${h.unit}` : h.title,
+        time: null,
+        onPress: () => {
+          setDayModalDate(null);
+          router.push(`/habit/${h.id}` as any);
+        },
+      });
+    }
     return entries.sort((a, b) => (a.time ?? "99:99").localeCompare(b.time ?? "99:99"));
   }
 
@@ -388,14 +433,26 @@ export default function TodayScreen() {
     else await setWellnessValue(field, n);
   };
 
-  const bumpHabit = async (habitId: string, current: number, delta: number) => {
+  // Plafonné à `target` — contrairement à l'Eau/Calories/Pas (bumpWellness,
+  // un modèle de données totalement séparé), un dépassement n'a pas de sens
+  // pour une habitude à compter ("Brosser les dents" 2x) : une fois
+  // l'objectif atteint, on bloque l'ajout plutôt que de laisser grimper.
+  const bumpHabit = async (habitId: string, current: number, delta: number, target: number) => {
+    if (current >= target) return;
     Haptics.selectionAsync().catch(() => {});
-    await setHabitValue(habitId, today, Math.max(0, current + delta));
+    await setHabitValue(habitId, today, Math.min(target, Math.max(0, current + delta)));
     load();
   };
 
   const toggleHabit = async (habitId: string, current: number, target: number) => {
-    Haptics.selectionAsync().catch(() => {});
+    // Marquer comme fait est une "victoire" (notification Success) ;
+    // annuler reste un simple selectionAsync, pas une célébration.
+    const willBeDone = current <= 0;
+    if (willBeDone) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    } else {
+      Haptics.selectionAsync().catch(() => {});
+    }
     await setHabitValue(habitId, today, current > 0 ? 0 : target);
     load();
   };
@@ -418,7 +475,7 @@ export default function TodayScreen() {
           {dayIndex && totalDays ? (
             <View style={styles.dayBadge}>
               <Text style={styles.dayLabel}>JOUR</Text>
-              <Text style={styles.dayValue}>{dayIndex}</Text>
+              <AnimatedNumber value={dayIndex} style={styles.dayValue} />
               <Text style={styles.daySub}>/ {totalDays}</Text>
             </View>
           ) : null}
@@ -470,7 +527,11 @@ export default function TodayScreen() {
             <ScoreCircle score={todayScore.score} size={156} />
             <View style={{ flex: 1 }}>
               <Text style={styles.scoreLabel}>IRONFLOW SCORE</Text>
-              <Text style={styles.scoreValue}>{todayScore.score}%</Text>
+              <AnimatedNumber
+                value={todayScore.score}
+                formatter={(n) => `${Math.round(n)}%`}
+                style={styles.scoreValue}
+              />
               <Text style={styles.scoreHint}>{scoreQualitativeLabel(todayScore.score)}</Text>
               {scoreDelta !== 0 && (
                 <View style={styles.scoreDeltaRow}>
@@ -494,60 +555,121 @@ export default function TodayScreen() {
           </PressableScale>
 
           {/* Le CTA porte lui-même le statut de la séance du jour — plus
-              besoin d'une carte "Séance" séparée juste pour l'afficher. */}
+              besoin d'une carte "Séance" séparée juste pour l'afficher.
+              Quand un programme actif existe, il nomme la séance du jour
+              (« mon prochain entraînement ») plutôt qu'un libellé générique ;
+              un jour de repos programmé se présente différemment d'une
+              action à faire. */}
           <PressableScale
             testID="start-session"
-            style={[styles.mainCta, todayScore.workoutDone && styles.mainCtaDone]}
+            style={[
+              styles.mainCta,
+              todayScore.workoutDone && styles.mainCtaDone,
+              !todayScore.workoutDone && isRestDay && styles.mainCtaRest,
+            ]}
             onPress={() => router.push(todayScore.workoutDone ? "/training" : "/plans")}
           >
             <Ionicons
-              name={todayScore.workoutDone ? "checkmark-circle" : "flame"}
+              name={
+                todayScore.workoutDone
+                  ? "checkmark-circle"
+                  : isRestDay
+                    ? "moon"
+                    : "flame"
+              }
               size={20}
-              color={todayScore.workoutDone ? colors.success : "#fff"}
+              color={
+                todayScore.workoutDone
+                  ? colors.success
+                  : isRestDay
+                    ? colors.progressSecondary
+                    : "#fff"
+              }
             />
             <Text
-              style={[styles.mainCtaText, todayScore.workoutDone && styles.mainCtaTextDone]}
+              style={[
+                styles.mainCtaText,
+                todayScore.workoutDone && styles.mainCtaTextDone,
+                !todayScore.workoutDone && isRestDay && styles.mainCtaTextRest,
+              ]}
+              numberOfLines={1}
             >
-              {todayScore.workoutDone ? "SÉANCE TERMINÉE" : "DÉMARRER LA SÉANCE"}
+              {todayScore.workoutDone
+                ? "SÉANCE TERMINÉE"
+                : isRestDay
+                  ? "JOUR DE REPOS"
+                  : nextSessionTitle
+                    ? `DÉMARRER : ${nextSessionTitle.toUpperCase()}`
+                    : "DÉMARRER LA SÉANCE"}
             </Text>
           </PressableScale>
+          {actives.length === 0 && (
+            <Text style={styles.heroEmptyHint}>
+              Choisis un programme pour commencer ton parcours
+            </Text>
+          )}
         </View>
 
-        {/* Bande de stats — Niveau + Streak côte à côte, remplace deux
-            cartes pleine largeur ; le détail (barre XP, badges) reste à un
-            tap de distance sur /profile, rien n'est supprimé. */}
-        <View style={styles.statsStrip}>
-          <PressableScale
-            testID="xp-card"
-            style={styles.statPill}
-            onPress={() => router.push("/profile")}
-          >
-            <View style={styles.statPillBadge}>
-              <Text style={styles.statPillBadgeNum}>{xpState.level}</Text>
+        {/* Carte "cockpit" Niveau/XP/Streak/Trophées — remplace les deux
+            pastilles Niveau+Streak par une seule carte héros premium :
+            aucune donnée nouvelle à calculer, tout (progression XP, prochain
+            badge, streak actuel/record, trophées débloqués) est déjà
+            exposé par xp.ts/stats.ts/achievements.ts, juste jamais composé
+            visuellement ensemble jusqu'ici. */}
+        <PressableScale testID="xp-card" style={styles.cockpitCard} onPress={() => router.push("/profile")}>
+          <View style={styles.cockpitTop}>
+            <View style={styles.cockpitLevelBadge}>
+              <Text style={styles.cockpitLevelBadgeNum}>{xpState.level}</Text>
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.statPillLabel}>NIVEAU {xpState.level}</Text>
-              <Text style={styles.statPillValue}>
+              <Text style={styles.cockpitLevelLabel}>NIVEAU {xpState.level}</Text>
+              <View style={styles.cockpitXpBar}>
+                <View style={[styles.cockpitXpFill, { width: `${xpState.progress * 100}%` }]} />
+              </View>
+              <Text style={styles.cockpitXpCaption}>
                 {xpState.xpToNext} XP → N{xpState.level + 1}
+                {xpState.nextBadge
+                  ? ` · Prochain badge : ${xpState.nextBadge.emoji} ${xpState.nextBadge.title}`
+                  : ""}
               </Text>
             </View>
-          </PressableScale>
-          <PressableScale
-            testID="streak-hero"
-            style={styles.statPill}
-            onPress={() => router.push("/stats")}
-          >
-            <View style={[styles.statPillBadge, { backgroundColor: "#FF5722" }]}>
-              <Ionicons name="flame" size={18} color="#fff" />
+          </View>
+          <View style={styles.cockpitDivider} />
+          <View style={styles.cockpitBottom}>
+            <View style={styles.cockpitStat}>
+              <Ionicons name="flame-outline" size={14} color={colors.onSurfaceTertiary} />
+              <AnimatedNumber
+                value={stats.currentStreakDays}
+                formatter={(n) => `${Math.round(n)} j`}
+                style={styles.cockpitStatValue}
+              />
+              <Text style={styles.cockpitStatLabel}>Streak</Text>
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.statPillLabel}>STREAK</Text>
-              <Text style={styles.statPillValue}>
-                {stats.currentStreakDays} jour{stats.currentStreakDays > 1 ? "s" : ""}
+            <View style={styles.cockpitStat}>
+              <Ionicons name="trophy-outline" size={14} color={colors.onSurfaceTertiary} />
+              <AnimatedNumber
+                value={stats.bestStreakDays}
+                formatter={(n) => `${Math.round(n)} j`}
+                style={styles.cockpitStatValue}
+              />
+              <Text style={styles.cockpitStatLabel}>Record</Text>
+            </View>
+            <Pressable
+              testID="achievements-link"
+              style={styles.cockpitStat}
+              onPress={(e) => {
+                e.stopPropagation?.();
+                router.push("/achievements");
+              }}
+            >
+              <Ionicons name="ribbon-outline" size={14} color={colors.onSurfaceTertiary} />
+              <Text style={styles.cockpitStatValue}>
+                {unlockedAchievements}/{totalAchievements}
               </Text>
-            </View>
-          </PressableScale>
-        </View>
+              <Text style={styles.cockpitStatLabel}>Trophées</Text>
+            </Pressable>
+          </View>
+        </PressableScale>
 
         {/* Aujourd'hui — anneaux compacts pour Eau/Calories/Pas (remplace 3
             cartes pleine largeur empilées) : plus glanceable, esprit
@@ -563,8 +685,18 @@ export default function TodayScreen() {
             <Text style={styles.widgetsMoreLink}>Gérer</Text>
           </Pressable>
         </View>
-        <EnterItem index={0}>
-          <View style={styles.ringsRow}>
+        {/* Grille unique Eau/Calories/Pas + habitudes — même langage visuel
+            partout (tuile + anneau de progression), contrairement à l'ancien
+            découpage rangée-de-3-anneaux + liste verticale de grosses lignes
+            d'habitudes. `flexWrap` + cellules à largeur fixe ("31%", même
+            idiome que `cardWrap:{width:"48%"}` de la Bibliothèque) plutôt que
+            `flex:1` sur RingChip, qui ne se comporte correctement que pour
+            exactement 3 enfants par ligne. */}
+        <View style={styles.todayGrid}>
+          <Animated.View
+            style={styles.todayTile}
+            entering={FadeInDown.delay(0).duration(motion.base)}
+          >
             <RingChip
               testID="widget-water"
               icon="water"
@@ -575,6 +707,11 @@ export default function TodayScreen() {
               onPress={() => setQuantityModal({ which: "water", mode: "set" })}
               onQuickAdd={() => bumpWellness("water_ml", 250)}
             />
+          </Animated.View>
+          <Animated.View
+            style={styles.todayTile}
+            entering={FadeInDown.delay(30).duration(motion.base)}
+          >
             <RingChip
               testID="widget-calories"
               icon="nutrition"
@@ -584,6 +721,11 @@ export default function TodayScreen() {
               target={profile?.calories_target_kcal || DEFAULT_CALORIES_TARGET_KCAL}
               onPress={() => setQuantityModal({ which: "calories", mode: "set" })}
             />
+          </Animated.View>
+          <Animated.View
+            style={styles.todayTile}
+            entering={FadeInDown.delay(60).duration(motion.base)}
+          >
             <RingChip
               testID="widget-steps"
               icon="footsteps"
@@ -594,9 +736,7 @@ export default function TodayScreen() {
               onPress={() => setQuantityModal({ which: "steps", mode: "set" })}
               onQuickAdd={() => bumpWellness("steps", 1000)}
             />
-          </View>
-        </EnterItem>
-        <View style={styles.listCol}>
+          </Animated.View>
           {/* Habits — excludes kinds already covered by the Eau / Calories /
               Pas rings above, to avoid showing the same daily metric twice. */}
           {habits
@@ -605,33 +745,54 @@ export default function TodayScreen() {
               const cur =
                 logs.find((l) => l.habitId === h.id && l.date === today)?.value ?? 0;
               const target = h.target && h.target > 0 ? h.target : 1;
+              const color = h.color ?? "#4CAF50";
+              const iconName = (h.kind ? HABIT_KIND_ICON[h.kind] : "star") as any;
+              const isTimed = h.unit === "min";
+              const isCheckbox = !isTimed && target <= 1;
+              const done = cur >= target;
+              const step = niceStep(target);
+              const onOpen = () => router.push(`/habit/${h.id}` as any);
               return (
-                <EnterItem key={h.id} index={4 + i}>
-                  <CustomHabitCard
-                    habit={h}
-                    current={cur}
+                <Animated.View
+                  key={h.id}
+                  style={styles.todayTile}
+                  entering={FadeInDown.delay(Math.min(3 + i, 10) * 30).duration(motion.base)}
+                >
+                  <RingChip
+                    testID={`widget-${h.id}`}
+                    icon={iconName}
+                    color={color}
+                    label={h.title}
+                    value={cur}
                     target={target}
-                    activeTimer={activeTimerRaw}
-                    onBump={(delta) => bumpHabit(h.id, cur, delta)}
-                    onToggle={() => toggleHabit(h.id, cur, target)}
-                    onOpen={() => router.push(`/habit/${h.id}` as any)}
-                    onStartTimer={() => setTimerHabit(h)}
-                    onDelete={async () => {
-                      await deleteHabit(h.id);
-                      load();
-                    }}
+                    done={!isTimed && !isCheckbox && done}
+                    onPress={
+                      isTimed
+                        ? () => setTimerHabit(h)
+                        : isCheckbox
+                          ? () => toggleHabit(h.id, cur, target)
+                          : done
+                            ? onOpen
+                            : () => bumpHabit(h.id, cur, 1, target)
+                    }
+                    onQuickAdd={
+                      !isTimed && !isCheckbox && !done && step > 1
+                        ? () => bumpHabit(h.id, cur, step, target)
+                        : undefined
+                    }
+                    onLongPress={onOpen}
                   />
-                </EnterItem>
+                </Animated.View>
               );
             })}
           {/* Add habit */}
           <PressableScale
             testID="add-habit-widget"
-            style={styles.addListItem}
+            style={styles.todayTileAdd}
             onPress={() => router.push("/habit/new" as any)}
           >
-            <Ionicons name="add-circle" size={20} color={colors.brand} />
-            <Text style={styles.addWidgetLabel}>Nouvelle habitude</Text>
+            <Ionicons name="add" size={22} color={colors.brand} />
+            <Text style={styles.todayTileAddLabel}>Nouvelle</Text>
           </PressableScale>
         </View>
 
@@ -706,13 +867,23 @@ export default function TodayScreen() {
             <Ionicons name="add-circle" size={20} color={colors.brand} />
           </Pressable>
         </View>
-        <CalendarView
-          sessions={sessions}
-          monthOffset={calendarMonthOffset}
-          onChangeMonth={setCalendarMonthOffset}
-          events={calDayEvents}
-          onDayPress={setDayModalDate}
-        />
+        {effectiveCalendarView === "week" ? (
+          <WeekCalendarView
+            sessions={sessions}
+            selectedDate={selectedWeekDate}
+            onSelectDate={setSelectedWeekDate}
+            getEventsForDate={eventsForDate}
+            onAddEvent={(dateStr) => router.push(`/calendar-event/new?date=${dateStr}` as any)}
+          />
+        ) : (
+          <CalendarView
+            sessions={sessions}
+            monthOffset={calendarMonthOffset}
+            onChangeMonth={setCalendarMonthOffset}
+            events={calDayEvents}
+            onDayPress={setDayModalDate}
+          />
+        )}
 
         <View style={{ height: 40 }} />
       </ScrollView>
@@ -876,110 +1047,6 @@ function niceStep(target: number): number {
   return Math.max(1, Math.round(raw / pow10) * pow10);
 }
 
-function CustomHabitCard({
-  habit,
-  current,
-  target,
-  activeTimer,
-  onBump,
-  onToggle,
-  onOpen,
-  onStartTimer,
-  onDelete,
-}: {
-  habit: Habit;
-  current: number;
-  target: number;
-  activeTimer: ActiveHabitTimer | null;
-  onBump: (delta: number) => void;
-  onToggle: () => void;
-  onOpen: () => void;
-  onStartTimer: () => void;
-  onDelete: () => void | Promise<void>;
-}) {
-  const color = habit.color ?? "#4CAF50";
-  const iconName = (habit.kind ? HABIT_KIND_ICON[habit.kind] : "star") as any;
-  const isTimed = habit.unit === "min";
-  const isCheckbox = !isTimed && target <= 1;
-  const done = current >= target;
-
-  let actions: ReactNode;
-  if (isTimed) {
-    const forThis = activeTimer?.habitId === habit.id ? activeTimer : null;
-    const label = !forThis ? "Commencer" : forThis.status === "running" ? "En cours" : "Reprendre";
-    actions = (
-      <ActionsRow>
-        <WideActionButton
-          testID={`widget-${habit.id}-start`}
-          label={label}
-          icon="play"
-          color={color}
-          onPress={onStartTimer}
-        />
-      </ActionsRow>
-    );
-  } else if (isCheckbox) {
-    actions = (
-      <ActionsRow>
-        <WideActionButton
-          testID={`widget-${habit.id}-toggle`}
-          label={done ? "Fait aujourd'hui ✓" : "Marquer comme fait"}
-          icon={done ? "checkmark-circle" : "ellipse-outline"}
-          color={color}
-          onPress={onToggle}
-        />
-      </ActionsRow>
-    );
-  } else {
-    const step = niceStep(target);
-    actions = (
-      <ActionsRow>
-        <ActionChip testID={`widget-${habit.id}-plus1`} label="+1" onPress={() => onBump(1)} />
-        {step > 1 && (
-          <ActionChip
-            testID={`widget-${habit.id}-plusstep`}
-            label={`+${step}`}
-            onPress={() => onBump(step)}
-          />
-        )}
-        <ActionChip
-          testID={`widget-${habit.id}-modify`}
-          label="Modifier"
-          color={color}
-          onPress={onOpen}
-        />
-      </ActionsRow>
-    );
-  }
-
-  return (
-    <SwipeableRow
-      testID={`widget-${habit.id}`}
-      onDelete={onDelete}
-      deleteConfirm={{
-        title: "Supprimer cette habitude ?",
-        message: `"${habit.title}" — cette action est définitive.`,
-        confirmLabel: "SUPPRIMER",
-        destructive: true,
-      }}
-      onEdit={onOpen}
-    >
-      <HabitCard
-        testId={`widget-${habit.id}`}
-        icon={iconName}
-        color={color}
-        title={habit.title}
-        value={current}
-        target={target}
-        unit={habit.unit ?? undefined}
-        onPressValue={isTimed ? undefined : isCheckbox ? onToggle : () => onBump(1)}
-        onLongPress={onOpen}
-        actions={actions}
-      />
-    </SwipeableRow>
-  );
-}
-
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 /** Progression (score, XP) is deliberately violet, not brand orange — the
@@ -1026,29 +1093,10 @@ function ScoreCircle({ score, size = 96 }: { score: number; size?: number }) {
           transform={`rotate(-90 ${size / 2} ${size / 2})`}
         />
       </Svg>
-      <View style={{ position: "absolute", alignItems: "center" }}>
-        <Text
-          style={{
-            color: colors.onSurface,
-            fontSize: size >= 140 ? 36 : 22,
-            fontWeight: "800",
-          }}
-        >
-          {score}%
-        </Text>
+      <View style={{ position: "absolute" }}>
+        <StatHero value={score} unit="%" size={size >= 140 ? "lg" : "sm"} />
       </View>
     </View>
-  );
-}
-
-/** Cascade d'entrée pour la liste "Aujourd'hui" — un fondu + léger glissement
- * décalé par carte, plafonné pour qu'une longue liste d'habitudes ne fasse
- * jamais attendre les dernières cartes plus que les premières. */
-function EnterItem({ index, children }: { index: number; children: ReactNode }) {
-  return (
-    <Animated.View entering={FadeInDown.delay(Math.min(index, 8) * 30).duration(motion.base)}>
-      {children}
-    </Animated.View>
   );
 }
 
@@ -1131,14 +1179,11 @@ const styles = StyleSheet.create({
   daySub: { color: colors.progressSecondary, fontSize: 11, fontWeight: "700" },
   // Module héros : un seul bloc élevé (Score + CTA) au lieu de trois cartes
   // de poids égal — devient le point focal réel de l'écran.
+  // Plus de carte bordée autour du score — l'anneau doit être l'ancre
+  // visuelle autonome de l'écran, pas un élément de plus imbriqué dans un
+  // rectangle parmi d'autres (retour utilisateur "trop de rectangles").
   heroCard: {
-    backgroundColor: colors.surfaceSecondary,
-    padding: spacing.lg,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
     gap: spacing.md,
-    ...shadow.elevated,
   },
   heroScoreRow: {
     flexDirection: "row",
@@ -1163,40 +1208,56 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   scoreDeltaText: { fontSize: 11, fontWeight: "700" },
-  // Bande de stats — 2 pastilles compactes remplaçant les anciennes cartes
-  // XP et Streak pleine largeur.
-  statsStrip: { flexDirection: "row", gap: spacing.sm },
-  statPill: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
+  // Carte "cockpit" (POLISH V2) — remplace les 2 pastilles Niveau/Streak par
+  // une seule carte héros (shadow.card : c'est une des 1-2 cartes les plus
+  // importantes de l'écran, cf. la règle documentée dans Card.tsx/theme.ts).
+  cockpitCard: {
     backgroundColor: colors.surfaceSecondary,
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.border,
-    padding: spacing.sm,
+    padding: spacing.md,
+    gap: spacing.sm,
+    ...shadow.card,
   },
-  statPillBadge: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+  cockpitTop: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+  cockpitLevelBadge: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     backgroundColor: colors.progress,
     alignItems: "center",
     justifyContent: "center",
   },
-  statPillBadgeNum: { color: "#fff", fontWeight: "800", fontSize: 15 },
-  statPillLabel: {
+  cockpitLevelBadgeNum: { color: "#fff", fontWeight: "800", fontSize: 12 },
+  cockpitLevelLabel: {
     color: colors.onSurfaceTertiary,
     fontSize: 9,
     fontWeight: "800",
     letterSpacing: 0.6,
+    marginBottom: 3,
   },
-  statPillValue: {
+  cockpitXpBar: {
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: colors.surfaceTertiary,
+    overflow: "hidden",
+  },
+  cockpitXpFill: { height: "100%", borderRadius: 3, backgroundColor: colors.progress },
+  cockpitXpCaption: {
     color: colors.onSurface,
-    fontSize: 12,
-    fontWeight: "800",
-    marginTop: 1,
+    fontSize: 11,
+    fontWeight: "700",
+    marginTop: 4,
+  },
+  cockpitDivider: { height: 1, backgroundColor: colors.divider },
+  cockpitBottom: { flexDirection: "row" },
+  cockpitStat: { flex: 1, alignItems: "center", gap: 2 },
+  cockpitStatValue: { color: colors.onSurface, fontSize: 13, fontWeight: "800" },
+  cockpitStatLabel: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 9,
+    fontWeight: "700",
   },
   mainCta: {
     backgroundColor: colors.brand,
@@ -1221,6 +1282,20 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
   },
   mainCtaTextDone: { color: colors.success },
+  // Jour de repos programmé : ni une action pressante (orange), ni une
+  // victoire (vert) — un état calme, neutre, dans la famille violette.
+  mainCtaRest: {
+    backgroundColor: colors.surfaceTertiary,
+    borderWidth: 1,
+    borderColor: colors.progressTertiary,
+  },
+  mainCtaTextRest: { color: colors.progressSecondary },
+  heroEmptyHint: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 12,
+    textAlign: "center",
+    marginTop: -spacing.xs,
+  },
   progCard: {
     flexDirection: "row",
     alignItems: "center",
@@ -1346,36 +1421,37 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "700",
   },
-  listCol: {
-    gap: spacing.sm,
-  },
-  ringsRow: {
+  // Grille unique Eau/Calories/Pas + habitudes (POLISH V2) — remplace
+  // l'ancienne rangée fixe de 3 anneaux + liste verticale de grosses lignes
+  // d'habitudes : même langage visuel partout (tuile + anneau), densité
+  // homogène quel que soit le nombre d'habitudes.
+  todayGrid: {
     flexDirection: "row",
-    backgroundColor: colors.surfaceSecondary,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
+    flexWrap: "wrap",
+    rowGap: spacing.lg,
+    columnGap: spacing.sm,
+    borderBottomWidth: 1,
+    borderColor: colors.divider,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.sm,
     marginBottom: spacing.sm,
   },
-  addListItem: {
-    flexDirection: "row",
+  todayTile: { width: "31%", alignItems: "center" },
+  todayTileAdd: {
+    width: "31%",
+    height: 76,
     alignItems: "center",
     justifyContent: "center",
-    gap: 6,
-    backgroundColor: colors.surfaceSecondary,
+    gap: 2,
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.brand,
     borderStyle: "dashed",
-    padding: spacing.md,
   },
-  addWidgetLabel: {
+  todayTileAddLabel: {
     color: colors.brand,
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: "800",
-    textAlign: "center",
   },
   calHeaderRow: {
     flexDirection: "row",

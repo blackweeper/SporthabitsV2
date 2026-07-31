@@ -13,9 +13,11 @@
 import { EXERCISE_MUSCLE_GROUPS } from "../../src/utils/exercise-muscle-groups";
 import { MOVEMENT_PATTERNS } from "../../src/utils/exercise-movement-pattern";
 import { EXERCISE_DIFFICULTIES } from "../../src/utils/exercise-difficulty";
+import { TRAINING_GOALS } from "../../src/utils/exercise-training-goal";
+import { DISCIPLINES } from "../../src/utils/exercise-discipline";
 import type { ExerciseRecord, ExerciseEnrichment, ExerciseLocaleContent } from "../../src/utils/exercise-records";
 
-export const TEMPLATE_VERSION = 1;
+export const TEMPLATE_VERSION = 3;
 
 export const MUSCLE_GROUP_VALUES = EXERCISE_MUSCLE_GROUPS.map((g) => g.key);
 export const MOVEMENT_PATTERN_VALUES = MOVEMENT_PATTERNS;
@@ -31,19 +33,29 @@ export const EXERCISE_TYPE_VALUES = [
 ] as const;
 export const TECHNICAL_LEVEL_VALUES = ["low", "medium", "high"] as const;
 export const EQUIPMENT_LEVEL_VALUES = ["none", "basic", "gym"] as const;
-export const TRAINING_GOAL_VALUES = [
-  "strength",
-  "hypertrophy",
-  "endurance",
-  "conditioning",
-  "mobility",
-  "rehabilitation",
-  "hyrox",
-  "crossfit",
-  "running",
-  "power",
-  "stability",
-] as const;
+export const FATIGUE_LEVEL_VALUES = ["low", "medium", "high"] as const;
+export const TRAINING_GOAL_VALUES = TRAINING_GOALS;
+export const DISCIPLINE_VALUES = DISCIPLINES;
+
+/** Real WorkoutX exercise objects carry `popularityRank` (1-5) in `raw` —
+ * free, already fetched, no extra computation needed. Shared between the
+ * enrichment processing-order heuristic (`enrich-library-content-ollama.ts`)
+ * and the official-300 curation scoring (`curate-official-library.ts`) so
+ * both agree on what counts as a "foundational" movement. */
+export const FOUNDATIONAL_MOVEMENT_KEYWORDS = [
+  "squat",
+  "deadlift",
+  "bench press",
+  "pull-up",
+  "pull up",
+  "overhead press",
+  "row",
+  "clean",
+  "snatch",
+  "push-up",
+  "push up",
+  "lunge",
+];
 
 export type GeneratedFiche = {
   name: string;
@@ -53,6 +65,10 @@ export type GeneratedFiche = {
   commonMistakes: string[];
   breathingTips: string | null;
   precautions: string | null;
+  /** "Pourquoi faire cet exercice" — voix IronFlow, jamais générique. */
+  rationale: string;
+  /** Échauffement spécifique conseillé ; null si un échauffement générique suffit. */
+  warmupSuggestion: string | null;
   verifiedPrimaryMuscle: string;
   verifiedSecondaryMuscles: string[];
   exerciseType: string;
@@ -66,6 +82,19 @@ export type GeneratedFiche = {
   progressionExercises: { name: string }[];
   regressionExercises: { name: string }[];
   coachNotes: { execution: string[]; programming: string[]; safety: string[] };
+  fatigueLevel: string;
+  /** Une entrée par objectif de `trainingGoals` pour lequel un repos
+   * spécifique a du sens — vide si le repos standard suffit partout. */
+  restTimeByGoal: { goal: string; restTime: string }[];
+  alternativeEquipment: string[];
+  disciplines: string[];
+  /** Chaque erreur fréquente appariée à sa correction technique — remplace
+   * "commonMistakes" (simple liste) une fois l'enrichment passé. */
+  mistakeCorrections: { mistake: string; correction: string }[];
+  /** Une entrée par niveau (parmi "difficulty") pour lequel une note et/ou
+   * des prérequis apportent vraiment quelque chose — vide ou partiel sinon,
+   * jamais rempli artificiellement pour les 3 niveaux. */
+  levelGuidance: { level: string; note: string | null; prerequisites: string[] }[];
 };
 
 /** Raw JSON Schema for one generated fiche — wrapped into an Anthropic tool
@@ -81,6 +110,14 @@ export const ENRICHMENT_JSON_SCHEMA = {
     commonMistakes: { type: "array", items: { type: "string" } },
     breathingTips: { type: ["string", "null"], description: "null si non pertinent pour cet exercice." },
     precautions: { type: ["string", "null"], description: "null si aucune contre-indication réelle." },
+    rationale: {
+      type: "string",
+      description: "Pourquoi faire cet exercice — sa place et son intérêt dans un programme, voix IronFlow.",
+    },
+    warmupSuggestion: {
+      type: ["string", "null"],
+      description: "Échauffement spécifique ; null si un échauffement générique suffit.",
+    },
     verifiedPrimaryMuscle: { type: "string", enum: MUSCLE_GROUP_VALUES },
     verifiedSecondaryMuscles: { type: "array", items: { type: "string", enum: MUSCLE_GROUP_VALUES } },
     exerciseType: { type: "string", enum: EXERCISE_TYPE_VALUES },
@@ -122,6 +159,49 @@ export const ENRICHMENT_JSON_SCHEMA = {
       },
       required: ["execution", "programming", "safety"],
     },
+    fatigueLevel: { type: "string", enum: FATIGUE_LEVEL_VALUES },
+    restTimeByGoal: {
+      type: "array",
+      description: "Une entrée par objectif nécessitant un repos spécifique ; vide si le repos standard suffit.",
+      items: {
+        type: "object",
+        properties: {
+          goal: { type: "string", enum: TRAINING_GOAL_VALUES },
+          restTime: { type: "string" },
+        },
+        required: ["goal", "restTime"],
+      },
+    },
+    alternativeEquipment: {
+      type: "array",
+      description: "Matériel de substitution si l'équipement principal n'est pas disponible ; vide si non applicable.",
+      items: { type: "string" },
+    },
+    disciplines: { type: "array", items: { type: "string", enum: DISCIPLINE_VALUES } },
+    mistakeCorrections: {
+      type: "array",
+      description:
+        "Une entrée par erreur fréquente, chacune avec sa correction technique précise. Remplace commonMistakes en plus riche.",
+      items: {
+        type: "object",
+        properties: { mistake: { type: "string" }, correction: { type: "string" } },
+        required: ["mistake", "correction"],
+      },
+    },
+    levelGuidance: {
+      type: "array",
+      description:
+        "Une entrée par niveau pour lequel il y a une vraie note ou de vrais prérequis à donner ; vide si aucun niveau n'a besoin de guidance spécifique pour cet exercice.",
+      items: {
+        type: "object",
+        properties: {
+          level: { type: "string", enum: DIFFICULTY_VALUES },
+          note: { type: ["string", "null"] },
+          prerequisites: { type: "array", items: { type: "string" } },
+        },
+        required: ["level", "note", "prerequisites"],
+      },
+    },
   },
   required: [
     "name",
@@ -131,6 +211,8 @@ export const ENRICHMENT_JSON_SCHEMA = {
     "commonMistakes",
     "breathingTips",
     "precautions",
+    "rationale",
+    "warmupSuggestion",
     "verifiedPrimaryMuscle",
     "verifiedSecondaryMuscles",
     "exerciseType",
@@ -144,6 +226,12 @@ export const ENRICHMENT_JSON_SCHEMA = {
     "progressionExercises",
     "regressionExercises",
     "coachNotes",
+    "fatigueLevel",
+    "restTimeByGoal",
+    "alternativeEquipment",
+    "disciplines",
+    "mistakeCorrections",
+    "levelGuidance",
   ],
 };
 
@@ -152,11 +240,18 @@ export function buildSystemPrompt(): string {
 
 RÈGLES STRICTES :
 - Jamais une traduction littérale : rédige comme un coach qui explique l'exercice à un pratiquant, avec un vocabulaire naturel et professionnel.
+- VOIX IRONFLOW (règle la plus importante) : "executionTips", "coachNotes" et "rationale" ne sont PAS des conseils génériques de manuel — l'utilisateur doit sentir qu'IronFlow lui apprend concrètement quelque chose de spécifique à CET exercice précis. Bannis les formulations passe-partout ("gardez le dos droit", "contrôlez le mouvement") sauf si tu les rends concrètes et propres à ce mouvement précis (angle, repère corporel, sensation recherchée). Si un conseil pourrait être copié-collé sur n'importe quel autre exercice sans rien changer, ne l'écris pas.
 - Utilise UNIQUEMENT les valeurs autorisées listées ci-dessous pour les champs à vocabulaire fermé — n'invente jamais de valeur hors liste.
-- "breathingTips" et "precautions" : renvoie null si ce n'est pas pertinent pour cet exercice précis — ne remplis jamais artificiellement juste pour donner une impression d'homogénéité.
+- "breathingTips", "precautions", "warmupSuggestion" : renvoie null si ce n'est pas pertinent pour cet exercice précis — ne remplis jamais artificiellement juste pour donner une impression d'homogénéité.
+- "rationale" : un court paragraphe (2-3 phrases) sur POURQUOI cet exercice mérite sa place dans un programme — jamais une redite de "description".
+- "restTimeByGoal" : uniquement les objectifs de "trainingGoals" pour lesquels un repos différent du standard a un vrai sens ; tableau vide sinon.
+- "alternativeEquipment" : uniquement si un vrai substitut existe pour CET exercice précis ; tableau vide sinon.
+- "disciplines" : les disciplines/programmes où cet exercice est particulièrement pertinent (pas juste "musculation" par défaut pour tout ce qui est en salle — réserve ce tag aux exercices vraiment centraux en musculation généraliste).
+- "mistakeCorrections" : chaque erreur DOIT être appariée à sa correction technique concrète (pas juste "à éviter" — dis QUOI faire à la place) ; remplit ce champ même si "commonMistakes" existe déjà, il est plus riche.
+- "levelGuidance" : une entrée par niveau (parmi "difficulty") seulement quand ce niveau précis a vraiment besoin d'une note ou de prérequis pour CET exercice — jamais les 3 niveaux par défaut. "prerequisites" reste vide s'il n'y en a pas.
 - "tags" : vocabulaire libre mais contrôlé et cohérent (ex : force, hypertrophie, endurance, mobilité, poussée, tirage, compound, isolation, poids du corps, haltères, barre, kettlebell, cardio, plyométrie...).
 - "progressionExercises"/"regressionExercises" : uniquement des exercices réels et connus ; tableau vide si rien de clairement pertinent — jamais forcé.
-- Les données fournies (nom, muscles, équipement, catégorie, difficulté, description et instructions déjà en français) sont la base factuelle : ne les invente pas, mais élabore dessus en coach professionnel plutôt que de les paraphraser mot à mot. "name"/"description"/"instructions" peuvent reprendre le texte fourni tel quel s'il est déjà bon, ou l'améliorer légèrement — l'essentiel de ta valeur ajoutée est dans les champs que les données fournies ne couvrent pas (coachNotes, erreurs fréquentes détaillées, objectifs d'entraînement, activation musculaire, variantes).
+- Les données fournies (nom, muscles, équipement, catégorie, difficulté, description et instructions déjà en français) sont la base factuelle : ne les invente pas, mais élabore dessus en coach professionnel plutôt que de les paraphraser mot à mot. "name"/"description"/"instructions" peuvent reprendre le texte fourni tel quel s'il est déjà bon, ou l'améliorer légèrement — l'essentiel de ta valeur ajoutée est dans les champs que les données fournies ne couvrent pas (coachNotes, rationale, erreurs fréquentes détaillées, objectifs d'entraînement, activation musculaire, variantes, disciplines).
 - Réponds UNIQUEMENT en appelant l'outil "submit_exercise_fiche" avec tous les champs remplis — jamais de texte libre en dehors de cet appel.
 
 Valeurs autorisées :
@@ -165,8 +260,10 @@ Valeurs autorisées :
 - difficulty : ${DIFFICULTY_VALUES.join(", ")}
 - technicalLevel : ${TECHNICAL_LEVEL_VALUES.join(", ")}
 - equipmentLevel : ${EQUIPMENT_LEVEL_VALUES.join(", ")}
-- trainingGoals : ${TRAINING_GOAL_VALUES.join(", ")}
-- movementPatterns : ${MOVEMENT_PATTERN_VALUES.join(", ")}`;
+- trainingGoals (aussi les clés valides de restTimeByGoal.goal) : ${TRAINING_GOAL_VALUES.join(", ")}
+- movementPatterns : ${MOVEMENT_PATTERN_VALUES.join(", ")}
+- fatigueLevel : ${FATIGUE_LEVEL_VALUES.join(", ")}
+- disciplines : ${DISCIPLINE_VALUES.join(", ")}`;
 }
 
 /** Feeds the model WorkoutX's own French text (`nameFr`/`description`/
@@ -275,6 +372,11 @@ export function mergeEnrichment(
     commonMistakes: prevContent.commonMistakes ?? generated.commonMistakes,
     breathingTips: prevContent.breathingTips !== undefined ? prevContent.breathingTips : generated.breathingTips,
     precautions: prevContent.precautions !== undefined ? prevContent.precautions : generated.precautions,
+    rationale: prevContent.rationale ?? generated.rationale,
+    warmupSuggestion:
+      prevContent.warmupSuggestion !== undefined ? prevContent.warmupSuggestion : generated.warmupSuggestion,
+    mistakeCorrections:
+      prevContent.mistakeCorrections ?? (generated.mistakeCorrections.length ? generated.mistakeCorrections : null),
   };
 
   const next: ExerciseEnrichment = {
@@ -303,6 +405,23 @@ export function mergeEnrichment(
     regressionExercises:
       existing?.regressionExercises ?? generated.regressionExercises.map((p) => ({ name: p.name, id: null })),
     coachNotes: existing?.coachNotes ?? generated.coachNotes,
+    fatigueLevel: existing?.fatigueLevel ?? (generated.fatigueLevel as ExerciseEnrichment["fatigueLevel"]),
+    restTimeByGoal:
+      existing?.restTimeByGoal ??
+      (generated.restTimeByGoal.length
+        ? (Object.fromEntries(
+            generated.restTimeByGoal.map((r) => [r.goal, r.restTime]),
+          ) as ExerciseEnrichment["restTimeByGoal"])
+        : null),
+    alternativeEquipment: existing?.alternativeEquipment ?? (generated.alternativeEquipment.length ? generated.alternativeEquipment : null),
+    disciplines: existing?.disciplines ?? (generated.disciplines as ExerciseEnrichment["disciplines"]),
+    levelGuidance:
+      existing?.levelGuidance ??
+      (generated.levelGuidance.length
+        ? (Object.fromEntries(
+            generated.levelGuidance.map((g) => [g.level, { note: g.note, prerequisites: g.prerequisites }]),
+          ) as ExerciseEnrichment["levelGuidance"])
+        : null),
     templateVersion: TEMPLATE_VERSION,
     updatedAt: new Date().toISOString(),
   };

@@ -4,6 +4,9 @@ import type { ExerciseMuscleGroup } from "@/src/utils/exercise-muscle-groups";
 import type { ExerciseEquipment } from "@/src/utils/exercise-equipment";
 import type { ExerciseDifficulty } from "@/src/utils/exercise-difficulty";
 import type { MovementPattern } from "@/src/utils/exercise-movement-pattern";
+import type { TrainingGoal } from "@/src/utils/exercise-training-goal";
+import type { Discipline } from "@/src/utils/exercise-discipline";
+import type { FutureCollection } from "@/src/utils/exercise-collection";
 
 /**
  * Phase B1/B3 — professional exercise library data model.
@@ -27,6 +30,32 @@ import type { MovementPattern } from "@/src/utils/exercise-movement-pattern";
  * `workoutx` records without touching `custom` ones.
  */
 export type ExerciseRecordSource = "system" | "workoutx" | "custom";
+
+/**
+ * Bibliothèque officielle IronFlow 300 — editorial/catalogue priority, not
+ * AI-generated content (hence top-level on `ExerciseRecord`, not nested in
+ * `enrichment`). An exercise can be `essential` before it has any
+ * enrichment at all; that will even be the norm at first.
+ *
+ * `essential`       — the ~50 flagship IronFlow movements, highlighted in the app.
+ * `official_core`   — the rest of the curated ~300, included by default (not highlighted).
+ * `collection_only`  — the remaining ~1048, hidden by default, reserved for future downloadable Collections.
+ * `deprecated`       — never shown, not even in a Collection (short manual exclusion list, not automated).
+ *
+ * `essential` and `official_core` both count as "in the official 300"; only
+ * visual prominence differs. `undefined`/`null` behaves like `collection_only`.
+ */
+export type ExerciseTier = "essential" | "official_core" | "collection_only" | "deprecated";
+
+/** Bibliothèque Core par défaut : `true` pour tout ce qui doit apparaître
+ * dans les listes/recherches principales (les ~300 `essential`/
+ * `official_core`, et tout exercice sans tier — customs, bibliothèque
+ * statique, historique de séances, jamais concernés par la curation). Les
+ * `collection_only`/`deprecated` restent hors des listes par défaut, visibles
+ * uniquement via la section "Découvrir" dédiée (`library.tsx`). */
+export function isCoreVisible(tier: ExerciseTier | null | undefined): boolean {
+  return tier !== "collection_only" && tier !== "deprecated";
+}
 
 /** A single local or (future) remote media asset. Cloud storage isn't wired
  * up yet — `remoteUrl` exists only so a future sync layer can populate it
@@ -60,6 +89,27 @@ export type ExerciseLocaleContent = {
   commonMistakes?: string[] | null;
   breathingTips?: string | null;
   precautions?: string | null;
+  /** "Pourquoi faire cet exercice" — un court paragraphe qui justifie sa
+   * place dans un programme, écrit dans la voix IronFlow (jamais une
+   * reformulation de la description). */
+  rationale?: string | null;
+  /** Échauffement spécifique conseillé avant cet exercice. */
+  warmupSuggestion?: string | null;
+  /** Erreurs fréquentes appariées à leur correction technique — remplace
+   * progressivement `commonMistakes` (simple liste, sans la correction) une
+   * fois l'enrichment passé sur un exercice ; les deux champs coexistent
+   * (additif) pour ne jamais casser l'affichage existant. */
+  mistakeCorrections?: { mistake: string; correction: string }[] | null;
+};
+
+/** One entry of the "Niveau utilisateur" system — a note and/or
+ * prerequisites for practicing this exercise at a given level. Both
+ * optional: a level can have just a note, just prerequisites, or (most
+ * often) neither if that level needs no special guidance for this
+ * exercise. */
+export type ExerciseLevelGuidance = {
+  note?: string | null;
+  prerequisites?: string[] | null;
 };
 
 /**
@@ -107,6 +157,14 @@ export type ExerciseEnrichment = {
    * squat is moderately demanding but technically easy). */
   technicalLevel?: "low" | "medium" | "high" | null;
 
+  /** "Système Niveau utilisateur" — pour chaque niveau (débutant/
+   * intermédiaire/avancé), une note pédagogique et/ou des prérequis quand
+   * c'est pertinent (une entrée par niveau seulement si elle apporte
+   * vraiment quelque chose — jamais remplie artificiellement pour les 3
+   * niveaux). Sert aussi à enrichir l'affichage du badge de difficulté de
+   * l'exercice (`difficulty` ci-dessus) avec ses propres prérequis. */
+  levelGuidance?: Partial<Record<ExerciseDifficulty, ExerciseLevelGuidance>> | null;
+
   muscleActivation?: {
     primary?: ExerciseMuscleGroup[];
     secondary?: ExerciseMuscleGroup[];
@@ -116,21 +174,22 @@ export type ExerciseEnrichment = {
   /** What's needed to actually perform this at home vs at a gym — distinct
    * from `ExerciseRecord.equipment` (WorkoutX's free-text description). */
   equipmentLevel?: "none" | "basic" | "gym" | null;
-  trainingGoals?:
-    | (
-        | "strength"
-        | "hypertrophy"
-        | "endurance"
-        | "conditioning"
-        | "mobility"
-        | "rehabilitation"
-        | "hyrox"
-        | "crossfit"
-        | "running"
-        | "power"
-        | "stability"
-      )[]
-    | null;
+  trainingGoals?: TrainingGoal[] | null;
+  /** Coût systémique/fatigue perçue de l'exercice — utile pour construire une
+   * séance équilibrée (éviter d'enchaîner plusieurs exercices "high"). */
+  fatigueLevel?: "low" | "medium" | "high" | null;
+  /** Repos conseillé selon l'objectif visé (mêmes clés que `trainingGoals`) —
+   * partiel : seuls les objectifs pertinents pour cet exercice ont besoin
+   * d'une entrée (ex. { strength: "3-5 min", hypertrophy: "60-90s" }). */
+  restTimeByGoal?: Partial<Record<TrainingGoal, string>> | null;
+  /** Matériel de substitution quand `ExerciseRecord.equipment` n'est pas
+   * disponible (ex. barre → haltères/élastique) — texte libre, le "comment"
+   * compte souvent autant que le "quoi". */
+  alternativeEquipment?: string[] | null;
+  /** Disciplines/programmes auxquels cet exercice est adapté — même champ
+   * qui deviendra le filtre d'appartenance aux Collections IronFlow
+   * téléchargeables une fois la curation lancée. */
+  disciplines?: Discipline[] | null;
   /** Reuses `MovementPattern` (src/utils/exercise-movement-pattern.ts) —
    * plural because one exercise can span several patterns (e.g. a thruster
    * is squat + push). Complements the existing singular
@@ -203,6 +262,14 @@ export type ExerciseRecord = {
    * old name here lets a migrated record keep resolving old data without
    * touching a single `WorkoutSession`. */
   aliases?: string[] | null;
+
+  /** Bibliothèque officielle IronFlow 300 — see `ExerciseTier`. Set by
+   * `scripts/curate-official-library.ts`, never by the user. */
+  exerciseTier?: ExerciseTier | null;
+  /** Future downloadable Collections this exercise should ship in — see
+   * `FutureCollection` (`exercise-collection.ts`). Distinct from
+   * `enrichment.disciplines` (pedagogical content, not curation/packaging). */
+  collections?: FutureCollection[] | null;
 
   favoritedAt?: string | null;
   createdAt: string;

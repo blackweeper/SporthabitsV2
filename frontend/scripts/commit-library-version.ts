@@ -1,10 +1,19 @@
 /**
  * Phase B4 — makes the candidate staged by `scripts/generate-library-version.ts`
- * official: moves it into `exercise-library/versions/vN/`, merges any new/
- * changed media into the shared `exercise-library/media/` pool, computes a
- * `media-manifest.json` (checksum + size per referenced media file — the
- * guard-rail `scripts/publish-library-to-app.ts` checks before publishing),
- * and updates `exercise-library/current.json` to point at the new version.
+ * official: moves it into `exercise-library/versions/vN/`, merges any new
+ * WorkoutX GIFs into the shared `exercise-library/media/workoutx/` pool,
+ * computes a `media-manifest.json` (checksum + size for every file actually
+ * present in `media/ironflow/` and `media/workoutx/` — the guard-rail
+ * `scripts/publish-library-to-app.ts` checks before publishing), and updates
+ * `exercise-library/current.json` to point at the new version.
+ *
+ * Media is checksummed by SCANNING the two source-of-truth directories, not
+ * by walking `ExerciseRecord.media` references — the official media library
+ * (`src/hooks/useExerciseMedia.ts`) resolves purely from exercise id, so a
+ * file's presence on disk is what matters, independent of what any record
+ * declares. This also means a new IronFlow illustration just needs to be
+ * dropped into `media/ironflow/{id}.webp` and re-published — no
+ * `exercises.json` edit required.
  *
  * Run this only after reviewing `scripts/output/next-version/changes.json`.
  * Nothing is pushed to GitHub here — that remains a manual
@@ -17,6 +26,7 @@ import {
   copyFileSync,
   existsSync,
   mkdirSync,
+  readdirSync,
   readFileSync,
   statSync,
   writeFileSync,
@@ -27,6 +37,7 @@ import { ExerciseRecord } from "../src/utils/exercise-records";
 const STAGED_DIR = "scripts/output/next-version";
 const STAGED_MEDIA_DIR = "scripts/output/media";
 const LIBRARY_ROOT = "../exercise-library";
+const MEDIA_SOURCES = ["ironflow", "workoutx"] as const;
 
 function sha256File(path: string): string {
   return createHash("sha256").update(readFileSync(path)).digest("hex");
@@ -51,33 +62,30 @@ function main() {
   mkdirSync(versionDir, { recursive: true });
 
   const sharedMediaDir = `${LIBRARY_ROOT}/media`;
-  if (!existsSync(sharedMediaDir)) mkdirSync(sharedMediaDir, { recursive: true });
+  const sharedWorkoutxDir = `${sharedMediaDir}/workoutx`;
+  if (!existsSync(sharedWorkoutxDir)) mkdirSync(sharedWorkoutxDir, { recursive: true });
 
-  // Merge new/changed media into the shared pool, and build the checksum
-  // manifest for every media file this version's exercises actually
-  // reference (whether it was just copied or already present from a
-  // previous version).
-  const mediaManifest: Record<string, { sha256: string; size: number }> = {};
-  const missing: string[] = [];
-
-  for (const ex of exercises) {
-    const url = ex.media?.primaryImage?.remoteUrl;
-    if (!url || !url.startsWith("media/")) continue;
-    const filename = url.slice("media/".length);
-    const stagedPath = `${STAGED_MEDIA_DIR}/${filename}`;
-    const sharedPath = `${sharedMediaDir}/${filename}`;
-
-    if (existsSync(stagedPath)) {
-      copyFileSync(stagedPath, sharedPath);
-    } else if (!existsSync(sharedPath)) {
-      // Referenced by exercises.json but never downloaded and not already
-      // in the shared pool from a previous version — a real gap to flag.
-      missing.push(url);
-      continue;
+  // Merge any newly-downloaded WorkoutX GIFs (staged by import-workoutx.ts)
+  // into the shared pool — always workoutx/, since that script never
+  // produces IronFlow illustrations.
+  if (existsSync(STAGED_MEDIA_DIR)) {
+    for (const filename of readdirSync(STAGED_MEDIA_DIR)) {
+      copyFileSync(`${STAGED_MEDIA_DIR}/${filename}`, `${sharedWorkoutxDir}/${filename}`);
     }
+  }
 
-    const stat = statSync(sharedPath);
-    mediaManifest[url] = { sha256: sha256File(sharedPath), size: stat.size };
+  // Checksum manifest built by scanning both source-of-truth directories —
+  // every file actually on disk, independent of what exercises.json declares.
+  const mediaManifest: Record<string, { sha256: string; size: number }> = {};
+  for (const source of MEDIA_SOURCES) {
+    const dir = `${sharedMediaDir}/${source}`;
+    if (!existsSync(dir)) continue;
+    for (const filename of readdirSync(dir)) {
+      const path = `${dir}/${filename}`;
+      const stat = statSync(path);
+      if (!stat.isFile()) continue;
+      mediaManifest[`media/${source}/${filename}`] = { sha256: sha256File(path), size: stat.size };
+    }
   }
 
   copyFileSync(`${STAGED_DIR}/exercises.json`, `${versionDir}/exercises.json`);
@@ -93,10 +101,6 @@ function main() {
 
   console.log(`Version ${manifest.version} committed to ${versionDir}/`);
   console.log(`  ${Object.keys(mediaManifest).length} media file(s) checksummed`);
-  if (missing.length > 0) {
-    console.log(`\n⚠ ${missing.length} referenced media file(s) missing from both staging and the shared pool:`);
-    for (const m of missing) console.log(` - ${m}`);
-  }
   console.log(
     `\nexercise-library/current.json now points at version ${manifest.version}. ` +
       `Next: cd ../exercise-library && git add . && git commit && git push.`,

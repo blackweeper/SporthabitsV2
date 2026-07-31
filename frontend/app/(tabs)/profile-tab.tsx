@@ -202,6 +202,14 @@ export default function ProfileTab() {
 
         <Text style={styles.sectionLabel}>PARAMÈTRES</Text>
         <ListRow
+          icon="color-palette"
+          iconBg="#7E57C2"
+          title="Apparence"
+          subtitle="Affichage du calendrier du Dashboard"
+          onPress={() => router.push("/settings" as any)}
+          testID="row-settings"
+        />
+        <ListRow
           icon="fast-food"
           iconBg="#F97316"
           title="Raccourcis repas"

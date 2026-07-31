@@ -8,10 +8,12 @@ import { EXERCISE_LIBRARY } from "@/src/data/exercise-library";
 import { CustomExercise, getCustomExercises, getSessions } from "@/src/utils/gym-storage";
 import { listAllExercises } from "@/src/utils/exercise-detail";
 import { MuscleGroupKey } from "@/src/utils/muscle-groups";
-import { ExerciseRecord, getExerciseRecords } from "@/src/utils/exercise-records";
+import { ExerciseRecord, ExerciseTier, getExerciseRecords } from "@/src/utils/exercise-records";
 import type { ExerciseRecordCategory } from "@/src/utils/exercise-record-category";
 import type { ExerciseMuscleGroup } from "@/src/utils/exercise-muscle-groups";
 import { EXERCISE_EQUIPMENT_LABEL } from "@/src/utils/exercise-equipment";
+import type { ExerciseDifficulty } from "@/src/utils/exercise-difficulty";
+import type { FutureCollection } from "@/src/utils/exercise-collection";
 import {
   ExerciseUserData,
   addToLibrary,
@@ -72,6 +74,12 @@ export type ExerciseLibraryItem = {
   isCustom?: boolean;
   customId?: string;
   imageBase64?: string | null;
+  difficulty?: ExerciseDifficulty | null;
+  /** Bibliothèque Core par défaut — voir `isCoreVisible` (exercise-records.ts).
+   * `undefined` pour les customs/statiques/historique (jamais concernés par
+   * la curation, toujours visibles par défaut). */
+  exerciseTier?: ExerciseTier | null;
+  collections?: FutureCollection[] | null;
 };
 
 function normalizeName(name: string): string {
@@ -167,7 +175,14 @@ export function useExerciseLibraryItems(active: boolean) {
         inLibrary: !!userData[r.id]?.addedToLibraryAt,
         muscleGroups,
         equipment: r.equipment ? EXERCISE_EQUIPMENT_LABEL[r.equipment] : null,
-        imageBase64: r.media?.primaryImage?.base64 ?? null,
+        // Pas d'imageBase64 ici : ce champ n'a jamais été peuplé pour les
+        // ExerciseRecord (source workoutx/system) — la carte résout sa
+        // propre image via useExerciseMedia(item.id) désormais. Le champ
+        // reste utilisé plus haut pour les exercices personnalisés (photo
+        // prise par l'utilisateur, un cas réel et distinct).
+        difficulty: r.enrichment?.difficulty ?? r.difficulty ?? null,
+        exerciseTier: r.exerciseTier ?? null,
+        collections: r.collections ?? null,
       });
     }
     // Static dev library (Phase A) — fallback for exercises not yet covered
@@ -271,5 +286,43 @@ export function useExerciseLibraryItems(active: boolean) {
     [userData],
   );
 
-  return { items, customExercises, reload, reloadCustom, toggleFavorite, toggleLibrary };
+  /** Téléchargement "pack complet" (Phase 1, POLISH V2) — ajoute tous les
+   * exercices d'une Collection future à la bibliothèque personnelle en un
+   * geste. Rien à télécharger réellement (les 1348 exercices sont déjà en
+   * local, voir exercise-user-data.ts) : c'est un `toggleLibrary` en masse,
+   * réutilisant `addToLibrary` exercice par exercice pour ne jamais écraser
+   * une source d'ajout déjà posée. */
+  const addAllInCollection = useCallback(
+    async (collection: FutureCollection) => {
+      const targets = items.filter(
+        (i) => !i.inLibrary && i.collections?.includes(collection),
+      );
+      if (targets.length === 0) return;
+      const now = new Date().toISOString();
+      await Promise.all(targets.map((i) => addToLibrary(i.id, "manual")));
+      setUserData((prev) => {
+        const next = { ...prev };
+        for (const t of targets) {
+          next[t.id] = {
+            ...next[t.id],
+            addedToLibraryAt: next[t.id]?.addedToLibraryAt ?? now,
+            librarySource: next[t.id]?.librarySource ?? "manual",
+            updatedAt: now,
+          };
+        }
+        return next;
+      });
+    },
+    [items],
+  );
+
+  return {
+    items,
+    customExercises,
+    reload,
+    reloadCustom,
+    toggleFavorite,
+    toggleLibrary,
+    addAllInCollection,
+  };
 }

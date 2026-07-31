@@ -136,24 +136,11 @@ export function useLibraryUpdate() {
       if (!isValidExerciseRecordArray(incomingRaw)) {
         throw new Error("Fichier d'exercices corrompu ou incomplet.");
       }
-      // Media URLs are stored relative ("media/wx_0001.gif") in exercises.json
-      // so the SAME file works whether it's read locally (scripts) or served
-      // remotely — resolve them against the manifest's own origin here, once,
-      // so `ensureMediaCached` (which does a plain `fetch(url)`, no base
-      // resolution) always receives an absolute URL. Required on native
-      // (no implicit page origin to resolve a relative URL against) and
-      // safer than relying on same-origin luck on web.
-      const incoming = incomingRaw.map((r) => {
-        const url = r.media?.primaryImage?.remoteUrl;
-        if (!url || !url.startsWith("media/")) return r;
-        return {
-          ...r,
-          media: {
-            ...r.media,
-            primaryImage: { ...r.media!.primaryImage, remoteUrl: resolveUrl(manifestUrl, url) },
-          },
-        };
-      });
+      // No per-record media URL rewriting needed here anymore — the media
+      // resolver (src/hooks/useExerciseMedia.ts) computes absolute media
+      // URLs itself, purely from the exercise id and EXERCISE_LIBRARY_MANIFEST_URL,
+      // never from a stored `media.primaryImage.remoteUrl` (vestigial field).
+      const incoming = incomingRaw;
       if (cancelledRef.current) throw new Error(CANCELLED);
 
       // Nothing destructive has happened yet — safe to snapshot now.

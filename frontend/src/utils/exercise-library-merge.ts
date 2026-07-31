@@ -28,8 +28,9 @@ import type { MuscleGroupKey } from "@/src/utils/muscle-groups";
  * Matching priority:
  *  1. Exact id match (`incoming.id === existing.id`) — the same WorkoutX
  *     exercise reimported on a later update: refreshed in place, but
- *     `favoritedAt`/`aliases`/`parentExerciseId`/`variantLabel` already set
- *     locally are preserved rather than overwritten by the re-imported data.
+ *     `favoritedAt`/`aliases`/`parentExerciseId`/`variantLabel`/
+ *     `exerciseTier`/`collections` already set locally are preserved rather
+ *     than overwritten by the re-imported data.
  *  2. Exact name match against an unconsumed existing record — first-time
  *     replacement of a Phase A dev/system exercise by its WorkoutX
  *     equivalent; the old name is kept as an alias so session logs /
@@ -240,6 +241,8 @@ export function buildMigratedLibrary(
         aliases: idMatch.aliases ?? null,
         parentExerciseId: idMatch.parentExerciseId ?? null,
         variantLabel: idMatch.variantLabel ?? null,
+        exerciseTier: idMatch.exerciseTier ?? null,
+        collections: idMatch.collections ?? null,
       });
       updatedCount++;
       continue;

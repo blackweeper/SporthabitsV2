@@ -58,6 +58,7 @@
     "eslint": "9.25.0",
     "eslint-config-expo": "10.0.0",
     "expo-doctor": "1.19.8",
+    "ts-node": "10.9.2",
     "typescript": "5.9.3"
   },
   "resolutions": {

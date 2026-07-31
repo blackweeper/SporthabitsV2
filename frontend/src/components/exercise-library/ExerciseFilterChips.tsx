@@ -1,6 +1,7 @@
 import { ScrollView, Text, StyleSheet } from "react-native";
 import { colors, radius, spacing } from "@/src/theme";
 import { LIBRARY_MUSCLE_GROUPS, MuscleGroupKey } from "@/src/utils/muscle-groups";
+import { FUTURE_COLLECTIONS, FUTURE_COLLECTION_LABEL, FutureCollection } from "@/src/utils/exercise-collection";
 import PressableScale from "@/src/components/ui/PressableScale";
 
 export type LibTab = "favorites" | "musculation" | "cardio_machine" | "mobility" | "all";
@@ -28,7 +29,7 @@ export function CategoryTabRow({
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      style={{ maxHeight: 42 }}
+      style={styles.chipScroller}
       contentContainerStyle={styles.row}
     >
       {LIB_TABS.map((t) => {
@@ -37,11 +38,11 @@ export function CategoryTabRow({
           <PressableScale
             key={t.key}
             testID={`${testIDPrefix}-${t.key}`}
-            style={[styles.chip, active && styles.chipActive]}
+            style={[styles.miniChip, active && styles.chipActive]}
             onPress={() => onChange(t.key)}
           >
             <Text style={styles.emoji}>{t.emoji}</Text>
-            <Text style={[styles.chipText, active && { color: "#fff" }]}>{t.label}</Text>
+            <Text style={[styles.miniChipText, active && { color: "#fff" }]}>{t.label}</Text>
           </PressableScale>
         );
       })}
@@ -63,7 +64,7 @@ export function MuscleChipRow({
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      style={{ maxHeight: 38 }}
+      style={styles.chipScroller}
       contentContainerStyle={styles.row}
     >
       <PressableScale
@@ -112,7 +113,7 @@ export function EquipmentChipRow({
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      style={{ maxHeight: 38 }}
+      style={styles.chipScroller}
       contentContainerStyle={styles.row}
     >
       <PressableScale
@@ -141,27 +142,62 @@ export function EquipmentChipRow({
   );
 }
 
+/** Sous-filtre par Collection future probable — affiché uniquement pour la
+ * section "Découvrir" (exercices `collection_only`), même patron que
+ * `EquipmentChipRow`. */
+export function CollectionChipRow({
+  collection,
+  onChange,
+  testIDPrefix = "ex-library-collection",
+}: {
+  collection: FutureCollection | null;
+  onChange: (c: FutureCollection | null) => void;
+  testIDPrefix?: string;
+}) {
+  return (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      style={styles.chipScroller}
+      contentContainerStyle={styles.row}
+    >
+      <PressableScale
+        testID={`${testIDPrefix}-all`}
+        style={[styles.miniChip, !collection && styles.chipActive]}
+        onPress={() => onChange(null)}
+      >
+        <Text style={[styles.miniChipText, !collection && { color: "#fff" }]}>Toutes</Text>
+      </PressableScale>
+      {FUTURE_COLLECTIONS.map((c) => {
+        const active = collection === c;
+        return (
+          <PressableScale
+            key={c}
+            testID={`${testIDPrefix}-${c}`}
+            style={[styles.miniChip, active && styles.chipActive]}
+            onPress={() => onChange(active ? null : c)}
+          >
+            <Text style={[styles.miniChipText, active && { color: "#fff" }]}>
+              {FUTURE_COLLECTION_LABEL[c]}
+            </Text>
+          </PressableScale>
+        );
+      })}
+    </ScrollView>
+  );
+}
+
 const styles = StyleSheet.create({
+  // flexGrow/flexShrink: 0 est essentiel ici — sans ça, ce ScrollView
+  // horizontal (un simple sibling dans la colonne flex de l'écran) se fait
+  // écraser jusqu'à quasi 0px de haut dès que la FlatList voisine contient
+  // beaucoup d'éléments (Catalogue/Découvrir, 300+ exercices) et réclame
+  // tout l'espace vertical disponible — même bug que le FlatList
+  // numColumns/flex:1 déjà corrigé ailleurs dans la Bibliothèque.
+  chipScroller: { maxHeight: 38, flexGrow: 0, flexShrink: 0 },
   row: { flexDirection: "row", gap: 6, paddingHorizontal: spacing.lg, paddingBottom: spacing.sm },
-  chip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: radius.pill,
-    backgroundColor: colors.surfaceSecondary,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
   chipActive: { backgroundColor: colors.brand, borderColor: colors.brand },
   emoji: { fontSize: 12 },
-  chipText: {
-    color: colors.onSurfaceTertiary,
-    fontWeight: "800",
-    fontSize: 10,
-    letterSpacing: 0.5,
-  },
   miniChip: {
     flexDirection: "row",
     alignItems: "center",

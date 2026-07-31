@@ -8,9 +8,11 @@
  * bundle. This decouples library updates from app releases: publishing a new
  * exercise version never requires rebuilding/redeploying the app itself.
  *
- * Every media file referenced by `versions/vN/exercises.json` is verified
- * against `media-manifest.json` (checksum + size) — publishing stops with a
- * clear error rather than shipping a library with broken/missing media.
+ * Every media file listed in `media-manifest.json` (built from a scan of
+ * `media/ironflow/` and `media/workoutx/`, not from `ExerciseRecord`
+ * references) is re-verified against what's actually on disk — publishing
+ * stops with a clear error rather than shipping a library with
+ * broken/missing/corrupted media.
  *
  * Usage (from frontend/): node scripts/publish-library-to-app.ts
  * Then (from exercise-library/): push the directory's contents to whatever
@@ -52,21 +54,16 @@ function main() {
     readFileSync(`${versionDir}/media-manifest.json`, "utf-8"),
   );
 
-  // Verify every media reference before publishing anything.
+  // Verify every checksummed media file against what's actually on disk —
+  // no longer conditioned on any ExerciseRecord referencing it: the media
+  // library (media/ironflow/, media/workoutx/) is its own source of truth,
+  // resolved by exercise id at read time (src/hooks/useExerciseMedia.ts).
   const problems: string[] = [];
   let referencedCount = 0;
-  for (const ex of exercises) {
-    const url = ex.media?.primaryImage?.remoteUrl;
-    if (!url || !url.startsWith("media/")) continue;
+  for (const [url, entry] of Object.entries(mediaManifest)) {
     referencedCount++;
-
-    const entry = mediaManifest[url];
-    if (!entry) {
-      problems.push(`"${ex.nameFr}" (${ex.id}) references ${url}, missing from media-manifest.json`);
-      continue;
-    }
-    const filename = url.slice("media/".length);
-    const sharedPath = `${LIBRARY_ROOT}/media/${filename}`;
+    const relative = url.startsWith("media/") ? url.slice("media/".length) : url;
+    const sharedPath = `${LIBRARY_ROOT}/media/${relative}`;
     if (!existsSync(sharedPath)) {
       problems.push(`${url} listed in media-manifest.json but not found on disk (${sharedPath})`);
       continue;

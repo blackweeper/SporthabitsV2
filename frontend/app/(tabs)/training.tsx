@@ -49,9 +49,9 @@ const IND_CATS: { key: IndCat; label: string; icon: any }[] = [
 const TYPE_COLORS: Record<Plan["type"], string> = {
   musculation: colors.brand,
   cardio: "#00B0FF",
-  hiit: "#FFC400",
+  hiit: colors.warning,
   mixte: "#E040FB",
-  stretch: "#00E676",
+  stretch: colors.success,
 };
 
 /** Cascade d'entrée décalée par carte, même pattern que le Dashboard. */

@@ -31,11 +31,15 @@
  *
  * Media: truly incremental (Phase B5). Before any network call, each
  * exercise's GIF is checked against the OFFICIAL shared pool
- * (`../exercise-library/media/<id>.gif`) — if it's already there it's never
- * re-fetched, re-written, or deleted, and `media.primaryImage.remoteUrl` is
- * just pointed at the relative path `media/<id>.gif`. Only genuinely
- * missing media is downloaded, into `scripts/output/media/<id>.gif` (merged
- * into the shared pool later by `commit-library-version.ts`). A failed
+ * (`../exercise-library/media/workoutx/<id>.gif`) — if it's already there
+ * it's never re-fetched, re-written, or deleted, and
+ * `media.primaryImage.remoteUrl` is just pointed at the relative path
+ * `media/workoutx/<id>.gif` (vestigial since the app's media resolver
+ * — `src/hooks/useExerciseMedia.ts` — derives this same path purely from the
+ * exercise id, but kept accurate for anyone still reading this field). Only
+ * genuinely missing media is downloaded, into `scripts/output/media/<id>.gif`
+ * (merged into the shared `media/workoutx/` pool later by
+ * `commit-library-version.ts`). A failed
  * download sets `remoteUrl` to `null` (never left pointing at a live
  * WorkoutX URL) so it's automatically retried on the next import. WebP
  * conversion is still out of scope here (`raw` keeps the original GIF
@@ -353,7 +357,7 @@ async function downloadMedia(
     const filename = `${r.id}.gif`;
 
     if (existsSync(`${officialMediaDir}/${filename}`)) {
-      r.media!.primaryImage!.remoteUrl = `media/${filename}`;
+      r.media!.primaryImage!.remoteUrl = `media/workoutx/${filename}`;
       alreadyPresent++;
       continue;
     }
@@ -363,7 +367,7 @@ async function downloadMedia(
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const buf = Buffer.from(await res.arrayBuffer());
       writeFileSync(`${stagingMediaDir}/${filename}`, buf);
-      r.media!.primaryImage!.remoteUrl = `media/${filename}`;
+      r.media!.primaryImage!.remoteUrl = `media/workoutx/${filename}`;
       newlyDownloaded++;
     } catch (err) {
       r.media!.primaryImage!.remoteUrl = null;
@@ -408,7 +412,10 @@ async function main() {
     errors: [],
   };
   if (!skipMedia) {
-    mediaResult = await downloadMedia(mapped, "../exercise-library/media", "scripts/output/media");
+    // Nouvelle architecture média (bibliothèque d'images IronFlow) : les GIF
+    // WorkoutX vivent sous media/workoutx/, media/ironflow/ étant réservé aux
+    // illustrations officielles produites séparément (jamais par ce script).
+    mediaResult = await downloadMedia(mapped, "../exercise-library/media/workoutx", "scripts/output/media");
   }
 
   const exercisesFile = "workoutx-exercises.json";

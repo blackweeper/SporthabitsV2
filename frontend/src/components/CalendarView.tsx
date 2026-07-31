@@ -176,7 +176,7 @@ export default function CalendarView({
   );
 }
 
-function pickColor(sessions: WorkoutSession[]): string {
+export function pickColor(sessions: WorkoutSession[]): string {
   if (!sessions.length) return 'transparent';
   // Priority: running > stretch > workout
   const kinds = sessions.map(sessionKind);
@@ -195,7 +195,9 @@ function pickLabel(sessions: WorkoutSession[]): string | null {
   return '✓';
 }
 
-function sessionKind(s: WorkoutSession): 'running' | 'stretch' | 'rest' | 'workout' {
+export function sessionKind(
+  s: WorkoutSession,
+): 'running' | 'stretch' | 'rest' | 'workout' {
   if (s.cardio_activity === 'course') return 'running';
   if (s.planType === 'stretch') return 'stretch';
   if (s.planType === 'cardio') return 'running';

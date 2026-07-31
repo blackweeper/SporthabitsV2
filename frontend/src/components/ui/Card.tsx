@@ -26,7 +26,7 @@ export default function Card({
   return (
     <View
       testID={testID}
-      style={[styles.card, { padding }, elevated && shadow.card, style]}
+      style={[styles.card, { padding }, elevated && shadow.elevated, style]}
     >
       {children}
     </View>

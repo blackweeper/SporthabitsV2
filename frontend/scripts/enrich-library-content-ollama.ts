@@ -47,6 +47,7 @@ import type { ExerciseRecord, ExerciseEnrichment } from "../src/utils/exercise-r
 import {
   GeneratedFiche,
   ENRICHMENT_JSON_SCHEMA,
+  FOUNDATIONAL_MOVEMENT_KEYWORDS,
   buildSystemPrompt,
   buildUserPrompt,
   isEnrichmentComplete,
@@ -135,23 +136,6 @@ async function callOllama(
     durationMs: data.total_duration ? Math.round(data.total_duration / 1e6) : 0,
   };
 }
-
-// Real WorkoutX exercise objects carry `popularityRank` (1-5) in `raw` —
-// free, already fetched, no extra computation needed.
-const FOUNDATIONAL_MOVEMENT_KEYWORDS = [
-  "squat",
-  "deadlift",
-  "bench press",
-  "pull-up",
-  "pull up",
-  "overhead press",
-  "row",
-  "clean",
-  "snatch",
-  "push-up",
-  "push up",
-  "lunge",
-];
 
 function isFoundational(record: ExerciseRecord): boolean {
   const name = (record.nameEn ?? record.nameFr ?? "").toLowerCase();

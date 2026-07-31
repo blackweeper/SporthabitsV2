@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -11,13 +11,17 @@ import {
   Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
 import { colors, radius, spacing } from "@/src/theme";
+import { useConfirmDialog } from "@/src/hooks/use-confirm-dialog";
 import {
+  deletePR,
   estimateOneRepMax,
   formatDurationHMS,
   formatPace,
+  getPRs,
   paceSecondsPerKm,
   PRType,
   savePR,
@@ -32,8 +36,20 @@ const RUN_PRESETS: { label: string; meters: number }[] = [
   { label: "Marathon", meters: 42195 },
 ];
 
-export default function NewPRScreen() {
+/** Un seul écran pour créer ET modifier un record — même convention que
+ * `app/habit/[id].tsx` (`isNew = id === "new"`). `savePR` fait déjà un
+ * upsert par id, donc aucune nouvelle fonction de stockage n'était
+ * nécessaire : il ne manquait que le chargement d'un record existant. */
+export default function PRScreen() {
+  const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const isNew = id === "new";
+  const { confirm, ConfirmModal } = useConfirmDialog();
+
+  const [recordId, setRecordId] = useState<string | null>(null);
+  const [originalDate, setOriginalDate] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState(isNew);
+
   const [type, setType] = useState<PRType>("weight");
   const [name, setName] = useState("");
   const [notes, setNotes] = useState("");
@@ -55,6 +71,45 @@ export default function NewPRScreen() {
   const [paceMin, setPaceMin] = useState("");
   const [paceSec, setPaceSec] = useState("");
   const [bodyWeight, setBodyWeight] = useState("70");
+
+  useEffect(() => {
+    if (isNew) {
+      setLoaded(true);
+      return;
+    }
+    (async () => {
+      const list = await getPRs();
+      const pr = list.find((x) => x.id === id);
+      if (!pr) {
+        router.back();
+        return;
+      }
+      setRecordId(pr.id);
+      setOriginalDate(pr.date);
+      setType(pr.type ?? "weight");
+      setName(pr.exerciseName);
+      setNotes(pr.notes ?? "");
+      if ((pr.type ?? "weight") === "weight" || pr.type === "reps") {
+        setWeight(pr.weight_kg > 0 ? String(pr.weight_kg) : "");
+        setReps(String(pr.reps || 1));
+      }
+      if (pr.type === "run" && pr.distance_m && pr.time_seconds) {
+        const preset = RUN_PRESETS.find((p) => p.meters === pr.distance_m);
+        if (preset) {
+          setUseCustomDist(false);
+          setDistanceMeters(preset.meters);
+        } else {
+          setUseCustomDist(true);
+          setCustomDistance(String(pr.distance_m / 1000));
+        }
+        const total = pr.time_seconds;
+        setHours(String(Math.floor(total / 3600)));
+        setMinutes(String(Math.floor((total % 3600) / 60)));
+        setSeconds(String(total % 60));
+      }
+      setLoaded(true);
+    })();
+  }, [id, isNew, router]);
 
   const w = parseFloat(weight.replace(",", ".")) || 0;
   const r = parseInt(reps, 10) || 1;
@@ -117,18 +172,46 @@ export default function NewPRScreen() {
     }
 
     await savePR({
-      id: uid(),
+      id: recordId ?? uid(),
       exerciseName: name.trim(),
       type,
       weight_kg: type === "weight" ? w : 0,
       reps: type === "weight" || type === "reps" ? r : 0,
       distance_m: type === "run" ? finalDistanceMeters : null,
       time_seconds: type === "run" ? totalRunSec : null,
-      date: new Date().toISOString(),
+      // Modifier un record corrige ses valeurs, pas la date à laquelle il a
+      // été établi — la date d'origine est préservée à l'édition.
+      date: originalDate ?? new Date().toISOString(),
       notes: notes.trim() || null,
     });
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     router.back();
   };
+
+  const remove = async () => {
+    if (!recordId) return;
+    const ok = await confirm({
+      title: "Supprimer ce record ?",
+      message: `"${name}" — cette action est définitive.`,
+      confirmLabel: "SUPPRIMER",
+      destructive: true,
+    });
+    if (!ok) return;
+    await deletePR(recordId);
+    router.back();
+  };
+
+  if (!loaded) {
+    return (
+      <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+        <View style={styles.header}>
+          <Pressable testID="close-pr" onPress={() => router.back()} hitSlop={12}>
+            <Ionicons name="chevron-back" size={24} color={colors.onSurface} />
+          </Pressable>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
@@ -136,10 +219,17 @@ export default function NewPRScreen() {
         <Pressable testID="close-pr" onPress={() => router.back()} hitSlop={12}>
           <Ionicons name="chevron-back" size={24} color={colors.onSurface} />
         </Pressable>
-        <Text style={styles.title}>Nouveau record</Text>
-        <Pressable testID="save-pr" onPress={save} hitSlop={12}>
-          <Text style={styles.saveText}>SAUVER</Text>
-        </Pressable>
+        <Text style={styles.title}>{isNew ? "Nouveau record" : "Modifier le record"}</Text>
+        <View style={styles.headerActions}>
+          {!isNew && (
+            <Pressable testID="delete-pr" onPress={remove} hitSlop={12}>
+              <Ionicons name="trash" size={18} color={colors.error} />
+            </Pressable>
+          )}
+          <Pressable testID="save-pr" onPress={save} hitSlop={12}>
+            <Text style={styles.saveText}>SAUVER</Text>
+          </Pressable>
+        </View>
       </View>
 
       <KeyboardAvoidingView
@@ -500,6 +590,7 @@ export default function NewPRScreen() {
           <View style={{ height: 40 }} />
         </ScrollView>
       </KeyboardAvoidingView>
+      {ConfirmModal}
     </SafeAreaView>
   );
 }
@@ -589,6 +680,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   title: { color: colors.onSurface, fontSize: 16, fontWeight: "700" },
+  headerActions: { flexDirection: "row", alignItems: "center", gap: spacing.lg },
   saveText: { color: colors.brand, fontWeight: "800", letterSpacing: 0.8 },
   scroll: { padding: spacing.lg, gap: spacing.md },
   typeRow: { flexDirection: "row", gap: spacing.sm },

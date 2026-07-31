@@ -13,7 +13,7 @@ import {
   Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing } from "@/src/theme";
+import { colors, radius, spacing, withAlpha } from "@/src/theme";
 import {
   EXERCISE_CATEGORY_COLOR,
   EXERCISE_CATEGORY_ICON,
@@ -31,9 +31,38 @@ import { LIBRARY_MUSCLE_GROUPS, MuscleGroupKey } from "@/src/utils/muscle-groups
 import { pickAndCompressImage } from "@/src/utils/image-compress";
 import SwipeableRow from "@/src/components/SwipeableRow";
 import { ExerciseLibraryItem, useExerciseLibraryItems } from "@/src/hooks/useExerciseLibraryItems";
+import { useExerciseMedia } from "@/src/hooks/useExerciseMedia";
+import { isCoreVisible } from "@/src/utils/exercise-records";
 import { CategoryTabRow, LibTab, MuscleChipRow } from "@/src/components/exercise-library/ExerciseFilterChips";
+import { FUTURE_COLLECTION_LABEL, type FutureCollection } from "@/src/utils/exercise-collection";
 
 const CATEGORIES: ExerciseCategory[] = ["musculation", "cardio_machine", "mobility"];
+
+/** Résout sa propre image (id -> IronFlow -> WorkoutX -> emoji) plutôt que de
+ * dépendre d'un champ précalculé — voir useExerciseMedia.ts. Composant à
+ * part pour respecter les règles des hooks (un hook par ligne de liste, pas
+ * dans le callback `renderItem` directement). */
+function PickerRowImage({ item, color }: { item: ExerciseLibraryItem; color: string }) {
+  const { uri: mediaUri } = useExerciseMedia(item.isCustom ? null : item.id);
+  if (mediaUri) return <Image source={{ uri: mediaUri }} style={styles.rowImage} />;
+  if (item.imageBase64) {
+    return (
+      <Image
+        source={{ uri: `data:image/webp;base64,${item.imageBase64}` }}
+        style={styles.rowImage}
+      />
+    );
+  }
+  return (
+    <View style={[styles.rowIcon, { backgroundColor: withAlpha(color, 15) }]}>
+      {item.emoji ? (
+        <Text style={{ fontSize: 16 }}>{item.emoji}</Text>
+      ) : (
+        <Text style={{ fontSize: 16 }}>{iconEmojiForExercise(item.name, null)}</Text>
+      )}
+    </View>
+  );
+}
 
 /**
  * Exercise picker sourced from the same data as Progression → Exercices
@@ -55,15 +84,28 @@ export default function ExerciseLibraryPicker({
   const [sheet, setSheet] = useState<{ mode: "create" | "edit"; draft: CustomExercise } | null>(
     null,
   );
+  // Catalogue limité aux ~300 Core par défaut — déplié seulement si demandé.
+  const [showDiscover, setShowDiscover] = useState(false);
 
-  const { items, customExercises, reload, reloadCustom, toggleFavorite, toggleLibrary } =
-    useExerciseLibraryItems(visible);
+  const {
+    items,
+    customExercises,
+    reload,
+    reloadCustom,
+    toggleFavorite,
+    toggleLibrary,
+    addAllInCollection,
+  } = useExerciseLibraryItems(visible);
+  const [downloadingCollection, setDownloadingCollection] = useState<FutureCollection | null>(
+    null,
+  );
 
   useEffect(() => {
     if (!visible) return;
     setQuery("");
     setTab("all");
     setMuscle(null);
+    setShowDiscover(false);
     reload();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible]);
@@ -91,11 +133,15 @@ export default function ExerciseLibraryPicker({
   const onToggleFavorite = toggleFavorite;
 
   // Recherche unifiée, sans changement de contexte : une seule liste, juste
-  // partitionnée en 2 sections. Une section vide n'affiche pas d'en-tête —
-  // pas de "Ma bibliothèque (0)" qui casserait l'effet de continuité.
-  const sections = useMemo(() => {
+  // partitionnée en sections. Une section vide n'affiche pas d'en-tête —
+  // pas de "Ma bibliothèque (0)" qui casserait l'effet de continuité. Le
+  // Catalogue se limite par défaut aux ~300 exercices Core (isCoreVisible) ;
+  // le reste (futures Collections) n'apparaît que si l'utilisateur déplie
+  // "Afficher plus" — pas de nouvel écran, cohérent avec library.tsx.
+  const { sections, discoverCount } = useMemo(() => {
     const inLibrary = filtered.filter((i) => i.inLibrary);
-    const catalogue = filtered.filter((i) => !i.inLibrary);
+    const catalogue = filtered.filter((i) => !i.inLibrary && isCoreVisible(i.exerciseTier));
+    const discover = filtered.filter((i) => !i.inLibrary && !isCoreVisible(i.exerciseTier));
     const result: { key: string; title: string; data: ExerciseLibraryItem[] }[] = [];
     if (inLibrary.length > 0) {
       result.push({ key: "library", title: "Ma bibliothèque", data: inLibrary });
@@ -103,8 +149,15 @@ export default function ExerciseLibraryPicker({
     if (catalogue.length > 0) {
       result.push({ key: "catalogue", title: "Catalogue IronFlow", data: catalogue });
     }
-    return result;
-  }, [filtered]);
+    // Catalogue intelligent (Phase 1, POLISH V2) : une recherche active
+    // déplie automatiquement la section "Autres exercices" — l'utilisateur
+    // ne devrait pas avoir à deviner qu'un bouton "afficher plus" existe
+    // pour trouver un exercice qu'il vient de chercher explicitement.
+    if ((showDiscover || query.trim().length > 0) && discover.length > 0) {
+      result.push({ key: "discover", title: "Autres exercices (Collections)", data: discover });
+    }
+    return { sections: result, discoverCount: discover.length };
+  }, [filtered, showDiscover, query]);
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
@@ -148,6 +201,21 @@ export default function ExerciseLibraryPicker({
           renderSectionHeader={({ section }) => (
             <Text style={styles.sectionHeader}>{section.title}</Text>
           )}
+          ListFooterComponent={
+            !showDiscover && !query.trim() && discoverCount > 0 ? (
+              <Pressable
+                testID="ex-library-show-discover"
+                style={styles.showMoreRow}
+                onPress={() => setShowDiscover(true)}
+              >
+                <Ionicons name="chevron-down-circle-outline" size={18} color={colors.onSurfaceTertiary} />
+                <Text style={styles.showMoreText}>
+                  Afficher {discoverCount} exercice{discoverCount > 1 ? "s" : ""} supplémentaire
+                  {discoverCount > 1 ? "s" : ""} (futures Collections)
+                </Text>
+              </Pressable>
+            ) : null
+          }
           ListHeaderComponent={
             query.trim() && !exactMatch ? (
               <Pressable
@@ -204,32 +272,39 @@ export default function ExerciseLibraryPicker({
                 // (pas encore construite), pas de ce picker.
                 onPress={() => onPick(item.name)}
               >
-                {item.imageBase64 ? (
-                  <Image
-                    source={{ uri: `data:image/webp;base64,${item.imageBase64}` }}
-                    style={styles.rowImage}
-                  />
-                ) : (
-                  <View style={[styles.rowIcon, { backgroundColor: color + "26" }]}>
-                    {item.emoji ? (
-                      <Text style={{ fontSize: 16 }}>{item.emoji}</Text>
-                    ) : (
-                      <Text style={{ fontSize: 16 }}>
-                        {iconEmojiForExercise(item.name, null)}
-                      </Text>
-                    )}
-                  </View>
-                )}
+                <PickerRowImage item={item} color={color} />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.rowTitle} numberOfLines={1}>
                     {item.name}
                   </Text>
                   <Text style={styles.rowSub}>
-                    {item.count > 0
-                      ? `${item.count} séance${item.count > 1 ? "s" : ""}`
-                      : "Pas encore pratiqué"}
+                    {!isCoreVisible(item.exerciseTier) && !item.inLibrary
+                      ? "À découvrir · pas encore dans ta bibliothèque"
+                      : item.count > 0
+                        ? `${item.count} séance${item.count > 1 ? "s" : ""}`
+                        : "Pas encore pratiqué"}
                   </Text>
                 </View>
+                {!item.inLibrary && !isCoreVisible(item.exerciseTier) && item.collections?.[0] && (
+                  <Pressable
+                    testID={`ex-library-pack-${item.name}`}
+                    hitSlop={6}
+                    onPress={async (e) => {
+                      e.stopPropagation?.();
+                      const pack = item.collections![0];
+                      setDownloadingCollection(pack);
+                      await addAllInCollection(pack);
+                      setDownloadingCollection(null);
+                    }}
+                    style={styles.packBtn}
+                  >
+                    <Text style={styles.packBtnText}>
+                      {downloadingCollection === item.collections[0]
+                        ? "…"
+                        : `Tout ${FUTURE_COLLECTION_LABEL[item.collections[0]]}`}
+                    </Text>
+                  </Pressable>
+                )}
                 {!item.inLibrary && (
                   <Pressable
                     testID={`ex-library-add-library-${item.name}`}
@@ -621,12 +696,28 @@ const styles = StyleSheet.create({
   rowTitle: { color: colors.onSurface, fontWeight: "700", fontSize: 14 },
   rowSub: { color: colors.onSurfaceTertiary, fontSize: 11, marginTop: 2 },
   favBtn: { padding: 4 },
+  packBtn: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 5,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.brand,
+  },
+  packBtnText: { color: colors.brand, fontSize: 9, fontWeight: "800" },
   emptyText: {
     color: colors.onSurfaceTertiary,
     textAlign: "center",
     marginTop: spacing.xl,
     fontStyle: "italic",
   },
+  showMoreRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: spacing.md,
+  },
+  showMoreText: { color: colors.onSurfaceTertiary, fontWeight: "700", fontSize: 12 },
   rowImage: {
     width: 36,
     height: 36,

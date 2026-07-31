@@ -6,6 +6,12 @@
       "runtimeExecutable": "cmd",
       "runtimeArgs": ["/c", "cd frontend && npx expo start --web"],
       "port": 8081
+    },
+    {
+      "name": "exercise-library-static",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["http-server", "exercise-library", "-p", "8090", "--cors", "-c-1"],
+      "port": 8090
     }
   ]
 }

@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { ReactNode, useState, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,19 +7,22 @@ import {
   Pressable,
   Dimensions,
   Image,
+  Modal,
 } from "react-native";
+import { useConfirmDialog } from "@/src/hooks/use-confirm-dialog";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import Svg, { Circle } from "react-native-svg";
 import Animated, {
   Easing,
+  FadeInDown,
   useAnimatedProps,
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
 import { LineChart } from "react-native-gifted-charts";
-import { colors, radius, spacing } from "@/src/theme";
+import { colors, motion, radius, spacing, withAlpha } from "@/src/theme";
 import Card from "@/src/components/ui/Card";
 import PressableScale from "@/src/components/ui/PressableScale";
 import {
@@ -78,6 +81,8 @@ import {
   DailyIronflowScore,
   scoreQualitativeLabel,
 } from "@/src/utils/scoring";
+import { computeAdvancedStats } from "@/src/utils/stats";
+import { computeHighlights, Highlight } from "@/src/utils/highlights";
 import { listAllExercises } from "@/src/utils/exercise-detail";
 import { ProgressionTab } from "@/src/utils/progression-nav";
 
@@ -111,6 +116,17 @@ const OUTER_GROUPS: { key: string; label: string; icon: any; tabs: Tab[] }[] = [
 
 function isProgressionTab(v: unknown): v is Tab {
   return typeof v === "string" && TABS.some((t) => t.key === v);
+}
+
+/** Cascade d'entrée en fondu — même patron que le Dashboard/Entraînements
+ * (`FadeInDown.delay(index*30)`), absent de cet écran jusqu'ici (listes
+ * Exercices/Records/Niveau qui "popaient" sans transition). */
+function EnterItem({ index, children }: { index: number; children: ReactNode }) {
+  return (
+    <Animated.View entering={FadeInDown.delay(Math.min(index, 8) * 30).duration(motion.base)}>
+      {children}
+    </Animated.View>
+  );
 }
 
 export default function ProgressionHub() {
@@ -197,6 +213,23 @@ export default function ProgressionHub() {
     scoreProfile,
   );
   const scoreDelta = score.score - yesterdayScore.score;
+  const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10);
+  const score7dAgo = computeDailyIronflowScore(
+    sevenDaysAgo,
+    sessions,
+    habits,
+    logs,
+    wellness,
+    dailyJournal,
+    scoreProfile,
+  );
+  const advancedStats = computeAdvancedStats(sessions);
+  const highlights = computeHighlights({
+    prs,
+    goals,
+    streakDays: advancedStats.currentStreakDays,
+    scoreTrendPts: score.score - score7dAgo.score,
+  });
   const exercises = listAllExercises(sessions);
 
   return (
@@ -223,9 +256,9 @@ export default function ProgressionHub() {
                 <Ionicons
                   name={g.icon}
                   size={13}
-                  color={active ? "#fff" : colors.onSurfaceTertiary}
+                  color={active ? colors.onSurface : colors.onSurfaceTertiary}
                 />
-                <Text style={[styles.segLabel, active && { color: "#fff" }]}>
+                <Text style={[styles.segLabel, active && { color: colors.onSurface }]}>
                   {g.label}
                 </Text>
               </Pressable>
@@ -253,9 +286,9 @@ export default function ProgressionHub() {
                   <Ionicons
                     name={t.icon}
                     size={12}
-                    color={active ? "#fff" : colors.onSurfaceTertiary}
+                    color={active ? colors.onSurface : colors.onSurfaceTertiary}
                   />
-                  <Text style={[styles.subTabLabel, active && { color: "#fff" }]}>
+                  <Text style={[styles.subTabLabel, active && { color: colors.onSurface }]}>
                     {t.label}
                   </Text>
                 </Pressable>
@@ -270,6 +303,7 @@ export default function ProgressionHub() {
           <OverviewView
             score={score}
             scoreDelta={scoreDelta}
+            highlights={highlights}
             goals={goals}
             sessions={sessions}
             prs={prs}
@@ -374,6 +408,7 @@ function ScoreCircle({ score }: { score: number }) {
 function OverviewView({
   score,
   scoreDelta,
+  highlights,
   goals,
   sessions,
   prs,
@@ -383,6 +418,7 @@ function OverviewView({
 }: {
   score: DailyIronflowScore;
   scoreDelta: number;
+  highlights: Highlight[];
   goals: Goal[];
   sessions: WorkoutSession[];
   prs: PersonalRecord[];
@@ -393,7 +429,33 @@ function OverviewView({
   const activeGoals = goals.filter((g) => !g.achievedAt);
   return (
     <View style={{ gap: spacing.md }}>
-      <Card style={styles.overviewCard}>
+      {/* L'app doit raconter l'évolution, pas seulement l'afficher — une
+          rangée de moments marquants (record, série, tendance, objectif
+          atteint) avant même le score du jour. Masquée s'il n'y a rien à
+          célébrer, plutôt qu'une section vide. */}
+      {highlights.length > 0 && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.highlightsRow}
+        >
+          {highlights.map((h) => (
+            <View key={h.key} style={styles.highlightCard}>
+              <Text style={styles.highlightEmoji}>{h.emoji}</Text>
+              <Text style={styles.highlightTitle} numberOfLines={1}>
+                {h.title}
+              </Text>
+              {h.subtitle && (
+                <Text style={styles.highlightSubtitle} numberOfLines={1}>
+                  {h.subtitle}
+                </Text>
+              )}
+            </View>
+          ))}
+        </ScrollView>
+      )}
+
+      <Card elevated style={styles.overviewCard}>
         <Text style={styles.overLabel}>IRONFLOW SCORE</Text>
         <ScoreCircle score={score.score} />
         <Text style={styles.overQualitative}>{scoreQualitativeLabel(score.score)}</Text>
@@ -459,7 +521,7 @@ function OverviewView({
       {score.breakdown.map((b) => {
         const pct = Math.round((b.value / b.max) * 100);
         return (
-          <View key={b.key} style={styles.breakdownRowBox}>
+          <Card key={b.key} style={styles.breakdownRowBox}>
             <View style={styles.brHeadRow}>
               <View style={styles.brIconBox}>
                 <Ionicons name={b.icon} size={12} color={colors.brand} />
@@ -476,7 +538,7 @@ function OverviewView({
               <View style={[styles.brFill, { width: `${pct}%` }]} />
             </View>
             {b.hint ? <Text style={styles.brHint}>{b.hint}</Text> : null}
-          </View>
+          </Card>
         );
       })}
 
@@ -733,7 +795,7 @@ function ExercisesView({
               testID={`ex-cat-${c}`}
               style={[
                 styles.exSubtab,
-                active && { backgroundColor: color + "26", borderColor: color },
+                active && { backgroundColor: withAlpha(color, 15), borderColor: color },
               ]}
               onPress={() => setSubTab(c)}
             >
@@ -762,47 +824,48 @@ function ExercisesView({
           <Text style={styles.emptySub}>Aucun exercice dans cette catégorie.</Text>
         </View>
       ) : (
-        filtered.map((e) => {
+        filtered.map((e, i) => {
           const color = EXERCISE_CATEGORY_COLOR[e.category];
           return (
-            <PressableScale
-              key={e.name}
-              testID={`ex-detail-${e.name}`}
-              onPress={() =>
-                router.push(`/exercise/${encodeURIComponent(e.name)}`)
-              }
-            >
-              <Card style={styles.exerciseCard}>
-                <View
-                  style={[styles.exIconBox, { backgroundColor: color + "26" }]}
-                >
-                  {e.emoji ? (
-                    <Text style={{ fontSize: 15 }}>{e.emoji}</Text>
-                  ) : (
-                    <Ionicons
-                      name={EXERCISE_CATEGORY_ICON[e.category]}
-                      size={16}
-                      color={color}
-                    />
-                  )}
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.exName} numberOfLines={1}>
-                    {e.name}
-                  </Text>
-                  <Text style={styles.exMeta}>
-                    {e.count > 0
-                      ? `${e.count} séance${e.count > 1 ? "s" : ""}`
-                      : "Pas encore pratiqué"}
-                  </Text>
-                </View>
-                <Ionicons
-                  name="chevron-forward"
-                  size={16}
-                  color={colors.onSurfaceTertiary}
-                />
-              </Card>
-            </PressableScale>
+            <EnterItem key={e.name} index={i}>
+              <PressableScale
+                testID={`ex-detail-${e.name}`}
+                onPress={() =>
+                  router.push(`/exercise/${encodeURIComponent(e.name)}`)
+                }
+              >
+                <Card style={styles.exerciseCard}>
+                  <View
+                    style={[styles.exIconBox, { backgroundColor: withAlpha(color, 15) }]}
+                  >
+                    {e.emoji ? (
+                      <Text style={{ fontSize: 15 }}>{e.emoji}</Text>
+                    ) : (
+                      <Ionicons
+                        name={EXERCISE_CATEGORY_ICON[e.category]}
+                        size={16}
+                        color={color}
+                      />
+                    )}
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.exName} numberOfLines={1}>
+                      {e.name}
+                    </Text>
+                    <Text style={styles.exMeta}>
+                      {e.count > 0
+                        ? `${e.count} séance${e.count > 1 ? "s" : ""}`
+                        : "Pas encore pratiqué"}
+                    </Text>
+                  </View>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={16}
+                    color={colors.onSurfaceTertiary}
+                  />
+                </Card>
+              </PressableScale>
+            </EnterItem>
           );
         })
       )}
@@ -839,7 +902,7 @@ function RecordsView({
         style={styles.ctaFull}
         onPress={() => router.push("/pr/new")}
       >
-        <Ionicons name="add-circle" size={18} color="#fff" />
+        <Ionicons name="add-circle" size={18} color={colors.onSurface} />
         <Text style={styles.ctaFullText}>NOUVEAU RECORD</Text>
       </Pressable>
 
@@ -852,7 +915,7 @@ function RecordsView({
           </Text>
         </View>
       ) : (
-        groups.map((g) => {
+        groups.map((g, gi) => {
           // Get best PR per type for this exercise
           const weightPRs = g.prs.filter((p) => (p.type ?? "weight") === "weight");
           const bestWeight = weightPRs
@@ -860,7 +923,8 @@ function RecordsView({
             .sort((a, b) => estimatedOneRM(b) - estimatedOneRM(a))[0];
           const isOpen = expanded === g.name;
           return (
-            <View key={g.name} style={styles.recordGroup}>
+            <EnterItem key={g.name} index={gi}>
+            <Card padding={0} style={styles.recordGroup}>
               <Pressable
                 testID={`record-group-${g.name}`}
                 onPress={() => setExpanded(isOpen ? null : g.name)}
@@ -937,7 +1001,8 @@ function RecordsView({
                   })()}
                 </View>
               )}
-            </View>
+            </Card>
+            </EnterItem>
           );
         })
       )}
@@ -980,8 +1045,10 @@ function LevelView({
 
   return (
     <View style={{ gap: spacing.md }}>
-      {/* Hero */}
-      <View style={styles.levelHero}>
+      {/* Hero — Card elevated (même traitement que le module héros du
+          Dashboard) : jusqu'ici un View brut sans ombre malgré le
+          commentaire plus bas prétendant une parité visuelle. */}
+      <Card elevated style={styles.levelHero}>
         <View style={styles.levelHeroLeft}>
           <View style={styles.levelBigBadge}>
             <Text style={styles.levelBigNum}>{xp.level}</Text>
@@ -1003,7 +1070,7 @@ function LevelView({
             </Text>
           )}
         </View>
-      </View>
+      </Card>
 
       {/* Progress toward next level */}
       {!isMax && (
@@ -1092,7 +1159,7 @@ function LevelView({
                 <View
                   style={[
                     styles.upBadgeChip,
-                    { backgroundColor: u.badge.color + "30", borderColor: u.badge.color },
+                    { backgroundColor: withAlpha(u.badge.color, 19), borderColor: u.badge.color },
                   ]}
                 >
                   <Text style={styles.upBadgeChipEmoji}>{u.badge.emoji}</Text>
@@ -1113,7 +1180,7 @@ function LevelView({
                 key={b.level}
                 style={[
                   styles.bigBadgeItem,
-                  { borderColor: b.color, backgroundColor: b.color + "20" },
+                  { borderColor: b.color, backgroundColor: withAlpha(b.color, 12.5) },
                 ]}
               >
                 <Text style={{ fontSize: 26 }}>{b.emoji}</Text>
@@ -1214,7 +1281,7 @@ function RecordProgressionChart({ prs }: { prs: PersonalRecord[] }) {
             styles.deltaPill,
             {
               backgroundColor:
-                delta >= 0 ? colors.success + "30" : colors.error + "30",
+                delta >= 0 ? withAlpha(colors.success, 19) : withAlpha(colors.error, 19),
             },
           ]}
         >
@@ -1269,6 +1336,9 @@ function RecordRow({
   pr: PersonalRecord;
   onChanged: () => void;
 }) {
+  const router = useRouter();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const { confirm, ConfirmModal } = useConfirmDialog();
   const type = pr.type ?? "weight";
   let main = "—";
   let sub = "";
@@ -1304,14 +1374,70 @@ function RecordRow({
         confirmLabel: "SUPPRIMER",
         destructive: true,
       }}
+      onEdit={() => router.push(`/pr/${pr.id}` as any)}
     >
-      <View style={styles.recordRow}>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.recordRowMain}>{main}</Text>
-          {sub ? <Text style={styles.recordRowSub}>{sub}</Text> : null}
+      <PressableScale testID={`record-row-${pr.id}-body`} onPress={() => router.push(`/pr/${pr.id}` as any)}>
+        <View style={styles.recordRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.recordRowMain}>{main}</Text>
+            {sub ? <Text style={styles.recordRowSub}>{sub}</Text> : null}
+          </View>
+          <Text style={styles.recordRowDate}>{formatDateShort(pr.date)}</Text>
+          <PressableScale
+            testID={`record-row-${pr.id}-menu`}
+            hitSlop={10}
+            style={styles.recordMenuBtn}
+            onPress={(e) => {
+              e.stopPropagation?.();
+              setMenuOpen(true);
+            }}
+          >
+            <Ionicons name="ellipsis-vertical" size={16} color={colors.onSurfaceTertiary} />
+          </PressableScale>
         </View>
-        <Text style={styles.recordRowDate}>{formatDateShort(pr.date)}</Text>
-      </View>
+      </PressableScale>
+
+      {/* Menu "⋯" — même actions que le swipe (Modifier/Supprimer), mais
+          toujours accessible par un simple tap : le swipe seul s'est avéré
+          peu découvrable en usage réel. */}
+      <Modal visible={menuOpen} transparent animationType="slide" onRequestClose={() => setMenuOpen(false)}>
+        <Pressable style={styles.menuBackdrop} onPress={() => setMenuOpen(false)}>
+          <Pressable style={styles.menuSheet}>
+            <View style={styles.menuHandle} />
+            <PressableScale
+              testID={`record-row-${pr.id}-menu-edit`}
+              style={styles.menuRow}
+              onPress={() => {
+                setMenuOpen(false);
+                router.push(`/pr/${pr.id}` as any);
+              }}
+            >
+              <Ionicons name="pencil" size={18} color={colors.onSurface} />
+              <Text style={styles.menuRowText}>Modifier</Text>
+            </PressableScale>
+            <PressableScale
+              testID={`record-row-${pr.id}-menu-delete`}
+              style={styles.menuRow}
+              onPress={async () => {
+                setMenuOpen(false);
+                const ok = await confirm({
+                  title: "Supprimer ce record ?",
+                  message: `${main} — cette action est définitive.`,
+                  confirmLabel: "SUPPRIMER",
+                  destructive: true,
+                });
+                if (!ok) return;
+                await deletePR(pr.id);
+                onChanged();
+              }}
+            >
+              <Ionicons name="trash" size={18} color={colors.error} />
+              <Text style={[styles.menuRowText, { color: colors.error }]}>Supprimer</Text>
+            </PressableScale>
+          </Pressable>
+        </Pressable>
+      </Modal>
+      {ConfirmModal}
     </SwipeableRow>
   );
 }
@@ -1353,7 +1479,7 @@ function OneRMCalculator({
               <Text
                 style={[
                   styles.pctChipText,
-                  active && { color: "#fff" },
+                  active && { color: colors.onSurface },
                 ]}
               >
                 {p}%
@@ -1403,7 +1529,7 @@ function RepsCalculator({
               onPress={() => setPct(p)}
             >
               <Text
-                style={[styles.pctChipText, active && { color: "#fff" }]}
+                style={[styles.pctChipText, active && { color: colors.onSurface }]}
               >
                 {p}%
               </Text>
@@ -1473,7 +1599,7 @@ function CardioCalculator({
               onPress={() => setPct(p)}
             >
               <Text
-                style={[styles.pctChipText, active && { color: "#fff" }]}
+                style={[styles.pctChipText, active && { color: colors.onSurface }]}
               >
                 {p}%
               </Text>
@@ -1600,7 +1726,7 @@ function TransformationView({
         style={styles.ctaFull}
         onPress={() => router.push("/measurement/new")}
       >
-        <Ionicons name="add-circle" size={18} color="#fff" />
+        <Ionicons name="add-circle" size={18} color={colors.onSurface} />
         <Text style={styles.ctaFullText}>NOUVELLE MESURE</Text>
       </Pressable>
 
@@ -1746,12 +1872,12 @@ function BodyStatsChart({ measurements }: { measurements: Measurement[] }) {
               <Ionicons
                 name={m.icon}
                 size={11}
-                color={active ? "#fff" : colors.onSurfaceTertiary}
+                color={active ? colors.onSurface : colors.onSurfaceTertiary}
               />
               <Text
                 style={[
                   styles.bodyChipText,
-                  active && { color: "#fff" },
+                  active && { color: colors.onSurface },
                 ]}
               >
                 {m.label}
@@ -1876,12 +2002,12 @@ function HabitsView({
               <Ionicons
                 name={s.icon as any}
                 size={13}
-                color={active ? "#fff" : colors.onSurfaceTertiary}
+                color={active ? colors.onSurface : colors.onSurfaceTertiary}
               />
               <Text
                 style={[
                   styles.subTabLabel,
-                  active && { color: "#fff" },
+                  active && { color: colors.onSurface },
                 ]}
               >
                 {s.label}
@@ -1898,7 +2024,7 @@ function HabitsView({
             style={styles.ctaFull}
             onPress={() => router.push("/habit/new")}
           >
-            <Ionicons name="add-circle" size={18} color="#fff" />
+            <Ionicons name="add-circle" size={18} color={colors.onSurface} />
             <Text style={styles.ctaFullText}>AJOUTER UNE HABITUDE</Text>
           </Pressable>
           {habits.length === 0 ? (
@@ -1956,7 +2082,7 @@ function HabitsView({
             style={styles.ctaFull}
             onPress={() => router.push("/reminder/new")}
           >
-            <Ionicons name="add-circle" size={18} color="#fff" />
+            <Ionicons name="add-circle" size={18} color={colors.onSurface} />
             <Text style={styles.ctaFullText}>AJOUTER UN RAPPEL</Text>
           </Pressable>
           <View style={styles.hintBanner}>
@@ -2030,7 +2156,7 @@ function GoalsView({ goals, router }: { goals: Goal[]; router: any }) {
         style={styles.ctaFull}
         onPress={() => router.push("/goals")}
       >
-        <Ionicons name="flag" size={18} color="#fff" />
+        <Ionicons name="flag" size={18} color={colors.onSurface} />
         <Text style={styles.ctaFullText}>GÉRER LES OBJECTIFS</Text>
       </Pressable>
       {goals.length === 0 ? (
@@ -2107,7 +2233,7 @@ function JournalView({
         style={styles.ctaFull}
         onPress={() => router.push("/daily-journal")}
       >
-        <Ionicons name="book" size={18} color="#fff" />
+        <Ionicons name="book" size={18} color={colors.onSurface} />
         <Text style={styles.ctaFullText}>NOTE DU JOUR</Text>
       </Pressable>
 
@@ -2272,6 +2398,24 @@ const styles = StyleSheet.create({
   // la mise en page interne (le padding par défaut de Card est spacing.md,
   // ce card veut un padding plus généreux, d'où le padding explicite malgré
   // le composant partagé).
+  highlightsRow: { gap: spacing.sm, paddingRight: spacing.md },
+  highlightCard: {
+    width: 132,
+    backgroundColor: colors.progressTertiary,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.progress,
+    padding: spacing.sm,
+    gap: 2,
+  },
+  highlightEmoji: { fontSize: 22 },
+  highlightTitle: {
+    color: colors.onSurface,
+    fontWeight: "800",
+    fontSize: 12.5,
+    marginTop: 2,
+  },
+  highlightSubtitle: { color: colors.progressSecondary, fontSize: 11, fontWeight: "600" },
   overviewCard: { padding: spacing.lg, alignItems: "center", gap: spacing.md },
   // Même traitement que le Score du Dashboard (Phase 1) : le libellé reste
   // discret (gris), la mention qualitative ("Peut mieux faire"...) en violet.
@@ -2316,14 +2460,7 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     paddingVertical: 6,
   },
-  breakdownRowBox: {
-    backgroundColor: colors.surfaceSecondary,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.md,
-    gap: 6,
-  },
+  breakdownRowBox: { gap: 6 },
   brHeadRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -2428,7 +2565,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   brPctText: {
-    color: "#fff",
+    color: colors.onSurface,
     fontWeight: "800",
     fontSize: 11,
     letterSpacing: 0.3,
@@ -2558,7 +2695,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
   },
-  ctaFullText: { color: "#fff", fontWeight: "800", letterSpacing: 1 },
+  ctaFullText: { color: colors.onSurface, fontWeight: "800", letterSpacing: 1 },
   mCard: { gap: 4 },
   mDate: {
     color: colors.brand,
@@ -2604,13 +2741,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: "700",
   },
-  recordGroup: {
-    backgroundColor: colors.surfaceSecondary,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    overflow: "hidden",
-  },
+  recordGroup: { overflow: "hidden" },
   recordHead: {
     flexDirection: "row",
     alignItems: "center",
@@ -2646,7 +2777,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
-    padding: 10,
+    padding: spacing.sm,
     backgroundColor: colors.surface,
     borderRadius: radius.sm,
     borderWidth: 1,
@@ -2667,6 +2798,36 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "700",
   },
+  recordMenuBtn: { padding: 2, marginLeft: spacing.xs },
+  menuBackdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    justifyContent: "flex-end",
+  },
+  menuSheet: {
+    backgroundColor: colors.surfaceSecondary,
+    borderTopLeftRadius: radius.lg,
+    borderTopRightRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.lg,
+    gap: spacing.xs,
+  },
+  menuHandle: {
+    width: 48,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: colors.border,
+    alignSelf: "center",
+    marginBottom: spacing.md,
+  },
+  menuRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    paddingVertical: spacing.md,
+  },
+  menuRowText: { color: colors.onSurface, fontSize: 15, fontWeight: "700" },
   // Pas de bordure d'origine (contrairement au Card partagé) — override
   // borderWidth:0 pour ne pas en faire apparaître une silencieusement.
   calcCard: {
@@ -2721,12 +2882,12 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   calcResultVal: {
-    color: "#fff",
+    color: colors.onSurface,
     fontWeight: "800",
     fontSize: 26,
   },
   calcResultHint: {
-    color: "#fff",
+    color: colors.onSurface,
     opacity: 0.9,
     fontSize: 11,
     fontWeight: "700",
@@ -2800,7 +2961,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: "#fff",
+    backgroundColor: colors.onSurface,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 4,
@@ -2814,20 +2975,20 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8,
   },
   levelXPLabel: {
-    color: "#fff",
+    color: colors.onSurface,
     fontSize: 10,
     fontWeight: "800",
     letterSpacing: 0.8,
     opacity: 0.9,
   },
   levelXPValue: {
-    color: "#fff",
+    color: colors.onSurface,
     fontSize: 32,
     fontWeight: "800",
     marginTop: 4,
   },
   levelHint: {
-    color: "#fff",
+    color: colors.onSurface,
     fontSize: 12,
     opacity: 0.9,
     marginTop: 2,
@@ -2871,7 +3032,7 @@ const styles = StyleSheet.create({
   // Card partagé par défaut) — d'où les overrides malgré le composant Card.
   overallCard: {
     backgroundColor: colors.progressTertiary,
-    borderColor: colors.progress + "50",
+    borderColor: withAlpha(colors.progress, 31.5),
     gap: 8,
   },
   overallHead: {
@@ -3036,16 +3197,23 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
+  // `flex: 1` n'a pas de sens à l'intérieur d'un ScrollView horizontal (pas
+  // de largeur bornée à répartir) — c'était la cause du "certaines options
+  // deviennent difficiles voire impossibles à sélectionner" : les onglets
+  // s'écrasaient à une largeur imprévisible. Même recette qu'un chip normal
+  // (segChip), largeur intrinsèque au contenu.
   subTab: {
-    flex: 1,
     flexDirection: "row",
-    justifyContent: "center",
     alignItems: "center",
     gap: 4,
+    paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: radius.sm,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceSecondary,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  subTabActive: { backgroundColor: colors.brand },
+  subTabActive: { backgroundColor: colors.brand, borderColor: colors.brand },
   subTabLabel: {
     color: colors.onSurfaceTertiary,
     fontSize: 12,

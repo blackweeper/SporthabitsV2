@@ -64,7 +64,7 @@ export default function RootLayout() {
           <Stack.Screen name="workout/[id]" />
           <Stack.Screen name="session/[id]" />
           <Stack.Screen name="measurement/[id]" />
-          <Stack.Screen name="pr/new" />
+          <Stack.Screen name="pr/[id]" />
           <Stack.Screen name="compare" options={MODAL_SCREEN_OPTIONS} />
           <Stack.Screen name="programs" options={MODAL_SCREEN_OPTIONS} />
           <Stack.Screen name="program/[id]" />
