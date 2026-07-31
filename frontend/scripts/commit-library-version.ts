@@ -3,7 +3,7 @@
  * official: moves it into `exercise-library/versions/vN/`, merges any new
  * WorkoutX GIFs into the shared `exercise-library/media/workoutx/` pool,
  * computes a `media-manifest.json` (checksum + size for every file actually
- * present in `media/ironflow/` and `media/workoutx/` — the guard-rail
+ * present in `media/ironflow/`, `media/gymgifsdb/` and `media/workoutx/` — the guard-rail
  * `scripts/publish-library-to-app.ts` checks before publishing), and updates
  * `exercise-library/current.json` to point at the new version.
  *
@@ -37,7 +37,7 @@ import { ExerciseRecord } from "../src/utils/exercise-records";
 const STAGED_DIR = "scripts/output/next-version";
 const STAGED_MEDIA_DIR = "scripts/output/media";
 const LIBRARY_ROOT = "../exercise-library";
-const MEDIA_SOURCES = ["ironflow", "workoutx"] as const;
+const MEDIA_SOURCES = ["ironflow", "gymgifsdb", "workoutx"] as const;
 
 function sha256File(path: string): string {
   return createHash("sha256").update(readFileSync(path)).digest("hex");

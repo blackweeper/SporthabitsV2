@@ -8,23 +8,55 @@ import { EXERCISE_LIBRARY_MANIFEST_URL } from "@/src/utils/exercise-library-sour
  * un chemin média lui-même : appelle ce hook avec l'id de l'exercice, point.
  *
  * Résolution purement basée sur l'`id` (jamais sur `ExerciseRecord.media`,
- * devenu vestigial) : illustration IronFlow d'abord, GIF WorkoutX en repli,
- * puis `uri: null` — chaque appelant retombe alors sur son fallback emoji
- * déjà existant (pas de `placeholder.webp` dédié pour l'instant : aucun
- * asset de ce type n'existe encore dans `exercise-library/media/` ; le jour
- * où il sera fourni, il suffira d'ajouter un 3e palier ici, sans toucher aux
- * appelants).
+ * devenu vestigial) via une liste de **fournisseurs** ordonnée par priorité —
+ * voir `MEDIA_PROVIDERS` ci-dessous. Ajouter un futur fournisseur (média
+ * officiel IronFlow tourné en studio, un autre catalogue...) ou changer la
+ * priorité ne touche qu'à cette liste, jamais aux appelants ni à
+ * `ExerciseRecord` : c'est tout l'intérêt de ce resolver centralisé.
  */
-export type ExerciseMediaSource = "ironflow" | "workoutx" | null;
+export type ExerciseMediaSource = "ironflow" | "gymgifsdb" | "workoutx" | null;
 
 const LIBRARY_ORIGIN = EXERCISE_LIBRARY_MANIFEST_URL?.replace(/manifest\.json$/, "") ?? null;
 
-function buildMediaUrls(exerciseId: string): { ironflow: string; workoutx: string } | null {
+type MediaCandidate = { source: Exclude<ExerciseMediaSource, null>; url: string };
+
+/**
+ * Chaque fournisseur peut couvrir un ou deux "rôles" pour un exercice :
+ * `image` — une illustration/photo statique (identité visuelle) ;
+ * `gif`   — une démonstration animée de l'exécution.
+ * `ironflow` ne fournit (pour l'instant) que des images dessinées en interne ;
+ * `gymgifsdb` fournit les deux pour chaque exercice qu'il couvre ; `workoutx`
+ * ne fournit que des GIF. La priorité **entre fournisseurs** (ironflow avant
+ * gymgifsdb avant workoutx) est la même quel que soit le rôle — seul ce qui
+ * est réellement disponible par fournisseur change.
+ */
+function buildCandidates(exerciseId: string, role: "image" | "gif"): MediaCandidate[] | null {
   if (!LIBRARY_ORIGIN) return null;
-  return {
-    ironflow: `${LIBRARY_ORIGIN}media/ironflow/${exerciseId}.webp`,
-    workoutx: `${LIBRARY_ORIGIN}media/workoutx/${exerciseId}.gif`,
-  };
+  if (role === "image") {
+    return [
+      { source: "ironflow", url: `${LIBRARY_ORIGIN}media/ironflow/${exerciseId}.webp` },
+      { source: "gymgifsdb", url: `${LIBRARY_ORIGIN}media/gymgifsdb/${exerciseId}.webp` },
+    ];
+  }
+  return [
+    { source: "gymgifsdb", url: `${LIBRARY_ORIGIN}media/gymgifsdb/${exerciseId}.gif` },
+    { source: "workoutx", url: `${LIBRARY_ORIGIN}media/workoutx/${exerciseId}.gif` },
+  ];
+}
+
+/** Essaie chaque candidat dans l'ordre, retourne le premier qui existe
+ * réellement (`ensureMediaCached` renvoie `null` en cas de 404/échec réseau,
+ * jamais une exception — voir `exercise-media-cache.ts`). */
+async function resolveFirst(
+  candidates: MediaCandidate[],
+  cancelledRef: { current: boolean },
+): Promise<{ uri: string; source: Exclude<ExerciseMediaSource, null> } | null> {
+  for (const c of candidates) {
+    const uri = await ensureMediaCached(c.url);
+    if (cancelledRef.current) return null;
+    if (uri) return { uri, source: c.source };
+  }
+  return null;
 }
 
 export function useExerciseMedia(exerciseId: string | null | undefined): {
@@ -39,15 +71,16 @@ export function useExerciseMedia(exerciseId: string | null | undefined): {
   const [loading, setLoading] = useState(!!exerciseId);
 
   useEffect(() => {
-    let cancelled = false;
+    const cancelledRef = { current: false };
 
     if (!exerciseId) {
       setState({ uri: null, source: null });
       setLoading(false);
       return;
     }
-    const urls = buildMediaUrls(exerciseId);
-    if (!urls) {
+    const imageCandidates = buildCandidates(exerciseId, "image");
+    const gifCandidates = buildCandidates(exerciseId, "gif");
+    if (!imageCandidates || !gifCandidates) {
       setState({ uri: null, source: null });
       setLoading(false);
       return;
@@ -55,21 +88,20 @@ export function useExerciseMedia(exerciseId: string | null | undefined): {
 
     setLoading(true);
     (async () => {
-      const ironflowUri = await ensureMediaCached(urls.ironflow);
-      if (cancelled) return;
-      if (ironflowUri) {
-        setState({ uri: ironflowUri, source: "ironflow" });
-        setLoading(false);
-        return;
-      }
-      const workoutxUri = await ensureMediaCached(urls.workoutx);
-      if (cancelled) return;
-      setState({ uri: workoutxUri, source: workoutxUri ? "workoutx" : null });
+      // Une seule "meilleure image possible" pour cet exercice — les rôles
+      // image puis gif sont essayés dans l'ordre (ironflow > gymgifsdb en
+      // statique, puis gymgifsdb > workoutx en GIF), cohérent avec la
+      // priorité globale des fournisseurs.
+      const found =
+        (await resolveFirst(imageCandidates, cancelledRef)) ??
+        (await resolveFirst(gifCandidates, cancelledRef));
+      if (cancelledRef.current) return;
+      setState(found ? { uri: found.uri, source: found.source } : { uri: null, source: null });
       setLoading(false);
     })();
 
     return () => {
-      cancelled = true;
+      cancelledRef.current = true;
     };
   }, [exerciseId]);
 
@@ -77,13 +109,15 @@ export function useExerciseMedia(exerciseId: string | null | undefined): {
 }
 
 /**
- * V3 — résout l'illustration IronFlow ET le GIF WorkoutX indépendamment
- * (pas de priorité/fallback entre les deux), pour la fiche exercice qui les
- * affiche ensemble : l'illustration reste l'identité visuelle IronFlow,
- * le GIF la démonstration d'exécution — voir le plan "Bibliothèque V3".
- * `useExerciseMedia` (ci-dessus) reste inchangé et continue de servir tous
- * les autres appelants (cartes, picker) qui n'ont besoin que d'une seule
- * image avec repli.
+ * V3 — résout l'illustration (rôle "image") ET le GIF (rôle "gif")
+ * indépendamment (pas de priorité/fallback entre les deux), pour la fiche
+ * exercice qui les affiche ensemble : l'illustration reste l'identité
+ * visuelle, le GIF la démonstration d'exécution — voir le plan "Bibliothèque
+ * V3". Chaque champ peut désormais venir de plusieurs fournisseurs
+ * (`ironflowUri` = ironflow sinon gymgifsdb ; `workoutxUri` = gymgifsdb sinon
+ * workoutx) mais les noms de champs restent stables : ce sont des **rôles**
+ * ("l'image d'identité", "le GIF d'exécution"), pas des noms de fournisseur
+ * littéraux — aucun changement requis chez les appelants existants.
  */
 export function useExerciseMediaSources(exerciseId: string | null | undefined): {
   ironflowUri: string | null;
@@ -95,7 +129,7 @@ export function useExerciseMediaSources(exerciseId: string | null | undefined): 
   const [loading, setLoading] = useState(!!exerciseId);
 
   useEffect(() => {
-    let cancelled = false;
+    const cancelledRef = { current: false };
 
     if (!exerciseId) {
       setIronflowUri(null);
@@ -103,8 +137,9 @@ export function useExerciseMediaSources(exerciseId: string | null | undefined): 
       setLoading(false);
       return;
     }
-    const urls = buildMediaUrls(exerciseId);
-    if (!urls) {
+    const imageCandidates = buildCandidates(exerciseId, "image");
+    const gifCandidates = buildCandidates(exerciseId, "gif");
+    if (!imageCandidates || !gifCandidates) {
       setIronflowUri(null);
       setWorkoutxUri(null);
       setLoading(false);
@@ -113,18 +148,18 @@ export function useExerciseMediaSources(exerciseId: string | null | undefined): 
 
     setLoading(true);
     (async () => {
-      const [ironflow, workoutx] = await Promise.all([
-        ensureMediaCached(urls.ironflow),
-        ensureMediaCached(urls.workoutx),
+      const [image, gif] = await Promise.all([
+        resolveFirst(imageCandidates, cancelledRef),
+        resolveFirst(gifCandidates, cancelledRef),
       ]);
-      if (cancelled) return;
-      setIronflowUri(ironflow);
-      setWorkoutxUri(workoutx);
+      if (cancelledRef.current) return;
+      setIronflowUri(image?.uri ?? null);
+      setWorkoutxUri(gif?.uri ?? null);
       setLoading(false);
     })();
 
     return () => {
-      cancelled = true;
+      cancelledRef.current = true;
     };
   }, [exerciseId]);
 
