@@ -1,4 +1,4 @@
-import { View, Text, Image, StyleSheet } from "react-native";
+import { View, Text, Image, StyleSheet, ImageSourcePropType } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, shadow, withAlpha } from "@/src/theme";
 import { EXERCISE_CATEGORY_COLOR } from "@/src/utils/exercise-category";
@@ -7,17 +7,20 @@ import { MUSCLE_GROUPS } from "@/src/utils/muscle-groups";
 import { EXERCISE_DIFFICULTY_COLOR, EXERCISE_DIFFICULTY_LABEL } from "@/src/utils/exercise-difficulty";
 import { ExerciseLibraryItem } from "@/src/hooks/useExerciseLibraryItems";
 import { useExerciseMedia } from "@/src/hooks/useExerciseMedia";
+import { useDynamicMediaHeight } from "@/src/hooks/useDynamicMediaHeight";
 import PressableScale from "@/src/components/ui/PressableScale";
 
 /**
- * Grid tile for the Bibliothèque tab (POLISH V2 redesign) — a shorter,
- * denser "cover art" tile than the previous pass: image/emoji fills a
- * shorter artwork block, name stays on its own line, and muscle/équipement
- * move into small pill "meta chips" below (rather than one plain gray line)
- * so the card stays scannable at a glance, matching apps like Hevy/Strong
- * rather than a plain data-list row. Deliberately still a grid tile, not a
- * compact row (that's what the mid-workout picker uses): browsing the
- * library should feel like a visual catalogue.
+ * Grid tile for the Bibliothèque tab — "cover art" tile, image/emoji fills
+ * an artwork block, name stays on its own line, muscle/équipement sit in
+ * small pill "meta chips" below. The artwork height is measured from the
+ * media's real aspect ratio (`useDynamicMediaHeight`, shared with the
+ * exercise-detail fiche's `ExerciseMediaFrame`) rather than a fixed
+ * `aspectRatio`, so it never crops/stretches a non-square asset — matching
+ * the fiche's premium rendering instead of diverging from it. Given nearly
+ * all current media is square, most tiles land at the same height in
+ * practice; only genuinely non-square media grows/shrinks a tile, by
+ * design ("ne pas forcer un format unique si cela dégrade le rendu").
  */
 export default function ExerciseCard({
   item,
@@ -39,17 +42,30 @@ export default function ExerciseCard({
   // Chaque carte résout sa propre image en autonomie (id -> IronFlow -> WorkoutX
   // -> null) plutôt que de dépendre d'un champ précalculé — voir useExerciseMedia.ts.
   const { uri: mediaUri } = useExerciseMedia(item.isCustom ? null : item.id);
+  const mediaSource: ImageSourcePropType | null = mediaUri
+    ? { uri: mediaUri }
+    : item.imageBase64
+      ? { uri: `data:image/webp;base64,${item.imageBase64}` }
+      : null;
+  // Hauteur mesurée depuis le ratio réel du média (même hook que la fiche
+  // exercice) — bornes resserrées pour une colonne de grille plutôt que la
+  // pleine largeur de la fiche.
+  const { height: artworkHeight, onLayout: onArtworkLayout } = useDynamicMediaHeight(mediaSource, {
+    minHeight: 120,
+    maxHeight: 220,
+  });
 
   return (
     <PressableScale testID={testID} style={styles.card} onPress={onPress}>
-      <View style={[styles.artwork, { borderColor: `${color}55`, backgroundColor: `${color}1A` }]}>
-        {mediaUri ? (
-          <Image source={{ uri: mediaUri }} style={styles.artworkImage} />
-        ) : item.imageBase64 ? (
-          <Image
-            source={{ uri: `data:image/webp;base64,${item.imageBase64}` }}
-            style={styles.artworkImage}
-          />
+      <View
+        style={[
+          styles.artwork,
+          { height: artworkHeight, borderColor: withAlpha(color, 33), backgroundColor: withAlpha(color, 10) },
+        ]}
+        onLayout={onArtworkLayout}
+      >
+        {mediaSource ? (
+          <Image source={mediaSource} style={styles.artworkImage} resizeMode="contain" />
         ) : (
           <Text style={styles.artworkEmoji}>
             {item.emoji ?? iconEmojiForExercise(item.name, null)}
@@ -120,13 +136,11 @@ export default function ExerciseCard({
 }
 
 const styles = StyleSheet.create({
-  // Carte compacte façon "cover art" premium (POLISH V2) : artwork plus
-  // court (aspectRatio 1.6 contre 1.3 précédemment) pour davantage
-  // d'exercices visibles à l'écran, meta en petites puces plutôt qu'une
-  // ligne de texte plate, léger relief (shadow.card).
+  // Carte compacte façon "cover art" premium : meta en petites puces
+  // plutôt qu'une ligne de texte plate, léger relief (shadow.card).
   card: { gap: 4, ...shadow.card },
   artwork: {
-    aspectRatio: 1.6,
+    width: "100%",
     borderRadius: radius.md,
     borderWidth: 1.5,
     alignItems: "center",

@@ -15,7 +15,7 @@ import {
 // horizontalement même si chaque chip restait cliquable.
 import { ScrollView } from "react-native-gesture-handler";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing } from "@/src/theme";
+import { colors, radius, shadow, spacing } from "@/src/theme";
 import PressableScale from "@/src/components/ui/PressableScale";
 
 /** Shared "saisir/ajouter une valeur" modal for quantitative habit cards
@@ -152,6 +152,37 @@ export function ActionChip({
   );
 }
 
+/** Visual "carte défilante" preset — richer than `ActionChip`, for choices
+ * that benefit from more presence (meal presets: emoji + value stand out at
+ * a glance in a horizontal `ActionsScroll`, tap to add-and-close). Numeric
+ * increments (water/steps) stay on the plainer `ActionChip` — a short
+ * number doesn't need this much visual weight. */
+export function PresetCard({
+  label,
+  value,
+  emoji,
+  onPress,
+  testID,
+}: {
+  label: string;
+  value: string;
+  emoji?: string;
+  onPress: () => void;
+  testID?: string;
+}) {
+  return (
+    <PressableScale testID={testID} style={styles.presetCard} onPress={onPress}>
+      <Text style={styles.presetCardEmoji}>{emoji ?? "🍽️"}</Text>
+      <Text style={styles.presetCardValue} numberOfLines={1}>
+        {value}
+      </Text>
+      <Text style={styles.presetCardLabel} numberOfLines={1}>
+        {label}
+      </Text>
+    </PressableScale>
+  );
+}
+
 export function MinusButton({ onPress, testID }: { onPress: () => void; testID?: string }) {
   return (
     <PressableScale testID={testID} style={styles.minusBtn} onPress={onPress} hitSlop={6}>
@@ -201,12 +232,27 @@ const styles = StyleSheet.create({
   },
   modalCard: {
     backgroundColor: colors.surfaceSecondary,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     padding: spacing.lg,
     gap: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
+    ...shadow.elevated,
   },
+  presetCard: {
+    width: 76,
+    alignItems: "center",
+    gap: 2,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: 6,
+    backgroundColor: colors.surfaceTertiary,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  presetCardEmoji: { fontSize: 20 },
+  presetCardValue: { color: colors.onSurface, fontWeight: "800", fontSize: 13 },
+  presetCardLabel: { color: colors.onSurfaceTertiary, fontWeight: "600", fontSize: 10, textAlign: "center" },
   modalTitle: {
     color: colors.onSurface,
     fontWeight: "800",

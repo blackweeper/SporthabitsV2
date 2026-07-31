@@ -81,7 +81,7 @@ export default function RootLayout() {
           <Stack.Screen name="journal/[id]" options={MODAL_SCREEN_OPTIONS} />
           <Stack.Screen name="exercise/[name]" />
           <Stack.Screen name="exercise/index" />
-          <Stack.Screen name="exercise-detail/[name]" />
+          <Stack.Screen name="exercise-detail/[name]" options={MODAL_SCREEN_OPTIONS} />
           <Stack.Screen name="cardio-log/new" />
           <Stack.Screen name="exercise-library-settings" />
           <Stack.Screen name="exercise-library-update" />

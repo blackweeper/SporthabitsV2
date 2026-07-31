@@ -32,6 +32,7 @@ import { computeExerciseProgress } from "@/src/utils/exercise-progress";
 import { findExerciseUsage } from "@/src/utils/exercise-usage";
 import { useExerciseLibraryItems } from "@/src/hooks/useExerciseLibraryItems";
 import { ExerciseRecord, getExerciseRecords, isCoreVisible } from "@/src/utils/exercise-records";
+import { matchExerciseRecord } from "@/src/utils/exercise-record-match";
 import { useExerciseMediaSources } from "@/src/hooks/useExerciseMedia";
 import { CORE_LIBRARY_ASSETS } from "@/src/data/core-library-assets.generated";
 import { getAllPrograms } from "@/src/utils/programs";
@@ -94,14 +95,7 @@ export default function ExerciseDetailFiche() {
         const records = await getExerciseRecords();
         if (cancelled) return;
         setAllRecords(records);
-        const key = decoded.toLowerCase().trim();
-        const match = records.find(
-          (r) =>
-            r.nameFr.toLowerCase().trim() === key ||
-            r.nameEn?.toLowerCase().trim() === key ||
-            (r.aliases ?? []).some((a) => a.toLowerCase().trim() === key),
-        );
-        setLibraryRecord(match ?? null);
+        setLibraryRecord(matchExerciseRecord(decoded, records) ?? null);
       })();
       return () => {
         cancelled = true;

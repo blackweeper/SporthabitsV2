@@ -14,8 +14,14 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import Svg, { Circle } from "react-native-svg";
-import { colors, radius, spacing } from "@/src/theme";
-import ExercisePicture from "@/src/components/ExercisePicture";
+import { colors, radius, spacing, withAlpha } from "@/src/theme";
+import Card from "@/src/components/ui/Card";
+import ExerciseMediaFrame from "@/src/components/exercise-library/ExerciseMediaFrame";
+import { useExerciseMediaSources } from "@/src/hooks/useExerciseMedia";
+import { CORE_LIBRARY_ASSETS } from "@/src/data/core-library-assets.generated";
+import { ExerciseRecord, getExerciseRecords } from "@/src/utils/exercise-records";
+import { matchExerciseRecord } from "@/src/utils/exercise-record-match";
+import { iconEmojiForExercise } from "@/src/data/exercise-icons";
 import { useConfirmDialog } from "@/src/hooks/use-confirm-dialog";
 import {
   speak,
@@ -46,6 +52,11 @@ export default function WorkoutScreen() {
   const [exIdx, setExIdx] = useState(0);
   const [startedAt] = useState(new Date().toISOString());
   const [totalRest, setTotalRest] = useState(0);
+  const [allRecords, setAllRecords] = useState<ExerciseRecord[]>([]);
+  // "photo" | "gif" — which media the hero frame shows; always resets to the
+  // illustration when the user switches exercise (never carries a GIF view
+  // over to an unrelated exercise).
+  const [mediaMode, setMediaMode] = useState<"photo" | "gif">("photo");
 
   // Overlay timer (rest / work / amrap)
   const [overlay, setOverlay] = useState<OverlayMode>(null);
@@ -74,6 +85,7 @@ export default function WorkoutScreen() {
         return;
       }
       setPlan(p);
+      setAllRecords(await getExerciseRecords());
       setLogs(
         p.exercises.map((ex) => ({
           exerciseId: ex.id,
@@ -100,6 +112,10 @@ export default function WorkoutScreen() {
     }, 1000);
     return () => clearInterval(int);
   }, [startedAt]);
+
+  useEffect(() => {
+    setMediaMode("photo");
+  }, [exIdx]);
 
   useEffect(() => {
     if (!overlay) return;
@@ -413,6 +429,20 @@ export default function WorkoutScreen() {
   }
 
   const currentEx = logs[exIdx];
+  // Media resolution — must run unconditionally (before the loading early
+  // return below) since `useExerciseMediaSources` is a hook. Same
+  // priority pattern as the fiche: bundled illustration (zero network) >
+  // network-cached illustration > null; GIF resolved independently so both
+  // can be shown/toggled without one displacing the other.
+  const planEx = plan?.exercises.find((e) => e.id === currentEx?.exerciseId);
+  const libraryRecord = currentEx ? matchExerciseRecord(currentEx.name, allRecords) : undefined;
+  const { ironflowUri, workoutxUri } = useExerciseMediaSources(libraryRecord?.id ?? null);
+  const bundledIllustration = libraryRecord?.id ? CORE_LIBRARY_ASSETS[libraryRecord.id] : undefined;
+  const illustrationSource =
+    planEx?.photoBase64
+      ? { uri: `data:image/jpeg;base64,${planEx.photoBase64}` }
+      : bundledIllustration ?? (ironflowUri ? { uri: ironflowUri } : null);
+  const gifSource = workoutxUri ? { uri: workoutxUri } : null;
 
   if (!plan || !currentEx) {
     return (
@@ -510,7 +540,37 @@ export default function WorkoutScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.exHeaderCard}>
+        <Card elevated padding={spacing.lg} style={styles.exHeaderCard}>
+          <View style={styles.mediaWrap}>
+            <ExerciseMediaFrame
+              testID="workout-media-frame"
+              source={mediaMode === "gif" ? (gifSource ?? illustrationSource) : illustrationSource}
+              fallbackEmoji={iconEmojiForExercise(currentEx.name, planEx?.iconKey)}
+              fallbackTint={colors.brand}
+              minHeight={150}
+              maxHeight={230}
+            />
+            <View style={styles.mediaControls}>
+              {gifSource && (
+                <Pressable
+                  testID="media-toggle-gif"
+                  hitSlop={4}
+                  style={[styles.mediaBtn, mediaMode === "gif" && styles.mediaBtnActive]}
+                  onPress={() => setMediaMode((m) => (m === "gif" ? "photo" : "gif"))}
+                >
+                  <Ionicons name={mediaMode === "gif" ? "image" : "film"} size={16} color="#fff" />
+                </Pressable>
+              )}
+              <Pressable
+                testID="media-open-fiche"
+                hitSlop={4}
+                style={styles.mediaBtn}
+                onPress={() => router.push(`/exercise-detail/${encodeURIComponent(currentEx.name)}` as any)}
+              >
+                <Ionicons name="information-circle" size={16} color="#fff" />
+              </Pressable>
+            </View>
+          </View>
           <View style={styles.modeBadgeRow}>
             <View style={styles.modeBadge}>
               <Text style={styles.modeBadgeText}>
@@ -518,29 +578,15 @@ export default function WorkoutScreen() {
               </Text>
             </View>
           </View>
-          <View style={styles.exTitleRow}>
-            <ExercisePicture
-              photoBase64={
-                plan?.exercises.find((e) => e.id === currentEx.exerciseId)?.photoBase64
-              }
-              iconKey={
-                plan?.exercises.find((e) => e.id === currentEx.exerciseId)?.iconKey
-              }
-              name={currentEx.name}
-              size={56}
-            />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.exNameBig}>{currentEx.name}</Text>
-              <Text style={styles.exMeta}>{describeTarget(currentEx)}</Text>
-            </View>
-          </View>
+          <Text style={styles.exNameBig}>{currentEx.name}</Text>
+          <Text style={styles.exMeta}>{describeTarget(currentEx)}</Text>
           <View style={styles.setProgressRow}>
             <Text style={styles.setProgressText}>
               {completedSets}/{currentEx.sets.length}{" "}
               {currentEx.mode === "amrap" ? "AMRAP" : "séries"}
             </Text>
           </View>
-        </View>
+        </Card>
 
         {currentEx.sets.map((s, i) => (
           <View
@@ -935,7 +981,7 @@ const styles = StyleSheet.create({
     borderColor: colors.brand,
   },
   exChipDone: {
-    backgroundColor: "#0F2F1A",
+    backgroundColor: withAlpha(colors.success, 12),
     borderColor: colors.success,
   },
   exChipText: {
@@ -944,15 +990,25 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   content: { padding: spacing.lg, gap: spacing.md },
-  exHeaderCard: {
-    backgroundColor: colors.surfaceSecondary,
-    borderRadius: radius.md,
-    padding: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    gap: spacing.sm,
+  exHeaderCard: { gap: spacing.sm },
+  mediaWrap: { position: "relative" },
+  mediaControls: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    flexDirection: "row",
+    gap: 8,
   },
-  modeBadgeRow: { flexDirection: "row" },
+  mediaBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: withAlpha("#000000", 55),
+  },
+  mediaBtnActive: { backgroundColor: colors.brand },
+  modeBadgeRow: { flexDirection: "row", marginTop: spacing.sm },
   modeBadge: {
     backgroundColor: colors.brandTertiary,
     paddingHorizontal: 8,
@@ -965,14 +1021,8 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     letterSpacing: 1,
   },
-  exNameBig: { color: colors.onSurface, fontSize: 22, fontWeight: "800" },
-  exTitleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
-    marginVertical: spacing.sm,
-  },
-  exMeta: { color: colors.onSurfaceTertiary, fontSize: 12 },
+  exNameBig: { color: colors.onSurface, fontSize: 22, fontWeight: "800", marginTop: 6 },
+  exMeta: { color: colors.onSurfaceTertiary, fontSize: 12, marginTop: 2 },
   setProgressRow: { marginTop: 4 },
   setProgressText: {
     color: colors.brand,
@@ -991,7 +1041,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   setRowDone: {
-    backgroundColor: "#0F2F1A",
+    backgroundColor: withAlpha(colors.success, 12),
     borderColor: colors.success,
     opacity: 0.85,
   },

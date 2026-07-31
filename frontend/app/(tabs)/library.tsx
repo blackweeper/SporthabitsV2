@@ -297,6 +297,9 @@ export default function LibraryScreen() {
         numColumns={2}
         columnWrapperStyle={styles.row}
         contentContainerStyle={styles.list}
+        initialNumToRender={8}
+        maxToRenderPerBatch={8}
+        windowSize={7}
         ListHeaderComponent={
           query.trim() && !exactMatch ? (
             <PressableScale
@@ -493,7 +496,10 @@ const styles = StyleSheet.create({
   // de `flex: 1`) évite qu'une dernière ligne à un seul élément (liste de
   // taille impaire) ne s'étire sur toute la largeur — chaque carte garde
   // exactement la même taille quel que soit le nombre d'exercices affichés.
-  row: { justifyContent: "space-between" },
+  // `alignItems:"flex-start"` : les cartes ont désormais une hauteur
+  // dynamique (ratio réel du média) — sans ça, Flexbox étire par défaut la
+  // carte la plus courte d'une ligne pour égaler la plus haute.
+  row: { justifyContent: "space-between", alignItems: "flex-start" },
   cardWrap: { width: "48%", marginBottom: spacing.sm },
   createRow: {
     flexDirection: "row",

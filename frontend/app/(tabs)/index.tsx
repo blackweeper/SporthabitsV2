@@ -72,7 +72,7 @@ import HabitTimerModal from "@/src/components/HabitTimerModal";
 import CalendarView, { DayEventDot } from "@/src/components/CalendarView";
 import WeekCalendarView from "@/src/components/WeekCalendarView";
 import { AppSettings, CalendarViewMode, getAppSettings } from "@/src/utils/app-settings";
-import { ActionChip, ActionsScroll, MinusButton, QuantityModal } from "@/src/components/HabitCard";
+import { ActionChip, ActionsScroll, MinusButton, PresetCard, QuantityModal } from "@/src/components/HabitCard";
 import PressableScale from "@/src/components/ui/PressableScale";
 import RingChip from "@/src/components/ui/RingChip";
 import StatHero from "@/src/components/ui/StatHero";
@@ -413,6 +413,15 @@ export default function TodayScreen() {
     const cur = wellness?.[field] ?? 0;
     await patchWellnessLog(today, { [field]: Math.max(0, cur + delta) });
     load();
+  };
+
+  // Préréglage dans la modale Eau/Calories/Pas : applique la valeur ET ferme
+  // la modale dans le même geste, pour un retour immédiat au dashboard
+  // (voir `bumpWellness`, qui elle reste utilisée telle quelle par le
+  // "+" à tap unique directement sur l'anneau).
+  const quickAdd = (field: "water_ml" | "calories_kcal" | "steps", delta: number) => {
+    bumpWellness(field, delta);
+    setQuantityModal(null);
   };
 
   const setWellnessValue = async (
@@ -921,26 +930,30 @@ export default function TodayScreen() {
             : "#10B981"
         }
         // Les raccourcis existent toujours à l'identique (mêmes handlers) —
-        // simplement déplacés depuis les anciennes cartes pleine largeur
-        // vers l'intérieur de ce modal, ouvert au tap sur l'anneau.
+        // déplacés depuis les anciennes cartes pleine largeur vers l'intérieur
+        // de ce modal, ouvert au tap sur l'anneau. Chaque préréglage applique
+        // ET ferme la modale immédiatement (`quickAdd`) — avant, seul le bouton
+        // "Valider" fermait, laissant la modale ouverte après un tap sur un
+        // préréglage (3+ taps pour logger "500 ml" au lieu d'1-2).
         quickActions={
           quantityModal?.which === "water" ? (
             <ActionsScroll>
-              <MinusButton testID="widget-water-minus" onPress={() => bumpWellness("water_ml", -250)} />
-              <ActionChip testID="widget-water-250" label="+250 ml" onPress={() => bumpWellness("water_ml", 250)} />
-              <ActionChip testID="widget-water-500" label="+500 ml" onPress={() => bumpWellness("water_ml", 500)} />
-              <ActionChip testID="widget-water-750" label="+750 ml" onPress={() => bumpWellness("water_ml", 750)} />
-              <ActionChip testID="widget-water-1000" label="+1 L" onPress={() => bumpWellness("water_ml", 1000)} />
+              <MinusButton testID="widget-water-minus" onPress={() => quickAdd("water_ml", -250)} />
+              <ActionChip testID="widget-water-250" label="+250 ml" onPress={() => quickAdd("water_ml", 250)} />
+              <ActionChip testID="widget-water-500" label="+500 ml" onPress={() => quickAdd("water_ml", 500)} />
+              <ActionChip testID="widget-water-750" label="+750 ml" onPress={() => quickAdd("water_ml", 750)} />
+              <ActionChip testID="widget-water-1000" label="+1 L" onPress={() => quickAdd("water_ml", 1000)} />
             </ActionsScroll>
           ) : quantityModal?.which === "calories" ? (
             <ActionsScroll>
               {mealPresets.map((m) => (
-                <ActionChip
+                <PresetCard
                   key={m.id}
                   testID={`widget-calories-${m.id}`}
                   emoji={m.emoji}
-                  label={`${m.label} · +${m.kcal}`}
-                  onPress={() => bumpWellness("calories_kcal", m.kcal)}
+                  value={`+${m.kcal}`}
+                  label={m.label}
+                  onPress={() => quickAdd("calories_kcal", m.kcal)}
                 />
               ))}
               <ActionChip
@@ -953,10 +966,10 @@ export default function TodayScreen() {
             </ActionsScroll>
           ) : quantityModal?.which === "steps" ? (
             <ActionsScroll>
-              <MinusButton testID="widget-steps-minus" onPress={() => bumpWellness("steps", -500)} />
-              <ActionChip testID="widget-steps-500" label="+500" onPress={() => bumpWellness("steps", 500)} />
-              <ActionChip testID="widget-steps-1000" label="+1000" onPress={() => bumpWellness("steps", 1000)} />
-              <ActionChip testID="widget-steps-2000" label="+2000" onPress={() => bumpWellness("steps", 2000)} />
+              <MinusButton testID="widget-steps-minus" onPress={() => quickAdd("steps", -500)} />
+              <ActionChip testID="widget-steps-500" label="+500" onPress={() => quickAdd("steps", 500)} />
+              <ActionChip testID="widget-steps-1000" label="+1000" onPress={() => quickAdd("steps", 1000)} />
+              <ActionChip testID="widget-steps-2000" label="+2000" onPress={() => quickAdd("steps", 2000)} />
             </ActionsScroll>
           ) : null
         }

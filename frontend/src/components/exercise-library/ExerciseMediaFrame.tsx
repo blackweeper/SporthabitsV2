@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
-import { Image, ImageSourcePropType, LayoutChangeEvent, StyleSheet, Text, View } from "react-native";
+import { ImageSourcePropType, StyleSheet, Text, View, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, withAlpha } from "@/src/theme";
+import { useDynamicMediaHeight } from "@/src/hooks/useDynamicMediaHeight";
 
 /**
  * Cadre média à ratio dynamique — mesure la vraie dimension de l'image
@@ -10,6 +10,10 @@ import { colors, radius, withAlpha } from "@/src/theme";
  * ne produise ni recadrage ni bande vide dans le cas courant. Les ratios
  * hors bornes (portrait/paysage extrême) restent en `contain` — jamais de
  * crop — avec un léger letterbox sur fond thème plutôt qu'un cadre cassé.
+ * La mesure/clamp elle-même vit dans `useDynamicMediaHeight` (partagée avec
+ * `ExerciseCard` pour la grille Bibliothèque) — ce composant ne fait plus
+ * qu'habiller ce calcul avec sa propre présentation (badge overlay, repli
+ * emoji pleine taille) taillée pour la fiche exercice.
  *
  * Les appelants qui affichent plusieurs cadres côte à côte (illustration +
  * GIF) doivent leur passer les MÊMES `minHeight`/`maxHeight` : c'est ce qui
@@ -17,20 +21,6 @@ import { colors, radius, withAlpha } from "@/src/theme";
  * clamp), pas un ratio identique forcé — deux images de ratio différent
  * gardent chacune leur taille naturelle, sans jamais se recadrer.
  */
-const MIN_RATIO = 0.62;
-const MAX_RATIO = 1.9;
-const DEFAULT_RATIO = 1;
-
-function resolveLocalRatio(source: ImageSourcePropType): number | null {
-  try {
-    const resolved = Image.resolveAssetSource(source as never);
-    if (resolved?.width && resolved?.height) return resolved.width / resolved.height;
-  } catch {
-    // Remote-only source (`{uri}`) — resolved via Image.getSize instead.
-  }
-  return null;
-}
-
 export default function ExerciseMediaFrame({
   source,
   fallbackEmoji,
@@ -55,32 +45,7 @@ export default function ExerciseMediaFrame({
   badgeLabel?: string;
   testID?: string;
 }) {
-  const [ratio, setRatio] = useState(DEFAULT_RATIO);
-  const [width, setWidth] = useState(0);
-
-  useEffect(() => {
-    if (!source) return;
-    const uri = (source as { uri?: string })?.uri;
-    if (uri) {
-      let cancelled = false;
-      Image.getSize(
-        uri,
-        (w, h) => {
-          if (!cancelled && w > 0 && h > 0) setRatio(w / h);
-        },
-        () => {},
-      );
-      return () => {
-        cancelled = true;
-      };
-    }
-    const local = resolveLocalRatio(source);
-    if (local) setRatio(local);
-  }, [source]);
-
-  const clampedRatio = Math.min(MAX_RATIO, Math.max(MIN_RATIO, ratio));
-  const height =
-    width > 0 ? Math.min(maxHeight, Math.max(minHeight, width / clampedRatio)) : minHeight;
+  const { height, onLayout } = useDynamicMediaHeight(source, { minHeight, maxHeight });
 
   return (
     <View
@@ -90,7 +55,7 @@ export default function ExerciseMediaFrame({
         { height },
         !source && fallbackTint ? { backgroundColor: withAlpha(fallbackTint, 15) } : null,
       ]}
-      onLayout={(e: LayoutChangeEvent) => setWidth(e.nativeEvent.layout.width)}
+      onLayout={onLayout}
     >
       {source ? (
         <>

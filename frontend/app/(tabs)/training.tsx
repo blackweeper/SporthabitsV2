@@ -9,8 +9,10 @@ import Animated, { FadeInDown } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, motion, radius, spacing } from "@/src/theme";
+import { colors, motion, radius, shadow, spacing, withAlpha } from "@/src/theme";
 import PressableScale from "@/src/components/ui/PressableScale";
+import CTAButton from "@/src/components/ui/CTAButton";
+import ExerciseThumbnail from "@/src/components/ExerciseThumbnail";
 import SwipeableRow from "@/src/components/SwipeableRow";
 import {
   ActiveProgram,
@@ -24,8 +26,10 @@ import {
   WorkoutSession,
 } from "@/src/utils/gym-storage";
 import { findProgram } from "@/src/utils/programs";
-import { Program } from "@/src/data/programs";
+import { Program, ProgramDay } from "@/src/data/programs";
 import { MUSCLE_GROUPS } from "@/src/utils/muscle-groups";
+import { ExerciseRecord, getExerciseRecords } from "@/src/utils/exercise-records";
+import { formatPlannedDate, plannedDateForDayIndex } from "@/src/utils/session-estimate";
 
 type Tab = "program" | "cardio" | "mobility" | "sessions" | "individual";
 type IndCat = "all" | "musculation" | "cardio" | "wod" | "stretch";
@@ -71,12 +75,14 @@ export default function TrainingHub() {
   const [actives, setActives] = useState<
     { active: ActiveProgram; program: Program }[]
   >([]);
+  const [exerciseRecords, setExerciseRecords] = useState<ExerciseRecord[]>([]);
 
   useFocusEffect(
     useCallback(() => {
       (async () => {
         setPlans(await getPlans());
         setSessions(await getSessions());
+        setExerciseRecords(await getExerciseRecords());
         const list = await getActivePrograms();
         const resolved = [];
         for (const a of list) {
@@ -150,18 +156,19 @@ export default function TrainingHub() {
 
       <ScrollView contentContainerStyle={styles.scroll}>
         {tab === "program" && (
-          <ProgramView actives={workoutActives} router={router} />
+          <ProgramView actives={workoutActives} router={router} records={exerciseRecords} />
         )}
         {tab === "cardio" && (
-          <CardioView actives={cardioActives} router={router} />
+          <CardioView actives={cardioActives} router={router} records={exerciseRecords} />
         )}
         {tab === "mobility" && (
-          <MobilityView actives={stretchActives} router={router} />
+          <MobilityView actives={stretchActives} router={router} records={exerciseRecords} />
         )}
         {tab === "sessions" && (
           <SessionsView
             sessions={sessions}
             router={router}
+            records={exerciseRecords}
             onDeleted={async () => {
               setSessions(await getSessions());
             }}
@@ -171,6 +178,7 @@ export default function TrainingHub() {
           <IndividualView
             plans={plans}
             router={router}
+            records={exerciseRecords}
             onDeleted={async () => {
               setPlans(await getPlans());
             }}
@@ -181,12 +189,16 @@ export default function TrainingHub() {
   );
 }
 
-/** Carte héroïque pour le programme actif — remplace l'ancienne rangée
- * compacte identique à toutes les autres cartes de l'écran ; teintée de la
- * couleur du programme pour devenir le vrai point focal de chaque onglet. */
+/** Carte héroïque pour le programme actif — le vrai point focal de chaque
+ * onglet, teintée de la couleur du programme, avec relief (`shadow.elevated`,
+ * seule carte de l'écran à en avoir — c'est la carte "hero" que `theme.ts`
+ * réserve à ce traitement). Affiche en plus une bande "Cette semaine" des
+ * prochains jours réels du programme (voir `UpcomingDaysStrip`). */
 function ProgramHeroCard({
   testID,
   program,
+  active,
+  records,
   today,
   done,
   total,
@@ -195,6 +207,8 @@ function ProgramHeroCard({
 }: {
   testID: string;
   program: Program;
+  active?: ActiveProgram;
+  records: ExerciseRecord[];
   today: number;
   done?: number;
   total?: number;
@@ -209,12 +223,12 @@ function ProgramHeroCard({
         testID={testID}
         style={[
           styles.heroProgCard,
-          { backgroundColor: `${program.color}1A`, borderColor: `${program.color}55` },
+          { backgroundColor: withAlpha(program.color, 10), borderColor: withAlpha(program.color, 33) },
         ]}
         onPress={onPress}
       >
         <View style={styles.heroProgHead}>
-          <View style={[styles.heroProgEmoji, { backgroundColor: `${program.color}30` }]}>
+          <View style={[styles.heroProgEmoji, { backgroundColor: withAlpha(program.color, 19) }]}>
             <Text style={{ fontSize: 40 }}>{program.coverEmoji}</Text>
           </View>
           <View style={{ flex: 1 }}>
@@ -244,36 +258,108 @@ function ProgramHeroCard({
           </View>
         )}
       </PressableScale>
+      {active && <UpcomingDaysStrip program={program} active={active} records={records} onPressDay={onPress} />}
     </EnterItem>
+  );
+}
+
+/** Bande "Cette semaine" — esprit de la référence visuelle fournie (colonnes
+ * par jour, miniatures d'exercices) adapté aux vraies données : `Program`
+ * n'a ni jour de semaine ni cadence hebdomadaire fixe, donc les colonnes
+ * montrent les VRAIS prochains jours d'entraînement (skip les jours de
+ * repos) avec de vraies dates calculées — jamais un libellé Lundi/Mercredi
+ * inventé. Tap sur une colonne → même destination que la carte (fiche
+ * complète du programme, qui met déjà "aujourd'hui" en évidence). */
+function UpcomingDaysStrip({
+  program,
+  active,
+  records,
+  onPressDay,
+}: {
+  program: Program;
+  active: ActiveProgram;
+  records: ExerciseRecord[];
+  onPressDay: () => void;
+}) {
+  const today = currentDayIndex(active, program.durationDays);
+  const columns: { dayIndex: number; day: ProgramDay }[] = [];
+  for (let i = today; i <= Math.min(program.durationDays, today + 13) && columns.length < 4; i++) {
+    const day = program.days[i - 1];
+    if (!day || day.rest) continue;
+    columns.push({ dayIndex: i, day });
+  }
+  if (columns.length === 0) return null;
+
+  return (
+    <View style={styles.weekWrap}>
+      <Text style={styles.weekLabel}>CETTE SEMAINE</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.weekRow}>
+        {columns.map(({ dayIndex, day }) => {
+          const exercises = day.sessions[0]?.exercises ?? [];
+          const date = formatPlannedDate(plannedDateForDayIndex(active.startedAt, dayIndex));
+          return (
+            <PressableScale
+              key={dayIndex}
+              testID={`week-day-${dayIndex}`}
+              style={[
+                styles.weekCol,
+                { backgroundColor: withAlpha(program.color, 8), borderColor: withAlpha(program.color, 25) },
+              ]}
+              onPress={onPressDay}
+            >
+              <Text style={styles.weekColTitle} numberOfLines={2}>
+                {day.title}
+              </Text>
+              <Text style={styles.weekColDate}>
+                {date} · {exercises.length} exercice{exercises.length > 1 ? "s" : ""}
+              </Text>
+              <View style={styles.weekExList}>
+                {exercises.slice(0, 3).map((ex, i) => (
+                  <View key={i} style={styles.weekExRow}>
+                    <ExerciseThumbnail name={ex.name} records={records} size={26} square />
+                    <Text style={styles.weekExName} numberOfLines={1}>
+                      {ex.name}
+                    </Text>
+                  </View>
+                ))}
+                {exercises.length > 3 && (
+                  <Text style={styles.weekExMore}>+{exercises.length - 3} de plus</Text>
+                )}
+              </View>
+            </PressableScale>
+          );
+        })}
+      </ScrollView>
+    </View>
   );
 }
 
 function ProgramView({
   actives,
   router,
+  records,
 }: {
   actives: { active: ActiveProgram; program: Program }[];
   router: any;
+  records: ExerciseRecord[];
 }) {
   if (actives.length === 0) {
     return (
       <View style={styles.empty}>
         <Ionicons name="calendar" size={40} color={colors.brand} />
         <Text style={styles.emptyTitle}>Aucun programme actif</Text>
-        <PressableScale
-          style={styles.ctaBtn}
-          onPress={() => router.push("/programs")}
+        <CTAButton
           testID="browse-programs"
-        >
-          <Text style={styles.ctaText}>PARCOURIR LES PROGRAMMES</Text>
-        </PressableScale>
-        <PressableScale
-          onPress={() => router.push("/custom-program/new")}
+          variant="primary"
+          label="Parcourir les programmes"
+          onPress={() => router.push("/programs")}
+        />
+        <CTAButton
           testID="create-program-training"
-          style={styles.ctaBtnSecondary}
-        >
-          <Text style={styles.ctaTextSecondary}>Créer mon programme</Text>
-        </PressableScale>
+          variant="secondary"
+          label="Créer mon programme"
+          onPress={() => router.push("/custom-program/new")}
+        />
       </View>
     );
   }
@@ -292,6 +378,8 @@ function ProgramView({
             index={i}
             testID={`training-prog-${program.id}`}
             program={program}
+            active={active}
+            records={records}
             today={today}
             done={done}
             total={total}
@@ -315,10 +403,12 @@ function ProgramView({
 function SessionsView({
   sessions,
   router,
+  records,
   onDeleted,
 }: {
   sessions: WorkoutSession[];
   router: any;
+  records: ExerciseRecord[];
   onDeleted: () => void;
 }) {
   if (sessions.length === 0) {
@@ -342,6 +432,7 @@ function SessionsView({
         <EnterItem key={s.id} index={i}>
           <SwipeableSessionRow
             session={s}
+            records={records}
             onPress={() => router.push(`/session/${s.id}`)}
             onDeleted={onDeleted}
           />
@@ -353,10 +444,12 @@ function SessionsView({
 
 function SwipeableSessionRow({
   session: s,
+  records,
   onPress,
   onDeleted,
 }: {
   session: WorkoutSession;
+  records: ExerciseRecord[];
   onPress: () => void;
   onDeleted: () => void;
 }) {
@@ -390,6 +483,13 @@ function SwipeableSessionRow({
           <Stat icon="flame" value={`${s.caloriesBurned} kcal`} />
           <Stat icon="barbell" value={`${s.exercises.length} ex.`} />
         </View>
+        {s.exercises.length > 0 && (
+          <View style={styles.sessionThumbRow}>
+            {s.exercises.slice(0, 4).map((ex, i) => (
+              <ExerciseThumbnail key={i} name={ex.name} records={records} size={24} square />
+            ))}
+          </View>
+        )}
       </PressableScale>
     </SwipeableRow>
   );
@@ -398,10 +498,12 @@ function SwipeableSessionRow({
 function IndividualView({
   plans,
   router,
+  records,
   onDeleted,
 }: {
   plans: Plan[];
   router: any;
+  records: ExerciseRecord[];
   onDeleted: () => void;
 }) {
   const [cat, setCat] = useState<IndCat>("all");
@@ -498,13 +600,12 @@ function IndividualView({
           <Text style={styles.emptyTitle}>
             {plans.length === 0 ? "Aucune séance individuelle" : "Aucune séance dans ce filtre"}
           </Text>
-          <PressableScale
-            style={styles.ctaBtn}
-            onPress={() => router.push("/plan/new")}
+          <CTAButton
             testID="create-plan"
-          >
-            <Text style={styles.ctaText}>CRÉER UNE SÉANCE</Text>
-          </PressableScale>
+            variant="primary"
+            label="Créer une séance"
+            onPress={() => router.push("/plan/new")}
+          />
         </View>
       ) : (
         <>
@@ -516,6 +617,7 @@ function IndividualView({
             <EnterItem key={p.id} index={i}>
               <SwipeablePlanRow
                 plan={p}
+                records={records}
                 onPress={() => router.push(`/plan/${p.id}`)}
                 onStart={() => router.push(`/workout/${p.id}`)}
                 onDeleted={onDeleted}
@@ -538,16 +640,19 @@ function IndividualView({
 
 function SwipeablePlanRow({
   plan: p,
+  records,
   onPress,
   onStart,
   onDeleted,
 }: {
   plan: Plan;
+  records: ExerciseRecord[];
   onPress: () => void;
   onStart: () => void;
   onDeleted: () => void;
 }) {
   const typeColor = TYPE_COLORS[p.type] ?? colors.brand;
+  const firstEx = p.exercises[0];
   return (
     <SwipeableRow
       testID={`plan-item-${p.id}`}
@@ -569,9 +674,18 @@ function SwipeablePlanRow({
         style={styles.planCard}
         onPress={onPress}
       >
+        {firstEx && (
+          <ExerciseThumbnail
+            name={firstEx.name}
+            records={records}
+            photoBase64={firstEx.photoBase64}
+            iconKey={firstEx.iconKey}
+            size={48}
+          />
+        )}
         <View style={{ flex: 1 }}>
           <View style={styles.planTagsRow}>
-            <View style={[styles.planTypeTag, { backgroundColor: `${typeColor}26` }]}>
+            <View style={[styles.planTypeTag, { backgroundColor: withAlpha(typeColor, 15) }]}>
               <Text style={[styles.planTypeText, { color: typeColor }]}>
                 {planTypeLabel(p.type)}
               </Text>
@@ -615,11 +729,13 @@ function planTypeLabel(t: Plan["type"]): string {
 function CardioView({
   actives,
   router,
+  records,
 }: {
   actives: { active: ActiveProgram; program: Program }[];
   router: any;
+  records: ExerciseRecord[];
 }) {
-  const CARDIO_COLOR = "#00B0FF";
+  const CARDIO_COLOR = TYPE_COLORS.cardio;
   if (actives.length === 0) {
     return (
       <View style={styles.empty}>
@@ -628,24 +744,20 @@ function CardioView({
         <Text style={styles.emptySub}>
           Crée un programme cardio personnalisé pour tes runs, séances de vélo, HIIT ou natation.
         </Text>
-        <PressableScale
-          style={[styles.ctaBtn, { backgroundColor: CARDIO_COLOR }]}
-          onPress={() => router.push("/programs?category=cardio")}
+        <CTAButton
           testID="browse-cardio"
-        >
-          <Text style={styles.ctaText}>PARCOURIR</Text>
-        </PressableScale>
-        <PressableScale
-          onPress={() =>
-            router.push("/custom-program/new?category=cardio")
-          }
+          variant="primary"
+          tint={CARDIO_COLOR}
+          label="Parcourir"
+          onPress={() => router.push("/programs?category=cardio")}
+        />
+        <CTAButton
           testID="create-cardio-program"
-          style={[styles.ctaBtnSecondary, { borderColor: CARDIO_COLOR }]}
-        >
-          <Text style={[styles.ctaTextSecondary, { color: CARDIO_COLOR }]}>
-            Créer mon programme cardio
-          </Text>
-        </PressableScale>
+          variant="secondary"
+          tint={CARDIO_COLOR}
+          label="Créer mon programme cardio"
+          onPress={() => router.push("/custom-program/new?category=cardio")}
+        />
       </View>
     );
   }
@@ -664,6 +776,8 @@ function CardioView({
             index={i}
             testID={`cardio-${program.id}`}
             program={program}
+            active={active}
+            records={records}
             today={today}
             done={done}
             total={total}
@@ -682,17 +796,13 @@ function CardioView({
         </Text>
         <Ionicons name="chevron-forward" size={14} color={CARDIO_COLOR} />
       </PressableScale>
-      <PressableScale
-        onPress={() =>
-          router.push("/custom-program/new?category=cardio")
-        }
+      <CTAButton
         testID="create-cardio-program-2"
-        style={[styles.ctaBtnSecondary, { borderColor: CARDIO_COLOR }]}
-      >
-        <Text style={[styles.ctaTextSecondary, { color: CARDIO_COLOR }]}>
-          Créer mon programme cardio
-        </Text>
-      </PressableScale>
+        variant="secondary"
+        tint={CARDIO_COLOR}
+        label="Créer mon programme cardio"
+        onPress={() => router.push("/custom-program/new?category=cardio")}
+      />
     </>
   );
 }
@@ -700,38 +810,35 @@ function CardioView({
 function MobilityView({
   actives,
   router,
+  records,
 }: {
   actives: { active: ActiveProgram; program: Program }[];
   router: any;
+  records: ExerciseRecord[];
 }) {
   if (actives.length === 0) {
     return (
       <View style={styles.empty}>
-        <Ionicons name="body" size={40} color="#00E676" />
+        <Ionicons name="body" size={40} color={colors.success} />
         <Text style={styles.emptyTitle}>Pas de routine mobilité</Text>
         <Text style={styles.emptySub}>
           Découvre les programmes d&apos;étirements et de récupération.
         </Text>
-        <PressableScale
-          style={[styles.ctaBtn, { backgroundColor: "#00E676" }]}
-          onPress={() => router.push("/programs?category=stretch")}
+        <CTAButton
           testID="browse-stretch"
-        >
-          <Text style={[styles.ctaText, { color: "#000" }]}>
-            PARCOURIR LES ÉTIREMENTS
-          </Text>
-        </PressableScale>
-        <PressableScale
-          onPress={() =>
-            router.push("/custom-program/new?category=stretch")
-          }
+          variant="primary"
+          tint={colors.success}
+          textColor="#000"
+          label="Parcourir les étirements"
+          onPress={() => router.push("/programs?category=stretch")}
+        />
+        <CTAButton
           testID="create-mobility-program"
-          style={[styles.ctaBtnSecondary, { borderColor: "#00E676" }]}
-        >
-          <Text style={[styles.ctaTextSecondary, { color: "#00E676" }]}>
-            Créer mon programme
-          </Text>
-        </PressableScale>
+          variant="secondary"
+          tint={colors.success}
+          label="Créer mon programme"
+          onPress={() => router.push("/custom-program/new?category=stretch")}
+        />
       </View>
     );
   }
@@ -745,6 +852,8 @@ function MobilityView({
             index={i}
             testID={`mobility-${program.id}`}
             program={program}
+            active={active}
+            records={records}
             today={today}
             onPress={() => router.push(`/program/${program.id}`)}
           />
@@ -755,23 +864,19 @@ function MobilityView({
         onPress={() => router.push("/programs?category=stretch")}
         testID="all-mobility"
       >
-        <Ionicons name="library" size={14} color="#00E676" />
-        <Text style={[styles.linkBtnText, { color: "#00E676" }]}>
+        <Ionicons name="library" size={14} color={colors.success} />
+        <Text style={[styles.linkBtnText, { color: colors.success }]}>
           Parcourir les étirements
         </Text>
-        <Ionicons name="chevron-forward" size={14} color="#00E676" />
+        <Ionicons name="chevron-forward" size={14} color={colors.success} />
       </PressableScale>
-      <PressableScale
-        onPress={() =>
-          router.push("/custom-program/new?category=stretch")
-        }
+      <CTAButton
         testID="create-mobility-program-2"
-        style={[styles.ctaBtnSecondary, { borderColor: "#00E676" }]}
-      >
-        <Text style={[styles.ctaTextSecondary, { color: "#00E676" }]}>
-          Créer mon programme
-        </Text>
-      </PressableScale>
+        variant="secondary"
+        tint={colors.success}
+        label="Créer mon programme"
+        onPress={() => router.push("/custom-program/new?category=stretch")}
+      />
     </>
   );
 }
@@ -854,29 +959,34 @@ const styles = StyleSheet.create({
     textAlign: "center",
     lineHeight: 20,
   },
-  ctaBtn: {
-    backgroundColor: colors.brand,
-    paddingVertical: 14,
-    paddingHorizontal: spacing.xl,
-    borderRadius: radius.md,
-    marginTop: spacing.sm,
-  },
-  ctaText: { color: "#fff", fontWeight: "800", letterSpacing: 1 },
-  ctaBtnSecondary: {
-    paddingVertical: 12,
-    paddingHorizontal: spacing.xl,
-    borderRadius: radius.md,
-    borderWidth: 1.5,
-    borderColor: colors.brand,
-  },
-  ctaTextSecondary: { color: colors.brand, fontWeight: "800", letterSpacing: 0.5 },
   heroProgCard: {
     borderRadius: radius.lg,
     borderWidth: 1.5,
     padding: spacing.lg,
     gap: spacing.md,
+    ...shadow.elevated,
+  },
+  weekWrap: { marginTop: spacing.sm, marginBottom: spacing.sm },
+  weekLabel: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 0.8,
     marginBottom: spacing.sm,
   },
+  weekRow: { gap: spacing.sm, paddingRight: spacing.md },
+  weekCol: {
+    width: 168,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    padding: spacing.md,
+  },
+  weekColTitle: { color: colors.onSurface, fontWeight: "800", fontSize: 12, lineHeight: 16 },
+  weekColDate: { color: colors.onSurfaceTertiary, fontSize: 10, fontWeight: "600", marginTop: 2 },
+  weekExList: { gap: 6, marginTop: spacing.sm },
+  weekExRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  weekExName: { flex: 1, color: colors.onSurfaceSecondary, fontSize: 10.5, fontWeight: "600" },
+  weekExMore: { color: colors.onSurfaceTertiary, fontSize: 10, fontWeight: "700", marginTop: 2 },
   heroProgHead: { flexDirection: "row", alignItems: "center", gap: spacing.md },
   heroProgEmoji: {
     width: 64,
@@ -917,30 +1027,17 @@ const styles = StyleSheet.create({
   sessionCard: {
     backgroundColor: colors.surfaceSecondary,
     padding: spacing.md,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
     borderLeftWidth: 4,
     gap: 4,
   },
+  sessionThumbRow: { flexDirection: "row", gap: 6, marginTop: 6 },
   swipeContainer: {
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     overflow: "hidden",
     marginBottom: 0,
-  },
-  swipeAction: {
-    backgroundColor: colors.error,
-    justifyContent: "center",
-    alignItems: "center",
-    width: 96,
-    flexDirection: "column",
-    gap: 4,
-  },
-  swipeActionText: {
-    color: "#fff",
-    fontWeight: "800",
-    fontSize: 11,
-    letterSpacing: 0.5,
   },
   hintText: {
     color: colors.onSurfaceTertiary,
@@ -964,7 +1061,7 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     backgroundColor: colors.surfaceSecondary,
     padding: spacing.md,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: 1,
     borderColor: colors.border,
   },
