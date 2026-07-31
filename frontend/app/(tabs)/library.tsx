@@ -19,7 +19,6 @@ import SwipeableRow from "@/src/components/SwipeableRow";
 import { MuscleGroupKey } from "@/src/utils/muscle-groups";
 import { CustomExercise, deleteCustomExercise, saveCustomExercise, uid } from "@/src/utils/gym-storage";
 import { NewExerciseSheet } from "@/src/components/ExerciseLibraryPicker";
-import ExerciseQuickViewSheet from "@/src/components/exercise-library/ExerciseQuickViewSheet";
 import PressableScale from "@/src/components/ui/PressableScale";
 import { isCoreVisible } from "@/src/utils/exercise-records";
 import { FUTURE_COLLECTION_LABEL, type FutureCollection } from "@/src/utils/exercise-collection";
@@ -114,7 +113,6 @@ export default function LibraryScreen() {
   const [sheet, setSheet] = useState<{ mode: "create" | "edit"; draft: CustomExercise } | null>(
     null,
   );
-  const [quickView, setQuickView] = useState<ExerciseLibraryItem | null>(null);
 
   const {
     items,
@@ -128,7 +126,12 @@ export default function LibraryScreen() {
   const [downloadingCollection, setDownloadingCollection] = useState<FutureCollection | null>(
     null,
   );
-  const [scope, setScope] = useState<"library" | "catalogue" | "discover">("library");
+  // V3 — 2 scopes seulement : "Ma bibliothèque" contient nativement les 300
+  // exercices officiels (inLibrary dérivé du tier, voir
+  // useExerciseLibraryItems.ts) + tout ajout explicite depuis Découvrir ;
+  // l'ancien scope "Catalogue" (qui n'affichait que ces mêmes 300) est
+  // supprimé, son contenu vit désormais en permanence dans "library".
+  const [scope, setScope] = useState<"library" | "discover">("library");
   const [collectionFilter, setCollectionFilter] = useState<FutureCollection | null>(null);
 
   useFocusEffect(
@@ -175,8 +178,7 @@ export default function LibraryScreen() {
     const q = normalizeSearch(query);
     let list: typeof items;
     if (scope === "library") list = items.filter((i) => i.inLibrary);
-    else if (scope === "discover") list = items.filter((i) => i.exerciseTier === "collection_only");
-    else list = items.filter((i) => isCoreVisible(i.exerciseTier));
+    else list = items.filter((i) => i.exerciseTier === "collection_only");
     if (scope === "discover" && collectionFilter) {
       list = list.filter((i) => i.collections?.includes(collectionFilter));
     }
@@ -202,13 +204,13 @@ export default function LibraryScreen() {
   );
 
   // Catalogue intelligent (Phase 1, POLISH V2) — une recherche non vide en
-  // scope Catalogue continue aussi dans les exercices "à découvrir"
+  // scope "Ma bibliothèque" continue aussi dans les exercices "à découvrir"
   // (collection_only), affichés à part en lignes pleine largeur plutôt que
   // mélangés à la grille officielle (une mini-carte de 164px n'a pas la
   // place pour "Disponible dans : {pack}" + 2 actions).
   const discoverMatches = useMemo(() => {
     const q = normalizeSearch(query);
-    if (scope !== "catalogue" || !q) return [];
+    if (scope !== "library" || !q) return [];
     let list = items.filter((i) => !isCoreVisible(i.exerciseTier) && !i.inLibrary);
     if (tab === "favorites") list = list.filter((i) => i.favorite);
     else if (tab !== "all") list = list.filter((i) => i.category === tab);
@@ -221,9 +223,7 @@ export default function LibraryScreen() {
   const scopeCount =
     scope === "library"
       ? items.filter((i) => i.inLibrary).length
-      : scope === "discover"
-        ? items.filter((i) => i.exerciseTier === "collection_only").length
-        : items.filter((i) => isCoreVisible(i.exerciseTier)).length;
+      : items.filter((i) => i.exerciseTier === "collection_only").length;
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
@@ -231,11 +231,7 @@ export default function LibraryScreen() {
         <Text style={styles.title}>Bibliothèque</Text>
         <Text style={styles.subtitle}>
           {scopeCount} exercice{scopeCount > 1 ? "s" : ""}
-          {scope === "library"
-            ? " dans ta bibliothèque"
-            : scope === "discover"
-              ? " à découvrir"
-              : " au catalogue"}
+          {scope === "library" ? " dans ta bibliothèque" : " à découvrir"}
         </Text>
       </View>
 
@@ -251,17 +247,6 @@ export default function LibraryScreen() {
         >
           <Text style={[styles.scopeChipText, scope === "library" && styles.scopeChipTextActive]}>
             Ma bibliothèque
-          </Text>
-        </PressableScale>
-        <PressableScale
-          testID="lib-scope-catalogue"
-          style={[styles.scopeChip, scope === "catalogue" && styles.scopeChipActive]}
-          onPress={() => setScope("catalogue")}
-        >
-          <Text
-            style={[styles.scopeChipText, scope === "catalogue" && styles.scopeChipTextActive]}
-          >
-            Catalogue
           </Text>
         </PressableScale>
         <PressableScale
@@ -356,11 +341,11 @@ export default function LibraryScreen() {
               </Text>
               {scope === "library" && (
                 <PressableScale
-                  testID="lib-empty-see-catalogue"
+                  testID="lib-empty-see-discover"
                   style={styles.emptyCatalogueButton}
-                  onPress={() => setScope("catalogue")}
+                  onPress={() => setScope("discover")}
                 >
-                  <Text style={styles.emptyCatalogueButtonText}>Voir le catalogue IronFlow</Text>
+                  <Text style={styles.emptyCatalogueButtonText}>Voir les exercices à découvrir</Text>
                 </PressableScale>
               )}
             </View>
@@ -371,7 +356,7 @@ export default function LibraryScreen() {
             <ExerciseCard
               testID={`lib-card-${item.name}`}
               item={item}
-              onPress={() => setQuickView(item)}
+              onPress={() => router.push(`/exercise-detail/${encodeURIComponent(item.name)}` as any)}
               onToggleFavorite={() => toggleFavorite(item.id)}
               onToggleLibrary={() => toggleLibrary(item.id)}
             />
@@ -451,25 +436,6 @@ export default function LibraryScreen() {
               }
             : undefined
         }
-      />
-
-      <ExerciseQuickViewSheet
-        item={quickView}
-        onClose={() => setQuickView(null)}
-        onAddToLibrary={() => {
-          if (!quickView) return;
-          toggleLibrary(quickView.id);
-          // Reflet optimiste local — la sheet reste ouverte et le bouton
-          // devient "Ajouté ✓" sans attendre le prochain reload() de la liste
-          // (quickView est un instantané de l'item au moment de l'ouverture).
-          setQuickView((prev) => (prev ? { ...prev, inLibrary: true } : null));
-        }}
-        onViewFullDetail={() => {
-          if (!quickView) return;
-          const name = quickView.name;
-          setQuickView(null);
-          router.push(`/exercise-detail/${encodeURIComponent(name)}` as any);
-        }}
       />
     </SafeAreaView>
   );

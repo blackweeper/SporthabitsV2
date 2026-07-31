@@ -1,15 +1,19 @@
 import { useCallback, useMemo, useState } from "react";
-import { View, Text, StyleSheet, ScrollView, Pressable, Image, Modal } from "react-native";
+import { View, Text, StyleSheet, ScrollView, Pressable, Modal, Dimensions } from "react-native";
+import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing } from "@/src/theme";
-import { EXERCISE_CATEGORY_COLOR, EXERCISE_CATEGORY_LABEL } from "@/src/utils/exercise-category";
+import { LineChart } from "react-native-gifted-charts";
+import { colors, coloredShadow, motion, radius, spacing, withAlpha } from "@/src/theme";
+import Card from "@/src/components/ui/Card";
+import ExerciseMediaFrame from "@/src/components/exercise-library/ExerciseMediaFrame";
+import { EXERCISE_CATEGORY_COLOR, EXERCISE_CATEGORY_ICON, EXERCISE_CATEGORY_LABEL } from "@/src/utils/exercise-category";
 import { iconEmojiForExercise } from "@/src/data/exercise-icons";
 import { MUSCLE_GROUPS } from "@/src/utils/muscle-groups";
 import { EXERCISE_MUSCLE_GROUP_LABEL } from "@/src/utils/exercise-muscle-groups";
 import { MOVEMENT_PATTERN_LABEL } from "@/src/utils/exercise-movement-pattern";
-import { EXERCISE_DIFFICULTY_LABEL } from "@/src/utils/exercise-difficulty";
+import { EXERCISE_DIFFICULTY_COLOR, EXERCISE_DIFFICULTY_LABEL } from "@/src/utils/exercise-difficulty";
 import { TRAINING_GOAL_LABEL } from "@/src/utils/exercise-training-goal";
 import { DISCIPLINE_LABEL } from "@/src/utils/exercise-discipline";
 import {
@@ -28,13 +32,19 @@ import { computeExerciseProgress } from "@/src/utils/exercise-progress";
 import { findExerciseUsage } from "@/src/utils/exercise-usage";
 import { useExerciseLibraryItems } from "@/src/hooks/useExerciseLibraryItems";
 import { ExerciseRecord, getExerciseRecords, isCoreVisible } from "@/src/utils/exercise-records";
-import { useExerciseMedia } from "@/src/hooks/useExerciseMedia";
+import { useExerciseMediaSources } from "@/src/hooks/useExerciseMedia";
+import { CORE_LIBRARY_ASSETS } from "@/src/data/core-library-assets.generated";
 import { getAllPrograms } from "@/src/utils/programs";
 import { Program } from "@/src/data/programs";
 import PressableScale from "@/src/components/ui/PressableScale";
 import StatHero from "@/src/components/ui/StatHero";
 import { computeFicheCompleteness } from "@/src/utils/exercise-fiche-completeness";
 import MuscleActivationView from "@/src/components/exercise-library/MuscleActivationView";
+
+function shortDate(iso: string): string {
+  const d = new Date(iso);
+  return `${d.getDate()}/${d.getMonth() + 1}`;
+}
 
 function normalize(s: string): string {
   return s.toLowerCase().trim();
@@ -99,7 +109,16 @@ export default function ExerciseDetailFiche() {
     }, [decoded]),
   );
 
-  const { uri: remoteImageUri } = useExerciseMedia(libraryRecord?.id ?? null);
+  // V3 — illustration IronFlow et GIF WorkoutX résolus indépendamment (pas
+  // de priorité/fallback entre les deux) : la fiche les affiche ensemble,
+  // chacun avec son rôle propre (identité visuelle vs démonstration du
+  // mouvement) — voir le plan "Bibliothèque V3".
+  const { ironflowUri, workoutxUri } = useExerciseMediaSources(libraryRecord?.id ?? null);
+  // Priorité à l'asset embarqué dans le binaire (zéro réseau, disponible
+  // même hors ligne dès le premier lancement) pour les exercices de la
+  // bibliothèque de base ; repli sur le cache distant sinon.
+  const bundledIllustration = libraryRecord?.id ? CORE_LIBRARY_ASSETS[libraryRecord.id] : undefined;
+  const heroImageSource = bundledIllustration ?? (ironflowUri ? { uri: ironflowUri } : null);
 
   const item = useMemo(
     () => items.find((i) => i.name.toLowerCase().trim() === decoded.toLowerCase().trim()),
@@ -245,6 +264,12 @@ export default function ExerciseDetailFiche() {
     libraryRecord?.secondaryMuscles ??
     []
   ).map((m) => EXERCISE_MUSCLE_GROUP_LABEL[m]);
+  const stabilizerMuscleLabels = (enrichment?.stabilizerMuscles ?? []).map(
+    (m) => EXERCISE_MUSCLE_GROUP_LABEL[m],
+  );
+  const equipmentLabel = custom?.equipment ?? item.equipment ?? null;
+  const hasRelated =
+    variantLinks.regression.length > 0 || variantLinks.progression.length > 0 || similarExercises.length > 0;
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
@@ -265,457 +290,558 @@ export default function ExerciseDetailFiche() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll}>
-        {/* Démonstration visuelle */}
-        {remoteImageUri || item.imageBase64 ? (
-          <Image
-            source={{
-              uri: remoteImageUri ?? `data:image/webp;base64,${item.imageBase64}`,
-            }}
-            style={styles.hero}
-          />
-        ) : (
-          <View style={[styles.hero, styles.heroFallback, { backgroundColor: color + "26" }]}>
-            <Text style={{ fontSize: 56 }}>{item.emoji ?? iconEmojiForExercise(item.name, null)}</Text>
-            <Text style={styles.heroHint}>Démonstration bientôt disponible</Text>
-          </View>
-        )}
+        {/* En-tête — identité visuelle IronFlow + démonstration WorkoutX,
+            toujours affichées ensemble dès qu'elles existent. Les deux
+            cadres partagent les MÊMES bornes de hauteur : un même ratio
+            (le cas courant) donne un rendu visuellement identique, sans
+            jamais recadrer un ratio différent. */}
+        <Animated.View entering={FadeIn.duration(motion.base)}>
+          <Card elevated style={styles.mediaCard} padding={spacing.sm}>
+            <ExerciseMediaFrame
+              testID="ex-detail-hero-media"
+              source={heroImageSource ?? (item.imageBase64 ? { uri: `data:image/webp;base64,${item.imageBase64}` } : null)}
+              fallbackEmoji={item.emoji ?? iconEmojiForExercise(item.name, null)}
+              fallbackTint={color}
+              fallbackHint="Illustration bientôt disponible"
+              minHeight={240}
+              maxHeight={340}
+            />
+            {workoutxUri && (
+              <ExerciseMediaFrame
+                testID="ex-detail-execution-media"
+                source={{ uri: workoutxUri }}
+                minHeight={240}
+                maxHeight={340}
+                badgeIcon="play"
+                badgeLabel="Exécution"
+              />
+            )}
+          </Card>
+        </Animated.View>
 
-        <View style={styles.badgeRow}>
-          <View style={[styles.catBadge, { backgroundColor: color + "26", borderColor: color }]}>
-            <Text style={[styles.catBadgeText, { color }]}>{EXERCISE_CATEGORY_LABEL[item.category]}</Text>
-          </View>
-          {currentDifficulty && (
-            <View style={styles.diffBadge}>
-              <Text style={styles.diffBadgeText}>{EXERCISE_DIFFICULTY_LABEL[currentDifficulty]}</Text>
+        <Animated.View entering={FadeInDown.delay(20).duration(motion.base)}>
+          <Text style={styles.heroName}>{item.name}</Text>
+
+          <View style={styles.badgeRow}>
+            <View style={[styles.catBadge, { backgroundColor: withAlpha(color, 15), borderColor: withAlpha(color, 45) }]}>
+              <Ionicons name={EXERCISE_CATEGORY_ICON[item.category]} size={12} color={color} />
+              <Text style={[styles.catBadgeText, { color }]}>{EXERCISE_CATEGORY_LABEL[item.category]}</Text>
             </View>
-          )}
-          {completeness && (
-            <View style={styles.completenessBadge} testID="ex-detail-completeness">
-              <View style={styles.completenessTrack}>
-                <View style={[styles.completenessFill, { width: `${completeness.score}%` }]} />
+            {currentDifficulty && (
+              <View style={styles.diffBadge}>
+                <View style={[styles.diffDot, { backgroundColor: EXERCISE_DIFFICULTY_COLOR[currentDifficulty] }]} />
+                <Text style={styles.diffBadgeText}>{EXERCISE_DIFFICULTY_LABEL[currentDifficulty]}</Text>
               </View>
-              <Text style={styles.completenessText}>Fiche {completeness.score}%</Text>
+            )}
+            {completeness && (
+              <View style={styles.completenessBadge} testID="ex-detail-completeness">
+                <View style={styles.completenessTrack}>
+                  <View style={[styles.completenessFill, { width: `${completeness.score}%` }]} />
+                </View>
+                <Text style={styles.completenessText}>Fiche {completeness.score}%</Text>
+              </View>
+            )}
+          </View>
+
+          {(primaryMuscleLabel || equipmentLabel || libraryRecord?.movementPattern) && (
+            <View style={styles.quickMetaRow}>
+              {primaryMuscleLabel && (
+                <View style={styles.metaChip}>
+                  <Ionicons name="body-outline" size={12} color={colors.onSurfaceSecondary} />
+                  <Text style={styles.metaChipText}>{primaryMuscleLabel}</Text>
+                </View>
+              )}
+              {equipmentLabel && (
+                <View style={styles.metaChip}>
+                  <Ionicons name="barbell-outline" size={12} color={colors.onSurfaceSecondary} />
+                  <Text style={styles.metaChipText}>{equipmentLabel}</Text>
+                </View>
+              )}
+              {libraryRecord?.movementPattern && (
+                <View style={styles.metaChip}>
+                  <Ionicons name="swap-horizontal-outline" size={12} color={colors.onSurfaceSecondary} />
+                  <Text style={styles.metaChipText}>{MOVEMENT_PATTERN_LABEL[libraryRecord.movementPattern]}</Text>
+                </View>
+              )}
             </View>
           )}
-        </View>
 
-        {currentLevelGuidance?.prerequisites && currentLevelGuidance.prerequisites.length > 0 && (
-          <View style={styles.prereqHint}>
-            <Ionicons name="information-circle" size={13} color={colors.progressSecondary} />
-            <Text style={styles.prereqHintText}>
-              Prérequis : {currentLevelGuidance.prerequisites.join(", ")}
-            </Text>
-          </View>
-        )}
+          {currentLevelGuidance?.prerequisites && currentLevelGuidance.prerequisites.length > 0 && (
+            <View style={styles.prereqHint}>
+              <Ionicons name="information-circle" size={13} color={colors.progressSecondary} />
+              <Text style={styles.prereqHintText}>
+                Prérequis : {currentLevelGuidance.prerequisites.join(", ")}
+              </Text>
+            </View>
+          )}
 
-        <Pressable
-          testID="ex-detail-add-to-plan"
-          style={styles.addToPlanBtn}
-          onPress={() => setAddSheetOpen(true)}
-        >
-          <Ionicons name="add-circle" size={16} color="#fff" />
-          <Text style={styles.addToPlanBtnText}>Ajouter à une séance</Text>
-        </Pressable>
+          <Pressable
+            testID="ex-detail-add-to-plan"
+            style={styles.addToPlanBtn}
+            onPress={() => setAddSheetOpen(true)}
+          >
+            <Ionicons name="add-circle" size={16} color="#fff" />
+            <Text style={styles.addToPlanBtnText}>Ajouter à une séance</Text>
+          </Pressable>
+        </Animated.View>
 
         {/* Muscles */}
-        <Text style={styles.sectionTitle}>Muscles principaux</Text>
-        {primaryMuscleLabel ? (
-          <View style={styles.chipWrap}>
-            <View style={styles.metaChip}>
-              <Text style={styles.metaChipText}>{primaryMuscleLabel}</Text>
-            </View>
-          </View>
-        ) : item.muscleGroups && item.muscleGroups.length > 0 ? (
-          <View style={styles.chipWrap}>
-            {item.muscleGroups.map((mg) => {
-              const def = MUSCLE_GROUPS.find((m) => m.key === mg);
-              return (
-                <View key={mg} style={styles.metaChip}>
-                  <Text style={{ fontSize: 12 }}>{def?.emoji}</Text>
-                  <Text style={styles.metaChipText}>{def?.label ?? mg}</Text>
-                </View>
-              );
-            })}
-          </View>
-        ) : (
-          <Text style={styles.placeholderText}>Bientôt disponible</Text>
-        )}
-
-        {secondaryMuscleLabels.length > 0 && (
-          <>
-            <Text style={styles.sectionTitle}>Muscles secondaires</Text>
-            <View style={styles.chipWrap}>
-              {secondaryMuscleLabels.map((label) => (
-                <View key={label} style={styles.metaChipMuted}>
-                  <Text style={styles.metaChipMutedText}>{label}</Text>
-                </View>
-              ))}
-            </View>
-          </>
-        )}
-
-        {enrichment?.muscleActivation?.activationScore && (
-          <MuscleActivationView
-            primary={enrichment.muscleActivation.primary}
-            secondary={enrichment.muscleActivation.secondary}
-            activationScore={enrichment.muscleActivation.activationScore}
-          />
-        )}
-
-        <Text style={styles.sectionTitle}>Équipement</Text>
-        <Text style={styles.bodyText}>{custom?.equipment ?? item.equipment ?? "Bientôt disponible"}</Text>
-
-        {libraryRecord?.movementPattern && (
-          <>
-            <Text style={styles.sectionTitle}>Type de mouvement</Text>
-            <View style={styles.chipWrap}>
-              <View style={styles.metaChip}>
-                <Text style={styles.metaChipText}>{MOVEMENT_PATTERN_LABEL[libraryRecord.movementPattern]}</Text>
-              </View>
-            </View>
-          </>
-        )}
-
-        <Text style={styles.sectionTitle}>Description</Text>
-        <Text style={styles.bodyText}>
-          {custom?.description ?? fr?.description ?? libraryRecord?.description ?? "Bientôt disponible"}
-        </Text>
-
-        {fr?.rationale && (
-          <>
-            <Text style={styles.sectionTitle}>Pourquoi cet exercice ?</Text>
-            <Text style={styles.bodyText}>{fr.rationale}</Text>
-          </>
-        )}
-
-        {enrichment?.trainingGoals && enrichment.trainingGoals.length > 0 && (
-          <>
-            <Text style={styles.sectionTitle}>Objectifs recommandés</Text>
-            <View style={styles.chipWrap}>
-              {enrichment.trainingGoals.map((g) => (
-                <View key={g} style={styles.goalChip}>
-                  <Text style={styles.goalChipText}>{TRAINING_GOAL_LABEL[g]}</Text>
-                </View>
-              ))}
-            </View>
-          </>
-        )}
-
-        {enrichment?.disciplines && enrichment.disciplines.length > 0 && (
-          <>
-            <Text style={styles.sectionTitle}>Disciplines adaptées</Text>
-            <View style={styles.chipWrap}>
-              {enrichment.disciplines.map((d) => (
-                <View key={d} style={styles.metaChip}>
-                  <Text style={styles.metaChipText}>{DISCIPLINE_LABEL[d]}</Text>
-                </View>
-              ))}
-            </View>
-          </>
-        )}
-
-        <Text style={styles.sectionTitle}>Étapes d&apos;exécution</Text>
-        {(fr?.instructions ?? libraryRecord?.instructions)?.length ? (
-          <View style={{ marginTop: 4, gap: 6 }}>
-            {(fr?.instructions ?? libraryRecord?.instructions ?? []).map((step, i) => (
-              <View key={i} style={styles.stepRow}>
-                <Text style={styles.stepNum}>{i + 1}</Text>
-                <Text style={styles.bodyText}>{step}</Text>
-              </View>
-            ))}
-          </View>
-        ) : (
-          <Text style={styles.placeholderText}>Bientôt disponible</Text>
-        )}
-
-        {fr?.warmupSuggestion && (
-          <>
-            <Text style={styles.sectionTitle}>Échauffement recommandé</Text>
-            <Text style={styles.bodyText}>{fr.warmupSuggestion}</Text>
-          </>
-        )}
-
-        <Text style={styles.sectionTitle}>Conseils IronFlow</Text>
-        {(fr?.executionTips ?? libraryRecord?.tips)?.length ||
-        fr?.breathingTips ||
-        fr?.precautions ||
-        enrichment?.fatigueLevel ||
-        (enrichment?.restTimeByGoal && Object.keys(enrichment.restTimeByGoal).length > 0) ||
-        (enrichment?.alternativeEquipment && enrichment.alternativeEquipment.length > 0) ? (
-          <View style={{ marginTop: 4, gap: 8 }}>
-            {(fr?.executionTips ?? libraryRecord?.tips ?? []).map((tip, i) => (
-              <Text key={i} style={styles.bodyText}>
-                • {tip}
-              </Text>
-            ))}
-            {fr?.breathingTips && (
-              <View style={styles.tipSubBlock}>
-                <Text style={styles.tipSubLabel}>RESPIRATION</Text>
-                <Text style={styles.bodyText}>{fr.breathingTips}</Text>
-              </View>
-            )}
-            {fr?.precautions && (
-              <View style={styles.tipSubBlock}>
-                <Text style={styles.tipSubLabel}>PRÉCAUTIONS</Text>
-                <Text style={styles.bodyText}>{fr.precautions}</Text>
-              </View>
-            )}
-            {enrichment?.fatigueLevel && (
-              <View style={styles.tipSubBlock}>
-                <Text style={styles.tipSubLabel}>NIVEAU DE FATIGUE</Text>
-                <Text style={styles.bodyText}>{FATIGUE_LEVEL_LABEL[enrichment.fatigueLevel]}</Text>
-              </View>
-            )}
-            {enrichment?.restTimeByGoal && Object.keys(enrichment.restTimeByGoal).length > 0 && (
-              <View style={styles.tipSubBlock}>
-                <Text style={styles.tipSubLabel}>REPOS CONSEILLÉ</Text>
-                {Object.entries(enrichment.restTimeByGoal).map(([goal, restTime]) => (
-                  <Text key={goal} style={styles.bodyText}>
-                    {TRAINING_GOAL_LABEL[goal as keyof typeof TRAINING_GOAL_LABEL]} : {restTime}
-                  </Text>
-                ))}
-              </View>
-            )}
-            {enrichment?.alternativeEquipment && enrichment.alternativeEquipment.length > 0 && (
-              <View style={styles.tipSubBlock}>
-                <Text style={styles.tipSubLabel}>MATÉRIEL ALTERNATIF</Text>
+        <Animated.View entering={FadeInDown.delay(60).duration(motion.base)}>
+          <Card style={styles.sectionCard} padding={spacing.lg} title="Muscles sollicités" icon="body-outline">
+            {primaryMuscleLabel ? (
+              <View>
+                <Text style={styles.variantGroupLabel}>Principal</Text>
                 <View style={styles.chipWrap}>
-                  {enrichment.alternativeEquipment.map((eq, i) => (
-                    <View key={i} style={styles.metaChipMuted}>
-                      <Text style={styles.metaChipMutedText}>{eq}</Text>
+                  <View style={styles.metaChipPrimary}>
+                    <Text style={styles.metaChipPrimaryText}>{primaryMuscleLabel}</Text>
+                  </View>
+                </View>
+              </View>
+            ) : item.muscleGroups && item.muscleGroups.length > 0 ? (
+              <View style={styles.chipWrap}>
+                {item.muscleGroups.map((mg) => {
+                  const def = MUSCLE_GROUPS.find((m) => m.key === mg);
+                  return (
+                    <View key={mg} style={styles.metaChip}>
+                      <Text style={{ fontSize: 12 }}>{def?.emoji}</Text>
+                      <Text style={styles.metaChipText}>{def?.label ?? mg}</Text>
+                    </View>
+                  );
+                })}
+              </View>
+            ) : (
+              <Text style={styles.placeholderText}>Bientôt disponible</Text>
+            )}
+
+            {secondaryMuscleLabels.length > 0 && (
+              <View style={styles.subBlock}>
+                <Text style={styles.variantGroupLabel}>Secondaires</Text>
+                <View style={styles.chipWrap}>
+                  {secondaryMuscleLabels.map((label) => (
+                    <View key={label} style={styles.metaChipMuted}>
+                      <Text style={styles.metaChipMutedText}>{label}</Text>
                     </View>
                   ))}
                 </View>
               </View>
             )}
-          </View>
-        ) : (
-          <Text style={styles.placeholderText}>Bientôt disponible</Text>
-        )}
 
-        <Text style={styles.sectionTitle}>Erreurs fréquentes</Text>
-        {fr?.mistakeCorrections?.length ? (
-          <View style={{ marginTop: 4, gap: 10 }}>
-            {fr.mistakeCorrections.map((mc, i) => (
-              <View key={i} style={styles.mistakeBlock}>
-                <View style={styles.mistakeRow}>
-                  <Ionicons name="close-circle" size={14} color={colors.error} />
-                  <Text style={[styles.bodyText, { flex: 1, marginTop: 0 }]}>{mc.mistake}</Text>
-                </View>
-                <View style={styles.mistakeRow}>
-                  <Ionicons name="checkmark-circle" size={14} color={colors.success} />
-                  <Text style={[styles.bodyText, { flex: 1, marginTop: 0 }]}>{mc.correction}</Text>
+            {stabilizerMuscleLabels.length > 0 && (
+              <View style={styles.subBlock}>
+                <Text style={styles.variantGroupLabel}>Stabilisateurs</Text>
+                <View style={styles.chipWrap}>
+                  {stabilizerMuscleLabels.map((label) => (
+                    <View key={label} style={styles.metaChipMuted}>
+                      <Text style={styles.metaChipMutedText}>{label}</Text>
+                    </View>
+                  ))}
                 </View>
               </View>
-            ))}
-          </View>
-        ) : (fr?.commonMistakes ?? libraryRecord?.commonMistakes)?.length ? (
-          <View style={{ marginTop: 4, gap: 4 }}>
-            {(fr?.commonMistakes ?? libraryRecord?.commonMistakes ?? []).map((mistake, i) => (
-              <Text key={i} style={styles.bodyText}>
-                • {mistake}
-              </Text>
-            ))}
-          </View>
-        ) : (
-          <Text style={styles.placeholderText}>Bientôt disponible</Text>
-        )}
+            )}
+
+            {enrichment?.muscleActivation?.activationScore && (
+              <View style={styles.subBlock}>
+                <MuscleActivationView
+                  primary={enrichment.muscleActivation.primary}
+                  secondary={enrichment.muscleActivation.secondary}
+                  activationScore={enrichment.muscleActivation.activationScore}
+                />
+              </View>
+            )}
+          </Card>
+        </Animated.View>
+
+        <Animated.View entering={FadeInDown.delay(100).duration(motion.base)}>
+          <Card style={styles.sectionCard} padding={spacing.lg} title="Le mouvement" icon="book-outline">
+            <Text style={styles.bodyTextFlush}>
+              {custom?.description ?? fr?.description ?? libraryRecord?.description ?? "Bientôt disponible"}
+            </Text>
+
+            {fr?.rationale && (
+              <View style={styles.subBlock}>
+                <Text style={styles.tipSubLabel}>POURQUOI CET EXERCICE</Text>
+                <Text style={styles.bodyText}>{fr.rationale}</Text>
+              </View>
+            )}
+
+            {enrichment?.trainingGoals && enrichment.trainingGoals.length > 0 && (
+              <View style={styles.subBlock}>
+                <Text style={styles.tipSubLabel}>OBJECTIFS</Text>
+                <View style={styles.chipWrap}>
+                  {enrichment.trainingGoals.map((g) => (
+                    <View key={g} style={styles.goalChip}>
+                      <Text style={styles.goalChipText}>{TRAINING_GOAL_LABEL[g]}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {enrichment?.disciplines && enrichment.disciplines.length > 0 && (
+              <View style={styles.subBlock}>
+                <Text style={styles.tipSubLabel}>DISCIPLINES</Text>
+                <View style={styles.chipWrap}>
+                  {enrichment.disciplines.map((d) => (
+                    <View key={d} style={styles.metaChip}>
+                      <Text style={styles.metaChipText}>{DISCIPLINE_LABEL[d]}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+          </Card>
+        </Animated.View>
+
+        <Animated.View entering={FadeInDown.delay(140).duration(motion.base)}>
+          <Card style={styles.sectionCard} padding={spacing.lg} title="Étapes d'exécution" icon="list-outline">
+            {(fr?.instructions ?? libraryRecord?.instructions)?.length ? (
+              <View style={{ gap: 10 }}>
+                {(fr?.instructions ?? libraryRecord?.instructions ?? []).map((step, i) => (
+                  <View key={i} style={styles.stepRow}>
+                    <View style={styles.stepBadge}>
+                      <Text style={styles.stepBadgeText}>{i + 1}</Text>
+                    </View>
+                    <Text style={[styles.bodyText, { marginTop: 2, flex: 1 }]}>{step}</Text>
+                  </View>
+                ))}
+              </View>
+            ) : (
+              <Text style={styles.placeholderText}>Bientôt disponible</Text>
+            )}
+          </Card>
+        </Animated.View>
+
+        <Animated.View entering={FadeInDown.delay(180).duration(motion.base)}>
+          <Card style={styles.sectionCard} padding={spacing.lg} title="Conseils IronFlow" icon="bulb-outline">
+            {fr?.warmupSuggestion && (
+              <View style={styles.subBlock}>
+                <Text style={styles.tipSubLabel}>ÉCHAUFFEMENT</Text>
+                <Text style={styles.bodyText}>{fr.warmupSuggestion}</Text>
+              </View>
+            )}
+
+            {(fr?.executionTips ?? libraryRecord?.tips)?.length ||
+            fr?.breathingTips ||
+            fr?.precautions ||
+            enrichment?.fatigueLevel ||
+            (enrichment?.restTimeByGoal && Object.keys(enrichment.restTimeByGoal).length > 0) ||
+            (enrichment?.alternativeEquipment && enrichment.alternativeEquipment.length > 0) ? (
+              <View style={{ gap: 10 }}>
+                {(fr?.executionTips ?? libraryRecord?.tips ?? []).map((tip, i) => (
+                  <Text key={i} style={styles.bodyTextFlush}>
+                    • {tip}
+                  </Text>
+                ))}
+                {fr?.breathingTips && (
+                  <View style={styles.tipSubBlock}>
+                    <Text style={styles.tipSubLabel}>RESPIRATION</Text>
+                    <Text style={styles.bodyText}>{fr.breathingTips}</Text>
+                  </View>
+                )}
+                {fr?.precautions && (
+                  <View style={styles.tipSubBlock}>
+                    <Text style={styles.tipSubLabel}>PRÉCAUTIONS</Text>
+                    <Text style={styles.bodyText}>{fr.precautions}</Text>
+                  </View>
+                )}
+                {enrichment?.fatigueLevel && (
+                  <View style={styles.tipSubBlock}>
+                    <Text style={styles.tipSubLabel}>NIVEAU DE FATIGUE</Text>
+                    <Text style={styles.bodyText}>{FATIGUE_LEVEL_LABEL[enrichment.fatigueLevel]}</Text>
+                  </View>
+                )}
+                {enrichment?.restTimeByGoal && Object.keys(enrichment.restTimeByGoal).length > 0 && (
+                  <View style={styles.tipSubBlock}>
+                    <Text style={styles.tipSubLabel}>REPOS CONSEILLÉ</Text>
+                    {Object.entries(enrichment.restTimeByGoal).map(([goal, restTime]) => (
+                      <Text key={goal} style={styles.bodyText}>
+                        {TRAINING_GOAL_LABEL[goal as keyof typeof TRAINING_GOAL_LABEL]} : {restTime}
+                      </Text>
+                    ))}
+                  </View>
+                )}
+                {enrichment?.alternativeEquipment && enrichment.alternativeEquipment.length > 0 && (
+                  <View style={styles.tipSubBlock}>
+                    <Text style={styles.tipSubLabel}>MATÉRIEL ALTERNATIF</Text>
+                    <View style={styles.chipWrap}>
+                      {enrichment.alternativeEquipment.map((eq, i) => (
+                        <View key={i} style={styles.metaChipMuted}>
+                          <Text style={styles.metaChipMutedText}>{eq}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                )}
+              </View>
+            ) : !fr?.warmupSuggestion ? (
+              <Text style={styles.placeholderText}>Bientôt disponible</Text>
+            ) : null}
+          </Card>
+        </Animated.View>
+
+        <Animated.View entering={FadeInDown.delay(220).duration(motion.base)}>
+          <Card style={styles.sectionCard} padding={spacing.lg} title="Erreurs fréquentes" icon="alert-circle-outline">
+            {fr?.mistakeCorrections?.length ? (
+              <View style={{ gap: 8 }}>
+                {fr.mistakeCorrections.map((mc, i) => (
+                  <View key={i} style={styles.mistakePairCard}>
+                    <View style={styles.mistakeRow}>
+                      <Ionicons name="close-circle" size={14} color={colors.error} />
+                      <Text style={[styles.bodyText, { flex: 1, marginTop: 0 }]}>{mc.mistake}</Text>
+                    </View>
+                    <View style={styles.mistakeRow}>
+                      <Ionicons name="checkmark-circle" size={14} color={colors.success} />
+                      <Text style={[styles.bodyText, { flex: 1, marginTop: 0 }]}>{mc.correction}</Text>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            ) : (fr?.commonMistakes ?? libraryRecord?.commonMistakes)?.length ? (
+              <View style={{ gap: 4 }}>
+                {(fr?.commonMistakes ?? libraryRecord?.commonMistakes ?? []).map((mistake, i) => (
+                  <Text key={i} style={styles.bodyTextFlush}>
+                    • {mistake}
+                  </Text>
+                ))}
+              </View>
+            ) : (
+              <Text style={styles.placeholderText}>Bientôt disponible</Text>
+            )}
+          </Card>
+        </Animated.View>
 
         {enrichment?.levelGuidance && Object.keys(enrichment.levelGuidance).length > 0 && (
-          <>
-            <Text style={styles.sectionTitle}>Niveau utilisateur</Text>
-            <View style={{ marginTop: 4, gap: 10 }}>
-              {(["beginner", "intermediate", "advanced"] as const).map((level) => {
-                const g = enrichment.levelGuidance?.[level];
-                if (!g || (!g.note && !(g.prerequisites && g.prerequisites.length > 0))) return null;
-                return (
-                  <View key={level} style={styles.levelBlock}>
-                    <Text style={styles.variantGroupLabel}>{EXERCISE_DIFFICULTY_LABEL[level]}</Text>
-                    {g.note && <Text style={styles.bodyText}>{g.note}</Text>}
-                    {g.prerequisites && g.prerequisites.length > 0 && (
+          <Animated.View entering={FadeInDown.delay(260).duration(motion.base)}>
+            <Card style={styles.sectionCard} padding={spacing.lg} title="Niveau utilisateur" icon="school-outline">
+              <View style={{ gap: 10 }}>
+                {(["beginner", "intermediate", "advanced"] as const).map((level) => {
+                  const g = enrichment.levelGuidance?.[level];
+                  if (!g || (!g.note && !(g.prerequisites && g.prerequisites.length > 0))) return null;
+                  return (
+                    <View key={level} style={styles.levelBlock}>
+                      <Text style={styles.variantGroupLabel}>{EXERCISE_DIFFICULTY_LABEL[level]}</Text>
+                      {g.note && <Text style={styles.bodyTextFlush}>{g.note}</Text>}
+                      {g.prerequisites && g.prerequisites.length > 0 && (
+                        <View style={styles.chipWrap}>
+                          {g.prerequisites.map((p, i) => (
+                            <View key={i} style={styles.metaChipMuted}>
+                              <Text style={styles.metaChipMutedText}>{p}</Text>
+                            </View>
+                          ))}
+                        </View>
+                      )}
+                    </View>
+                  );
+                })}
+              </View>
+            </Card>
+          </Animated.View>
+        )}
+
+        {hasRelated && (
+          <Animated.View entering={FadeInDown.delay(300).duration(motion.base)}>
+            <Card style={styles.sectionCard} padding={spacing.lg} title="Exercices liés" icon="git-branch-outline">
+              {(variantLinks.regression.length > 0 || variantLinks.progression.length > 0) && (
+                <View>
+                  {variantLinks.regression.length > 0 && (
+                    <View>
+                      <Text style={styles.variantGroupLabel}>Pour débuter</Text>
                       <View style={styles.chipWrap}>
-                        {g.prerequisites.map((p, i) => (
-                          <View key={i} style={styles.metaChipMuted}>
-                            <Text style={styles.metaChipMutedText}>{p}</Text>
-                          </View>
+                        {variantLinks.regression.map((v, i) => (
+                          <Pressable
+                            key={i}
+                            testID={`ex-detail-regression-${i}`}
+                            style={styles.linkChip}
+                            onPress={() => router.push(`/exercise-detail/${encodeURIComponent(v.name)}` as any)}
+                          >
+                            <Text style={styles.linkChipText}>{v.name}</Text>
+                          </Pressable>
                         ))}
                       </View>
-                    )}
-                  </View>
-                );
-              })}
-            </View>
-          </>
-        )}
-
-        {(variantLinks.regression.length > 0 || variantLinks.progression.length > 0) && (
-          <>
-            <Text style={styles.sectionTitle}>Variantes</Text>
-            {variantLinks.regression.length > 0 && (
-              <View style={{ marginTop: 4 }}>
-                <Text style={styles.variantGroupLabel}>Pour débuter</Text>
-                <View style={styles.chipWrap}>
-                  {variantLinks.regression.map((v, i) => (
-                    <Pressable
-                      key={i}
-                      testID={`ex-detail-regression-${i}`}
-                      style={styles.linkChip}
-                      onPress={() => router.push(`/exercise-detail/${encodeURIComponent(v.name)}` as any)}
-                    >
-                      <Text style={styles.linkChipText}>{v.name}</Text>
-                    </Pressable>
-                  ))}
+                    </View>
+                  )}
+                  {variantLinks.progression.length > 0 && (
+                    <View style={styles.subBlock}>
+                      <Text style={styles.variantGroupLabel}>Pour progresser</Text>
+                      <View style={styles.chipWrap}>
+                        {variantLinks.progression.map((v, i) => (
+                          <Pressable
+                            key={i}
+                            testID={`ex-detail-progression-${i}`}
+                            style={styles.linkChip}
+                            onPress={() => router.push(`/exercise-detail/${encodeURIComponent(v.name)}` as any)}
+                          >
+                            <Text style={styles.linkChipText}>{v.name}</Text>
+                          </Pressable>
+                        ))}
+                      </View>
+                    </View>
+                  )}
                 </View>
-              </View>
-            )}
-            {variantLinks.progression.length > 0 && (
-              <View style={{ marginTop: 8 }}>
-                <Text style={styles.variantGroupLabel}>Pour progresser</Text>
-                <View style={styles.chipWrap}>
-                  {variantLinks.progression.map((v, i) => (
-                    <Pressable
-                      key={i}
-                      testID={`ex-detail-progression-${i}`}
-                      style={styles.linkChip}
-                      onPress={() => router.push(`/exercise-detail/${encodeURIComponent(v.name)}` as any)}
-                    >
-                      <Text style={styles.linkChipText}>{v.name}</Text>
-                    </Pressable>
-                  ))}
-                </View>
-              </View>
-            )}
-          </>
-        )}
+              )}
 
-        {similarExercises.length > 0 && (
-          <>
-            <Text style={styles.sectionTitle}>Exercices similaires</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.similarRow}>
-              {similarExercises.map((r) => (
-                <Pressable
-                  key={r.id}
-                  testID={`ex-detail-similar-${r.id}`}
-                  style={styles.similarCard}
-                  onPress={() => router.push(`/exercise-detail/${encodeURIComponent(r.nameFr)}` as any)}
-                >
-                  <Text style={styles.similarEmoji}>
-                    {iconEmojiForExercise(r.nameFr, null)}
-                  </Text>
-                  <Text style={styles.similarCardText} numberOfLines={2}>
-                    {r.nameFr}
-                  </Text>
-                </Pressable>
-              ))}
-            </ScrollView>
-          </>
+              {similarExercises.length > 0 && (
+                <View style={styles.subBlock}>
+                  <Text style={styles.variantGroupLabel}>À explorer aussi</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.similarRow}>
+                    {similarExercises.map((r) => (
+                      <Pressable
+                        key={r.id}
+                        testID={`ex-detail-similar-${r.id}`}
+                        style={styles.similarCard}
+                        onPress={() => router.push(`/exercise-detail/${encodeURIComponent(r.nameFr)}` as any)}
+                      >
+                        <Text style={styles.similarEmoji}>
+                          {iconEmojiForExercise(r.nameFr, null)}
+                        </Text>
+                        <Text style={styles.similarCardText} numberOfLines={2}>
+                          {r.nameFr}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
+            </Card>
+          </Animated.View>
         )}
 
         {usage.length > 0 && (
-          <>
-            <Text style={styles.sectionTitle}>Utilisé dans ces séances IronFlow</Text>
-            <View style={styles.chipWrap}>
-              {usage.map((u) => (
-                <Pressable
-                  key={u.key}
-                  testID={`ex-detail-usage-${u.key}`}
-                  style={styles.linkChip}
-                  onPress={() => router.push(`/${u.kind}/${u.id}` as any)}
-                >
-                  <Ionicons
-                    name={u.kind === "program" ? "calendar" : "list"}
-                    size={12}
-                    color={colors.brand}
-                  />
-                  <Text style={styles.linkChipText}>{u.title}</Text>
-                </Pressable>
-              ))}
-            </View>
-          </>
+          <Animated.View entering={FadeInDown.delay(340).duration(motion.base)}>
+            <Card style={styles.sectionCard} padding={spacing.lg} title="Utilisé dans tes séances" icon="calendar-outline">
+              <View style={styles.chipWrap}>
+                {usage.map((u) => (
+                  <Pressable
+                    key={u.key}
+                    testID={`ex-detail-usage-${u.key}`}
+                    style={styles.linkChip}
+                    onPress={() => router.push(`/${u.kind}/${u.id}` as any)}
+                  >
+                    <Ionicons
+                      name={u.kind === "program" ? "calendar" : "list"}
+                      size={12}
+                      color={colors.brand}
+                    />
+                    <Text style={styles.linkChipText}>{u.title}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </Card>
+          </Animated.View>
         )}
 
-        {(enrichment?.tags?.length || libraryRecord?.movementPattern || item.equipment) && (
-          <>
-            <Text style={styles.sectionTitle}>Informations complémentaires</Text>
-            <View style={styles.chipWrap}>
-              <View style={styles.metaChipMuted}>
-                <Text style={styles.metaChipMutedText}>{EXERCISE_CATEGORY_LABEL[item.category]}</Text>
+        {(enrichment?.tags?.length || enrichment?.equipmentLevel) && (
+          <Animated.View entering={FadeInDown.delay(380).duration(motion.base)}>
+            <Card style={styles.sectionCard} padding={spacing.lg} title="Détails" icon="pricetag-outline">
+              <View style={styles.chipWrap}>
+                {enrichment?.equipmentLevel && (
+                  <View style={styles.metaChipMuted}>
+                    <Text style={styles.metaChipMutedText}>
+                      Matériel : {enrichment.equipmentLevel === "none" ? "aucun" : enrichment.equipmentLevel === "basic" ? "basique" : "salle"}
+                    </Text>
+                  </View>
+                )}
+                {(enrichment?.tags ?? []).map((tag) => (
+                  <View key={tag} style={styles.metaChipMuted}>
+                    <Text style={styles.metaChipMutedText}>#{tag}</Text>
+                  </View>
+                ))}
               </View>
-              {enrichment?.equipmentLevel && (
-                <View style={styles.metaChipMuted}>
-                  <Text style={styles.metaChipMutedText}>
-                    Matériel : {enrichment.equipmentLevel === "none" ? "aucun" : enrichment.equipmentLevel === "basic" ? "basique" : "salle"}
-                  </Text>
-                </View>
-              )}
-              {(enrichment?.tags ?? []).map((tag) => (
-                <View key={tag} style={styles.metaChipMuted}>
-                  <Text style={styles.metaChipMutedText}>#{tag}</Text>
-                </View>
-              ))}
-            </View>
-          </>
+            </Card>
+          </Animated.View>
         )}
 
         {/* Historique personnel */}
-        <Text style={styles.sectionTitle}>Historique personnel</Text>
-        {progress && progress.totalSessions > 0 ? (
-          <>
-            <View style={styles.statHeroRow}>
-              <StatHero
-                testID="ex-detail-stat-sessions"
-                value={progress.totalSessions}
-                unit="Séances"
-                size="sm"
-                style={{ flex: 1 }}
-              />
-              <StatHero
-                testID="ex-detail-stat-records"
-                value={detail.linkedPRs.length}
-                unit="Records"
-                size="sm"
-                style={{ flex: 1 }}
-              />
-              {progress.weightProgression.length > 0 && (
-                <StatHero
-                  testID="ex-detail-stat-best-weight"
-                  value={Math.max(...progress.weightProgression.map((p) => p.value))}
-                  unit="Meilleur poids (kg)"
-                  size="sm"
-                  style={{ flex: 1 }}
-                />
-              )}
-              {progress.volumeProgression.length > 0 && (
-                <StatHero
-                  testID="ex-detail-stat-best-volume"
-                  value={Math.max(...progress.volumeProgression.map((p) => p.value))}
-                  unit="Meilleur volume (kg)"
-                  size="sm"
-                  style={{ flex: 1 }}
-                />
-              )}
-            </View>
+        <Animated.View entering={FadeInDown.delay(420).duration(motion.base)}>
+          <Card elevated style={styles.sectionCard} padding={spacing.lg} title="Historique personnel" icon="stats-chart-outline">
+            {progress && progress.totalSessions > 0 ? (
+              <>
+                <View style={styles.statHeroRow}>
+                  <StatHero
+                    testID="ex-detail-stat-sessions"
+                    value={progress.totalSessions}
+                    unit="Séances"
+                    size="sm"
+                    style={{ flex: 1 }}
+                  />
+                  <StatHero
+                    testID="ex-detail-stat-records"
+                    value={detail.linkedPRs.length}
+                    unit="Records"
+                    size="sm"
+                    style={{ flex: 1 }}
+                  />
+                  {progress.weightProgression.length > 0 && (
+                    <StatHero
+                      testID="ex-detail-stat-best-weight"
+                      value={Math.max(...progress.weightProgression.map((p) => p.value))}
+                      unit="Meilleur poids (kg)"
+                      size="sm"
+                      style={{ flex: 1 }}
+                    />
+                  )}
+                  {progress.volumeProgression.length > 0 && (
+                    <StatHero
+                      testID="ex-detail-stat-best-volume"
+                      value={Math.max(...progress.volumeProgression.map((p) => p.value))}
+                      unit="Meilleur volume (kg)"
+                      size="sm"
+                      style={{ flex: 1 }}
+                    />
+                  )}
+                </View>
 
-            {progress.lastUsedAt && (
-              <View style={styles.lastSessionCard}>
-                <Text style={styles.lastSessionLabel}>DERNIÈRE FOIS</Text>
-                <Text style={styles.lastSessionValue}>
-                  {detail.lastSession?.weight ? `${detail.lastSession.weight} kg × ` : ""}
-                  {detail.lastSession?.reps || `${detail.lastSession?.setsDone ?? ""} séries`}
-                </Text>
-                <Text style={styles.lastSessionDate}>
-                  {new Date(progress.lastUsedAt).toLocaleDateString("fr-FR", {
-                    day: "2-digit",
-                    month: "short",
-                    year: "numeric",
-                  })}
-                </Text>
-              </View>
+                {progress.weightProgression.length >= 2 && (
+                  <View style={styles.progressChartCard}>
+                    <Text style={styles.progressChartTitle}>Évolution du poids</Text>
+                    <LineChart
+                      data={progress.weightProgression.map((p) => ({
+                        value: Math.round(p.value),
+                        label: shortDate(p.date),
+                      }))}
+                      color={color}
+                      thickness={3}
+                      areaChart
+                      startFillColor={color}
+                      startOpacity={0.4}
+                      endFillColor={color}
+                      endOpacity={0.05}
+                      yAxisThickness={0}
+                      xAxisThickness={0}
+                      yAxisTextStyle={{ color: colors.onSurfaceTertiary, fontSize: 10 }}
+                      xAxisLabelTextStyle={{ color: colors.onSurfaceTertiary, fontSize: 9 }}
+                      hideRules
+                      width={Dimensions.get("window").width - spacing.lg * 2 - spacing.lg * 2 - 32}
+                      isAnimated
+                      curved
+                      dataPointsColor={color}
+                      dataPointsRadius={3}
+                    />
+                  </View>
+                )}
+
+                {progress.lastUsedAt && (
+                  <View style={styles.lastSessionCard}>
+                    <Text style={styles.lastSessionLabel}>DERNIÈRE FOIS</Text>
+                    <Text style={styles.lastSessionValue}>
+                      {detail.lastSession?.weight ? `${detail.lastSession.weight} kg × ` : ""}
+                      {detail.lastSession?.reps || `${detail.lastSession?.setsDone ?? ""} séries`}
+                    </Text>
+                    <Text style={styles.lastSessionDate}>
+                      {new Date(progress.lastUsedAt).toLocaleDateString("fr-FR", {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </Text>
+                  </View>
+                )}
+              </>
+            ) : (
+              <Text style={styles.placeholderText}>Pas encore pratiqué — lance ta première séance pour construire ton historique.</Text>
             )}
-          </>
-        ) : (
-          <Text style={styles.placeholderText}>Pas encore pratiqué — lance ta première séance pour construire ton historique.</Text>
-        )}
+          </Card>
+        </Animated.View>
 
         <Pressable
           testID="ex-detail-open-stats"
@@ -794,34 +920,44 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   title: { color: colors.onSurface, fontSize: 16, fontWeight: "700", flex: 1 },
-  scroll: { padding: spacing.lg, gap: spacing.sm, paddingBottom: 40 },
+  scroll: { padding: spacing.lg, gap: spacing.lg, paddingBottom: 40 },
   emptyWrap: { flex: 1, alignItems: "center", justifyContent: "center", gap: spacing.sm },
   emptyText: { color: colors.onSurfaceTertiary },
-  hero: {
-    width: "100%",
-    height: 200,
-    borderRadius: radius.lg,
-    backgroundColor: colors.surfaceTertiary,
+  mediaCard: { gap: 6, overflow: "hidden" },
+  heroName: {
+    color: colors.onSurface,
+    fontSize: 26,
+    fontWeight: "800",
+    letterSpacing: 0.2,
+    marginTop: spacing.lg,
   },
-  heroFallback: { alignItems: "center", justifyContent: "center", gap: 8 },
-  heroHint: { color: colors.onSurfaceTertiary, fontSize: 11, fontStyle: "italic" },
-  badgeRow: { flexDirection: "row", gap: 8, marginTop: spacing.sm },
+  sectionCard: { borderRadius: radius.lg },
+  badgeRow: { flexDirection: "row", gap: 8, marginTop: spacing.sm, flexWrap: "wrap" },
   catBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
     alignSelf: "flex-start",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: radius.pill,
     borderWidth: 1,
   },
-  catBadgeText: { fontWeight: "800", fontSize: 11, letterSpacing: 0.6 },
+  catBadgeText: { fontWeight: "800", fontSize: 11, letterSpacing: 0.5 },
   diffBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
     alignSelf: "flex-start",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: radius.pill,
-    backgroundColor: colors.progressTertiary,
+    backgroundColor: colors.surfaceSecondary,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  diffBadgeText: { color: colors.progressSecondary, fontWeight: "800", fontSize: 11 },
+  diffDot: { width: 7, height: 7, borderRadius: 3.5 },
+  diffBadgeText: { color: colors.onSurfaceSecondary, fontWeight: "800", fontSize: 11 },
   completenessBadge: {
     flexDirection: "row",
     alignItems: "center",
@@ -842,17 +978,23 @@ const styles = StyleSheet.create({
   },
   completenessFill: { height: "100%", backgroundColor: colors.progress },
   completenessText: { color: colors.onSurfaceTertiary, fontSize: 10, fontWeight: "700" },
+  quickMetaRow: { flexDirection: "row", gap: 6, marginTop: spacing.sm, flexWrap: "wrap" },
   prereqHint: {
     flexDirection: "row",
     alignItems: "flex-start",
     gap: 6,
-    marginTop: spacing.sm,
+    marginTop: spacing.md,
     padding: spacing.sm,
     borderRadius: radius.md,
     backgroundColor: colors.progressTertiary,
   },
   prereqHintText: { flex: 1, color: colors.progressSecondary, fontSize: 12, fontWeight: "600", lineHeight: 17 },
-  mistakeBlock: { gap: 4 },
+  mistakePairCard: {
+    backgroundColor: colors.surfaceTertiary,
+    borderRadius: radius.md,
+    padding: spacing.sm,
+    gap: 6,
+  },
   mistakeRow: { flexDirection: "row", alignItems: "flex-start", gap: 6 },
   levelBlock: { gap: 4 },
   addToPlanBtn: {
@@ -860,33 +1002,32 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    marginTop: spacing.sm,
+    marginTop: spacing.lg,
     padding: spacing.md,
     borderRadius: radius.md,
     backgroundColor: colors.brand,
+    ...coloredShadow(colors.brand, { offsetY: 6, opacity: 0.35, radius: 14, elevation: 6 }),
   },
   addToPlanBtnText: { color: "#fff", fontWeight: "800", fontSize: 13 },
-  sectionTitle: {
-    color: colors.onSurface,
-    fontSize: 14,
-    fontWeight: "800",
-    marginTop: spacing.md,
-  },
+  subBlock: { marginTop: spacing.md },
   bodyText: { color: colors.onSurfaceSecondary, fontSize: 13, lineHeight: 19, marginTop: 4 },
+  bodyTextFlush: { color: colors.onSurfaceSecondary, fontSize: 13, lineHeight: 19 },
   placeholderText: {
     color: colors.onSurfaceTertiary,
     fontSize: 13,
     fontStyle: "italic",
-    marginTop: 4,
   },
-  chipWrap: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 4 },
-  stepRow: { flexDirection: "row", alignItems: "flex-start", gap: 8 },
-  stepNum: {
-    color: colors.brand,
-    fontWeight: "800",
-    fontSize: 13,
-    width: 18,
+  chipWrap: { flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 6 },
+  stepRow: { flexDirection: "row", alignItems: "flex-start", gap: 10 },
+  stepBadge: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: colors.brand,
+    alignItems: "center",
+    justifyContent: "center",
   },
+  stepBadgeText: { color: "#fff", fontWeight: "800", fontSize: 11 },
   metaChip: {
     flexDirection: "row",
     alignItems: "center",
@@ -899,6 +1040,15 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   metaChipText: { color: colors.onSurfaceSecondary, fontSize: 11, fontWeight: "700" },
+  metaChipPrimary: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: radius.pill,
+    backgroundColor: withAlpha(colors.brand, 16),
+    borderWidth: 1,
+    borderColor: withAlpha(colors.brand, 45),
+  },
+  metaChipPrimaryText: { color: colors.brandSecondary, fontSize: 12, fontWeight: "800" },
   metaChipMuted: {
     paddingHorizontal: 10,
     paddingVertical: 5,
@@ -940,21 +1090,27 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: "800",
     letterSpacing: 0.8,
+    marginBottom: 4,
   },
-  similarRow: { gap: spacing.sm, marginTop: 4, paddingRight: spacing.md },
+  similarRow: { gap: spacing.sm, marginTop: 2, paddingRight: spacing.md },
   similarCard: {
     width: 96,
-    backgroundColor: colors.surfaceSecondary,
+    backgroundColor: colors.surfaceTertiary,
     borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
     padding: spacing.sm,
     alignItems: "center",
     gap: 4,
   },
   similarEmoji: { fontSize: 28 },
   similarCardText: { color: colors.onSurface, fontSize: 11, fontWeight: "700", textAlign: "center" },
-  statHeroRow: { flexDirection: "row", gap: 8, marginTop: 8, flexWrap: "wrap" },
+  statHeroRow: { flexDirection: "row", gap: 8, flexWrap: "wrap" },
+  progressChartCard: {
+    marginTop: spacing.md,
+    backgroundColor: colors.surfaceTertiary,
+    borderRadius: radius.md,
+    padding: spacing.lg,
+  },
+  progressChartTitle: { color: colors.onSurface, fontSize: 13, fontWeight: "700", marginBottom: spacing.md },
   lastSessionCard: {
     marginTop: spacing.md,
     backgroundColor: colors.brand,
@@ -969,11 +1125,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    marginTop: spacing.lg,
     padding: spacing.md,
     borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.brand,
+    backgroundColor: withAlpha(colors.brand, 12),
     justifyContent: "center",
   },
   statsBtnText: { color: colors.brand, fontWeight: "800", fontSize: 13 },

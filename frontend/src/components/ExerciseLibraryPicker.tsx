@@ -134,20 +134,19 @@ export default function ExerciseLibraryPicker({
 
   // Recherche unifiée, sans changement de contexte : une seule liste, juste
   // partitionnée en sections. Une section vide n'affiche pas d'en-tête —
-  // pas de "Ma bibliothèque (0)" qui casserait l'effet de continuité. Le
-  // Catalogue se limite par défaut aux ~300 exercices Core (isCoreVisible) ;
-  // le reste (futures Collections) n'apparaît que si l'utilisateur déplie
-  // "Afficher plus" — pas de nouvel écran, cohérent avec library.tsx.
+  // pas de "Ma bibliothèque (0)" qui casserait l'effet de continuité. V3 —
+  // "Ma bibliothèque" contient nativement les ~300 exercices officiels
+  // (isCoreVisible ⟹ inLibrary, voir useExerciseLibraryItems.ts) : plus de
+  // section "Catalogue" séparée à remplir, elle serait toujours vide par
+  // construction. Seul le reste (futures Collections) n'apparaît que si
+  // l'utilisateur déplie "Afficher plus" — pas de nouvel écran, cohérent
+  // avec library.tsx.
   const { sections, discoverCount } = useMemo(() => {
     const inLibrary = filtered.filter((i) => i.inLibrary);
-    const catalogue = filtered.filter((i) => !i.inLibrary && isCoreVisible(i.exerciseTier));
     const discover = filtered.filter((i) => !i.inLibrary && !isCoreVisible(i.exerciseTier));
     const result: { key: string; title: string; data: ExerciseLibraryItem[] }[] = [];
     if (inLibrary.length > 0) {
       result.push({ key: "library", title: "Ma bibliothèque", data: inLibrary });
-    }
-    if (catalogue.length > 0) {
-      result.push({ key: "catalogue", title: "Catalogue IronFlow", data: catalogue });
     }
     // Catalogue intelligent (Phase 1, POLISH V2) : une recherche active
     // déplie automatiquement la section "Autres exercices" — l'utilisateur

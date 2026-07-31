@@ -386,6 +386,10 @@ export function mergeEnrichment(
     verifiedSecondaryMuscles:
       existing?.verifiedSecondaryMuscles ??
       (generated.verifiedSecondaryMuscles as ExerciseEnrichment["verifiedSecondaryMuscles"]),
+    // Pas encore généré par le pipeline IA — champ V3 rempli uniquement par
+    // une future passe d'enrichissement manuelle/dédiée, même traitement
+    // que alternativeExerciseIds ci-dessous.
+    stabilizerMuscles: existing?.stabilizerMuscles ?? null,
     alternativeExerciseIds: existing?.alternativeExerciseIds ?? null,
     exerciseType: existing?.exerciseType ?? (generated.exerciseType as ExerciseEnrichment["exerciseType"]),
     tags: existing?.tags ?? generated.tags,

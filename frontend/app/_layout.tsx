@@ -8,6 +8,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useIconFonts } from "@/src/hooks/use-icon-fonts";
 import { migrateFavoritesToUserData } from "@/src/utils/exercise-user-data-migration";
 import { backfillPersonalLibrary } from "@/src/utils/exercise-library-backfill";
+import { seedCoreLibraryIfNeeded } from "@/src/utils/exercise-library-bootstrap";
 
 LogBox.ignoreAllLogs(true);
 
@@ -38,8 +39,14 @@ export default function RootLayout() {
   // exercices personnalisés/favoris. Séquencé (D dépend des favoris déjà
   // migrés) ; ne bloque jamais le démarrage, aucune UI n'en dépend encore
   // (Étape E).
+  // V3 — amorce la bibliothèque de base (300 exercices officiels, illustrations
+  // incluses) avant les étapes existantes, pour qu'un install neuf n'ait
+  // jamais une bibliothèque vide ni un favori/backfill qui n'ait rien à
+  // référencer.
   useEffect(() => {
-    migrateFavoritesToUserData()
+    seedCoreLibraryIfNeeded()
+      .catch((err) => console.warn("Core library seed failed:", err))
+      .then(() => migrateFavoritesToUserData())
       .catch((err) => console.warn("Favorites migration failed:", err))
       .then(() => backfillPersonalLibrary())
       .catch((err) => console.warn("Library backfill failed:", err));

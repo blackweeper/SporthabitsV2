@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
-import { StyleProp, StyleSheet, View, ViewStyle } from "react-native";
+import { StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, shadow, spacing } from "@/src/theme";
 
 /**
@@ -13,6 +14,8 @@ export default function Card({
   style,
   elevated = false,
   padding = spacing.md,
+  title,
+  icon,
   testID,
 }: {
   children: ReactNode;
@@ -21,6 +24,12 @@ export default function Card({
    * important cards, never for plain list rows (keeps the app minimal). */
   elevated?: boolean;
   padding?: number;
+  /** Optional fixed heading rendered above `children` — an icon + label
+   * row, always present regardless of which conditional content ends up
+   * inside. Prefer this over an ad hoc `<Text>` as the first child so a
+   * card never depends on its content to decide whether it has a title. */
+  title?: string;
+  icon?: keyof typeof Ionicons.glyphMap;
   testID?: string;
 }) {
   return (
@@ -28,6 +37,12 @@ export default function Card({
       testID={testID}
       style={[styles.card, { padding }, elevated && shadow.elevated, style]}
     >
+      {title && (
+        <View style={styles.heading}>
+          {icon && <Ionicons name={icon} size={15} color={colors.brand} />}
+          <Text style={styles.headingText}>{title}</Text>
+        </View>
+      )}
       {children}
     </View>
   );
@@ -40,4 +55,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
+  heading: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: spacing.sm },
+  headingText: { color: colors.onSurface, fontSize: 15, fontWeight: "800", letterSpacing: 0.3 },
 });

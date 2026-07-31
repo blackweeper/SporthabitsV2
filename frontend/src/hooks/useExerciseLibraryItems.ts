@@ -8,7 +8,7 @@ import { EXERCISE_LIBRARY } from "@/src/data/exercise-library";
 import { CustomExercise, getCustomExercises, getSessions } from "@/src/utils/gym-storage";
 import { listAllExercises } from "@/src/utils/exercise-detail";
 import { MuscleGroupKey } from "@/src/utils/muscle-groups";
-import { ExerciseRecord, ExerciseTier, getExerciseRecords } from "@/src/utils/exercise-records";
+import { ExerciseRecord, ExerciseTier, getExerciseRecords, isCoreVisible } from "@/src/utils/exercise-records";
 import type { ExerciseRecordCategory } from "@/src/utils/exercise-record-category";
 import type { ExerciseMuscleGroup } from "@/src/utils/exercise-muscle-groups";
 import { EXERCISE_EQUIPMENT_LABEL } from "@/src/utils/exercise-equipment";
@@ -172,7 +172,12 @@ export function useExerciseLibraryItems(active: boolean) {
         category: RECORD_CATEGORY_TO_LEGACY[r.category],
         count: done?.count ?? 0,
         favorite: !!userData[r.id]?.favoritedAt,
-        inLibrary: !!userData[r.id]?.addedToLibraryAt,
+        // V3 — les 300 exercices officiels (essential/official_core) sont
+        // toujours "dans la bibliothèque" par construction (voir
+        // exercise-library-bootstrap.ts) : jamais une écriture individuelle
+        // dans ExerciseUserData, dérivé du tier à chaque lecture. Seuls les
+        // exercices collection_only dépendent d'un ajout explicite.
+        inLibrary: isCoreVisible(r.exerciseTier) || !!userData[r.id]?.addedToLibraryAt,
         muscleGroups,
         equipment: r.equipment ? EXERCISE_EQUIPMENT_LABEL[r.equipment] : null,
         // Pas d'imageBase64 ici : ce champ n'a jamais été peuplé pour les

@@ -133,6 +133,12 @@ export type ExerciseEnrichment = {
 
   verifiedPrimaryMuscle?: ExerciseMuscleGroup | null;
   verifiedSecondaryMuscles?: ExerciseMuscleGroup[] | null;
+  /** V3 — muscles stabilisateurs (gainage/maintien, distincts des muscles
+   * moteurs principaux/secondaires ci-dessus). Additif, vide tant qu'une
+   * passe d'enrichissement ne l'a pas rempli — la fiche masque proprement
+   * la section tant que ce champ est vide, même discipline que le reste de
+   * `ExerciseEnrichment`. */
+  stabilizerMuscles?: ExerciseMuscleGroup[] | null;
   alternativeExerciseIds?: string[] | null;
 
   exerciseType?: "compound" | "isolation" | "cardio" | "mobility" | "stretch" | "plyometric" | "olympic" | null;

@@ -75,3 +75,58 @@ export function useExerciseMedia(exerciseId: string | null | undefined): {
 
   return { ...state, loading };
 }
+
+/**
+ * V3 — résout l'illustration IronFlow ET le GIF WorkoutX indépendamment
+ * (pas de priorité/fallback entre les deux), pour la fiche exercice qui les
+ * affiche ensemble : l'illustration reste l'identité visuelle IronFlow,
+ * le GIF la démonstration d'exécution — voir le plan "Bibliothèque V3".
+ * `useExerciseMedia` (ci-dessus) reste inchangé et continue de servir tous
+ * les autres appelants (cartes, picker) qui n'ont besoin que d'une seule
+ * image avec repli.
+ */
+export function useExerciseMediaSources(exerciseId: string | null | undefined): {
+  ironflowUri: string | null;
+  workoutxUri: string | null;
+  loading: boolean;
+} {
+  const [ironflowUri, setIronflowUri] = useState<string | null>(null);
+  const [workoutxUri, setWorkoutxUri] = useState<string | null>(null);
+  const [loading, setLoading] = useState(!!exerciseId);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (!exerciseId) {
+      setIronflowUri(null);
+      setWorkoutxUri(null);
+      setLoading(false);
+      return;
+    }
+    const urls = buildMediaUrls(exerciseId);
+    if (!urls) {
+      setIronflowUri(null);
+      setWorkoutxUri(null);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    (async () => {
+      const [ironflow, workoutx] = await Promise.all([
+        ensureMediaCached(urls.ironflow),
+        ensureMediaCached(urls.workoutx),
+      ]);
+      if (cancelled) return;
+      setIronflowUri(ironflow);
+      setWorkoutxUri(workoutx);
+      setLoading(false);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [exerciseId]);
+
+  return { ironflowUri, workoutxUri, loading };
+}
