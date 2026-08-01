@@ -11,14 +11,19 @@ export const WEEK_DAY_CARD_WIDTH = 152;
 export const WEEK_DAY_CARD_GAP = 10;
 
 /**
- * Carte "jour de semaine" partagée — remplace à la fois l'ancien
+ * POTENTIELLEMENT OBSOLÈTE — plus aucun appelant dans le repo depuis que
+ * `ProgramDayCardFull` (src/components/ProgramDayCardFull.tsx) a remplacé
+ * ce composant partout (program/[id].tsx et training.tsx). Conservé
+ * intentionnellement (pas supprimé) en attendant une passe de nettoyage
+ * dédiée — voir aussi `WeekDayCardRow.tsx`, son seul consommateur, qui est
+ * dans le même état.
+ *
+ * Carte "jour de semaine" partagée — remplaçait à la fois l'ancien
  * `DayColumnsRow` (training.tsx) et le rendu par-jour de `ProgramDayCard`
- * (program/[id].tsx). Agrège TOUTES les séances du jour (l'ancien
- * `DayColumnsRow` ne lisait que `day.sessions[0]`, perdant silencieusement
- * les séances 2+) et affiche nom, nombre d'exercices, durée estimée et
- * jusqu'à 3 miniatures — tout ce qu'il faut pour savoir ce que contient le
- * jour sans l'ouvrir. Largeur fixe pour permettre le calcul du swipe "2
- * cartes + aperçu de la 3e" côté appelant (voir `WEEK_DAY_CARD_WIDTH`).
+ * (program/[id].tsx). Agrège TOUTES les séances du jour et affiche nom,
+ * nombre d'exercices, durée estimée et jusqu'à 3 miniatures. Largeur fixe
+ * pour permettre le calcul du swipe "2 cartes + aperçu de la 3e" côté
+ * appelant (voir `WEEK_DAY_CARD_WIDTH`).
  */
 export default function WeekDayCard({
   dayIndex,

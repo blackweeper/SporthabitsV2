@@ -1,11 +1,12 @@
-import { useCallback, useMemo, useState } from "react";
-import { View, Text, StyleSheet, FlatList } from "react-native";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { View, Text, StyleSheet, FlatList, ActivityIndicator } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, motion, radius, spacing } from "@/src/theme";
 import { useExerciseLibraryItems } from "@/src/hooks/useExerciseLibraryItems";
+import { useLibraryUpdate } from "@/src/hooks/useLibraryUpdate";
 import ExerciseSearchBar from "@/src/components/exercise-library/ExerciseSearchBar";
 import {
   CategoryTabRow,
@@ -140,6 +141,54 @@ export default function LibraryScreen() {
     (muscle ? 1 : 0) +
     (equipment ? 1 : 0) +
     (collectionFilter ? 1 : 0);
+
+  // Découvrir (1348 - 300) — les exercices `collection_only` ne sont jamais
+  // embarqués dans l'app (seuls les 300 officiels le sont, via
+  // exercise-library-bootstrap.ts, volontairement inchangé). Ils n'existent
+  // en local qu'après un vrai téléchargement réseau du catalogue complet —
+  // déclenché ici silencieusement, une seule fois, à la première ouverture
+  // de l'onglet "Découvrir" tant qu'aucun `collection_only` n'est déjà
+  // présent (jamais au démarrage de l'app, jamais si déjà téléchargé).
+  const libraryUpdate = useLibraryUpdate();
+  const discoverFetchTriggered = useRef(false);
+  const [discoverFetchError, setDiscoverFetchError] = useState<string | null>(null);
+  const hasDiscoverData = items.some((i) => i.exerciseTier === "collection_only");
+  const discoverFetchBusy =
+    libraryUpdate.phase !== "idle" && libraryUpdate.phase !== "done" && libraryUpdate.phase !== "error";
+
+  const triggerDiscoverFetch = useCallback(async () => {
+    setDiscoverFetchError(null);
+    const check = await libraryUpdate.checkForUpdate();
+    if ("error" in check) {
+      setDiscoverFetchError(check.error);
+      return;
+    }
+    if (!check.available) return;
+    await libraryUpdate.runUpdate();
+  }, [libraryUpdate]);
+
+  useEffect(() => {
+    if (scope !== "discover" || hasDiscoverData || discoverFetchTriggered.current) return;
+    discoverFetchTriggered.current = true;
+    triggerDiscoverFetch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scope, hasDiscoverData]);
+
+  useEffect(() => {
+    if (libraryUpdate.phase === "done") {
+      reload();
+      libraryUpdate.reset();
+    } else if (libraryUpdate.phase === "error") {
+      setDiscoverFetchError(libraryUpdate.error ?? "Erreur inconnue.");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [libraryUpdate.phase]);
+
+  const retryDiscoverFetch = () => {
+    discoverFetchTriggered.current = true;
+    libraryUpdate.reset();
+    triggerDiscoverFetch();
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -283,6 +332,22 @@ export default function LibraryScreen() {
             Ces exercices rejoindront bientôt les Collections téléchargeables IronFlow — tu peux
             déjà les ajouter à ta bibliothèque personnelle.
           </Text>
+        </View>
+      )}
+
+      {scope === "discover" && discoverFetchBusy && (
+        <View testID="discover-loading" style={styles.discoverStatusRow}>
+          <ActivityIndicator size="small" color={colors.brand} />
+          <Text style={styles.discoverStatusText}>Chargement du catalogue complet…</Text>
+        </View>
+      )}
+      {scope === "discover" && !discoverFetchBusy && discoverFetchError && (
+        <View testID="discover-error" style={styles.discoverStatusRow}>
+          <Ionicons name="cloud-offline-outline" size={16} color={colors.onSurfaceTertiary} />
+          <Text style={styles.discoverStatusText}>{discoverFetchError}</Text>
+          <PressableScale testID="discover-retry" style={styles.discoverRetryBtn} onPress={retryDiscoverFetch}>
+            <Text style={styles.discoverRetryBtnText}>Réessayer</Text>
+          </PressableScale>
         </View>
       )}
 
@@ -539,6 +604,24 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   discoverBannerText: { color: colors.onSurfaceTertiary, fontSize: 12, fontWeight: "600", lineHeight: 17 },
+  discoverStatusRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.sm,
+    padding: spacing.sm,
+  },
+  discoverStatusText: { flex: 1, color: colors.onSurfaceTertiary, fontSize: 12, fontWeight: "600" },
+  discoverRetryBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceTertiary,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  discoverRetryBtnText: { color: colors.brand, fontSize: 11, fontWeight: "800" },
   emptyCatalogueButton: {
     alignSelf: "center",
     marginTop: spacing.md,

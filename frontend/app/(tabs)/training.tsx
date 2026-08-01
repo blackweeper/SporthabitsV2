@@ -36,14 +36,18 @@ import { ExerciseRecord, getExerciseRecords } from "@/src/utils/exercise-records
 import { plannedDateForDayIndex } from "@/src/utils/session-estimate";
 import SegmentedTabRow from "@/src/components/ui/SegmentedTabRow";
 import FilterSheet, { FilterCountBadge } from "@/src/components/ui/FilterSheet";
-import WeekDayCardRow from "@/src/components/WeekDayCardRow";
+import ProgramWeekTabs from "@/src/components/ProgramWeekTabs";
+import ProgramDayCardFull, {
+  PROGRAM_DAY_CARD_FULL_GAP,
+  PROGRAM_DAY_CARD_FULL_WIDTH,
+} from "@/src/components/ProgramDayCardFull";
 import SessionPreviewModal from "@/src/components/SessionPreviewModal";
 import {
-  formatDateRange,
   nonRestDaysInRange,
   weekDayRange,
   weekIndexForDay,
 } from "@/src/utils/program-week-grouping";
+import { PLAN_TYPE_COLORS } from "@/src/utils/plan-type-colors";
 
 type Tab = "program" | "cardio" | "mobility" | "sessions" | "individual";
 type IndCat = "all" | "musculation" | "cardio" | "wod" | "stretch";
@@ -64,13 +68,7 @@ const IND_CATS: { key: IndCat; label: string; icon: any }[] = [
   { key: "stretch", label: "Mobilité", icon: "body" },
 ];
 
-const TYPE_COLORS: Record<Plan["type"], string> = {
-  musculation: colors.brand,
-  cardio: "#00B0FF",
-  hiit: colors.warning,
-  mixte: "#E040FB",
-  stretch: colors.success,
-};
+const TYPE_COLORS = PLAN_TYPE_COLORS;
 
 /** Cascade d'entrée décalée par carte, même pattern que le Dashboard. */
 function EnterItem({ index, children }: { index: number; children: ReactNode }) {
@@ -396,10 +394,10 @@ function ProgramSubTabs({
       />
       <View style={{ marginTop: spacing.sm }}>
         {subTab === "week" && (
-          <ThisWeekPanel program={program} active={active} records={records} onPressDay={onPressDay} />
+          <ThisWeekPanel program={program} active={active} records={records} onPressDay={onPressDay} router={router} />
         )}
         {subTab === "ahead" && (
-          <WeeksAheadPanel program={program} active={active} records={records} onPressDay={onPressDay} />
+          <WeeksAheadPanel program={program} active={active} records={records} onPressDay={onPressDay} router={router} />
         )}
         {subTab === "history" && (
           <ProgramHistoryPanel sessions={programSessions} records={records} router={router} />
@@ -409,102 +407,139 @@ function ProgramSubTabs({
   );
 }
 
+/** Rangée horizontale de cartes-jour pleines (mêmes composants que la vue
+ * Semaine de program/[id].tsx) — "même visualisation partout où c'est
+ * possible" dans les menus d'entraînements. */
+function DayCardFullRow({
+  columns,
+  program,
+  active,
+  records,
+  todayIndex,
+  onPressDay,
+  router,
+}: {
+  columns: { dayIndex: number; day: ProgramDay }[];
+  program: Program;
+  active: ActiveProgram;
+  records: ExerciseRecord[];
+  todayIndex: number;
+  onPressDay: (dayIndex: number, day: ProgramDay) => void;
+  router: any;
+}) {
+  if (columns.length === 0) {
+    return <Text style={styles.weekEmptyHint}>Aucun jour prévu.</Text>;
+  }
+  return (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      snapToInterval={PROGRAM_DAY_CARD_FULL_WIDTH + PROGRAM_DAY_CARD_FULL_GAP}
+      snapToAlignment="start"
+      decelerationRate="fast"
+      contentContainerStyle={{ gap: PROGRAM_DAY_CARD_FULL_GAP, paddingRight: spacing.lg }}
+    >
+      {columns.map(({ dayIndex, day }) => {
+        const isToday = dayIndex === todayIndex;
+        const done = day.sessions.every((_, si) =>
+          active.completedSessions.some((s) => s.dayIndex === dayIndex && s.sessionIndex === si),
+        );
+        return (
+          <ProgramDayCardFull
+            key={dayIndex}
+            dayIndex={dayIndex}
+            day={day}
+            color={program.color}
+            records={records}
+            plannedDate={plannedDateForDayIndex(active.startedAt, dayIndex)}
+            isToday={isToday}
+            done={done}
+            onLaunch={() => onPressDay(dayIndex, day)}
+            onPreview={() => onPressDay(dayIndex, day)}
+            onPressExercise={(name) => router.push(`/exercise-detail/${encodeURIComponent(name)}`)}
+          />
+        );
+      })}
+    </ScrollView>
+  );
+}
+
 function ThisWeekPanel({
   program,
   active,
   records,
   onPressDay,
+  router,
 }: {
   program: Program;
   active: ActiveProgram;
   records: ExerciseRecord[];
   onPressDay: (dayIndex: number, day: ProgramDay) => void;
+  router: any;
 }) {
   const today = currentDayIndex(active, program.durationDays);
   const columns = nonRestDaysInRange(program, today, today + 13).slice(0, 4);
   return (
-    <WeekDayCardRow
+    <DayCardFullRow
       columns={columns}
-      color={program.color}
+      program={program}
+      active={active}
       records={records}
-      todayDayIndex={today}
-      isDayDone={(dayIndex, day) =>
-        day.sessions.every((_, si) =>
-          active.completedSessions.some((s) => s.dayIndex === dayIndex && s.sessionIndex === si),
-        )
-      }
-      plannedDateFor={(dayIndex) => plannedDateForDayIndex(active.startedAt, dayIndex)}
+      todayIndex={today}
       onPressDay={onPressDay}
+      router={router}
     />
   );
 }
 
-/** Paginée semaine par semaine, en partant de la semaine suivant celle
- * d'"aujourd'hui" (déjà couverte par l'onglet "Cette semaine"). */
+/** Semaines suivant celle d'"aujourd'hui" (déjà couverte par l'onglet
+ * "Cette semaine"), accès direct par onglet plutôt que chevrons — cohérent
+ * avec la vue Semaine de program/[id].tsx. */
 function WeeksAheadPanel({
   program,
   active,
   records,
   onPressDay,
+  router,
 }: {
   program: Program;
   active: ActiveProgram;
   records: ExerciseRecord[];
   onPressDay: (dayIndex: number, day: ProgramDay) => void;
+  router: any;
 }) {
   const today = currentDayIndex(active, program.durationDays);
   const currentWeekIdx = weekIndexForDay(today);
   const totalWeeks = Math.ceil(program.durationDays / 7);
-  const [offset, setOffset] = useState(1);
-  const weekIdx = currentWeekIdx + offset;
+  const aheadWeeks = Array.from(
+    { length: Math.max(0, totalWeeks - currentWeekIdx - 1) },
+    (_, i) => currentWeekIdx + 1 + i,
+  );
+  const [weekIdx, setWeekIdx] = useState(aheadWeeks[0] ?? currentWeekIdx + 1);
+
+  if (aheadWeeks.length === 0) {
+    return <Text style={styles.weekEmptyHint}>Aucune semaine supplémentaire — c&apos;est la dernière.</Text>;
+  }
+
   const { start, end } = weekDayRange(weekIdx);
   const columns = nonRestDaysInRange(program, start, end);
 
-  const rangeStart = plannedDateForDayIndex(active.startedAt, start);
-  const rangeEnd = plannedDateForDayIndex(active.startedAt, Math.min(end, program.durationDays));
-  const label = formatDateRange(rangeStart, rangeEnd);
-  const canPrev = offset > 1;
-  const canNext = weekIdx < totalWeeks - 1;
-
   return (
     <View style={{ gap: spacing.sm }}>
-      <View style={styles.weekNavRow}>
-        <PressableScale
-          testID="week-ahead-prev"
-          onPress={() => canPrev && setOffset((o) => o - 1)}
-          hitSlop={10}
-        >
-          <Ionicons
-            name="chevron-back"
-            size={16}
-            color={canPrev ? colors.onSurface : colors.surfaceTertiary}
-          />
-        </PressableScale>
-        <Text style={styles.weekNavLabel}>{label}</Text>
-        <PressableScale
-          testID="week-ahead-next"
-          onPress={() => canNext && setOffset((o) => o + 1)}
-          hitSlop={10}
-        >
-          <Ionicons
-            name="chevron-forward"
-            size={16}
-            color={canNext ? colors.onSurface : colors.surfaceTertiary}
-          />
-        </PressableScale>
-      </View>
-      <WeekDayCardRow
-        columns={columns}
+      <ProgramWeekTabs
+        weeks={aheadWeeks}
+        activeWeek={weekIdx}
+        onSelectWeek={setWeekIdx}
         color={program.color}
+      />
+      <DayCardFullRow
+        columns={columns}
+        program={program}
+        active={active}
         records={records}
-        todayDayIndex={today}
-        isDayDone={(dayIndex, day) =>
-          day.sessions.every((_, si) =>
-            active.completedSessions.some((s) => s.dayIndex === dayIndex && s.sessionIndex === si),
-          )
-        }
-        plannedDateFor={(dayIndex) => plannedDateForDayIndex(active.startedAt, dayIndex)}
+        todayIndex={today}
         onPressDay={onPressDay}
+        router={router}
       />
     </View>
   );
@@ -1248,18 +1283,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontStyle: "italic",
     paddingVertical: spacing.sm,
-  },
-  weekNavRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 4,
-  },
-  weekNavLabel: {
-    color: colors.onSurface,
-    fontSize: 12,
-    fontWeight: "800",
-    textTransform: "capitalize",
   },
   historyRowInner: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   historyRowTitle: { color: colors.onSurface, fontWeight: "800", fontSize: 12 },

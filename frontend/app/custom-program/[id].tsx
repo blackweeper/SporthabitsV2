@@ -14,7 +14,8 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing } from "@/src/theme";
+import { colors, radius, spacing, withAlpha } from "@/src/theme";
+import { PLAN_TYPE_COLORS } from "@/src/utils/plan-type-colors";
 import { programIconFor } from "@/src/utils/program-goal-icon";
 import ExerciseThumbnail from "@/src/components/ExerciseThumbnail";
 import ExercisePicturePicker from "@/src/components/ExercisePicturePicker";
@@ -33,19 +34,17 @@ import {
 } from "@/src/data/programs";
 import {
   addActiveProgram,
-  CustomExercise,
   deleteCustomProgram,
   ExerciseMode,
   getActivePrograms,
   getCustomPrograms,
   getPlans,
   Plan,
-  saveCustomExercise,
   saveCustomProgram,
   uid,
 } from "@/src/utils/gym-storage";
 import { estimateSessionDurationSeconds, formatEstimatedDuration } from "@/src/utils/session-estimate";
-import ExerciseLibraryPicker, { NewExerciseSheet } from "@/src/components/ExerciseLibraryPicker";
+import ExerciseLibraryPicker from "@/src/components/ExerciseLibraryPicker";
 
 const LEVELS: ProgramLevel[] = ["debutant", "intermediaire", "avance"];
 const MODES: { key: ExerciseMode; label: string }[] = [
@@ -57,6 +56,22 @@ const MODES: { key: ExerciseMode; label: string }[] = [
 
 function emptyDay(): ProgramDay {
   return { rest: true, title: "Repos", sessions: [] };
+}
+
+/** Résume le résultat d'un import (program-import.tsx / import-review) en une
+ * seule phrase — `null` si aucun des 3 compteurs n'a été transmis (ouverture
+ * normale d'un programme, pas juste après un import). Ordre volontairement
+ * fixe : liés d'abord (le plus rassurant), puis à revoir, puis créés. */
+function buildImportSummary(linked?: string, created?: string, toReview?: string): string | null {
+  const l = Number(linked) || 0;
+  const c = Number(created) || 0;
+  const r = Number(toReview) || 0;
+  if (l + c + r === 0) return null;
+  const parts: string[] = [];
+  if (l > 0) parts.push(`${l} exercice${l > 1 ? "s" : ""} lié${l > 1 ? "s" : ""} automatiquement`);
+  if (r > 0) parts.push(`${r} à revoir`);
+  if (c > 0) parts.push(`${c} créé${c > 1 ? "s" : ""}`);
+  return parts.join(" • ");
 }
 
 function newSession(): ProgramSession {
@@ -79,10 +94,12 @@ function newSession(): ProgramSession {
 }
 
 export default function CustomProgramEditor() {
-  const { id, category, unrecognized } = useLocalSearchParams<{
+  const { id, category, linked, created, toReview } = useLocalSearchParams<{
     id: string;
     category?: string;
-    unrecognized?: string;
+    linked?: string;
+    created?: string;
+    toReview?: string;
   }>();
   const router = useRouter();
   const isNew = id === "new";
@@ -115,14 +132,12 @@ export default function CustomProgramEditor() {
     }
   }, [program, selectedDay]);
 
-  // Populated only right after "Importer un programme" — lets the user
-  // create the exercises the local parser couldn't match in the library.
-  const [unrecognizedNames, setUnrecognizedNames] = useState<string[]>(
-    unrecognized ? decodeURIComponent(unrecognized).split("|").filter(Boolean) : [],
+  // Renseigné uniquement juste après "Importer un programme" (voir
+  // program-import.tsx / import-review/[id].tsx) — résume combien
+  // d'exercices ont été liés automatiquement, revus manuellement ou créés.
+  const [importSummary, setImportSummary] = useState<string | null>(() =>
+    buildImportSummary(linked, created, toReview),
   );
-  const [newExerciseState, setNewExerciseState] = useState<
-    { mode: "create"; draft: CustomExercise } | null
-  >(null);
 
   useEffect(() => {
     (async () => {
@@ -144,9 +159,9 @@ export default function CustomProgramEditor() {
               : "",
           coverEmoji: isStretch ? "🧘" : isCardio ? "🏃" : "💪",
           color: isStretch
-            ? "#00E676"
+            ? PLAN_TYPE_COLORS.stretch
             : isCardio
-              ? "#00B0FF"
+              ? PLAN_TYPE_COLORS.cardio
               : COVER_COLORS[0],
           days: Array.from({ length: defaultDuration }, () => emptyDay()),
           isCustom: true,
@@ -271,62 +286,14 @@ export default function CustomProgramEditor() {
         </Pressable>
       </View>
 
-      {unrecognizedNames.length > 0 && (
-        <View style={styles.unrecognizedBanner}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.unrecognizedTitle}>
-              {unrecognizedNames.length} exercice{unrecognizedNames.length > 1 ? "s" : ""} non
-              reconnu{unrecognizedNames.length > 1 ? "s" : ""}
-            </Text>
-            <Text style={styles.unrecognizedList} numberOfLines={2}>
-              {unrecognizedNames.join(", ")}
-            </Text>
-          </View>
-          <Pressable
-            testID="unrecognized-dismiss"
-            hitSlop={8}
-            onPress={() => setUnrecognizedNames([])}
-          >
-            <Ionicons name="close" size={18} color={colors.onSurfaceTertiary} />
+      {importSummary && (
+        <View style={styles.importSummaryBanner}>
+          <Ionicons name="checkmark-circle" size={16} color={colors.brand} />
+          <Text style={styles.importSummaryText}>{importSummary}</Text>
+          <Pressable testID="import-summary-dismiss" hitSlop={8} onPress={() => setImportSummary(null)}>
+            <Ionicons name="close" size={16} color={colors.onSurfaceTertiary} />
           </Pressable>
         </View>
-      )}
-      {unrecognizedNames.length > 0 && (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={{ maxHeight: 40 }}
-          contentContainerStyle={styles.unrecognizedChipRow}
-        >
-          {unrecognizedNames.map((name) => (
-            <Pressable
-              key={name}
-              testID={`unrecognized-create-${name}`}
-              style={styles.unrecognizedChip}
-              onPress={() => {
-                setNewExerciseState({
-                  mode: "create",
-                  draft: {
-                    id: uid(),
-                    nameFr: name,
-                    nameEn: null,
-                    category: "musculation",
-                    muscleGroups: [],
-                    equipment: null,
-                    description: null,
-                    imageBase64: null,
-                    createdAt: new Date().toISOString(),
-                  },
-                });
-              }}
-            >
-              <Ionicons name="add-circle" size={13} color={colors.brand} />
-              <Text style={styles.unrecognizedChipText} numberOfLines={1}>
-                Créer «{name}»
-              </Text>
-            </Pressable>
-          ))}
-        </ScrollView>
       )}
 
       <KeyboardAvoidingView
@@ -717,15 +684,6 @@ export default function CustomProgramEditor() {
           setLibraryPickerSessionIdx(null);
         }}
       />
-      <NewExerciseSheet
-        state={newExerciseState}
-        onClose={() => setNewExerciseState(null)}
-        onSave={async (exercise: CustomExercise) => {
-          await saveCustomExercise(exercise);
-          setUnrecognizedNames((list) => list.filter((n) => n !== exercise.nameFr));
-          setNewExerciseState(null);
-        }}
-      />
       {ConfirmModal}
     </SafeAreaView>
   );
@@ -782,10 +740,14 @@ function PlanPickerModal({
                     <View
                       style={[
                         styles.planIcon,
-                        p.type === "cardio" && { backgroundColor: "#00B0FF40" },
-                        p.type === "hiit" && { backgroundColor: "#FF6B0040" },
+                        p.type === "cardio" && {
+                          backgroundColor: withAlpha(PLAN_TYPE_COLORS.cardio, 25),
+                        },
+                        p.type === "hiit" && {
+                          backgroundColor: withAlpha(PLAN_TYPE_COLORS.hiit, 25),
+                        },
                         p.category === "stretch" && {
-                          backgroundColor: "#00E67640",
+                          backgroundColor: withAlpha(PLAN_TYPE_COLORS.stretch, 25),
                         },
                       ]}
                     >
@@ -1240,7 +1202,7 @@ function MiniField({
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.surface },
   loading: { color: colors.onSurfaceTertiary, textAlign: "center", marginTop: 40 },
-  unrecognizedBanner: {
+  importSummaryBanner: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
@@ -1252,26 +1214,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.brand,
   },
-  unrecognizedTitle: { color: colors.onSurface, fontWeight: "800", fontSize: 13 },
-  unrecognizedList: { color: colors.brandSecondary, fontSize: 11, marginTop: 2 },
-  unrecognizedChipRow: {
-    flexDirection: "row",
-    gap: 6,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-  },
-  unrecognizedChip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: radius.pill,
-    backgroundColor: colors.surfaceSecondary,
-    borderWidth: 1,
-    borderColor: colors.brand,
-  },
-  unrecognizedChipText: { color: colors.brand, fontWeight: "700", fontSize: 11 },
+  importSummaryText: { flex: 1, color: colors.onSurface, fontWeight: "700", fontSize: 12 },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -1560,7 +1503,7 @@ const styles = StyleSheet.create({
   },
   sheetBackdrop: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.65)",
+    backgroundColor: colors.overlay,
     justifyContent: "flex-end",
   },
   sheet: {

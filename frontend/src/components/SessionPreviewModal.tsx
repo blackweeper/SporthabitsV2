@@ -9,29 +9,12 @@ import {
   formatPlannedDate,
 } from "@/src/utils/session-estimate";
 import ExerciseThumbnail from "@/src/components/ExerciseThumbnail";
-
-function formatExerciseDetail(ex: any): string {
-  const parts: string[] = [];
-  if (ex.mode === "reps") {
-    parts.push(`${ex.sets || 1} × ${ex.reps ?? "?"}`);
-    if (ex.weight) parts.push(String(ex.weight));
-  } else if (ex.mode === "time") {
-    parts.push(`${ex.sets || 1} × ${ex.duration_seconds || 0}s`);
-  } else if (ex.mode === "amrap") {
-    parts.push(`AMRAP ${Math.round((ex.duration_seconds || 0) / 60)} min`);
-  } else if (ex.mode === "emom") {
-    parts.push(`EMOM ${ex.sets || 1} min`);
-    if (ex.reps) parts.push(String(ex.reps));
-  }
-  if (ex.rest_seconds && ex.mode !== "amrap") parts.push(`repos ${ex.rest_seconds}s`);
-  return parts.join(" · ");
-}
+import { formatExerciseDetail } from "@/src/utils/exercise-set-format";
 
 /**
  * Aperçu lecture-seule d'une séance d'un jour de programme — extrait de
- * `program/[id].tsx` pour être partagé avec `WeekDayCard` (training.tsx et
- * la vue Semaine de program/[id].tsx pointent maintenant vers la même
- * implémentation, évitant une 2e copie).
+ * `program/[id].tsx` pour être partagé avec `training.tsx` (les deux
+ * écrans pointent vers la même implémentation, évitant une 2e copie).
  */
 export default function SessionPreviewModal({
   visible,
@@ -129,7 +112,7 @@ export default function SessionPreviewModal({
 }
 
 const styles = StyleSheet.create({
-  sheetBackdrop: { flex: 1, backgroundColor: "rgba(0,0,0,0.65)", justifyContent: "flex-end" },
+  sheetBackdrop: { flex: 1, backgroundColor: colors.overlay, justifyContent: "flex-end" },
   sheetSurface: {
     backgroundColor: colors.surfaceSecondary,
     padding: spacing.lg,

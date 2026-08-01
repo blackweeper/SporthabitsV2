@@ -15,7 +15,7 @@ import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import { captureRef } from "react-native-view-shot";
 import * as Sharing from "expo-sharing";
-import { colors, radius, spacing } from "@/src/theme";
+import { colors, radius, spacing, withAlpha } from "@/src/theme";
 import { useConfirmDialog } from "@/src/hooks/use-confirm-dialog";
 import {
   deleteSession,
@@ -403,7 +403,7 @@ const styles = StyleSheet.create({
   heroDivider: {
     width: 1,
     height: 34,
-    backgroundColor: "rgba(255,255,255,0.25)",
+    backgroundColor: withAlpha("#FFFFFF", 25),
   },
   subKpiRow: {
     flexDirection: "row",

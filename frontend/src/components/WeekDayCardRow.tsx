@@ -5,11 +5,16 @@ import { ExerciseRecord } from "@/src/utils/exercise-records";
 import WeekDayCard, { WEEK_DAY_CARD_GAP, WEEK_DAY_CARD_WIDTH } from "@/src/components/WeekDayCard";
 
 /**
+ * POTENTIELLEMENT OBSOLÈTE — plus aucun appelant dans le repo. `training.tsx`
+ * et `program/[id].tsx` utilisent désormais `ProgramDayCardFull` (rangée
+ * horizontale construite directement dans chaque écran) à la place. Conservé
+ * intentionnellement (pas supprimé) en attendant une passe de nettoyage
+ * dédiée.
+ *
  * Rangée horizontale de `WeekDayCard` avec cale-magnétisme ("snap") réglé
  * pour laisser voir ~2 cartes complètes + un aperçu de la 3e sur mobile —
- * remplace l'ancien `DayColumnsRow` (défilement libre, aucun indice visuel
- * de fin de liste) partagé maintenant par `training.tsx` (Cette semaine /
- * Semaines à venir) et `program/[id].tsx` (onglet Semaine).
+ * remplaçait l'ancien `DayColumnsRow` (défilement libre, aucun indice
+ * visuel de fin de liste).
  */
 export default function WeekDayCardRow({
   columns,

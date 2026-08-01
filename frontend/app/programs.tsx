@@ -14,6 +14,7 @@ import {
 } from "@/src/data/programs";
 import { deleteCustomProgram, getCustomPrograms, getProfile, UserProfile } from "@/src/utils/gym-storage";
 import { scoreProgramForProfile } from "@/src/utils/programs";
+import { PLAN_TYPE_COLORS } from "@/src/utils/plan-type-colors";
 import SwipeableRow from "@/src/components/SwipeableRow";
 
 export default function ProgramsScreen() {
@@ -160,7 +161,7 @@ export default function ProgramsScreen() {
         )}
         {isCardio && customs.length === 0 && bundled.length === 0 && (
           <View style={styles.emptyCardio}>
-            <Ionicons name="stopwatch" size={36} color="#00B0FF" />
+            <Ionicons name="stopwatch" size={40} color={PLAN_TYPE_COLORS.cardio} />
             <Text style={styles.emptyCardioTitle}>Pas de programme cardio</Text>
             <Text style={styles.emptyCardioSub}>
               Crée un programme personnalisé pour structurer tes runs, séances de vélo, HIIT ou natation.

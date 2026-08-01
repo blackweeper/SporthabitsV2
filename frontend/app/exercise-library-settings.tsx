@@ -12,6 +12,11 @@ import {
 import { EXERCISE_LIBRARY_MANIFEST_URL } from "@/src/utils/exercise-library-source-config";
 import { useLibraryUpdate } from "@/src/hooks/useLibraryUpdate";
 import { useConfirmDialog } from "@/src/hooks/use-confirm-dialog";
+import {
+  UnresolvedProgramExercise,
+  clearUnresolvedProgramExercisesReport,
+  getUnresolvedProgramExercisesReport,
+} from "@/src/utils/program-library-sync";
 
 function formatDate(iso: string | null): string {
   if (!iso) return "jamais";
@@ -35,15 +40,28 @@ export default function ExerciseLibrarySettingsScreen() {
   const [checking, setChecking] = useState(false);
   const [checkMessage, setCheckMessage] = useState<string | null>(null);
   const [restoring, setRestoring] = useState(false);
+  const [unresolved, setUnresolved] = useState<UnresolvedProgramExercise[]>([]);
+  const [unresolvedExpanded, setUnresolvedExpanded] = useState(false);
 
   const reload = useCallback(async () => {
-    const [meta, backup] = await Promise.all([getLibraryMeta(), getLibraryBackupInfo()]);
+    const [meta, backup, unresolvedReport] = await Promise.all([
+      getLibraryMeta(),
+      getLibraryBackupInfo(),
+      getUnresolvedProgramExercisesReport(),
+    ]);
     setVersion(meta.version);
     setLastUpdatedAt(meta.lastUpdatedAt);
     setExerciseCount(meta.exerciseCount);
     setBackupExists(backup.exists);
     setBackupSavedAt(backup.savedAt);
+    setUnresolved(unresolvedReport);
   }, []);
+
+  const onClearUnresolved = async () => {
+    await clearUnresolvedProgramExercisesReport();
+    setUnresolved([]);
+    setUnresolvedExpanded(false);
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -151,6 +169,48 @@ export default function ExerciseLibrarySettingsScreen() {
           </Pressable>
         )}
 
+        {unresolved.length > 0 && (
+          <View style={styles.unresolvedCard}>
+            <Pressable
+              testID="unresolved-toggle"
+              style={styles.unresolvedHeader}
+              onPress={() => setUnresolvedExpanded((v) => !v)}
+            >
+              <Ionicons name="alert-circle-outline" size={16} color={colors.warning} />
+              <Text style={styles.unresolvedTitle}>
+                {unresolved.length} exercice{unresolved.length > 1 ? "s" : ""} de tes programmes
+                sans correspondance
+              </Text>
+              <Ionicons
+                name={unresolvedExpanded ? "chevron-up" : "chevron-down"}
+                size={16}
+                color={colors.onSurfaceTertiary}
+              />
+            </Pressable>
+            <Text style={styles.unresolvedSub}>
+              Ces noms n&apos;ont trouvé aucun exercice correspondant dans la bibliothèque —
+              jamais ajoutés automatiquement pour éviter une mauvaise correspondance.
+            </Text>
+            {unresolvedExpanded && (
+              <View style={styles.unresolvedList}>
+                {unresolved.map((u) => (
+                  <View key={u.name} style={styles.unresolvedRow}>
+                    <Text style={styles.unresolvedRowName} numberOfLines={1}>
+                      {u.name}
+                    </Text>
+                    <Text style={styles.unresolvedRowMeta}>
+                      {u.occurrences}× · {formatDate(u.lastSeenAt)}
+                    </Text>
+                  </View>
+                ))}
+                <Pressable testID="unresolved-clear" style={styles.unresolvedClearBtn} onPress={onClearUnresolved}>
+                  <Text style={styles.unresolvedClearBtnText}>EFFACER LE RAPPORT</Text>
+                </Pressable>
+              </View>
+            )}
+          </View>
+        )}
+
         <View style={{ height: 40 }} />
       </ScrollView>
 
@@ -239,4 +299,36 @@ const styles = StyleSheet.create({
   },
   restoreTitle: { color: colors.onSurface, fontWeight: "700", fontSize: 13 },
   restoreSub: { color: colors.onSurfaceTertiary, fontSize: 11, marginTop: 2 },
+  unresolvedCard: {
+    backgroundColor: colors.surfaceSecondary,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md,
+    gap: 6,
+  },
+  unresolvedHeader: { flexDirection: "row", alignItems: "center", gap: 8 },
+  unresolvedTitle: { flex: 1, color: colors.onSurface, fontWeight: "700", fontSize: 13 },
+  unresolvedSub: { color: colors.onSurfaceTertiary, fontSize: 11, lineHeight: 15 },
+  unresolvedList: { marginTop: spacing.sm, gap: 6 },
+  unresolvedRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 6,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  unresolvedRowName: { flex: 1, color: colors.onSurfaceSecondary, fontSize: 12, fontWeight: "600" },
+  unresolvedRowMeta: { color: colors.onSurfaceTertiary, fontSize: 10 },
+  unresolvedClearBtn: {
+    alignSelf: "flex-start",
+    marginTop: spacing.xs,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  unresolvedClearBtnText: { color: colors.onSurfaceTertiary, fontSize: 10, fontWeight: "800" },
 });

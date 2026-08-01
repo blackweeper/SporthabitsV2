@@ -91,8 +91,18 @@ export function useLibraryUpdate() {
       const manifest = await res.json();
       if (!isValidManifest(manifest)) return { error: "Fichier de version invalide." };
       const meta = await getLibraryMeta();
+      // Le seed local (`seedCoreLibraryIfNeeded`, 300 exercices) écrit le
+      // même numéro de version que le manifeste distant complet (1348) —
+      // les deux représentent des données différentes sous le même "3".
+      // Une comparaison de version seule dirait donc à tort "déjà à jour"
+      // tant qu'aucun exercice `collection_only` n'a jamais été fusionné en
+      // local. On déclenche donc aussi le téléchargement si le catalogue
+      // complet n'est tout simplement pas encore présent, peu importe le
+      // numéro de version.
+      const existing = await getExerciseRecords();
+      const hasFullCatalog = existing.some((r) => r.exerciseTier === "collection_only");
       return {
-        available: manifest.version > meta.version,
+        available: manifest.version > meta.version || !hasFullCatalog,
         remoteVersion: manifest.version,
         remoteCount: manifest.count,
       };

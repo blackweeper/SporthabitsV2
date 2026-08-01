@@ -13,9 +13,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing } from "@/src/theme";
-import { parseProgramText, findUnrecognizedNames } from "@/src/utils/program-parser";
-import { EXERCISE_LIBRARY } from "@/src/data/exercise-library";
-import { getCustomExercises, saveCustomProgram } from "@/src/utils/gym-storage";
+import { parseProgramText } from "@/src/utils/program-parser";
+import { saveCustomProgram } from "@/src/utils/gym-storage";
+import { getExerciseRecords } from "@/src/utils/exercise-records";
+import { buildExerciseIndex, matchExercise } from "@/src/utils/exercise-matching";
 
 const EXAMPLE = `Programme Full Body 4 semaines
 Jour 1
@@ -40,19 +41,49 @@ export default function ProgramImportScreen() {
     if (!text.trim()) return;
     setBusy(true);
     try {
-      const { program, unrecognized } = parseProgramText(text);
-      const [customs] = await Promise.all([getCustomExercises()]);
-      const knownNames = [
-        ...EXERCISE_LIBRARY.map((e) => e.name),
-        ...customs.map((c) => c.nameFr ?? ""),
-      ];
-      const stillUnrecognized = findUnrecognizedNames(unrecognized, knownNames);
+      const { program } = parseProgramText(text);
+
+      // Lie chaque exercice importé à la vraie bibliothèque (exact/alias
+      // uniquement — jamais de fuzzy auto-appliqué, voir exercise-matching.ts).
+      // Un seul index construit pour tout le programme, réutilisé pour
+      // chaque nom rencontré (une passe de lookup O(1) par exercice).
+      const records = await getExerciseRecords();
+      const index = buildExerciseIndex(records);
+      const resultByName = new Map<string, ReturnType<typeof matchExercise>>();
+      // Comptés en instances d'exercice (pas en noms uniques) pour que le
+      // résumé affiché plus tard reflète le vrai nombre d'exercices du
+      // programme — voir buildImportSummary dans custom-program/[id].tsx.
+      let autoLinked = 0;
+      let needsReview = 0;
+
+      for (const day of program.days) {
+        for (const session of day.sessions) {
+          for (const exercise of session.exercises) {
+            const key = exercise.name.toLowerCase().trim();
+            let result = resultByName.get(key);
+            if (!result) {
+              result = matchExercise(exercise.name, index);
+              resultByName.set(key, result);
+            }
+            if (result.status === "exact" || result.status === "alias") {
+              exercise.exerciseRecordId = result.exerciseRecordId;
+              exercise.matchConfidence = result.status;
+              autoLinked += 1;
+            } else {
+              exercise.matchConfidence = result.status === "fuzzy" ? "fuzzy" : "unmatched";
+              needsReview += 1;
+            }
+          }
+        }
+      }
+
       await saveCustomProgram(program);
-      const suffix =
-        stillUnrecognized.length > 0
-          ? `?unrecognized=${encodeURIComponent(stillUnrecognized.join("|"))}`
-          : "";
-      router.replace(`/custom-program/${program.id}${suffix}` as any);
+      if (needsReview > 0) {
+        router.replace(`/import-review/${program.id}?autoLinked=${autoLinked}` as any);
+      } else {
+        const params = new URLSearchParams({ linked: String(autoLinked), created: "0", toReview: "0" });
+        router.replace(`/custom-program/${program.id}?${params.toString()}` as any);
+      }
     } finally {
       setBusy(false);
     }

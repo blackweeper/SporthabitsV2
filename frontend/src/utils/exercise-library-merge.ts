@@ -92,7 +92,10 @@ export function similarity(a: string, b: string): number {
   return (2 * overlap) / (ga.size + gb.size);
 }
 
-const FUZZY_MATCH_THRESHOLD = 0.65;
+/** Shared with `exercise-matching.ts` (program-import matching engine) so
+ * both consumers of `similarity()` treat "confident enough to suggest, never
+ * enough to auto-apply" the same way. */
+export const FUZZY_MATCH_THRESHOLD = 0.65;
 
 // ---------- Legacy taxonomy → new taxonomy (best-effort, documented) ----------
 

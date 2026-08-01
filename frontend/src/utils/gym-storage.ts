@@ -2,8 +2,15 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { ExerciseCategory } from '@/src/utils/exercise-category';
 import type { MuscleGroupKey } from '@/src/utils/muscle-groups';
 import type { ProgramGoal, ProgramLevel } from '@/src/data/programs';
+import { ensureProgramExercisesInLibrary } from '@/src/utils/program-library-sync';
 
 export type ExerciseMode = 'reps' | 'time' | 'amrap' | 'emom';
+
+/** How `exerciseRecordId` below was determined — see `exercise-matching.ts`.
+ * "exact"/"alias" = auto-lié à l'import ; "fuzzy" = suggestion affichée mais
+ * pas encore confirmée ; "manual" = confirmé/choisi par l'utilisateur dans
+ * l'écran de revue ; "unmatched" = aucun candidat trouvé, jamais résolu. */
+export type ExerciseMatchConfidence = 'exact' | 'alias' | 'fuzzy' | 'manual' | 'unmatched';
 
 export type Exercise = {
   id: string;
@@ -19,6 +26,12 @@ export type Exercise = {
   photoBase64?: string | null;
   /** Key from EXERCISE_ICONS library (fallback when no photoBase64). */
   iconKey?: string | null;
+  /** Lien vers `ExerciseRecord.id` — renseigné par le moteur de matching à
+   * l'import (`src/utils/exercise-matching.ts`) ou par une résolution
+   * manuelle dans l'écran de revue. `null`/absent = jamais résolu, l'exercice
+   * reste en texte libre (comportement historique, toujours supporté). */
+  exerciseRecordId?: string | null;
+  matchConfidence?: ExerciseMatchConfidence | null;
 };
 
 /** category: 'workout' or 'stretch' — enables re-using the whole program engine for stretching programs. */
@@ -574,6 +587,10 @@ export async function saveCustomProgram(program: any): Promise<void> {
   if (idx >= 0) list[idx] = program;
   else list.unshift(program);
   await AsyncStorage.setItem(CUSTOM_PROGRAMS_KEY, JSON.stringify(list));
+  // Couvre création manuelle, import, résolution dans l'écran de revue et
+  // duplication Plan→Programme — les 4 seuls appelants de cette fonction —
+  // sans dépendre d'un appel explicite à chaque site (voir program-library-sync.ts).
+  await ensureProgramExercisesInLibrary(program);
 }
 
 export async function deleteCustomProgram(id: string): Promise<void> {

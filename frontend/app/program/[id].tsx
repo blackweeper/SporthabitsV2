@@ -19,6 +19,7 @@ import {
   ProgramSession,
 } from "@/src/data/programs";
 import { findProgram, isBundled } from "@/src/utils/programs";
+import { ensureProgramExercisesInLibrary } from "@/src/utils/program-library-sync";
 import {
   ActiveProgram,
   addActiveProgram,
@@ -38,9 +39,14 @@ import {
 import { ExerciseRecord, getExerciseRecords } from "@/src/utils/exercise-records";
 import ExerciseThumbnail from "@/src/components/ExerciseThumbnail";
 import SegmentedTabRow from "@/src/components/ui/SegmentedTabRow";
-import WeekDayCardRow from "@/src/components/WeekDayCardRow";
+import ProgramWeekTabs from "@/src/components/ProgramWeekTabs";
+import ProgramDayCardFull, {
+  PROGRAM_DAY_CARD_FULL_GAP,
+  PROGRAM_DAY_CARD_FULL_WIDTH,
+} from "@/src/components/ProgramDayCardFull";
 import SessionPreviewModal from "@/src/components/SessionPreviewModal";
-import { formatDateRange, nonRestDaysInRange } from "@/src/utils/program-week-grouping";
+import { nonRestDaysInRange } from "@/src/utils/program-week-grouping";
+import { formatExerciseDetail } from "@/src/utils/exercise-set-format";
 
 export default function ProgramDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -124,6 +130,10 @@ export default function ProgramDetailScreen() {
         startedAt: new Date().toISOString(),
         completedSessions: [],
       });
+      // Seul point d'activation commun aux programmes prédéfinis (jamais
+      // sauvegardés via saveCustomProgram, donc jamais couverts par son
+      // propre hook) et personnalisés — voir program-library-sync.ts.
+      await ensureProgramExercisesInLibrary(program);
       load();
     };
     // We now allow up to 2 simultaneous. Warn only when already at cap.
@@ -376,6 +386,7 @@ function ProgramWeekView({
   onLaunch: (di: number, si: number, s: ProgramSession) => void;
   onPreview: (di: number, si: number, s: ProgramSession) => void;
 }) {
+  const router = useRouter();
   const totalWeeks = Math.ceil(program.durationDays / 7);
   const startIdx = weekOffset * 7 + 1; // 1-based day index
   const endIdx = startIdx + 6;
@@ -384,64 +395,80 @@ function ProgramWeekView({
   // le hub Entraînements plutôt qu'une tranche brute de 7 jours.
   const columns = nonRestDaysInRange(program, startIdx, endIdx);
 
-  let label: string;
+  const completedWeeks = new Set<number>();
   if (active) {
-    const rangeStart = plannedDateForDayIndex(active.startedAt, startIdx);
-    const rangeEndDayIndex = Math.min(endIdx, program.durationDays);
-    const rangeEnd = plannedDateForDayIndex(active.startedAt, rangeEndDayIndex);
-    label = formatDateRange(rangeStart, rangeEnd);
-  } else {
-    label = `Semaine ${weekOffset + 1}`;
+    for (let w = 0; w < totalWeeks; w++) {
+      const wStart = w * 7 + 1;
+      const wEnd = Math.min(wStart + 6, program.durationDays);
+      const wCols = nonRestDaysInRange(program, wStart, wEnd);
+      if (
+        wCols.length > 0 &&
+        wCols.every(({ dayIndex, day }) =>
+          day.sessions.every((_, si) =>
+            active.completedSessions.some(
+              (s) => s.dayIndex === dayIndex && s.sessionIndex === si,
+            ),
+          ),
+        )
+      ) {
+        completedWeeks.add(w);
+      }
+    }
   }
 
   return (
-    <View style={{ gap: spacing.sm }}>
-      <View style={styles.weekNavRow}>
-        <Pressable
-          testID="program-week-prev"
-          onPress={() => onChangeWeekOffset(weekOffset - 1)}
-          hitSlop={12}
-          disabled={weekOffset <= 0}
-        >
-          <Ionicons
-            name="chevron-back"
-            size={18}
-            color={weekOffset <= 0 ? colors.surfaceTertiary : colors.onSurface}
-          />
-        </Pressable>
-        <Text style={styles.weekNavLabel}>{label}</Text>
-        <Pressable
-          testID="program-week-next"
-          onPress={() => onChangeWeekOffset(weekOffset + 1)}
-          hitSlop={12}
-          disabled={weekOffset >= totalWeeks - 1}
-        >
-          <Ionicons
-            name="chevron-forward"
-            size={18}
-            color={weekOffset >= totalWeeks - 1 ? colors.surfaceTertiary : colors.onSurface}
-          />
-        </Pressable>
-      </View>
-      <WeekDayCardRow
-        columns={columns}
+    <View style={{ gap: spacing.md }}>
+      <ProgramWeekTabs
+        weeks={Array.from({ length: totalWeeks }, (_, i) => i)}
+        activeWeek={weekOffset}
+        onSelectWeek={onChangeWeekOffset}
         color={program.color}
-        records={records}
-        todayDayIndex={isActive ? todayIdx : null}
-        isDayDone={(dayIndex, day) =>
-          day.sessions.every((_, si) =>
-            active?.completedSessions.some((s) => s.dayIndex === dayIndex && s.sessionIndex === si) ?? false,
-          )
-        }
-        plannedDateFor={(dayIndex) => (active ? plannedDateForDayIndex(active.startedAt, dayIndex) : null)}
-        onPressDay={(dayIndex, day) => {
-          const session = day.sessions[0];
-          if (!session) return;
-          if (isActive && dayIndex === todayIdx) onLaunch(dayIndex, 0, session);
-          else onPreview(dayIndex, 0, session);
-        }}
-        emptyHint="Aucun jour prévu cette semaine."
+        completedWeeks={completedWeeks}
       />
+      {columns.length === 0 ? (
+        <Text style={styles.weekEmptyHint}>Aucun jour prévu cette semaine.</Text>
+      ) : (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          snapToInterval={PROGRAM_DAY_CARD_FULL_WIDTH + PROGRAM_DAY_CARD_FULL_GAP}
+          snapToAlignment="start"
+          decelerationRate="fast"
+          contentContainerStyle={{ gap: PROGRAM_DAY_CARD_FULL_GAP, paddingRight: spacing.lg }}
+        >
+          {columns.map(({ dayIndex, day }) => {
+            const today = isActive && dayIndex === todayIdx;
+            const done = day.sessions.every((_, si) =>
+              active?.completedSessions.some(
+                (s) => s.dayIndex === dayIndex && s.sessionIndex === si,
+              ) ?? false,
+            );
+            return (
+              <ProgramDayCardFull
+                key={dayIndex}
+                dayIndex={dayIndex}
+                day={day}
+                color={program.color}
+                records={records}
+                plannedDate={active ? plannedDateForDayIndex(active.startedAt, dayIndex) : null}
+                isToday={today}
+                done={done}
+                onLaunch={() => {
+                  const session = day.sessions[0];
+                  if (session) onLaunch(dayIndex, 0, session);
+                }}
+                onPreview={() => {
+                  const session = day.sessions[0];
+                  if (session) onPreview(dayIndex, 0, session);
+                }}
+                onPressExercise={(name) =>
+                  router.push(`/exercise-detail/${encodeURIComponent(name)}`)
+                }
+              />
+            );
+          })}
+        </ScrollView>
+      )}
     </View>
   );
 }
@@ -713,24 +740,6 @@ function ProgramDayCard({
   );
 }
 
-function formatExerciseDetail(ex: any): string {
-  const parts: string[] = [];
-  if (ex.mode === "reps") {
-    parts.push(`${ex.sets || 1} × ${ex.reps ?? "?"}`);
-    if (ex.weight) parts.push(String(ex.weight));
-  } else if (ex.mode === "time") {
-    parts.push(`${ex.sets || 1} × ${ex.duration_seconds || 0}s`);
-  } else if (ex.mode === "amrap") {
-    parts.push(`AMRAP ${Math.round((ex.duration_seconds || 0) / 60)} min`);
-  } else if (ex.mode === "emom") {
-    parts.push(`EMOM ${ex.sets || 1} min`);
-    if (ex.reps) parts.push(String(ex.reps));
-  }
-  if (ex.rest_seconds && ex.mode !== "amrap")
-    parts.push(`repos ${ex.rest_seconds}s`);
-  return parts.join(" · ");
-}
-
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.surface },
   loading: {
@@ -802,7 +811,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
-    backgroundColor: "#0F2F1A",
+    backgroundColor: withAlpha(colors.success, 12),
     borderColor: colors.success,
     borderWidth: 1,
     padding: spacing.md,
@@ -835,17 +844,12 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
   daysList: { gap: spacing.sm },
-  weekNavRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 4,
-  },
-  weekNavLabel: {
-    color: colors.onSurface,
-    fontSize: 13,
-    fontWeight: "800",
-    textTransform: "capitalize",
+  weekEmptyHint: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 12,
+    fontStyle: "italic",
+    paddingVertical: spacing.md,
+    textAlign: "center",
   },
   dayCard: {
     backgroundColor: colors.surfaceSecondary,
