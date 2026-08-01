@@ -12,32 +12,37 @@ import { Ionicons } from "@expo/vector-icons";
 import { colors, motion, radius, shadow, spacing, withAlpha } from "@/src/theme";
 import PressableScale from "@/src/components/ui/PressableScale";
 import CTAButton from "@/src/components/ui/CTAButton";
+import Card from "@/src/components/ui/Card";
 import ExerciseThumbnail from "@/src/components/ExerciseThumbnail";
 import SwipeableRow from "@/src/components/SwipeableRow";
+import { programIconFor } from "@/src/utils/program-goal-icon";
 import {
   ActiveProgram,
   currentDayIndex,
   deletePlan,
   deleteSession,
+  findOrCreateProgramPlan,
   getActivePrograms,
   getPlans,
   getSessions,
   Plan,
+  uid,
   WorkoutSession,
 } from "@/src/utils/gym-storage";
 import { findProgram } from "@/src/utils/programs";
-import { Program, ProgramDay } from "@/src/data/programs";
+import { Program, ProgramDay, ProgramSession } from "@/src/data/programs";
 import { MUSCLE_GROUPS } from "@/src/utils/muscle-groups";
 import { ExerciseRecord, getExerciseRecords } from "@/src/utils/exercise-records";
-import { formatPlannedDate, plannedDateForDayIndex } from "@/src/utils/session-estimate";
+import { plannedDateForDayIndex } from "@/src/utils/session-estimate";
 import SegmentedTabRow from "@/src/components/ui/SegmentedTabRow";
 import FilterSheet, { FilterCountBadge } from "@/src/components/ui/FilterSheet";
+import WeekDayCardRow from "@/src/components/WeekDayCardRow";
+import SessionPreviewModal from "@/src/components/SessionPreviewModal";
 import {
   formatDateRange,
   nonRestDaysInRange,
   weekDayRange,
   weekIndexForDay,
-  WeekDayColumn,
 } from "@/src/utils/program-week-grouping";
 
 type Tab = "program" | "cardio" | "mobility" | "sessions" | "individual";
@@ -85,6 +90,13 @@ export default function TrainingHub() {
     { active: ActiveProgram; program: Program }[]
   >([]);
   const [exerciseRecords, setExerciseRecords] = useState<ExerciseRecord[]>([]);
+  const [preview, setPreview] = useState<{
+    dayIndex: number;
+    sessionIndex: number;
+    session: ProgramSession;
+    color: string;
+    plannedDate: Date | null;
+  } | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -124,6 +136,36 @@ export default function TrainingHub() {
       : actives.length > 0
         ? "Prêt·e pour ta prochaine séance ?"
         : "Choisis un programme pour commencer";
+
+  // Une carte-jour du hub lance directement (jour d'aujourd'hui) ou ouvre
+  // un aperçu lecture seule (tout autre jour) — corrige le bug de l'ancien
+  // `DayColumnsRow` où chaque colonne menait systématiquement à la même
+  // page programme, quel que soit le jour tapé.
+  const handlePressDay = async (
+    program: Program,
+    active: ActiveProgram,
+    dayIndex: number,
+    day: ProgramDay,
+  ) => {
+    const session = day.sessions[0];
+    if (!session) return;
+    const todayIdx = currentDayIndex(active, program.durationDays);
+    const plannedDate = plannedDateForDayIndex(active.startedAt, dayIndex);
+    if (dayIndex === todayIdx) {
+      const isStretch = program.category === "stretch";
+      const plan = await findOrCreateProgramPlan(program.id, dayIndex, 0, () => ({
+        title: `${program.title} · J${dayIndex}${session.label ? " · " + session.label : ""}`,
+        type: isStretch ? "stretch" : "mixte",
+        category: isStretch ? "stretch" : "workout",
+        createdAt: new Date().toISOString(),
+        programSource: { programId: program.id, dayIndex, sessionIndex: 0 },
+        exercises: session.exercises.map((e) => ({ ...e, id: uid() })),
+      }));
+      router.push(`/workout/${plan.id}`);
+      return;
+    }
+    setPreview({ dayIndex, sessionIndex: 0, session, color: program.color, plannedDate });
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
@@ -171,6 +213,7 @@ export default function TrainingHub() {
             records={exerciseRecords}
             plans={plans}
             sessions={sessions}
+            onPressDay={handlePressDay}
           />
         )}
         {tab === "cardio" && (
@@ -180,6 +223,7 @@ export default function TrainingHub() {
             records={exerciseRecords}
             plans={plans}
             sessions={sessions}
+            onPressDay={handlePressDay}
           />
         )}
         {tab === "mobility" && (
@@ -189,6 +233,7 @@ export default function TrainingHub() {
             records={exerciseRecords}
             plans={plans}
             sessions={sessions}
+            onPressDay={handlePressDay}
           />
         )}
         {tab === "sessions" && (
@@ -212,6 +257,15 @@ export default function TrainingHub() {
           />
         )}
       </ScrollView>
+
+      <SessionPreviewModal
+        visible={preview !== null}
+        preview={preview}
+        color={preview?.color ?? colors.brand}
+        records={exerciseRecords}
+        plannedDate={preview?.plannedDate ?? null}
+        onClose={() => setPreview(null)}
+      />
     </SafeAreaView>
   );
 }
@@ -230,6 +284,7 @@ function ProgramHeroCard({
   done,
   total,
   onPress,
+  onPressDay,
   index = 0,
   programSessions = [],
   router,
@@ -242,6 +297,7 @@ function ProgramHeroCard({
   done?: number;
   total?: number;
   onPress: () => void;
+  onPressDay: (program: Program, active: ActiveProgram, dayIndex: number, day: ProgramDay) => void;
   index?: number;
   programSessions?: WorkoutSession[];
   router?: any;
@@ -260,7 +316,7 @@ function ProgramHeroCard({
       >
         <View style={styles.heroProgHead}>
           <View style={[styles.heroProgEmoji, { backgroundColor: withAlpha(program.color, 19) }]}>
-            <Text style={{ fontSize: 40 }}>{program.coverEmoji}</Text>
+            <Ionicons name={programIconFor(program.coverEmoji)} size={30} color={program.color} />
           </View>
           <View style={{ flex: 1 }}>
             <Text style={styles.heroProgTitle} numberOfLines={1}>
@@ -295,7 +351,7 @@ function ProgramHeroCard({
           active={active}
           records={records}
           programSessions={programSessions}
-          onPressDay={onPress}
+          onPressDay={(dayIndex, day) => onPressDay(program, active, dayIndex, day)}
           router={router}
         />
       )}
@@ -322,7 +378,7 @@ function ProgramSubTabs({
   active: ActiveProgram;
   records: ExerciseRecord[];
   programSessions: WorkoutSession[];
-  onPressDay: () => void;
+  onPressDay: (dayIndex: number, day: ProgramDay) => void;
   router: any;
 }) {
   const [subTab, setSubTab] = useState<"week" | "ahead" | "history">("week");
@@ -353,66 +409,6 @@ function ProgramSubTabs({
   );
 }
 
-/** Colonnes de jours (miniatures d'exercices), esprit de la référence
- * visuelle fournie — réutilisé par "Cette semaine" et "Semaines à venir",
- * qui ne diffèrent que par la plage de jours source. */
-function DayColumnsRow({
-  columns,
-  program,
-  active,
-  records,
-  onPressDay,
-}: {
-  columns: WeekDayColumn[];
-  program: Program;
-  active: ActiveProgram;
-  records: ExerciseRecord[];
-  onPressDay: () => void;
-}) {
-  if (columns.length === 0) {
-    return <Text style={styles.weekEmptyHint}>Rien de prévu sur cette période.</Text>;
-  }
-  return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.weekRow}>
-      {columns.map(({ dayIndex, day }) => {
-        const exercises = day.sessions[0]?.exercises ?? [];
-        const date = formatPlannedDate(plannedDateForDayIndex(active.startedAt, dayIndex));
-        return (
-          <PressableScale
-            key={dayIndex}
-            testID={`week-day-${dayIndex}`}
-            style={[
-              styles.weekCol,
-              { backgroundColor: withAlpha(program.color, 8), borderColor: withAlpha(program.color, 25) },
-            ]}
-            onPress={onPressDay}
-          >
-            <Text style={styles.weekColTitle} numberOfLines={2}>
-              {day.title}
-            </Text>
-            <Text style={styles.weekColDate}>
-              {date} · {exercises.length} exercice{exercises.length > 1 ? "s" : ""}
-            </Text>
-            <View style={styles.weekExList}>
-              {exercises.slice(0, 3).map((ex, i) => (
-                <View key={i} style={styles.weekExRow}>
-                  <ExerciseThumbnail name={ex.name} records={records} size={26} square />
-                  <Text style={styles.weekExName} numberOfLines={1}>
-                    {ex.name}
-                  </Text>
-                </View>
-              ))}
-              {exercises.length > 3 && (
-                <Text style={styles.weekExMore}>+{exercises.length - 3} de plus</Text>
-              )}
-            </View>
-          </PressableScale>
-        );
-      })}
-    </ScrollView>
-  );
-}
-
 function ThisWeekPanel({
   program,
   active,
@@ -422,12 +418,24 @@ function ThisWeekPanel({
   program: Program;
   active: ActiveProgram;
   records: ExerciseRecord[];
-  onPressDay: () => void;
+  onPressDay: (dayIndex: number, day: ProgramDay) => void;
 }) {
   const today = currentDayIndex(active, program.durationDays);
   const columns = nonRestDaysInRange(program, today, today + 13).slice(0, 4);
   return (
-    <DayColumnsRow columns={columns} program={program} active={active} records={records} onPressDay={onPressDay} />
+    <WeekDayCardRow
+      columns={columns}
+      color={program.color}
+      records={records}
+      todayDayIndex={today}
+      isDayDone={(dayIndex, day) =>
+        day.sessions.every((_, si) =>
+          active.completedSessions.some((s) => s.dayIndex === dayIndex && s.sessionIndex === si),
+        )
+      }
+      plannedDateFor={(dayIndex) => plannedDateForDayIndex(active.startedAt, dayIndex)}
+      onPressDay={onPressDay}
+    />
   );
 }
 
@@ -442,7 +450,7 @@ function WeeksAheadPanel({
   program: Program;
   active: ActiveProgram;
   records: ExerciseRecord[];
-  onPressDay: () => void;
+  onPressDay: (dayIndex: number, day: ProgramDay) => void;
 }) {
   const today = currentDayIndex(active, program.durationDays);
   const currentWeekIdx = weekIndexForDay(today);
@@ -485,7 +493,19 @@ function WeeksAheadPanel({
           />
         </PressableScale>
       </View>
-      <DayColumnsRow columns={columns} program={program} active={active} records={records} onPressDay={onPressDay} />
+      <WeekDayCardRow
+        columns={columns}
+        color={program.color}
+        records={records}
+        todayDayIndex={today}
+        isDayDone={(dayIndex, day) =>
+          day.sessions.every((_, si) =>
+            active.completedSessions.some((s) => s.dayIndex === dayIndex && s.sessionIndex === si),
+          )
+        }
+        plannedDateFor={(dayIndex) => plannedDateForDayIndex(active.startedAt, dayIndex)}
+        onPressDay={onPressDay}
+      />
     </View>
   );
 }
@@ -508,22 +528,25 @@ function ProgramHistoryPanel({
         <PressableScale
           key={s.id}
           testID={`program-history-${s.id}`}
-          style={styles.historyRow}
           onPress={() => router.push(`/session/${s.id}`)}
         >
-          <View style={{ flex: 1 }}>
-            <Text style={styles.historyRowTitle} numberOfLines={1}>
-              {s.planTitle}
-            </Text>
-            <Text style={styles.historyRowDate}>{formatDate(s.startedAt)}</Text>
-          </View>
-          {s.exercises.length > 0 && (
-            <View style={styles.sessionThumbRow}>
-              {s.exercises.slice(0, 3).map((ex, i) => (
-                <ExerciseThumbnail key={i} name={ex.name} records={records} size={24} square />
-              ))}
+          <Card padding={spacing.sm}>
+            <View style={styles.historyRowInner}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.historyRowTitle} numberOfLines={1}>
+                  {s.planTitle}
+                </Text>
+                <Text style={styles.historyRowDate}>{formatDate(s.startedAt)}</Text>
+              </View>
+              {s.exercises.length > 0 && (
+                <View style={styles.sessionThumbRow}>
+                  {s.exercises.slice(0, 3).map((ex, i) => (
+                    <ExerciseThumbnail key={i} name={ex.name} records={records} size={24} square />
+                  ))}
+                </View>
+              )}
             </View>
-          )}
+          </Card>
         </PressableScale>
       ))}
     </View>
@@ -543,18 +566,22 @@ function getSessionsForProgram(
     .sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime());
 }
 
+type PressDayHandler = (program: Program, active: ActiveProgram, dayIndex: number, day: ProgramDay) => void;
+
 function ProgramView({
   actives,
   router,
   records,
   plans,
   sessions,
+  onPressDay,
 }: {
   actives: { active: ActiveProgram; program: Program }[];
   router: any;
   records: ExerciseRecord[];
   plans: Plan[];
   sessions: WorkoutSession[];
+  onPressDay: PressDayHandler;
 }) {
   if (actives.length === 0) {
     return (
@@ -599,6 +626,7 @@ function ProgramView({
             programSessions={getSessionsForProgram(program, plans, sessions)}
             router={router}
             onPress={() => router.push(`/program/${program.id}`)}
+            onPressDay={onPressDay}
           />
         );
       })}
@@ -815,7 +843,6 @@ function IndividualView({
                 style={[styles.muscleChip, active && styles.muscleChipActive]}
                 onPress={() => setMuscle(active ? null : mg.key)}
               >
-                <Text style={styles.muscleEmoji}>{mg.emoji}</Text>
                 <Text style={[styles.muscleText, active && { color: "#fff" }]}>
                   {mg.label}
                 </Text>
@@ -963,12 +990,14 @@ function CardioView({
   records,
   plans,
   sessions,
+  onPressDay,
 }: {
   actives: { active: ActiveProgram; program: Program }[];
   router: any;
   records: ExerciseRecord[];
   plans: Plan[];
   sessions: WorkoutSession[];
+  onPressDay: PressDayHandler;
 }) {
   const CARDIO_COLOR = TYPE_COLORS.cardio;
   if (actives.length === 0) {
@@ -1019,6 +1048,7 @@ function CardioView({
             programSessions={getSessionsForProgram(program, plans, sessions)}
             router={router}
             onPress={() => router.push(`/program/${program.id}`)}
+            onPressDay={onPressDay}
           />
         );
       })}
@@ -1050,12 +1080,14 @@ function MobilityView({
   records,
   plans,
   sessions,
+  onPressDay,
 }: {
   actives: { active: ActiveProgram; program: Program }[];
   router: any;
   records: ExerciseRecord[];
   plans: Plan[];
   sessions: WorkoutSession[];
+  onPressDay: PressDayHandler;
 }) {
   if (actives.length === 0) {
     return (
@@ -1099,6 +1131,7 @@ function MobilityView({
             programSessions={getSessionsForProgram(program, plans, sessions)}
             router={router}
             onPress={() => router.push(`/program/${program.id}`)}
+            onPressDay={onPressDay}
           />
         );
       })}
@@ -1210,26 +1243,6 @@ const styles = StyleSheet.create({
     ...shadow.elevated,
   },
   weekWrap: { marginTop: spacing.sm, marginBottom: spacing.sm },
-  weekLabel: {
-    color: colors.onSurfaceTertiary,
-    fontSize: 10,
-    fontWeight: "800",
-    letterSpacing: 0.8,
-    marginBottom: spacing.sm,
-  },
-  weekRow: { gap: spacing.sm, paddingRight: spacing.md },
-  weekCol: {
-    width: 168,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    padding: spacing.md,
-  },
-  weekColTitle: { color: colors.onSurface, fontWeight: "800", fontSize: 12, lineHeight: 16 },
-  weekColDate: { color: colors.onSurfaceTertiary, fontSize: 10, fontWeight: "600", marginTop: 2 },
-  weekExList: { gap: 6, marginTop: spacing.sm },
-  weekExRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  weekExName: { flex: 1, color: colors.onSurfaceSecondary, fontSize: 10.5, fontWeight: "600" },
-  weekExMore: { color: colors.onSurfaceTertiary, fontSize: 10, fontWeight: "700", marginTop: 2 },
   weekEmptyHint: {
     color: colors.onSurfaceTertiary,
     fontSize: 12,
@@ -1248,16 +1261,7 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     textTransform: "capitalize",
   },
-  historyRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.sm,
-  },
+  historyRowInner: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   historyRowTitle: { color: colors.onSurface, fontWeight: "800", fontSize: 12 },
   historyRowDate: { color: colors.onSurfaceTertiary, fontSize: 10, marginTop: 2 },
   heroProgHead: { flexDirection: "row", alignItems: "center", gap: spacing.md },
@@ -1410,7 +1414,6 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   muscleChipActive: { backgroundColor: colors.brand, borderColor: colors.brand },
-  muscleEmoji: { fontSize: 12 },
   muscleText: {
     color: colors.onSurfaceSecondary,
     fontSize: 11,

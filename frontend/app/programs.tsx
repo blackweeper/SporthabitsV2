@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, ScrollView, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing } from "@/src/theme";
+import { colors, radius, spacing, withAlpha } from "@/src/theme";
+import { programIconFor } from "@/src/utils/program-goal-icon";
 import {
   BUNDLED_CARDIO_PROGRAMS,
   BUNDLED_PROGRAMS,
@@ -194,8 +195,8 @@ function ProgramCard({
       style={[styles.card, { borderLeftColor: program.color }]}
       onPress={onPress}
     >
-      <View style={[styles.coverEmoji, { backgroundColor: `${program.color}22` }]}>
-        <Text style={styles.emojiText}>{program.coverEmoji}</Text>
+      <View style={[styles.coverEmoji, { backgroundColor: withAlpha(program.color, 13) }]}>
+        <Ionicons name={programIconFor(program.coverEmoji)} size={26} color={program.color} />
       </View>
       <View style={{ flex: 1, gap: 4 }}>
         <View style={styles.tagRow}>
@@ -334,7 +335,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  emojiText: { fontSize: 30 },
   tagRow: { flexDirection: "row", gap: 6, flexWrap: "wrap" },
   recommendedTag: {
     flexDirection: "row",

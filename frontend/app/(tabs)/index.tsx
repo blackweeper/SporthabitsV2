@@ -21,6 +21,7 @@ import Animated, {
 } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
 import { colors, motion, radius, spacing } from "@/src/theme";
+import { programIconFor } from "@/src/utils/program-goal-icon";
 import {
   ActiveProgram,
   CalendarEvent,
@@ -772,9 +773,11 @@ export default function TodayScreen() {
                     onPress={() => router.push(`/program/${program.id}`)}
                   >
                     <View style={styles.progMiniHead}>
-                      <Text style={styles.progMiniEmoji}>
-                        {program.coverEmoji}
-                      </Text>
+                      <Ionicons
+                        name={programIconFor(program.coverEmoji)}
+                        size={22}
+                        color={program.color}
+                      />
                       <View style={{ flex: 1 }}>
                         <Text
                           style={styles.progMiniTitle}
@@ -1232,9 +1235,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
-  },
-  progMiniEmoji: {
-    fontSize: 26,
   },
   progMiniTitle: {
     color: colors.onSurface,

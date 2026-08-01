@@ -1,4 +1,4 @@
-import { Exercise, ExerciseMode } from '@/src/utils/gym-storage';
+import type { Exercise, ExerciseMode } from '@/src/utils/gym-storage';
 
 export type ProgramLevel = 'debutant' | 'intermediaire' | 'avance';
 

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { View, Text, StyleSheet, ScrollView, Pressable, Modal, Dimensions } from "react-native";
 import Animated, { FadeIn, FadeInDown } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -7,6 +7,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { LineChart } from "react-native-gifted-charts";
 import { colors, coloredShadow, motion, radius, spacing, withAlpha } from "@/src/theme";
 import Card from "@/src/components/ui/Card";
+import SegmentedTabRow from "@/src/components/ui/SegmentedTabRow";
 import ExerciseMediaFrame from "@/src/components/exercise-library/ExerciseMediaFrame";
 import ExerciseThumbnail from "@/src/components/ExerciseThumbnail";
 import { EXERCISE_CATEGORY_COLOR, EXERCISE_CATEGORY_ICON, EXERCISE_CATEGORY_LABEL } from "@/src/utils/exercise-category";
@@ -14,7 +15,7 @@ import { iconEmojiForExercise } from "@/src/data/exercise-icons";
 import { MUSCLE_GROUPS } from "@/src/utils/muscle-groups";
 import { EXERCISE_MUSCLE_GROUP_LABEL } from "@/src/utils/exercise-muscle-groups";
 import { MOVEMENT_PATTERN_LABEL } from "@/src/utils/exercise-movement-pattern";
-import { EXERCISE_DIFFICULTY_COLOR, EXERCISE_DIFFICULTY_LABEL } from "@/src/utils/exercise-difficulty";
+import { EXERCISE_DIFFICULTY_LABEL } from "@/src/utils/exercise-difficulty";
 import { TRAINING_GOAL_LABEL } from "@/src/utils/exercise-training-goal";
 import { DISCIPLINE_LABEL } from "@/src/utils/exercise-discipline";
 import {
@@ -71,8 +72,17 @@ export default function ExerciseDetailFiche() {
   const [libraryRecord, setLibraryRecord] = useState<ExerciseRecord | null>(null);
   const [allRecords, setAllRecords] = useState<ExerciseRecord[]>([]);
   const [addSheetOpen, setAddSheetOpen] = useState(false);
+  // Bascule illustration IronFlow ↔ GIF WorkoutX en place dans le hero,
+  // même idiome que workout/[id].tsx — reset à "photo" à chaque exercice.
+  const [heroMediaMode, setHeroMediaMode] = useState<"photo" | "gif">("photo");
+  const [adviceTab, setAdviceTab] = useState<"technique" | "securite" | "niveau">("technique");
 
   const { items, customExercises, toggleFavorite } = useExerciseLibraryItems(true);
+
+  useEffect(() => {
+    setHeroMediaMode("photo");
+    setAdviceTab("technique");
+  }, [decoded]);
 
   useFocusEffect(
     useCallback(() => {
@@ -266,6 +276,33 @@ export default function ExerciseDetailFiche() {
   const hasRelated =
     variantLinks.regression.length > 0 || variantLinks.progression.length > 0 || similarExercises.length > 0;
 
+  const statChips: { icon: keyof typeof Ionicons.glyphMap; label: string; value: string }[] = [];
+  if (currentDifficulty) {
+    statChips.push({ icon: "speedometer-outline", label: "Niveau", value: EXERCISE_DIFFICULTY_LABEL[currentDifficulty] });
+  }
+  if (primaryMuscleLabel) statChips.push({ icon: "body-outline", label: "Muscle", value: primaryMuscleLabel });
+  if (equipmentLabel) statChips.push({ icon: "barbell-outline", label: "Matériel", value: equipmentLabel });
+  if (libraryRecord?.movementPattern) {
+    statChips.push({
+      icon: "swap-horizontal-outline",
+      label: "Mouvement",
+      value: MOVEMENT_PATTERN_LABEL[libraryRecord.movementPattern],
+    });
+  }
+  if (similarExercises.length > 0) {
+    statChips.push({ icon: "git-branch-outline", label: "Similaires", value: String(similarExercises.length) });
+  }
+
+  const adviceHasTechnique = !!(fr?.warmupSuggestion || (fr?.executionTips ?? libraryRecord?.tips)?.length || fr?.breathingTips);
+  const adviceHasSecurity = !!(
+    fr?.precautions ||
+    enrichment?.fatigueLevel ||
+    (enrichment?.restTimeByGoal && Object.keys(enrichment.restTimeByGoal).length > 0) ||
+    (enrichment?.alternativeEquipment && enrichment.alternativeEquipment.length > 0)
+  );
+  const adviceHasLevel = !!(enrichment?.levelGuidance && Object.keys(enrichment.levelGuidance).length > 0);
+  const hasMoreInfo = usage.length > 0 || !!enrichment?.tags?.length || !!enrichment?.equipmentLevel;
+
   return (
     <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
       <View style={styles.header}>
@@ -294,13 +331,29 @@ export default function ExerciseDetailFiche() {
           <Card elevated style={styles.mediaCard} padding={spacing.sm}>
             <ExerciseMediaFrame
               testID="ex-detail-hero-media"
-              source={heroImageSource ?? (item.imageBase64 ? { uri: `data:image/webp;base64,${item.imageBase64}` } : null)}
+              source={
+                heroMediaMode === "gif" && workoutxUri
+                  ? { uri: workoutxUri }
+                  : (heroImageSource ?? (item.imageBase64 ? { uri: `data:image/webp;base64,${item.imageBase64}` } : null))
+              }
               fallbackEmoji={item.emoji ?? iconEmojiForExercise(item.name, null)}
               fallbackTint={color}
               fallbackHint="Illustration bientôt disponible"
               minHeight={240}
               maxHeight={340}
+              badgeIcon={heroMediaMode === "gif" ? "play" : undefined}
+              badgeLabel={heroMediaMode === "gif" ? "Exécution" : undefined}
             />
+            {workoutxUri && (
+              <Pressable
+                testID="ex-detail-media-toggle"
+                hitSlop={8}
+                style={[styles.mediaToggleBtn, heroMediaMode === "gif" && styles.mediaToggleBtnActive]}
+                onPress={() => setHeroMediaMode((m) => (m === "gif" ? "photo" : "gif"))}
+              >
+                <Ionicons name={heroMediaMode === "gif" ? "image" : "film"} size={16} color="#fff" />
+              </Pressable>
+            )}
           </Card>
         </Animated.View>
 
@@ -312,12 +365,6 @@ export default function ExerciseDetailFiche() {
               <Ionicons name={EXERCISE_CATEGORY_ICON[item.category]} size={12} color={color} />
               <Text style={[styles.catBadgeText, { color }]}>{EXERCISE_CATEGORY_LABEL[item.category]}</Text>
             </View>
-            {currentDifficulty && (
-              <View style={styles.diffBadge}>
-                <View style={[styles.diffDot, { backgroundColor: EXERCISE_DIFFICULTY_COLOR[currentDifficulty] }]} />
-                <Text style={styles.diffBadgeText}>{EXERCISE_DIFFICULTY_LABEL[currentDifficulty]}</Text>
-              </View>
-            )}
             {completeness && (
               <View style={styles.completenessBadge} testID="ex-detail-completeness">
                 <View style={styles.completenessTrack}>
@@ -328,26 +375,19 @@ export default function ExerciseDetailFiche() {
             )}
           </View>
 
-          {(primaryMuscleLabel || equipmentLabel || libraryRecord?.movementPattern) && (
-            <View style={styles.quickMetaRow}>
-              {primaryMuscleLabel && (
-                <View style={styles.metaChip}>
-                  <Ionicons name="body-outline" size={12} color={colors.onSurfaceSecondary} />
-                  <Text style={styles.metaChipText}>{primaryMuscleLabel}</Text>
+          {statChips.length > 0 && (
+            <View style={styles.statChipsRow}>
+              {statChips.map((c, i) => (
+                <View key={i} style={styles.statChip}>
+                  <Ionicons name={c.icon} size={14} color={colors.brand} />
+                  <View style={{ flexShrink: 1 }}>
+                    <Text style={styles.statChipValue} numberOfLines={1}>
+                      {c.value}
+                    </Text>
+                    <Text style={styles.statChipLabel}>{c.label}</Text>
+                  </View>
                 </View>
-              )}
-              {equipmentLabel && (
-                <View style={styles.metaChip}>
-                  <Ionicons name="barbell-outline" size={12} color={colors.onSurfaceSecondary} />
-                  <Text style={styles.metaChipText}>{equipmentLabel}</Text>
-                </View>
-              )}
-              {libraryRecord?.movementPattern && (
-                <View style={styles.metaChip}>
-                  <Ionicons name="swap-horizontal-outline" size={12} color={colors.onSurfaceSecondary} />
-                  <Text style={styles.metaChipText}>{MOVEMENT_PATTERN_LABEL[libraryRecord.movementPattern]}</Text>
-                </View>
-              )}
+              ))}
             </View>
           )}
 
@@ -370,12 +410,14 @@ export default function ExerciseDetailFiche() {
           </Pressable>
         </Animated.View>
 
-        {/* Muscles */}
+        {/* Le mouvement — muscles + description + pourquoi/objectifs/disciplines,
+            un seul point d'entrée pédagogique plutôt que deux petites cartes
+            consécutives. */}
         <Animated.View entering={FadeInDown.delay(60).duration(motion.base)}>
-          <Card style={styles.sectionCard} padding={spacing.lg} title="Muscles sollicités" icon="body-outline">
+          <Card style={styles.sectionCard} padding={spacing.lg} title="Le mouvement" icon="body-outline">
             {primaryMuscleLabel ? (
               <View>
-                <Text style={styles.variantGroupLabel}>Principal</Text>
+                <Text style={styles.variantGroupLabel}>Muscle principal</Text>
                 <View style={styles.chipWrap}>
                   <View style={styles.metaChipPrimary}>
                     <Text style={styles.metaChipPrimaryText}>{primaryMuscleLabel}</Text>
@@ -394,13 +436,11 @@ export default function ExerciseDetailFiche() {
                   );
                 })}
               </View>
-            ) : (
-              <Text style={styles.placeholderText}>Bientôt disponible</Text>
-            )}
+            ) : null}
 
             {secondaryMuscleLabels.length > 0 && (
               <View style={styles.subBlock}>
-                <Text style={styles.variantGroupLabel}>Secondaires</Text>
+                <Text style={styles.variantGroupLabel}>Muscles secondaires</Text>
                 <View style={styles.chipWrap}>
                   {secondaryMuscleLabels.map((label) => (
                     <View key={label} style={styles.metaChipMuted}>
@@ -433,14 +473,12 @@ export default function ExerciseDetailFiche() {
                 />
               </View>
             )}
-          </Card>
-        </Animated.View>
 
-        <Animated.View entering={FadeInDown.delay(100).duration(motion.base)}>
-          <Card style={styles.sectionCard} padding={spacing.lg} title="Le mouvement" icon="book-outline">
-            <Text style={styles.bodyTextFlush}>
-              {custom?.description ?? fr?.description ?? libraryRecord?.description ?? "Bientôt disponible"}
-            </Text>
+            <View style={styles.subBlock}>
+              <Text style={styles.bodyTextFlush}>
+                {custom?.description ?? fr?.description ?? libraryRecord?.description ?? "Bientôt disponible"}
+              </Text>
+            </View>
 
             {fr?.rationale && (
               <View style={styles.subBlock}>
@@ -479,18 +517,6 @@ export default function ExerciseDetailFiche() {
 
         <Animated.View entering={FadeInDown.delay(140).duration(motion.base)}>
           <Card style={styles.sectionCard} padding={spacing.lg} title="Étapes d'exécution" icon="list-outline">
-            {workoutxUri && (
-              <View style={{ marginBottom: spacing.md }}>
-                <ExerciseMediaFrame
-                  testID="ex-detail-execution-media"
-                  source={{ uri: workoutxUri }}
-                  minHeight={200}
-                  maxHeight={280}
-                  badgeIcon="play"
-                  badgeLabel="Exécution"
-                />
-              </View>
-            )}
             {(fr?.instructions ?? libraryRecord?.instructions)?.length ? (
               <View style={{ gap: 10 }}>
                 {(fr?.instructions ?? libraryRecord?.instructions ?? []).map((step, i) => (
@@ -510,69 +536,112 @@ export default function ExerciseDetailFiche() {
 
         <Animated.View entering={FadeInDown.delay(180).duration(motion.base)}>
           <Card style={styles.sectionCard} padding={spacing.lg} title="Conseils IronFlow" icon="bulb-outline">
-            {fr?.warmupSuggestion && (
-              <View style={styles.subBlock}>
-                <Text style={styles.tipSubLabel}>ÉCHAUFFEMENT</Text>
-                <Text style={styles.bodyText}>{fr.warmupSuggestion}</Text>
-              </View>
-            )}
+            <SegmentedTabRow
+              testIDPrefix="ex-detail-advice-tab"
+              value={adviceTab}
+              onChange={setAdviceTab}
+              options={[
+                { key: "technique", label: "Technique" },
+                { key: "securite", label: "Sécurité & Repos" },
+                { key: "niveau", label: "Niveau" },
+              ]}
+            />
 
-            {(fr?.executionTips ?? libraryRecord?.tips)?.length ||
-            fr?.breathingTips ||
-            fr?.precautions ||
-            enrichment?.fatigueLevel ||
-            (enrichment?.restTimeByGoal && Object.keys(enrichment.restTimeByGoal).length > 0) ||
-            (enrichment?.alternativeEquipment && enrichment.alternativeEquipment.length > 0) ? (
-              <View style={{ gap: 10 }}>
-                {(fr?.executionTips ?? libraryRecord?.tips ?? []).map((tip, i) => (
-                  <Text key={i} style={styles.bodyTextFlush}>
-                    • {tip}
-                  </Text>
-                ))}
-                {fr?.breathingTips && (
-                  <View style={styles.tipSubBlock}>
-                    <Text style={styles.tipSubLabel}>RESPIRATION</Text>
-                    <Text style={styles.bodyText}>{fr.breathingTips}</Text>
-                  </View>
-                )}
-                {fr?.precautions && (
-                  <View style={styles.tipSubBlock}>
-                    <Text style={styles.tipSubLabel}>PRÉCAUTIONS</Text>
-                    <Text style={styles.bodyText}>{fr.precautions}</Text>
-                  </View>
-                )}
-                {enrichment?.fatigueLevel && (
-                  <View style={styles.tipSubBlock}>
-                    <Text style={styles.tipSubLabel}>NIVEAU DE FATIGUE</Text>
-                    <Text style={styles.bodyText}>{FATIGUE_LEVEL_LABEL[enrichment.fatigueLevel]}</Text>
-                  </View>
-                )}
-                {enrichment?.restTimeByGoal && Object.keys(enrichment.restTimeByGoal).length > 0 && (
-                  <View style={styles.tipSubBlock}>
-                    <Text style={styles.tipSubLabel}>REPOS CONSEILLÉ</Text>
-                    {Object.entries(enrichment.restTimeByGoal).map(([goal, restTime]) => (
-                      <Text key={goal} style={styles.bodyText}>
-                        {TRAINING_GOAL_LABEL[goal as keyof typeof TRAINING_GOAL_LABEL]} : {restTime}
+            <View style={styles.subBlock}>
+              {adviceTab === "technique" &&
+                (adviceHasTechnique ? (
+                  <View style={{ gap: 10 }}>
+                    {fr?.warmupSuggestion && (
+                      <View style={styles.tipSubBlock}>
+                        <Text style={styles.tipSubLabel}>ÉCHAUFFEMENT</Text>
+                        <Text style={styles.bodyText}>{fr.warmupSuggestion}</Text>
+                      </View>
+                    )}
+                    {(fr?.executionTips ?? libraryRecord?.tips ?? []).map((tip, i) => (
+                      <Text key={i} style={styles.bodyTextFlush}>
+                        • {tip}
                       </Text>
                     ))}
+                    {fr?.breathingTips && (
+                      <View style={styles.tipSubBlock}>
+                        <Text style={styles.tipSubLabel}>RESPIRATION</Text>
+                        <Text style={styles.bodyText}>{fr.breathingTips}</Text>
+                      </View>
+                    )}
                   </View>
-                )}
-                {enrichment?.alternativeEquipment && enrichment.alternativeEquipment.length > 0 && (
-                  <View style={styles.tipSubBlock}>
-                    <Text style={styles.tipSubLabel}>MATÉRIEL ALTERNATIF</Text>
-                    <View style={styles.chipWrap}>
-                      {enrichment.alternativeEquipment.map((eq, i) => (
-                        <View key={i} style={styles.metaChipMuted}>
-                          <Text style={styles.metaChipMutedText}>{eq}</Text>
+                ) : (
+                  <Text style={styles.placeholderText}>Bientôt disponible</Text>
+                ))}
+
+              {adviceTab === "securite" &&
+                (adviceHasSecurity ? (
+                  <View style={{ gap: 10 }}>
+                    {fr?.precautions && (
+                      <View style={styles.tipSubBlock}>
+                        <Text style={styles.tipSubLabel}>PRÉCAUTIONS</Text>
+                        <Text style={styles.bodyText}>{fr.precautions}</Text>
+                      </View>
+                    )}
+                    {enrichment?.fatigueLevel && (
+                      <View style={styles.tipSubBlock}>
+                        <Text style={styles.tipSubLabel}>NIVEAU DE FATIGUE</Text>
+                        <Text style={styles.bodyText}>{FATIGUE_LEVEL_LABEL[enrichment.fatigueLevel]}</Text>
+                      </View>
+                    )}
+                    {enrichment?.restTimeByGoal && Object.keys(enrichment.restTimeByGoal).length > 0 && (
+                      <View style={styles.tipSubBlock}>
+                        <Text style={styles.tipSubLabel}>REPOS CONSEILLÉ</Text>
+                        {Object.entries(enrichment.restTimeByGoal).map(([goal, restTime]) => (
+                          <Text key={goal} style={styles.bodyText}>
+                            {TRAINING_GOAL_LABEL[goal as keyof typeof TRAINING_GOAL_LABEL]} : {restTime}
+                          </Text>
+                        ))}
+                      </View>
+                    )}
+                    {enrichment?.alternativeEquipment && enrichment.alternativeEquipment.length > 0 && (
+                      <View style={styles.tipSubBlock}>
+                        <Text style={styles.tipSubLabel}>MATÉRIEL ALTERNATIF</Text>
+                        <View style={styles.chipWrap}>
+                          {enrichment.alternativeEquipment.map((eq, i) => (
+                            <View key={i} style={styles.metaChipMuted}>
+                              <Text style={styles.metaChipMutedText}>{eq}</Text>
+                            </View>
+                          ))}
                         </View>
-                      ))}
-                    </View>
+                      </View>
+                    )}
                   </View>
-                )}
-              </View>
-            ) : !fr?.warmupSuggestion ? (
-              <Text style={styles.placeholderText}>Bientôt disponible</Text>
-            ) : null}
+                ) : (
+                  <Text style={styles.placeholderText}>Bientôt disponible</Text>
+                ))}
+
+              {adviceTab === "niveau" &&
+                (adviceHasLevel ? (
+                  <View style={{ gap: 10 }}>
+                    {(["beginner", "intermediate", "advanced"] as const).map((level) => {
+                      const g = enrichment?.levelGuidance?.[level];
+                      if (!g || (!g.note && !(g.prerequisites && g.prerequisites.length > 0))) return null;
+                      return (
+                        <View key={level} style={styles.levelBlock}>
+                          <Text style={styles.variantGroupLabel}>{EXERCISE_DIFFICULTY_LABEL[level]}</Text>
+                          {g.note && <Text style={styles.bodyTextFlush}>{g.note}</Text>}
+                          {g.prerequisites && g.prerequisites.length > 0 && (
+                            <View style={styles.chipWrap}>
+                              {g.prerequisites.map((p, i) => (
+                                <View key={i} style={styles.metaChipMuted}>
+                                  <Text style={styles.metaChipMutedText}>{p}</Text>
+                                </View>
+                              ))}
+                            </View>
+                          )}
+                        </View>
+                      );
+                    })}
+                  </View>
+                ) : (
+                  <Text style={styles.placeholderText}>Bientôt disponible</Text>
+                ))}
+            </View>
           </Card>
         </Animated.View>
 
@@ -606,34 +675,6 @@ export default function ExerciseDetailFiche() {
             )}
           </Card>
         </Animated.View>
-
-        {enrichment?.levelGuidance && Object.keys(enrichment.levelGuidance).length > 0 && (
-          <Animated.View entering={FadeInDown.delay(260).duration(motion.base)}>
-            <Card style={styles.sectionCard} padding={spacing.lg} title="Niveau utilisateur" icon="school-outline">
-              <View style={{ gap: 10 }}>
-                {(["beginner", "intermediate", "advanced"] as const).map((level) => {
-                  const g = enrichment.levelGuidance?.[level];
-                  if (!g || (!g.note && !(g.prerequisites && g.prerequisites.length > 0))) return null;
-                  return (
-                    <View key={level} style={styles.levelBlock}>
-                      <Text style={styles.variantGroupLabel}>{EXERCISE_DIFFICULTY_LABEL[level]}</Text>
-                      {g.note && <Text style={styles.bodyTextFlush}>{g.note}</Text>}
-                      {g.prerequisites && g.prerequisites.length > 0 && (
-                        <View style={styles.chipWrap}>
-                          {g.prerequisites.map((p, i) => (
-                            <View key={i} style={styles.metaChipMuted}>
-                              <Text style={styles.metaChipMutedText}>{p}</Text>
-                            </View>
-                          ))}
-                        </View>
-                      )}
-                    </View>
-                  );
-                })}
-              </View>
-            </Card>
-          </Animated.View>
-        )}
 
         {hasRelated && (
           <Animated.View entering={FadeInDown.delay(300).duration(motion.base)}>
@@ -701,47 +742,59 @@ export default function ExerciseDetailFiche() {
           </Animated.View>
         )}
 
-        {usage.length > 0 && (
+        {hasMoreInfo && (
           <Animated.View entering={FadeInDown.delay(340).duration(motion.base)}>
-            <Card style={styles.sectionCard} padding={spacing.lg} title="Utilisé dans tes séances" icon="calendar-outline">
-              <View style={styles.chipWrap}>
-                {usage.map((u) => (
-                  <Pressable
-                    key={u.key}
-                    testID={`ex-detail-usage-${u.key}`}
-                    style={styles.linkChip}
-                    onPress={() => router.push(`/${u.kind}/${u.id}` as any)}
-                  >
-                    <Ionicons
-                      name={u.kind === "program" ? "calendar" : "list"}
-                      size={12}
-                      color={colors.brand}
-                    />
-                    <Text style={styles.linkChipText}>{u.title}</Text>
-                  </Pressable>
-                ))}
-              </View>
-            </Card>
-          </Animated.View>
-        )}
+            <Card
+              style={styles.sectionCard}
+              padding={spacing.lg}
+              title="Plus d'infos"
+              icon="information-circle-outline"
+              collapsible
+              defaultCollapsed
+              testID="ex-detail-more-info"
+            >
+              {usage.length > 0 && (
+                <View>
+                  <Text style={styles.variantGroupLabel}>Utilisé dans tes séances</Text>
+                  <View style={styles.chipWrap}>
+                    {usage.map((u) => (
+                      <Pressable
+                        key={u.key}
+                        testID={`ex-detail-usage-${u.key}`}
+                        style={styles.linkChip}
+                        onPress={() => router.push(`/${u.kind}/${u.id}` as any)}
+                      >
+                        <Ionicons
+                          name={u.kind === "program" ? "calendar" : "list"}
+                          size={12}
+                          color={colors.brand}
+                        />
+                        <Text style={styles.linkChipText}>{u.title}</Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                </View>
+              )}
 
-        {(enrichment?.tags?.length || enrichment?.equipmentLevel) && (
-          <Animated.View entering={FadeInDown.delay(380).duration(motion.base)}>
-            <Card style={styles.sectionCard} padding={spacing.lg} title="Détails" icon="pricetag-outline">
-              <View style={styles.chipWrap}>
-                {enrichment?.equipmentLevel && (
-                  <View style={styles.metaChipMuted}>
-                    <Text style={styles.metaChipMutedText}>
-                      Matériel : {enrichment.equipmentLevel === "none" ? "aucun" : enrichment.equipmentLevel === "basic" ? "basique" : "salle"}
-                    </Text>
+              {(enrichment?.tags?.length || enrichment?.equipmentLevel) && (
+                <View style={usage.length > 0 ? styles.subBlock : undefined}>
+                  <Text style={styles.variantGroupLabel}>Détails</Text>
+                  <View style={styles.chipWrap}>
+                    {enrichment?.equipmentLevel && (
+                      <View style={styles.metaChipMuted}>
+                        <Text style={styles.metaChipMutedText}>
+                          Matériel : {enrichment.equipmentLevel === "none" ? "aucun" : enrichment.equipmentLevel === "basic" ? "basique" : "salle"}
+                        </Text>
+                      </View>
+                    )}
+                    {(enrichment?.tags ?? []).map((tag) => (
+                      <View key={tag} style={styles.metaChipMuted}>
+                        <Text style={styles.metaChipMutedText}>#{tag}</Text>
+                      </View>
+                    ))}
                   </View>
-                )}
-                {(enrichment?.tags ?? []).map((tag) => (
-                  <View key={tag} style={styles.metaChipMuted}>
-                    <Text style={styles.metaChipMutedText}>#{tag}</Text>
-                  </View>
-                ))}
-              </View>
+                </View>
+              )}
             </Card>
           </Animated.View>
         )}
@@ -919,6 +972,18 @@ const styles = StyleSheet.create({
   emptyWrap: { flex: 1, alignItems: "center", justifyContent: "center", gap: spacing.sm },
   emptyText: { color: colors.onSurfaceTertiary },
   mediaCard: { gap: 6, overflow: "hidden" },
+  mediaToggleBtn: {
+    position: "absolute",
+    top: spacing.sm + 8,
+    right: spacing.sm + 8,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: withAlpha("#000000", 55),
+  },
+  mediaToggleBtnActive: { backgroundColor: colors.brand },
   heroName: {
     color: colors.onSurface,
     fontSize: 26,
@@ -939,20 +1004,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   catBadgeText: { fontWeight: "800", fontSize: 11, letterSpacing: 0.5 },
-  diffBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    alignSelf: "flex-start",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: radius.pill,
-    backgroundColor: colors.surfaceSecondary,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  diffDot: { width: 7, height: 7, borderRadius: 3.5 },
-  diffBadgeText: { color: colors.onSurfaceSecondary, fontWeight: "800", fontSize: 11 },
   completenessBadge: {
     flexDirection: "row",
     alignItems: "center",
@@ -973,7 +1024,20 @@ const styles = StyleSheet.create({
   },
   completenessFill: { height: "100%", backgroundColor: colors.progress },
   completenessText: { color: colors.onSurfaceTertiary, fontSize: 10, fontWeight: "700" },
-  quickMetaRow: { flexDirection: "row", gap: 6, marginTop: spacing.sm, flexWrap: "wrap" },
+  statChipsRow: { flexDirection: "row", gap: 8, marginTop: spacing.md, flexWrap: "wrap" },
+  statChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: radius.md,
+    backgroundColor: colors.surfaceSecondary,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  statChipValue: { color: colors.onSurface, fontSize: 12, fontWeight: "800" },
+  statChipLabel: { color: colors.onSurfaceTertiary, fontSize: 9.5, fontWeight: "700" },
   prereqHint: {
     flexDirection: "row",
     alignItems: "flex-start",

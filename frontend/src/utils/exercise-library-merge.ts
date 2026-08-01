@@ -61,7 +61,7 @@ export type MigrationReport = {
   possibleMatches: { systemId: string; systemName: string; candidateId: string; candidateName: string; score: number }[];
 };
 
-function normalize(s: string): string {
+export function normalize(s: string): string {
   return s
     .toLowerCase()
     .normalize("NFD")
@@ -76,14 +76,14 @@ function slugify(s: string): string {
 /** Bigram (2-character) sets — cheap, dependency-free approximate-string
  * similarity, good enough for a "here's a candidate, please confirm"
  * suggestion rather than a definitive match. */
-function bigrams(s: string): Set<string> {
+export function bigrams(s: string): Set<string> {
   const n = normalize(s).replace(/\s+/g, " ");
   const grams = new Set<string>();
   for (let i = 0; i < n.length - 1; i++) grams.add(n.slice(i, i + 2));
   return grams;
 }
 
-function similarity(a: string, b: string): number {
+export function similarity(a: string, b: string): number {
   const ga = bigrams(a);
   const gb = bigrams(b);
   if (ga.size === 0 || gb.size === 0) return 0;

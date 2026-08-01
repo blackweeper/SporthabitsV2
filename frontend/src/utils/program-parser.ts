@@ -13,8 +13,8 @@ const BLOCK_KEYWORDS: { re: RegExp; label: string; mode: 'reps' | 'time' }[] = [
   { re: /^wod\b/i, label: 'WOD', mode: 'reps' },
 ];
 
-const WEEK_RE = /^semaine\s*(\d+)/i;
-const DAY_RE = /^jour\s*(\d+)/i;
+const WEEK_RE = /^(semaine|week)\s*(\d+)/i;
+const DAY_RE = /^(jour|day|s[ée]ance|j)\s*(\d+)/i;
 const REST_RE = /^repos\b/i;
 // "Squat 4x8 90kg repos 90s" — name, sets, reps, optional weight, optional rest.
 const SET_REP_RE = /^(.+?)[\s:–-]*?(\d+)\s*[x×]\s*([\d\-–]+)/i;
@@ -90,10 +90,19 @@ export function parseProgramText(text: string): ParsedProgramResult {
     .map((l) => l.trim())
     .filter((l) => l.length > 0);
 
+  // Text pasted without any recognizable "Jour N" style header would
+  // otherwise dump every line into titleLines and leave `days` empty —
+  // the exact shape that used to crash the day editor downstream. When
+  // no day header exists anywhere in the paste, treat the whole text as
+  // one implicit day instead, so `days.length >= 1` always holds.
+  const hasAnyDayHeader = lines.some((l) => DAY_RE.test(l));
+
   const titleLines: string[] = [];
   const days: ProgramDay[] = [];
   let currentWeek: number | null = null;
-  let currentDay: ProgramDay | null = null;
+  let currentDay: ProgramDay | null = hasAnyDayHeader
+    ? null
+    : { rest: false, title: 'Jour 1', sessions: [] };
   let currentSession: ProgramSession | null = null;
   let currentMode: 'reps' | 'time' = 'reps';
   const unrecognizedSet = new Set<string>();
@@ -107,7 +116,7 @@ export function parseProgramText(text: string): ParsedProgramResult {
   for (const line of lines) {
     const weekMatch = line.match(WEEK_RE);
     if (weekMatch) {
-      currentWeek = parseInt(weekMatch[1], 10);
+      currentWeek = parseInt(weekMatch[2], 10);
       continue;
     }
 
@@ -151,11 +160,18 @@ export function parseProgramText(text: string): ParsedProgramResult {
   }
   pushDay();
 
+  // Guarantee the invariant days.length >= 1 no matter how unstructured or
+  // empty the input was, so durationDays below is always truthful and the
+  // day editor never has to render an out-of-bounds day.
+  if (days.length === 0) {
+    days.push({ rest: false, title: 'Jour 1', sessions: [{ label: 'Séance', title: 'Séance', exercises: [] }] });
+  }
+
   const program: Program = {
     id: uid(),
     title: titleLines[0] || 'Programme importé',
     description: titleLines.slice(1).join(' ') || 'Importé depuis un texte collé.',
-    durationDays: Math.max(1, days.length),
+    durationDays: days.length,
     level: 'intermediaire',
     goal: 'Importé',
     coverEmoji: '📋',

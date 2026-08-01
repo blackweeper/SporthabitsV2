@@ -44,7 +44,7 @@ export default function ProgramImportScreen() {
       const [customs] = await Promise.all([getCustomExercises()]);
       const knownNames = [
         ...EXERCISE_LIBRARY.map((e) => e.name),
-        ...customs.map((c) => c.nameFr),
+        ...customs.map((c) => c.nameFr ?? ""),
       ];
       const stillUnrecognized = findUnrecognizedNames(unrecognized, knownNames);
       await saveCustomProgram(program);

@@ -5,12 +5,12 @@ import {
   StyleSheet,
   ScrollView,
   Pressable,
-  Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing } from "@/src/theme";
+import { colors, radius, spacing, withAlpha } from "@/src/theme";
+import { programIconFor } from "@/src/utils/program-goal-icon";
 import { useConfirmDialog } from "@/src/hooks/use-confirm-dialog";
 import {
   LEVEL_LABEL,
@@ -38,7 +38,9 @@ import {
 import { ExerciseRecord, getExerciseRecords } from "@/src/utils/exercise-records";
 import ExerciseThumbnail from "@/src/components/ExerciseThumbnail";
 import SegmentedTabRow from "@/src/components/ui/SegmentedTabRow";
-import { formatDateRange } from "@/src/utils/program-week-grouping";
+import WeekDayCardRow from "@/src/components/WeekDayCardRow";
+import SessionPreviewModal from "@/src/components/SessionPreviewModal";
+import { formatDateRange, nonRestDaysInRange } from "@/src/utils/program-week-grouping";
 
 export default function ProgramDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -222,8 +224,8 @@ export default function ProgramDetailScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={[styles.hero, { borderLeftColor: program.color }]}>
-          <View style={[styles.emojiBox, { backgroundColor: `${program.color}30` }]}>
-            <Text style={{ fontSize: 44 }}>{program.coverEmoji}</Text>
+          <View style={[styles.emojiBox, { backgroundColor: withAlpha(program.color, 19) }]}>
+            <Ionicons name={programIconFor(program.coverEmoji)} size={36} color={program.color} />
           </View>
           <View style={styles.heroTags}>
             <View style={[styles.tag, { backgroundColor: program.color }]}>
@@ -375,13 +377,17 @@ function ProgramWeekView({
   onPreview: (di: number, si: number, s: ProgramSession) => void;
 }) {
   const totalWeeks = Math.ceil(program.durationDays / 7);
-  const startIdx = weekOffset * 7; // 0-based index into program.days
-  const weekDays = program.days.slice(startIdx, startIdx + 7);
+  const startIdx = weekOffset * 7 + 1; // 1-based day index
+  const endIdx = startIdx + 6;
+  // Mêmes règles que training.tsx (nonRestDaysInRange) — un jour de repos
+  // n'occupe plus une carte à lui seul dans la vue Semaine, cohérence avec
+  // le hub Entraînements plutôt qu'une tranche brute de 7 jours.
+  const columns = nonRestDaysInRange(program, startIdx, endIdx);
 
   let label: string;
   if (active) {
-    const rangeStart = plannedDateForDayIndex(active.startedAt, startIdx + 1);
-    const rangeEndDayIndex = Math.min(startIdx + weekDays.length, program.durationDays);
+    const rangeStart = plannedDateForDayIndex(active.startedAt, startIdx);
+    const rangeEndDayIndex = Math.min(endIdx, program.durationDays);
     const rangeEnd = plannedDateForDayIndex(active.startedAt, rangeEndDayIndex);
     label = formatDateRange(rangeStart, rangeEnd);
   } else {
@@ -417,141 +423,26 @@ function ProgramWeekView({
           />
         </Pressable>
       </View>
-      <View style={styles.daysList}>
-        {weekDays.map((day, i) => {
-          const dayIndex = startIdx + i + 1;
-          return (
-            <ProgramDayCard
-              key={dayIndex}
-              dayIndex={dayIndex}
-              day={day}
-              active={active}
-              isToday={isActive && dayIndex === todayIdx}
-              color={program.color}
-              records={records}
-              onLaunch={onLaunch}
-              onPreview={onPreview}
-              plannedDate={
-                active ? plannedDateForDayIndex(active.startedAt, dayIndex) : null
-              }
-            />
-          );
-        })}
-      </View>
+      <WeekDayCardRow
+        columns={columns}
+        color={program.color}
+        records={records}
+        todayDayIndex={isActive ? todayIdx : null}
+        isDayDone={(dayIndex, day) =>
+          day.sessions.every((_, si) =>
+            active?.completedSessions.some((s) => s.dayIndex === dayIndex && s.sessionIndex === si) ?? false,
+          )
+        }
+        plannedDateFor={(dayIndex) => (active ? plannedDateForDayIndex(active.startedAt, dayIndex) : null)}
+        onPressDay={(dayIndex, day) => {
+          const session = day.sessions[0];
+          if (!session) return;
+          if (isActive && dayIndex === todayIdx) onLaunch(dayIndex, 0, session);
+          else onPreview(dayIndex, 0, session);
+        }}
+        emptyHint="Aucun jour prévu cette semaine."
+      />
     </View>
-  );
-}
-
-function SessionPreviewModal({
-  visible,
-  preview,
-  color,
-  records,
-  plannedDate,
-  onClose,
-}: {
-  visible: boolean;
-  preview: {
-    dayIndex: number;
-    sessionIndex: number;
-    session: ProgramSession;
-  } | null;
-  color: string;
-  records: ExerciseRecord[];
-  plannedDate: Date | null;
-  onClose: () => void;
-}) {
-  if (!preview) {
-    return (
-      <Modal transparent visible={visible} animationType="slide" onRequestClose={onClose}>
-        <View />
-      </Modal>
-    );
-  }
-  const { session, dayIndex } = preview;
-  const est = estimateSessionDurationSeconds(session.exercises);
-  return (
-    <Modal
-      transparent
-      visible={visible}
-      animationType="slide"
-      onRequestClose={onClose}
-    >
-      <View style={styles.sheetBackdrop}>
-        <Pressable style={{ flex: 1 }} onPress={onClose} />
-        <View style={styles.sheetSurface}>
-          <View style={styles.sheetHandle} />
-          <View style={styles.previewHeader}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.previewDay}>
-                Jour {dayIndex}
-                {plannedDate ? ` · ${formatPlannedDate(plannedDate)}` : ""}
-              </Text>
-              <Text style={styles.previewTitle}>{session.title}</Text>
-            </View>
-            <Pressable onPress={onClose} hitSlop={12} testID="close-preview">
-              <Ionicons name="close" size={22} color={colors.onSurface} />
-            </Pressable>
-          </View>
-          <View style={styles.previewMetaRow}>
-            <View style={styles.metaPill}>
-              <Ionicons
-                name="barbell"
-                size={10}
-                color={colors.onSurfaceTertiary}
-              />
-              <Text style={styles.metaPillText}>
-                {session.exercises.length} exercice
-                {session.exercises.length > 1 ? "s" : ""}
-              </Text>
-            </View>
-            {est > 0 && (
-              <View style={styles.metaPill}>
-                <Ionicons
-                  name="time"
-                  size={10}
-                  color={colors.onSurfaceTertiary}
-                />
-                <Text style={styles.metaPillText}>
-                  {formatEstimatedDuration(est)}
-                </Text>
-              </View>
-            )}
-            <View style={[styles.metaPill, { backgroundColor: color + "26" }]}>
-              <Ionicons name="eye" size={10} color={color} />
-              <Text style={[styles.metaPillText, { color }]}>Aperçu</Text>
-            </View>
-          </View>
-          <ScrollView
-            style={{ maxHeight: 460 }}
-            contentContainerStyle={{ paddingBottom: 12 }}
-          >
-            {session.exercises.map((ex, ei) => (
-              <View key={ei} style={styles.previewExRow}>
-                <ExerciseThumbnail
-                  name={ex.name}
-                  records={records}
-                  photoBase64={ex.photoBase64}
-                  iconKey={ex.iconKey}
-                  size={32}
-                  square
-                />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.exName}>{ex.name}</Text>
-                  <Text style={styles.exDetail}>{formatExerciseDetail(ex)}</Text>
-                  {ex.notes ? (
-                    <Text style={styles.previewNotes}>{ex.notes}</Text>
-                  ) : null}
-                </View>
-              </View>
-            ))}
-          </ScrollView>
-          <Text style={styles.previewHint}>
-            👁️ Ceci est un aperçu lecture seule. La séance ne peut être lancée que le jour prévu.
-          </Text>
-        </View>
-      </View>
-    </Modal>
   );
 }
 
@@ -1084,71 +975,6 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     letterSpacing: 0.8,
     fontSize: 13,
-  },
-  sheetBackdrop: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.65)",
-    justifyContent: "flex-end",
-  },
-  sheetSurface: {
-    backgroundColor: colors.surfaceSecondary,
-    padding: spacing.lg,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingBottom: 32,
-    gap: spacing.sm,
-  },
-  sheetHandle: {
-    width: 48,
-    height: 5,
-    backgroundColor: colors.border,
-    borderRadius: 3,
-    alignSelf: "center",
-    marginBottom: spacing.sm,
-  },
-  previewHeader: { flexDirection: "row", alignItems: "center" },
-  previewDay: {
-    color: colors.brand,
-    fontSize: 11,
-    fontWeight: "800",
-    letterSpacing: 0.6,
-    textTransform: "uppercase",
-  },
-  previewTitle: {
-    color: colors.onSurface,
-    fontSize: 17,
-    fontWeight: "800",
-    marginTop: 2,
-  },
-  previewMetaRow: {
-    flexDirection: "row",
-    gap: 6,
-    flexWrap: "wrap",
-    marginBottom: spacing.sm,
-  },
-  previewExRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: spacing.sm,
-    padding: spacing.sm,
-    backgroundColor: colors.surface,
-    borderRadius: radius.sm,
-    marginBottom: 6,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  previewNotes: {
-    color: colors.onSurfaceTertiary,
-    fontSize: 10,
-    fontStyle: "italic",
-    marginTop: 4,
-  },
-  previewHint: {
-    color: colors.onSurfaceTertiary,
-    fontSize: 11,
-    fontStyle: "italic",
-    textAlign: "center",
-    marginTop: 4,
   },
   sessRow: {
     flexDirection: "row",

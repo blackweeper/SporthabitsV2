@@ -15,6 +15,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing } from "@/src/theme";
+import { programIconFor } from "@/src/utils/program-goal-icon";
 import ExerciseThumbnail from "@/src/components/ExerciseThumbnail";
 import ExercisePicturePicker from "@/src/components/ExercisePicturePicker";
 import { ExerciseRecord, getExerciseRecords } from "@/src/utils/exercise-records";
@@ -102,6 +103,17 @@ export default function CustomProgramEditor() {
   useEffect(() => {
     getExerciseRecords().then(setRecords);
   }, []);
+
+  // Defensive clamp: a program can in theory reach this screen with fewer
+  // days than `selectedDay` currently points at (e.g. an externally-crafted
+  // or legacy program object) — keep the selection in bounds rather than
+  // letting the day editor below dereference an out-of-range day.
+  useEffect(() => {
+    if (!program) return;
+    if (program.days.length > 0 && selectedDay > program.days.length) {
+      setSelectedDay(program.days.length);
+    }
+  }, [program, selectedDay]);
 
   // Populated only right after "Importer un programme" — lets the user
   // create the exercises the local parser couldn't match in the library.
@@ -234,7 +246,7 @@ export default function CustomProgramEditor() {
     );
   }
 
-  const currentDay = program.days[selectedDay - 1];
+  const currentDay: ProgramDay | null = program.days[selectedDay - 1] ?? program.days[0] ?? null;
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
@@ -384,25 +396,32 @@ export default function CustomProgramEditor() {
 
           <View style={styles.row}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.label}>Emoji</Text>
+              <Text style={styles.label}>Icône</Text>
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.emojiRow}
               >
-                {COVER_EMOJIS.map((e) => (
-                  <Pressable
-                    key={e}
-                    testID={`cp-emoji-${e}`}
-                    style={[
-                      styles.emojiBtn,
-                      program.coverEmoji === e && styles.emojiBtnActive,
-                    ]}
-                    onPress={() => patch("coverEmoji", e)}
-                  >
-                    <Text style={{ fontSize: 22 }}>{e}</Text>
-                  </Pressable>
-                ))}
+                {COVER_EMOJIS.map((e) => {
+                  const active = program.coverEmoji === e;
+                  return (
+                    <Pressable
+                      key={e}
+                      testID={`cp-emoji-${e}`}
+                      style={[
+                        styles.emojiBtn,
+                        active && [styles.emojiBtnActive, { backgroundColor: program.color, borderColor: program.color }],
+                      ]}
+                      onPress={() => patch("coverEmoji", e)}
+                    >
+                      <Ionicons
+                        name={programIconFor(e)}
+                        size={20}
+                        color={active ? "#fff" : colors.onSurfaceSecondary}
+                      />
+                    </Pressable>
+                  );
+                })}
               </ScrollView>
             </View>
           </View>
@@ -464,106 +483,133 @@ export default function CustomProgramEditor() {
                   ]}
                   onPress={() => setSelectedDay(i + 1)}
                 >
-                  <Text
-                    style={[
-                      styles.dayPickText,
-                      active && { color: "#fff" },
-                    ]}
-                  >
-                    {d.rest ? "😴" : i + 1}
-                  </Text>
+                  {d.rest ? (
+                    <Ionicons
+                      name="bed"
+                      size={14}
+                      color={active ? "#fff" : colors.onSurfaceTertiary}
+                    />
+                  ) : (
+                    <Text
+                      style={[
+                        styles.dayPickText,
+                        active && { color: "#fff" },
+                      ]}
+                    >
+                      {i + 1}
+                    </Text>
+                  )}
                 </Pressable>
               );
             })}
           </ScrollView>
 
           {/* Selected day editor */}
-          <View style={styles.dayEditor}>
-            <View style={styles.dayEditorHead}>
-              <Text style={styles.dayEditorTitle}>
-                Jour {selectedDay}
-              </Text>
-              <Pressable
-                testID="toggle-rest"
-                style={[styles.restToggle, currentDay.rest && styles.restToggleOn]}
-                onPress={() =>
-                  updateDay(selectedDay, (d) =>
-                    d.rest
-                      ? { rest: false, title: "Nouvelle séance", sessions: [newSession()] }
-                      : { rest: true, title: "Repos", sessions: [] },
-                  )
-                }
-              >
-                <Ionicons
-                  name={currentDay.rest ? "bed" : "flame"}
-                  size={12}
-                  color={currentDay.rest ? "#fff" : colors.brand}
-                />
-                <Text
-                  style={[
-                    styles.restToggleText,
-                    currentDay.rest && { color: "#fff" },
-                  ]}
-                >
-                  {currentDay.rest ? "REPOS" : "SÉANCE"}
+          {currentDay ? (
+            <View style={styles.dayEditor}>
+              <View style={styles.dayEditorHead}>
+                <Text style={styles.dayEditorTitle}>
+                  Jour {selectedDay}
                 </Text>
+                <Pressable
+                  testID="toggle-rest"
+                  style={[styles.restToggle, currentDay.rest && styles.restToggleOn]}
+                  onPress={() =>
+                    updateDay(selectedDay, (d) =>
+                      d.rest
+                        ? { rest: false, title: "Nouvelle séance", sessions: [newSession()] }
+                        : { rest: true, title: "Repos", sessions: [] },
+                    )
+                  }
+                >
+                  <Ionicons
+                    name={currentDay.rest ? "bed" : "flame"}
+                    size={12}
+                    color={currentDay.rest ? "#fff" : colors.brand}
+                  />
+                  <Text
+                    style={[
+                      styles.restToggleText,
+                      currentDay.rest && { color: "#fff" },
+                    ]}
+                  >
+                    {currentDay.rest ? "REPOS" : "SÉANCE"}
+                  </Text>
+                </Pressable>
+              </View>
+
+              {!currentDay.rest && (
+                <>
+                  {currentDay.sessions.map((s, si) => (
+                    <SessionEditor
+                      key={si}
+                      session={s}
+                      onChange={(patch) =>
+                        updateDay(selectedDay, (d) => ({
+                          ...d,
+                          sessions: d.sessions.map((x, i) =>
+                            i === si ? { ...x, ...patch } : x,
+                          ),
+                        }))
+                      }
+                      onRemove={() =>
+                        updateDay(selectedDay, (d) => ({
+                          ...d,
+                          sessions: d.sessions.filter((_, i) => i !== si),
+                        }))
+                      }
+                      onPickExercisePic={(exIdx) =>
+                        setPickingIdx({ sessionIdx: si, exIdx })
+                      }
+                      onAddFromLibrary={() => setLibraryPickerSessionIdx(si)}
+                      index={si}
+                      records={records}
+                    />
+                  ))}
+                  <View style={styles.addSessRow}>
+                    <Pressable
+                      testID="add-session"
+                      style={[styles.addSessBtn, { flex: 1 }]}
+                      onPress={() =>
+                        updateDay(selectedDay, (d) => ({
+                          ...d,
+                          sessions: [...d.sessions, newSession()],
+                        }))
+                      }
+                    >
+                      <Ionicons name="add" size={16} color={colors.brand} />
+                      <Text style={styles.addSessText}>SÉANCE VIDE</Text>
+                    </Pressable>
+                    <Pressable
+                      testID="import-session"
+                      style={[styles.addSessBtn, { flex: 1 }]}
+                      onPress={() => setImportOpen(true)}
+                    >
+                      <Ionicons name="download" size={16} color={colors.brand} />
+                      <Text style={styles.addSessText}>IMPORTER</Text>
+                    </Pressable>
+                  </View>
+                </>
+              )}
+            </View>
+          ) : (
+            <View style={styles.dayEditor}>
+              <Text style={styles.emptyDayText}>Aucun jour dans ce programme pour l&apos;instant.</Text>
+              <Pressable
+                testID="add-first-day"
+                style={[styles.addSessBtn, { marginTop: spacing.sm }]}
+                onPress={() => {
+                  setProgram((p) =>
+                    p ? { ...p, durationDays: p.days.length + 1, days: [...p.days, emptyDay()] } : p,
+                  );
+                  setSelectedDay(1);
+                }}
+              >
+                <Ionicons name="add" size={16} color={colors.brand} />
+                <Text style={styles.addSessText}>AJOUTER UN JOUR</Text>
               </Pressable>
             </View>
-
-            {!currentDay.rest && (
-              <>
-                {currentDay.sessions.map((s, si) => (
-                  <SessionEditor
-                    key={si}
-                    session={s}
-                    onChange={(patch) =>
-                      updateDay(selectedDay, (d) => ({
-                        ...d,
-                        sessions: d.sessions.map((x, i) =>
-                          i === si ? { ...x, ...patch } : x,
-                        ),
-                      }))
-                    }
-                    onRemove={() =>
-                      updateDay(selectedDay, (d) => ({
-                        ...d,
-                        sessions: d.sessions.filter((_, i) => i !== si),
-                      }))
-                    }
-                    onPickExercisePic={(exIdx) =>
-                      setPickingIdx({ sessionIdx: si, exIdx })
-                    }
-                    onAddFromLibrary={() => setLibraryPickerSessionIdx(si)}
-                    index={si}
-                    records={records}
-                  />
-                ))}
-                <View style={styles.addSessRow}>
-                  <Pressable
-                    testID="add-session"
-                    style={[styles.addSessBtn, { flex: 1 }]}
-                    onPress={() =>
-                      updateDay(selectedDay, (d) => ({
-                        ...d,
-                        sessions: [...d.sessions, newSession()],
-                      }))
-                    }
-                  >
-                    <Ionicons name="add" size={16} color={colors.brand} />
-                    <Text style={styles.addSessText}>SÉANCE VIDE</Text>
-                  </Pressable>
-                  <Pressable
-                    testID="import-session"
-                    style={[styles.addSessBtn, { flex: 1 }]}
-                    onPress={() => setImportOpen(true)}
-                  >
-                    <Ionicons name="download" size={16} color={colors.brand} />
-                    <Text style={styles.addSessText}>IMPORTER</Text>
-                  </Pressable>
-                </View>
-              </>
-            )}
-          </View>
+          )}
 
           {!isNew && (
             <Pressable style={styles.delBtn} onPress={remove}>
@@ -1614,4 +1660,9 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
   },
   delText: { color: colors.error, fontWeight: "700" },
+  emptyDayText: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 12,
+    textAlign: "center",
+  },
 });
