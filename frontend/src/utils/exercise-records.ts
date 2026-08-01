@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { bigStoreGet, bigStoreSet } from "@/src/utils/big-kv-store";
 import type { ExerciseRecordCategory } from "@/src/utils/exercise-record-category";
 import type { ExerciseMuscleGroup } from "@/src/utils/exercise-muscle-groups";
 import type { ExerciseEquipment } from "@/src/utils/exercise-equipment";
@@ -296,7 +297,7 @@ export type ExerciseRecord = {
 const EXERCISE_RECORDS_KEY = "@ironflow/exerciseRecords";
 
 export async function getExerciseRecords(): Promise<ExerciseRecord[]> {
-  const raw = await AsyncStorage.getItem(EXERCISE_RECORDS_KEY);
+  const raw = await bigStoreGet(EXERCISE_RECORDS_KEY);
   if (!raw) return [];
   try {
     return JSON.parse(raw);
@@ -316,12 +317,12 @@ export async function saveExerciseRecord(record: ExerciseRecord): Promise<void> 
   const next = { ...record, updatedAt: new Date().toISOString() };
   if (idx >= 0) list[idx] = next;
   else list.push(next);
-  await AsyncStorage.setItem(EXERCISE_RECORDS_KEY, JSON.stringify(list));
+  await bigStoreSet(EXERCISE_RECORDS_KEY, JSON.stringify(list));
 }
 
 export async function deleteExerciseRecord(id: string): Promise<void> {
   const list = await getExerciseRecords();
-  await AsyncStorage.setItem(
+  await bigStoreSet(
     EXERCISE_RECORDS_KEY,
     JSON.stringify(list.filter((e) => e.id !== id)),
   );
@@ -334,7 +335,7 @@ export async function upsertExerciseRecords(records: ExerciseRecord[]): Promise<
   const list = await getExerciseRecords();
   const byId = new Map(list.map((e) => [e.id, e]));
   for (const r of records) byId.set(r.id, { ...r, updatedAt: new Date().toISOString() });
-  await AsyncStorage.setItem(EXERCISE_RECORDS_KEY, JSON.stringify(Array.from(byId.values())));
+  await bigStoreSet(EXERCISE_RECORDS_KEY, JSON.stringify(Array.from(byId.values())));
 }
 
 /** Full replace — used by the library-update finalize step, where
@@ -344,7 +345,7 @@ export async function upsertExerciseRecords(records: ExerciseRecord[]): Promise<
  * `upsertExerciseRecords` here would leave superseded records behind
  * forever, since upsert can only add/update, never remove. */
 export async function replaceAllExerciseRecords(records: ExerciseRecord[]): Promise<void> {
-  await AsyncStorage.setItem(EXERCISE_RECORDS_KEY, JSON.stringify(records));
+  await bigStoreSet(EXERCISE_RECORDS_KEY, JSON.stringify(records));
 }
 
 // ---------- Library metadata, backup, and update history (Phase B3.5) ----------
@@ -392,7 +393,7 @@ type LibraryBackupPayload = {
 export async function backupCurrentLibrary(): Promise<void> {
   const [records, meta] = await Promise.all([getExerciseRecords(), getLibraryMeta()]);
   const payload: LibraryBackupPayload = { savedAt: new Date().toISOString(), records, meta };
-  await AsyncStorage.setItem(LIBRARY_BACKUP_KEY, JSON.stringify(payload));
+  await bigStoreSet(LIBRARY_BACKUP_KEY, JSON.stringify(payload));
 }
 
 export async function getLibraryBackupInfo(): Promise<{
@@ -400,7 +401,7 @@ export async function getLibraryBackupInfo(): Promise<{
   savedAt: string | null;
   exerciseCount: number;
 }> {
-  const raw = await AsyncStorage.getItem(LIBRARY_BACKUP_KEY);
+  const raw = await bigStoreGet(LIBRARY_BACKUP_KEY);
   if (!raw) return { exists: false, savedAt: null, exerciseCount: 0 };
   try {
     const payload: LibraryBackupPayload = JSON.parse(raw);
@@ -413,7 +414,7 @@ export async function getLibraryBackupInfo(): Promise<{
 /** Restores the library to whatever `backupCurrentLibrary` last snapshotted.
  * Returns false (no-op) if there is no backup to restore. */
 export async function restoreLibraryBackup(): Promise<boolean> {
-  const raw = await AsyncStorage.getItem(LIBRARY_BACKUP_KEY);
+  const raw = await bigStoreGet(LIBRARY_BACKUP_KEY);
   if (!raw) return false;
   try {
     const payload: LibraryBackupPayload = JSON.parse(raw);
