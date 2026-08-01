@@ -34,6 +34,20 @@ export type ProgramDay = {
   sessions: ProgramSession[]; // empty if rest
 };
 
+/** Coach IronFlow — étiquette descriptive d'une plage de jours d'un plan
+ * multi-semaines généré (ex. "Semaine 4 — Deload"). Purement informatif :
+ * `days`/`sessions` restent la seule source de vérité pour ce qui se joue
+ * réellement (une semaine de deload est juste des jours à volume réduit
+ * dans `days`, pas une structure séparée) — `phases` ne fait qu'annoter un
+ * `Program` déjà valide pour que l'UI puisse l'afficher, jamais requis pour
+ * qu'un programme fonctionne (absent partout ailleurs qu'un plan généré). */
+export type ProgramPhase = {
+  startDay: number;
+  endDay: number;
+  kind: 'volume' | 'deload' | 'intensity' | 'test' | 'taper';
+  label: string;
+};
+
 export type Program = {
   id: string;
   title: string;
@@ -51,6 +65,9 @@ export type Program = {
   isCustom?: boolean;
   /** 'workout' (default), 'cardio' or 'stretch' — used to route to the right tab. */
   category?: 'workout' | 'cardio' | 'stretch';
+  /** Coach IronFlow — additif, absent pour tout programme prédéfini/importé/
+   * créé manuellement. Voir `ProgramPhase`. */
+  phases?: ProgramPhase[] | null;
 };
 
 // ---- Session template builders (reusable) ----

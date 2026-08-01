@@ -217,6 +217,23 @@ export type ExerciseEnrichment = {
     safety?: string[];
   } | null;
 
+  /** Coach IronFlow engine — internal scoring, never displayed to the user,
+   * consumed only by `coach-selector.ts`/`coach-scheduler.ts`. `goalValue`
+   * reuses `TrainingGoal` (already 11 values covering strength/hypertrophy/
+   * hyrox/crossfit/running/...) instead of one hardcoded field per goal, so
+   * the same map serves both "how good is this exercise for hypertrophy"
+   * and "how much should HYROX prioritize this exercise" — one axis, not
+   * two parallel ones. Populated first by a deterministic default computed
+   * from existing fields (see `scripts/` bootstrap), refined manually later
+   * exactly like the rest of `ExerciseEnrichment` — never a blocking
+   * prerequisite for the engine to run. */
+  coachScores?: {
+    fatigueNervous?: number | null;
+    fatigueMuscular?: number | null;
+    technicalDifficulty?: number | null;
+    goalValue?: Partial<Record<TrainingGoal, number>> | null;
+  } | null;
+
   /** Bumped whenever the generation template/prompt changes — lets the
    * pipeline detect which fiches were produced by an older template and
    * could be worth regenerating. */

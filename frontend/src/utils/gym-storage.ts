@@ -2,6 +2,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { ExerciseCategory } from '@/src/utils/exercise-category';
 import type { MuscleGroupKey } from '@/src/utils/muscle-groups';
 import type { ProgramGoal, ProgramLevel } from '@/src/data/programs';
+import type { ExerciseEquipment } from '@/src/utils/exercise-equipment';
+import type { Discipline } from '@/src/utils/exercise-discipline';
 import { ensureProgramExercisesInLibrary } from '@/src/utils/program-library-sync';
 
 export type ExerciseMode = 'reps' | 'time' | 'amrap' | 'emom';
@@ -183,6 +185,31 @@ const PRS_KEY = '@ironflow/prs';
 // ---------- Profile ----------
 export type Sex = 'homme' | 'femme' | 'autre';
 
+/** Coach IronFlow (Niveau 2 — profil sportif) — capacités auto-déclarées au
+ * questionnaire, 0-10. Destinées à être recalculées plus tard depuis
+ * l'historique réel (PersonalRecord/WorkoutSession) sans redemander à
+ * l'utilisateur — jamais utilisées ailleurs dans l'app aujourd'hui. */
+export type AthleteCapacities = {
+  strength?: number | null;
+  cardio?: number | null;
+  mobility?: number | null;
+  weightliftingTechnique?: number | null;
+  muscularEndurance?: number | null;
+  updatedAt: string;
+};
+
+/** Coach IronFlow (Niveau 1 — questionnaire) — contraintes de planification,
+ * distinctes des capacités physiques ci-dessus. `painZones` est un instantané
+ * pris au questionnaire (indépendant du journal de séance au jour le jour,
+ * qui reste la source pour le suivi courant). */
+export type AthleteConstraints = {
+  weeklyFrequency?: number | null;
+  sessionDurationMinutes?: number | null;
+  availableEquipment?: ExerciseEquipment[] | null;
+  practicedSports?: Discipline[] | null;
+  painZones?: PainZone[] | null;
+};
+
 export type UserProfile = {
   name?: string | null;
   weight_kg: number | null;
@@ -200,6 +227,10 @@ export type UserProfile = {
    * un programme. */
   experienceLevel?: ProgramLevel | null;
   primaryGoal?: ProgramGoal | null;
+  /** Coach IronFlow — additif, absent tant que le questionnaire n'a jamais
+   * été rempli ; jamais lu ailleurs dans l'app aujourd'hui. */
+  athleteCapacities?: AthleteCapacities | null;
+  athleteConstraints?: AthleteConstraints | null;
 };
 
 export const DEFAULT_WATER_TARGET_ML = 2000;

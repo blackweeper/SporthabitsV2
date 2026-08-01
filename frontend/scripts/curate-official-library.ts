@@ -33,7 +33,7 @@ import { FOUNDATIONAL_MOVEMENT_KEYWORDS } from "./lib/enrichment-shared";
 
 // ---------- Buckets & quotas ----------
 
-type Bucket =
+export type Bucket =
   | "fondamentaux_force"
   | "musculation_hypertrophie"
   | "crossfit_hyrox"
@@ -186,7 +186,7 @@ function nameHasAny(record: ExerciseRecord, keywords: string[]): boolean {
   return keywords.some((k) => haystack.includes(stripDiacritics(k.toLowerCase())));
 }
 
-function classifyBucket(record: ExerciseRecord): Bucket {
+export function classifyBucket(record: ExerciseRecord): Bucket {
   if (nameHasAny(record, HYROX_CROSSFIT_KEYWORDS)) return "crossfit_hyrox";
 
   if (record.category === "cardio") return "running_cardio";
