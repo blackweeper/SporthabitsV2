@@ -9,6 +9,7 @@ import type { ExerciseRecord } from "@/src/utils/exercise-records";
 import type { ExerciseMuscleGroup } from "@/src/utils/exercise-muscle-groups";
 import type { TrainingGoal } from "@/src/utils/exercise-training-goal";
 import type { ProgramLevel } from "@/src/data/programs";
+import { WEAK_CAPACITY_GOAL_WEIGHT } from "@/src/utils/coach-rules";
 
 export type SelectorContext = {
   goal: TrainingGoal;
@@ -23,6 +24,14 @@ export type SelectorContext = {
    * séance — utilisé pour répartir les choix plutôt que d'empiler 5
    * exercices du même muscle si `targetMuscles` en contient plusieurs. */
   muscleCoverage: Map<ExerciseMuscleGroup, number>;
+  /** Signal d'apprentissage (`coach-learning.ts`) : taux d'échec observé par
+   * exercice (`ExerciseRecord.id` -> 0..1, séries non complétées sur
+   * l'historique récent). Absent = aucun historique, aucune pénalité. */
+  exerciseFailureRate?: Record<string, number> | null;
+  /** Objectifs secondaires à nudger légèrement (point faible déclaré dans
+   * `AthleteCapacities`, voir `CAPACITY_TO_GOALS`) — jamais aussi fort que
+   * `goal` (le `primaryGoal` reste seul maître des séries/reps/repos). */
+  weakGoalBoost?: TrainingGoal[] | null;
 };
 
 function fatigueCost(record: ExerciseRecord): number {
@@ -62,6 +71,15 @@ export function scoreExerciseForSlot(record: ExerciseRecord, ctx: SelectorContex
 
   if (ctx.recentlyUsedIds.has(record.id)) score -= 4;
 
+  const failureRate = ctx.exerciseFailureRate?.[record.id];
+  if (failureRate !== undefined) score -= failureRate * 6; // souvent non complété récemment -> déprioritisé, jamais exclu
+
+  if (ctx.weakGoalBoost) {
+    for (const weakGoal of ctx.weakGoalBoost) {
+      score += (scores?.goalValue?.[weakGoal] ?? 0) * WEAK_CAPACITY_GOAL_WEIGHT;
+    }
+  }
+
   return score;
 }
 
@@ -90,6 +108,8 @@ export function pickExercisesForSession(
         fatigueBudgetRemaining,
         recentlyUsedIds: ctx.recentlyUsedIds,
         muscleCoverage,
+        exerciseFailureRate: ctx.exerciseFailureRate,
+        weakGoalBoost: ctx.weakGoalBoost,
       });
       if (score > bestScore) {
         bestScore = score;

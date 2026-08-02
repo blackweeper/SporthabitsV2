@@ -17,11 +17,13 @@ import {
   PainZone,
   addActiveProgram,
   getProfile,
+  getSessions,
   saveCustomProgram,
   saveProfile,
 } from "@/src/utils/gym-storage";
 import { getExerciseRecords } from "@/src/utils/exercise-records";
 import { generateProgram } from "@/src/utils/coach-engine";
+import { computeLearningSignals } from "@/src/utils/coach-learning";
 
 const LEVELS: ProgramLevel[] = ["debutant", "intermediaire", "avance"];
 const PAIN_ZONES: PainZone[] = Object.keys(PAIN_ZONE_LABEL) as PainZone[];
@@ -101,6 +103,12 @@ export default function CoachNewScreen() {
     muscularEndurance: 5,
   });
   const [generating, setGenerating] = useState(false);
+  const [learningSignals, setLearningSignals] = useState<{
+    exerciseFailureRate: Record<string, number>;
+    frequencyFromHistory: boolean;
+    durationFromHistory: boolean;
+    observedWeeklyFrequency: number | null;
+  } | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -121,6 +129,28 @@ export default function CoachNewScreen() {
           muscularEndurance: cap.muscularEndurance ?? 5,
         });
       }
+
+      // Niveau 3 — le comportement réel récent prime sur l'intention déclarée
+      // au dernier questionnaire (l'objectif du brief : "l'utilisateur s'entraîne
+      // réellement 3x/semaine alors que son objectif était 6 -> adapter").
+      const sessions = await getSessions();
+      const signals = computeLearningSignals(sessions);
+      let frequencyFromHistory = false;
+      let durationFromHistory = false;
+      if (signals.observedWeeklyFrequency) {
+        setFrequency(Math.min(6, Math.max(2, Math.round(signals.observedWeeklyFrequency))));
+        frequencyFromHistory = true;
+      }
+      if (signals.observedSessionDurationMinutes) {
+        setDuration(Math.min(90, Math.max(20, Math.round(signals.observedSessionDurationMinutes / 5) * 5)));
+        durationFromHistory = true;
+      }
+      setLearningSignals({
+        exerciseFailureRate: signals.exerciseFailureRate,
+        frequencyFromHistory,
+        durationFromHistory,
+        observedWeeklyFrequency: signals.observedWeeklyFrequency,
+      });
     })();
   }, []);
 
@@ -136,6 +166,7 @@ export default function CoachNewScreen() {
     setGenerating(true);
     try {
       const allExercises = await getExerciseRecords();
+      const hasFailureSignal = learningSignals && Object.keys(learningSignals.exerciseFailureRate).length > 0;
       const program = generateProgram({
         allExercises,
         primaryGoal: goal,
@@ -144,6 +175,9 @@ export default function CoachNewScreen() {
         sessionDurationMinutes: duration,
         availableEquipment: equipment.length ? equipment : null,
         painZones: painZones.length ? painZones : null,
+        athleteCapacities: { ...capacities, updatedAt: new Date().toISOString() },
+        exerciseFailureRate: hasFailureSignal ? learningSignals!.exerciseFailureRate : null,
+        historyInformed: !!(learningSignals?.frequencyFromHistory || learningSignals?.durationFromHistory),
       });
 
       await saveCustomProgram(program);
@@ -227,6 +261,11 @@ export default function CoachNewScreen() {
           <Text style={styles.label}>Séances par semaine</Text>
           <NumberStepper testID="coach-frequency" value={frequency} onChange={setFrequency} min={2} max={6} />
         </View>
+        {learningSignals?.frequencyFromHistory && (
+          <Text testID="coach-frequency-hint" style={styles.historyHint}>
+            Ajusté depuis tes 4 dernières semaines réelles ({learningSignals.observedWeeklyFrequency}x/semaine observées).
+          </Text>
+        )}
 
         <View style={styles.fieldRow}>
           <Text style={styles.label}>Durée d&apos;une séance</Text>
@@ -240,6 +279,11 @@ export default function CoachNewScreen() {
             suffix=" min"
           />
         </View>
+        {learningSignals?.durationFromHistory && (
+          <Text testID="coach-duration-hint" style={styles.historyHint}>
+            Ajusté depuis la durée moyenne de tes dernières séances réelles.
+          </Text>
+        )}
 
         <Text style={styles.sectionTitle}>Matériel disponible</Text>
         <Text style={styles.sectionHint}>Rien coché = tout le matériel est considéré disponible.</Text>
@@ -371,6 +415,13 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   label: { color: colors.onSurface, fontSize: 13, fontWeight: "600", flex: 1 },
+  historyHint: {
+    color: colors.info,
+    fontSize: 11,
+    fontStyle: "italic",
+    marginTop: -4,
+    marginBottom: 4,
+  },
   stepperRow: { flexDirection: "row", alignItems: "center", gap: spacing.md },
   stepperBtn: {
     width: 32,

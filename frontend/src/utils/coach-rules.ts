@@ -8,7 +8,7 @@ import type { TrainingGoal } from "@/src/utils/exercise-training-goal";
 import type { ExerciseMuscleGroup } from "@/src/utils/exercise-muscle-groups";
 import type { MovementPattern } from "@/src/utils/exercise-movement-pattern";
 import type { ProgramLevel } from "@/src/data/programs";
-import type { PainZone } from "@/src/utils/gym-storage";
+import type { AthleteCapacities, PainZone } from "@/src/utils/gym-storage";
 
 // ---------- Muscle groupings ----------
 
@@ -140,3 +140,32 @@ export const PAIN_ZONE_EXCLUDED_MUSCLES: Partial<Record<PainZone, ExerciseMuscle
  * que `phases` n'est qu'annotatif sur `Program`). */
 export const DELOAD_EVERY_N_WEEKS = 5;
 export const DELOAD_SETS_MULTIPLIER = 0.6;
+
+// ---------- Point faible déclaré (AthleteCapacities) -> objectifs à
+// nudge dans le sélecteur. Une capacité 0-10 nettement en retrait sur les
+// autres fait discrètement pencher le choix des exercices vers ces
+// objectifs secondaires, sans jamais changer les séries/reps/repos
+// (toujours ceux du `primaryGoal`, voir `PRESCRIPTION_BY_GOAL`). ----------
+
+export const CAPACITY_TO_GOALS: Record<keyof Omit<AthleteCapacities, "updatedAt">, TrainingGoal[]> = {
+  strength: ["strength", "power"],
+  cardio: ["endurance", "conditioning"],
+  mobility: ["mobility", "stability"],
+  weightliftingTechnique: ["power", "strength"],
+  muscularEndurance: ["endurance", "hypertrophy"],
+};
+
+/** Poids appliqué à `goalValue[goal]` pour chaque objectif nudgé — nettement
+ * plus faible que le `*3` du `primaryGoal` dans `coach-selector.ts`, et
+ * volontairement modeste face à la pénalité `recentlyUsedIds` (-4, fixe) :
+ * un point faible influence le choix, il ne doit jamais faire revenir le
+ * même exercice sur tous les jours de la semaine (vérifié à 1.2, un même
+ * mouvement "conditioning" dominait toutes les séances malgré la pénalité
+ * de répétition — ramené à 0.6). */
+export const WEAK_CAPACITY_GOAL_WEIGHT = 0.6;
+
+/** En dessous de ce seuil (0-10), une capacité est considérée faible. */
+export const WEAK_CAPACITY_THRESHOLD = 4;
+/** Écart minimum avec la moyenne des autres capacités pour qu'un point
+ * faible soit jugé réel plutôt qu'un simple bruit (profil globalement bas). */
+export const WEAK_CAPACITY_MIN_GAP = 2;

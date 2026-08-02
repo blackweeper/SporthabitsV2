@@ -25,6 +25,10 @@ export type SchedulerInput = {
   weeklyFrequency: number;
   sessionDurationMinutes: number;
   totalWeeks: number;
+  /** Signaux d'apprentissage/profil (`coach-learning.ts`/`AthleteCapacities`)
+   * — optionnels, absents pour un premier programme sans historique. */
+  exerciseFailureRate?: Record<string, number> | null;
+  weakGoalBoost?: TrainingGoal[] | null;
 };
 
 export type SchedulerOutput = {
@@ -78,6 +82,8 @@ function buildSession(
     sessionDurationMinutes: number;
     setsMultiplier: number;
     recentlyUsedIds: Set<string>;
+    exerciseFailureRate?: Record<string, number> | null;
+    weakGoalBoost?: TrainingGoal[] | null;
   },
   label: string,
 ): { session: ProgramSession; usedIds: string[] } {
@@ -90,6 +96,8 @@ function buildSession(
     fatigueBudgetRemaining: budget,
     recentlyUsedIds: ctx.recentlyUsedIds,
     maxExercises,
+    exerciseFailureRate: ctx.exerciseFailureRate,
+    weakGoalBoost: ctx.weakGoalBoost,
   });
 
   const prescription = PRESCRIPTION_BY_GOAL[ctx.goal];
@@ -151,6 +159,8 @@ export function scheduleProgram(input: SchedulerInput): SchedulerOutput {
           sessionDurationMinutes: input.sessionDurationMinutes,
           setsMultiplier,
           recentlyUsedIds: seenIds,
+          exerciseFailureRate: input.exerciseFailureRate,
+          weakGoalBoost: input.weakGoalBoost,
         },
         splitDay.label,
       );

@@ -14,12 +14,14 @@
  *     --weeks=<n>              (défaut 2, pour un aperçu court)
  *     --equipment=bodyweight,dumbbell,kettlebell (matériel dispo, défaut illimité)
  *     --pain=knees,lowerBack   (zones douloureuses, défaut aucune)
+ *     --weak=cardio            (capacité volontairement basse (2/10), reste à 7/10 — teste le nudge Niveau 2)
+ *     --avoid=<exerciseRecordId> (simule un taux d'échec 100% sur cet id — teste la pénalité Niveau 3)
  */
 import { readFileSync } from "node:fs";
 import type { ExerciseRecord } from "../src/utils/exercise-records";
 import type { TrainingGoal } from "../src/utils/exercise-training-goal";
 import type { ExerciseEquipment } from "../src/utils/exercise-equipment";
-import type { PainZone } from "../src/utils/gym-storage";
+import type { AthleteCapacities, PainZone } from "../src/utils/gym-storage";
 import type { ProgramLevel } from "../src/data/programs";
 import { generateProgram } from "../src/utils/coach-engine";
 
@@ -38,6 +40,20 @@ function main() {
   const painArg = arg("pain", "");
   const availableEquipment = equipmentArg ? (equipmentArg.split(",") as ExerciseEquipment[]) : null;
   const painZones = painArg ? (painArg.split(",") as PainZone[]) : null;
+  const weakArg = arg("weak", "");
+  const avoidArg = arg("avoid", "");
+
+  const athleteCapacities: AthleteCapacities | null = weakArg
+    ? {
+        strength: weakArg === "strength" ? 2 : 7,
+        cardio: weakArg === "cardio" ? 2 : 7,
+        mobility: weakArg === "mobility" ? 2 : 7,
+        weightliftingTechnique: weakArg === "weightliftingTechnique" ? 2 : 7,
+        muscularEndurance: weakArg === "muscularEndurance" ? 2 : 7,
+        updatedAt: new Date().toISOString(),
+      }
+    : null;
+  const exerciseFailureRate = avoidArg ? { [avoidArg]: 1 } : null;
 
   const currentPath = "../exercise-library/current.json";
   const current: { version: number; path: string } = JSON.parse(readFileSync(currentPath, "utf-8"));
@@ -54,6 +70,9 @@ function main() {
     totalWeeks,
     availableEquipment,
     painZones,
+    athleteCapacities,
+    exerciseFailureRate,
+    historyInformed: !!avoidArg,
   });
 
   console.log(`\n=== ${program.title} ===`);
