@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing, withAlpha } from "@/src/theme";
+import { colors, radius, shadow, spacing, withAlpha } from "@/src/theme";
 import { programIconFor } from "@/src/utils/program-goal-icon";
 import {
   BUNDLED_CARDIO_PROGRAMS,
@@ -83,6 +83,23 @@ export default function ProgramsScreen() {
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
       >
+        <Pressable
+          testID="coach-new-program"
+          style={styles.coachCard}
+          onPress={() => router.push("/coach/new" as any)}
+        >
+          <View style={styles.coachIcon}>
+            <Ionicons name="sparkles" size={26} color="#fff" />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.coachTitle}>Coach IronFlow</Text>
+            <Text style={styles.coachSub}>
+              Réponds à quelques questions, le moteur IronFlow construit ton plan — sans IA
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color="#fff" />
+        </Pressable>
+
         <Pressable
           testID="create-program"
           style={styles.createCard}
@@ -263,6 +280,25 @@ const styles = StyleSheet.create({
   },
   title: { color: colors.onSurface, fontSize: 17, fontWeight: "700" },
   scroll: { padding: spacing.lg, gap: spacing.md },
+  coachCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    backgroundColor: colors.brand,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    ...shadow.elevated,
+  },
+  coachIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: radius.md,
+    backgroundColor: withAlpha("#FFFFFF", 20),
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  coachTitle: { color: "#fff", fontSize: 15, fontWeight: "800" },
+  coachSub: { color: withAlpha("#FFFFFF", 85), fontSize: 11, marginTop: 2, lineHeight: 15 },
   createCard: {
     flexDirection: "row",
     alignItems: "center",
