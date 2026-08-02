@@ -53,6 +53,8 @@ const RECORD_MUSCLE_TO_LEGACY: Record<ExerciseMuscleGroup, MuscleGroupKey> = {
   traps: "back",
   lower_back: "back",
   full_body: "full_body",
+  hip_flexors: "legs",
+  adductors: "legs",
 };
 
 export type ExerciseLibraryItem = {

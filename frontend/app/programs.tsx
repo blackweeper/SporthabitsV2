@@ -5,13 +5,7 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, shadow, spacing, withAlpha } from "@/src/theme";
 import { programIconFor } from "@/src/utils/program-goal-icon";
-import {
-  BUNDLED_CARDIO_PROGRAMS,
-  BUNDLED_PROGRAMS,
-  BUNDLED_STRETCH_PROGRAMS,
-  LEVEL_LABEL,
-  Program,
-} from "@/src/data/programs";
+import { LEVEL_LABEL, Program } from "@/src/data/programs";
 import { deleteCustomProgram, getCustomPrograms, getProfile, UserProfile } from "@/src/utils/gym-storage";
 import { scoreProgramForProfile } from "@/src/utils/programs";
 import { PLAN_TYPE_COLORS } from "@/src/utils/plan-type-colors";
@@ -27,14 +21,20 @@ export default function ProgramsScreen() {
 
   const reload = useCallback(async () => {
     const all = (await getCustomPrograms()) as Program[];
-    setCustoms(
-      all.filter((p) => {
-        if (isStretch) return p.category === "stretch";
-        if (isCardio) return p.category === "cardio";
-        return (p.category ?? "workout") === "workout";
-      }),
+    const filtered = all.filter((p) => {
+      if (isStretch) return p.category === "stretch";
+      if (isCardio) return p.category === "cardio";
+      return (p.category ?? "workout") === "workout";
+    });
+    const currentProfile = await getProfile();
+    // Tri par pertinence pour le profil (objectif/niveau) quand renseigné —
+    // jamais un filtre, juste un ordre ; sans profil renseigné, ordre
+    // d'origine inchangé (tri stable, tous les scores valent 0).
+    filtered.sort(
+      (a, b) => scoreProgramForProfile(b, currentProfile) - scoreProgramForProfile(a, currentProfile),
     );
-    setProfile(await getProfile());
+    setCustoms(filtered);
+    setProfile(currentProfile);
   }, [isStretch, isCardio]);
 
   useFocusEffect(
@@ -43,18 +43,7 @@ export default function ProgramsScreen() {
     }, [reload]),
   );
 
-  const rawBundled = isStretch
-    ? BUNDLED_STRETCH_PROGRAMS
-    : isCardio
-      ? BUNDLED_CARDIO_PROGRAMS
-      : BUNDLED_PROGRAMS;
-  // Tri par pertinence pour le profil (objectif/niveau) quand renseigné —
-  // jamais un filtre, juste un ordre ; sans profil renseigné, ordre
-  // d'origine inchangé (tri stable, tous les scores valent 0).
-  const bundled = [...rawBundled].sort(
-    (a, b) => scoreProgramForProfile(b, profile) - scoreProgramForProfile(a, profile),
-  );
-  const topScore = bundled.length > 0 ? scoreProgramForProfile(bundled[0], profile) : 0;
+  const topScore = customs.length > 0 ? scoreProgramForProfile(customs[0], profile) : 0;
   const createHref = isStretch
     ? "/custom-program/new?category=stretch"
     : isCardio
@@ -144,13 +133,14 @@ export default function ProgramsScreen() {
           <Ionicons name="chevron-forward" size={20} color={colors.brand} />
         </Pressable>
 
-        {customs.length > 0 && (
+        {customs.length > 0 ? (
           <>
             <Text style={styles.sectionLabel}>MES PROGRAMMES</Text>
             {customs.map((p) => (
               <ProgramCard
                 key={p.id}
                 program={p}
+                recommended={topScore > 0 && scoreProgramForProfile(p, profile) === topScore}
                 onPress={() => router.push(`/program/${p.id}`)}
                 onDelete={async () => {
                   await deleteCustomProgram(p.id);
@@ -159,29 +149,26 @@ export default function ProgramsScreen() {
               />
             ))}
           </>
-        )}
-
-        {bundled.length > 0 && (
-          <>
-            <Text style={styles.sectionLabel}>
-              {isStretch ? "PROGRAMMES INCLUS" : "PROGRAMMES INCLUS"}
-            </Text>
-            {bundled.map((p) => (
-              <ProgramCard
-                key={p.id}
-                program={p}
-                recommended={topScore > 0 && scoreProgramForProfile(p, profile) === topScore}
-                onPress={() => router.push(`/program/${p.id}`)}
-              />
-            ))}
-          </>
-        )}
-        {isCardio && customs.length === 0 && bundled.length === 0 && (
+        ) : (
           <View style={styles.emptyCardio}>
-            <Ionicons name="stopwatch" size={40} color={PLAN_TYPE_COLORS.cardio} />
-            <Text style={styles.emptyCardioTitle}>Pas de programme cardio</Text>
+            <Ionicons
+              name={isCardio ? "stopwatch" : isStretch ? "leaf" : "barbell"}
+              size={40}
+              color={isCardio ? PLAN_TYPE_COLORS.cardio : isStretch ? PLAN_TYPE_COLORS.stretch : PLAN_TYPE_COLORS.musculation}
+            />
+            <Text style={styles.emptyCardioTitle}>
+              {isCardio
+                ? "Pas encore de programme cardio"
+                : isStretch
+                  ? "Pas encore de programme d'étirement"
+                  : "Pas encore de programme"}
+            </Text>
             <Text style={styles.emptyCardioSub}>
-              Crée un programme personnalisé pour structurer tes runs, séances de vélo, HIIT ou natation.
+              {isCardio
+                ? "Crée un programme personnalisé pour structurer tes runs, séances de vélo, HIIT ou natation."
+                : isStretch
+                  ? "Crée un programme d'étirement sur mesure, avec des durées personnalisées."
+                  : "Crée ton programme, importe-en un, ou laisse le Coach IronFlow en générer un pour toi."}
             </Text>
           </View>
         )}

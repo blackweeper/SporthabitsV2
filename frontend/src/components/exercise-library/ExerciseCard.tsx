@@ -40,18 +40,25 @@ export default function ExerciseCard({
     : undefined;
   // Chaque carte résout ses deux médias en parallèle (illustration/GIF)
   // plutôt que de dépendre d'un champ précalculé — voir useExerciseMedia.ts.
-  // "photo" (illustration) reste l'affichage par défaut ; le bouton GIF
-  // (visible seulement si un GIF existe) bascule mediaMode en place, sans
-  // navigation, même patron que la fiche/l'écran de séance active.
+  // Photo par défaut : illustration IronFlow en priorité, sinon bascule
+  // AUTOMATIQUEMENT sur le GIF WorkoutX temporaire (même règle que partout
+  // ailleurs dans l'app via useExerciseMedia() — ExerciseCard était la seule
+  // exception où ce fallback nécessitait un tap manuel, corrigé ici). Le
+  // bouton de bascule n'a de sens que s'il y a un vrai choix entre les deux
+  // (les deux existent) ; si seul le GIF WorkoutX existe, il est déjà
+  // affiché par défaut, rien à basculer.
   const { ironflowUri, workoutxUri } = useExerciseMediaSources(item.isCustom ? null : item.id);
   const [mediaMode, setMediaMode] = useState<"photo" | "gif">("photo");
   const photoSource: ImageSourcePropType | null = ironflowUri
     ? { uri: ironflowUri }
-    : item.imageBase64
-      ? { uri: `data:image/webp;base64,${item.imageBase64}` }
-      : null;
+    : workoutxUri
+      ? { uri: workoutxUri }
+      : item.imageBase64
+        ? { uri: `data:image/webp;base64,${item.imageBase64}` }
+        : null;
+  const canToggleGif = !!ironflowUri && !!workoutxUri;
   const mediaSource: ImageSourcePropType | null =
-    mediaMode === "gif" && workoutxUri ? { uri: workoutxUri } : photoSource;
+    mediaMode === "gif" && canToggleGif ? { uri: workoutxUri } : photoSource;
 
   return (
     <PressableScale testID={testID} style={styles.card} onPress={onPress}>
@@ -92,7 +99,7 @@ export default function ExerciseCard({
           </View>
         )}
 
-        {workoutxUri && (
+        {canToggleGif && (
           <PressableScale
             testID={testID ? `${testID}-gif-toggle` : undefined}
             hitSlop={8}

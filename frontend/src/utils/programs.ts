@@ -1,23 +1,20 @@
-import {
-  BUNDLED_CARDIO_PROGRAMS,
-  BUNDLED_PROGRAMS,
-  BUNDLED_STRETCH_PROGRAMS,
-  Program,
-} from '@/src/data/programs';
+import { Program } from '@/src/data/programs';
 import { getCustomPrograms, UserProfile } from '@/src/utils/gym-storage';
 
+/** Tous les programmes existent désormais dans le stockage utilisateur
+ * (créés à la main, importés, ou générés par le Coach IronFlow) — plus
+ * aucun contenu n'est embarqué dans le bundle de l'app. */
 export async function getAllPrograms(): Promise<Program[]> {
-  const custom = (await getCustomPrograms()) as Program[];
-  return [...BUNDLED_PROGRAMS, ...BUNDLED_CARDIO_PROGRAMS, ...BUNDLED_STRETCH_PROGRAMS, ...custom];
+  return (await getCustomPrograms()) as Program[];
 }
 
-/** Only workout-category programs (custom with category!='stretch' & !='cardio' + bundled workouts). */
+/** Only workout-category programs. */
 export async function getWorkoutPrograms(): Promise<Program[]> {
   const all = await getAllPrograms();
   return all.filter((p) => (p.category ?? 'workout') === 'workout');
 }
 
-/** Only cardio-category programs (custom only for now). */
+/** Only cardio-category programs. */
 export async function getCardioPrograms(): Promise<Program[]> {
   const all = await getAllPrograms();
   return all.filter((p) => p.category === 'cardio');
@@ -32,14 +29,6 @@ export async function getStretchPrograms(): Promise<Program[]> {
 export async function findProgram(id: string): Promise<Program | null> {
   const all = await getAllPrograms();
   return all.find((p) => p.id === id) ?? null;
-}
-
-export function isBundled(programId: string): boolean {
-  return (
-    BUNDLED_PROGRAMS.some((p) => p.id === programId) ||
-    BUNDLED_CARDIO_PROGRAMS.some((p) => p.id === programId) ||
-    BUNDLED_STRETCH_PROGRAMS.some((p) => p.id === programId)
-  );
 }
 
 /** Score de pertinence d'un programme pour le profil renseigné — un simple

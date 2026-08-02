@@ -20,6 +20,15 @@ const LIBRARY_ORIGIN = EXERCISE_LIBRARY_MANIFEST_URL?.replace(/manifest\.json$/,
 
 type MediaCandidate = { source: Exclude<ExerciseMediaSource, null>; url: string };
 
+/** Extensions tolérées pour `media/ironflow/` — `.webp` reste le format
+ * recommandé (voir `NEW-EXERCISE-TEMPLATE-GUIDE.md`), mais la production
+ * d'illustrations est manuelle et un mauvais export (`.png`/`.jpg`) arrive
+ * (déjà observé en pratique) : mieux vaut afficher l'image quand même que
+ * la perdre silencieusement en attendant une re-conversion. `gymgifsdb` reste
+ * strictement `.webp`/`.gif` — c'est un jeu de données déjà normalisé, pas du
+ * contenu produit au fil de l'eau comme `ironflow`. */
+const IRONFLOW_IMAGE_EXTENSIONS = ["webp", "png", "jpg", "jpeg"];
+
 /**
  * Chaque fournisseur peut couvrir un ou deux "rôles" pour un exercice :
  * `image` — une illustration/photo statique (identité visuelle) ;
@@ -34,7 +43,10 @@ function buildCandidates(exerciseId: string, role: "image" | "gif"): MediaCandid
   if (!LIBRARY_ORIGIN) return null;
   if (role === "image") {
     return [
-      { source: "ironflow", url: `${LIBRARY_ORIGIN}media/ironflow/${exerciseId}.webp` },
+      ...IRONFLOW_IMAGE_EXTENSIONS.map((ext) => ({
+        source: "ironflow" as const,
+        url: `${LIBRARY_ORIGIN}media/ironflow/${exerciseId}.${ext}`,
+      })),
       { source: "gymgifsdb", url: `${LIBRARY_ORIGIN}media/gymgifsdb/${exerciseId}.webp` },
     ];
   }

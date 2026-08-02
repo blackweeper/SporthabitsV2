@@ -18,7 +18,7 @@ import {
   ProgramDay,
   ProgramSession,
 } from "@/src/data/programs";
-import { findProgram, isBundled } from "@/src/utils/programs";
+import { findProgram } from "@/src/utils/programs";
 import { ensureProgramExercisesInLibrary } from "@/src/utils/program-library-sync";
 import {
   ActiveProgram,
@@ -114,7 +114,6 @@ export default function ProgramDetailScreen() {
 
   const isActive = active?.programId === program.id;
   const todayIdx = isActive ? currentDayIndex(active!, program.durationDays) : 1;
-  const editable = !isBundled(program.id);
 
   const doneCount = active?.completedSessions.length ?? 0;
   const totalSessions = program.days.reduce(
@@ -216,17 +215,13 @@ export default function ProgramDetailScreen() {
         <Text style={styles.headerTitle} numberOfLines={1}>
           {program.title}
         </Text>
-        {editable ? (
-          <Pressable
-            testID="edit-program"
-            onPress={() => router.push(`/custom-program/${program.id}`)}
-            hitSlop={12}
-          >
-            <Ionicons name="pencil" size={20} color={colors.brand} />
-          </Pressable>
-        ) : (
-          <View style={{ width: 24 }} />
-        )}
+        <Pressable
+          testID="edit-program"
+          onPress={() => router.push(`/custom-program/${program.id}`)}
+          hitSlop={12}
+        >
+          <Ionicons name="pencil" size={20} color={colors.brand} />
+        </Pressable>
       </View>
 
       <ScrollView
@@ -339,12 +334,10 @@ export default function ProgramDetailScreen() {
           />
         )}
 
-        {editable && (
-          <Pressable style={styles.delBtn} onPress={removeCustom}>
-            <Ionicons name="trash" size={16} color={colors.error} />
-            <Text style={styles.delBtnText}>Supprimer ce programme</Text>
-          </Pressable>
-        )}
+        <Pressable style={styles.delBtn} onPress={removeCustom}>
+          <Ionicons name="trash" size={16} color={colors.error} />
+          <Text style={styles.delBtnText}>Supprimer ce programme</Text>
+        </Pressable>
         <View style={{ height: 40 }} />
       </ScrollView>
 

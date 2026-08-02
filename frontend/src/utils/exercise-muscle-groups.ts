@@ -18,7 +18,12 @@ export type ExerciseMuscleGroup =
   | "calves"
   | "traps"
   | "lower_back"
-  | "full_body";
+  | "full_body"
+  // Ajoutés pour le contenu mobilité/étirements (Flexy Series) — groupes
+  // distincts des quads/glutes déjà présents, fréquemment ciblés seuls par
+  // ce type d'exercice et jusqu'ici absents de la taxonomie.
+  | "hip_flexors"
+  | "adductors";
 
 export type ExerciseMuscleGroupDef = {
   key: ExerciseMuscleGroup;
@@ -41,6 +46,8 @@ export const EXERCISE_MUSCLE_GROUPS: ExerciseMuscleGroupDef[] = [
   { key: "traps", label: "Trapèzes", emoji: "🔺" },
   { key: "lower_back", label: "Lombaires", emoji: "🔻" },
   { key: "full_body", label: "Corps entier", emoji: "🔥" },
+  { key: "hip_flexors", label: "Fléchisseurs de hanche", emoji: "🦵" },
+  { key: "adductors", label: "Adducteurs", emoji: "🦵" },
 ];
 
 export const EXERCISE_MUSCLE_GROUP_LABEL: Record<ExerciseMuscleGroup, string> =
