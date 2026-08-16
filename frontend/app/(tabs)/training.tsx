@@ -145,25 +145,26 @@ export default function TrainingHub() {
     active: ActiveProgram,
     dayIndex: number,
     day: ProgramDay,
+    sessionIndex: number,
+    session: ProgramSession,
   ) => {
-    const session = day.sessions[0];
     if (!session) return;
     const todayIdx = currentDayIndex(active, program.durationDays);
     const plannedDate = plannedDateForDayIndex(active.startedAt, dayIndex);
     if (dayIndex === todayIdx) {
       const isStretch = program.category === "stretch";
-      const plan = await findOrCreateProgramPlan(program.id, dayIndex, 0, () => ({
+      const plan = await findOrCreateProgramPlan(program.id, dayIndex, sessionIndex, () => ({
         title: `${program.title} · J${dayIndex}${session.label ? " · " + session.label : ""}`,
         type: isStretch ? "stretch" : "mixte",
         category: isStretch ? "stretch" : "workout",
         createdAt: new Date().toISOString(),
-        programSource: { programId: program.id, dayIndex, sessionIndex: 0 },
+        programSource: { programId: program.id, dayIndex, sessionIndex },
         exercises: session.exercises.map((e) => ({ ...e, id: uid() })),
       }));
       router.push(`/workout/${plan.id}`);
       return;
     }
-    setPreview({ dayIndex, sessionIndex: 0, session, color: program.color, plannedDate });
+    setPreview({ dayIndex, sessionIndex, session, color: program.color, plannedDate });
   };
 
   return (
@@ -296,7 +297,7 @@ function ProgramHeroCard({
   done?: number;
   total?: number;
   onPress: () => void;
-  onPressDay: (program: Program, active: ActiveProgram, dayIndex: number, day: ProgramDay) => void;
+  onPressDay: PressDayHandler;
   index?: number;
   programSessions?: WorkoutSession[];
   router?: any;
@@ -350,7 +351,9 @@ function ProgramHeroCard({
           active={active}
           records={records}
           programSessions={programSessions}
-          onPressDay={(dayIndex, day) => onPressDay(program, active, dayIndex, day)}
+          onPressDay={(dayIndex, day, sessionIndex, session) =>
+            onPressDay(program, active, dayIndex, day, sessionIndex, session)
+          }
           router={router}
         />
       )}
@@ -377,7 +380,7 @@ function ProgramSubTabs({
   active: ActiveProgram;
   records: ExerciseRecord[];
   programSessions: WorkoutSession[];
-  onPressDay: (dayIndex: number, day: ProgramDay) => void;
+  onPressDay: DayPressHandler;
   router: any;
 }) {
   const [subTab, setSubTab] = useState<"week" | "ahead" | "history">("week");
@@ -425,7 +428,7 @@ function DayCardFullRow({
   active: ActiveProgram;
   records: ExerciseRecord[];
   todayIndex: number;
-  onPressDay: (dayIndex: number, day: ProgramDay) => void;
+  onPressDay: DayPressHandler;
   router: any;
 }) {
   if (columns.length === 0) {
@@ -442,9 +445,14 @@ function DayCardFullRow({
     >
       {columns.map(({ dayIndex, day }) => {
         const isToday = dayIndex === todayIndex;
-        const done = day.sessions.every((_, si) =>
-          active.completedSessions.some((s) => s.dayIndex === dayIndex && s.sessionIndex === si),
+        const doneSessionIndices = new Set(
+          day.sessions
+            .map((_, si) => si)
+            .filter((si) =>
+              active.completedSessions.some((s) => s.dayIndex === dayIndex && s.sessionIndex === si),
+            ),
         );
+        const done = day.sessions.length > 0 && day.sessions.every((_, si) => doneSessionIndices.has(si));
         return (
           <ProgramDayCardFull
             key={dayIndex}
@@ -455,8 +463,9 @@ function DayCardFullRow({
             plannedDate={plannedDateForDayIndex(active.startedAt, dayIndex)}
             isToday={isToday}
             done={done}
-            onLaunch={() => onPressDay(dayIndex, day)}
-            onPreview={() => onPressDay(dayIndex, day)}
+            doneSessionIndices={doneSessionIndices}
+            onLaunch={(si, s) => onPressDay(dayIndex, day, si, s)}
+            onPreview={(si, s) => onPressDay(dayIndex, day, si, s)}
             onPressExercise={(name) => router.push(`/exercise-detail/${encodeURIComponent(name)}`)}
           />
         );
@@ -475,7 +484,7 @@ function ThisWeekPanel({
   program: Program;
   active: ActiveProgram;
   records: ExerciseRecord[];
-  onPressDay: (dayIndex: number, day: ProgramDay) => void;
+  onPressDay: DayPressHandler;
   router: any;
 }) {
   const today = currentDayIndex(active, program.durationDays);
@@ -506,7 +515,7 @@ function WeeksAheadPanel({
   program: Program;
   active: ActiveProgram;
   records: ExerciseRecord[];
-  onPressDay: (dayIndex: number, day: ProgramDay) => void;
+  onPressDay: DayPressHandler;
   router: any;
 }) {
   const today = currentDayIndex(active, program.durationDays);
@@ -602,7 +611,20 @@ function getSessionsForProgram(
     .sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime());
 }
 
-type PressDayHandler = (program: Program, active: ActiveProgram, dayIndex: number, day: ProgramDay) => void;
+type PressDayHandler = (
+  program: Program,
+  active: ActiveProgram,
+  dayIndex: number,
+  day: ProgramDay,
+  sessionIndex: number,
+  session: ProgramSession,
+) => void;
+type DayPressHandler = (
+  dayIndex: number,
+  day: ProgramDay,
+  sessionIndex: number,
+  session: ProgramSession,
+) => void;
 
 function ProgramView({
   actives,

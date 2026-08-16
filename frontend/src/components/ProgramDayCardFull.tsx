@@ -3,7 +3,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing } from "@/src/theme";
 import PressableScale from "@/src/components/ui/PressableScale";
 import ExerciseThumbnail from "@/src/components/ExerciseThumbnail";
-import { ProgramDay } from "@/src/data/programs";
+import { ProgramDay, ProgramSession } from "@/src/data/programs";
 import { ExerciseRecord } from "@/src/utils/exercise-records";
 import {
   estimateSessionDurationSeconds,
@@ -21,6 +21,13 @@ export const PROGRAM_DAY_CARD_FULL_GAP = 12;
  * semaine"/"Semaines à venir" du hub training.tsx, pour une visualisation
  * cohérente partout où un jour de programme est affiché. Remplace l'ancien
  * WeekDayCard (plafonné à 3 miniatures, désormais sans appelant).
+ *
+ * Un jour peut contenir plusieurs séances indépendantes (ex. "Force" +
+ * "WOD" pour The Comeback) — chacune reçoit son propre bouton de
+ * lancement/aperçu (onLaunch/onPreview reçoivent l'index + la séance
+ * concernée) plutôt qu'un bouton unique qui ne lançait jamais que la
+ * première séance du jour, empêchant les séances suivantes (ex. le WOD
+ * AMRAP) d'être jouables depuis cette vue.
  */
 export default function ProgramDayCardFull({
   dayIndex,
@@ -30,6 +37,7 @@ export default function ProgramDayCardFull({
   plannedDate,
   isToday,
   done,
+  doneSessionIndices,
   onLaunch,
   onPreview,
   onPressExercise,
@@ -41,8 +49,9 @@ export default function ProgramDayCardFull({
   plannedDate: Date | null;
   isToday: boolean;
   done: boolean;
-  onLaunch: () => void;
-  onPreview: () => void;
+  doneSessionIndices?: Set<number>;
+  onLaunch: (sessionIndex: number, session: ProgramSession) => void;
+  onPreview: (sessionIndex: number, session: ProgramSession) => void;
   onPressExercise: (name: string) => void;
 }) {
   if (day.rest) {
@@ -64,7 +73,8 @@ export default function ProgramDayCardFull({
     (a, s) => a + estimateSessionDurationSeconds(s.exercises),
     0,
   );
-  const firstSession = day.sessions[0];
+  const multiSession = day.sessions.length > 1;
+  const sessionDone = (si: number) => doneSessionIndices?.has(si) ?? done;
 
   const body = (
     <View
@@ -118,51 +128,80 @@ export default function ProgramDayCardFull({
         )}
       </View>
 
-      <View style={styles.exList}>
-        {exercises.map((ex, ei) => (
-          <PressableScale
-            key={ei}
-            testID={`week-day-full-${dayIndex}-ex-${ei}`}
-            style={styles.exRow}
-            onPress={() => onPressExercise(ex.name)}
-          >
-            <ExerciseThumbnail
-              name={ex.name}
-              records={records}
-              photoBase64={ex.photoBase64}
-              iconKey={ex.iconKey}
-              size={40}
-              square
-            />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.exName} numberOfLines={1}>
-                {ex.name}
-              </Text>
-              <Text style={styles.exDetail}>{formatExerciseDetail(ex)}</Text>
-            </View>
-          </PressableScale>
-        ))}
-      </View>
+      <View style={{ gap: spacing.sm }}>
+        {day.sessions.map((s, si) => {
+          const sDone = sessionDone(si);
+          return (
+            <View key={si} style={styles.sessionBlock}>
+              {multiSession && (s.label || s.title) && (
+                <View style={styles.sessLabelRow}>
+                  <Text style={styles.sessLabelText} numberOfLines={1}>
+                    {(s.label ?? s.title ?? "").toUpperCase()}
+                  </Text>
+                  {sDone && (
+                    <Ionicons name="checkmark-circle" size={14} color={colors.success} />
+                  )}
+                </View>
+              )}
+              <View style={styles.exList}>
+                {s.exercises.map((ex, ei) => (
+                  <PressableScale
+                    key={ei}
+                    testID={`week-day-full-${dayIndex}-s${si}-ex-${ei}`}
+                    style={styles.exRow}
+                    onPress={() => onPressExercise(ex.name)}
+                  >
+                    <ExerciseThumbnail
+                      name={ex.name}
+                      records={records}
+                      photoBase64={ex.photoBase64}
+                      iconKey={ex.iconKey}
+                      size={40}
+                      square
+                    />
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.exName} numberOfLines={1}>
+                        {ex.name}
+                      </Text>
+                      <Text style={styles.exDetail}>{formatExerciseDetail(ex)}</Text>
+                    </View>
+                  </PressableScale>
+                ))}
+              </View>
 
-      {isToday && firstSession && (
-        <PressableScale
-          testID={`week-day-full-launch-${dayIndex}`}
-          style={[styles.launchBtn, { backgroundColor: color }]}
-          onPress={onLaunch}
-        >
-          <Ionicons name="play" size={14} color="#fff" />
-          <Text style={styles.launchBtnText}>
-            {done ? "REFAIRE LA SÉANCE" : "LANCER LA SÉANCE"}
-          </Text>
-        </PressableScale>
-      )}
+              {isToday && (
+                <PressableScale
+                  testID={`week-day-full-launch-${dayIndex}-${si}`}
+                  style={[styles.launchBtn, { backgroundColor: color }]}
+                  onPress={() => onLaunch(si, s)}
+                >
+                  <Ionicons name="play" size={14} color="#fff" />
+                  <Text style={styles.launchBtnText}>
+                    {multiSession
+                      ? `${sDone ? "REFAIRE" : "LANCER"} · ${(s.label ?? s.title ?? `SÉANCE ${si + 1}`).toUpperCase()}`
+                      : sDone
+                        ? "REFAIRE LA SÉANCE"
+                        : "LANCER LA SÉANCE"}
+                  </Text>
+                </PressableScale>
+              )}
+            </View>
+          );
+        })}
+      </View>
     </View>
   );
 
   if (isToday) return body;
 
   return (
-    <PressableScale testID={`week-day-full-preview-${dayIndex}`} onPress={onPreview}>
+    <PressableScale
+      testID={`week-day-full-preview-${dayIndex}`}
+      onPress={() => {
+        const first = day.sessions[0];
+        if (first) onPreview(0, first);
+      }}
+    >
       {body}
     </PressableScale>
   );
@@ -226,6 +265,20 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   metaPillText: { color: colors.onSurfaceTertiary, fontSize: 10, fontWeight: "700" },
+  sessionBlock: { gap: 6 },
+  sessLabelRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 2,
+  },
+  sessLabelText: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 0.6,
+    flex: 1,
+  },
   exList: { gap: 6 },
   exRow: {
     flexDirection: "row",

@@ -34,6 +34,13 @@ import { Program } from './programs';
  *   fois fournie). Un nouvel exercice a dû être créé (`if_0101`, "Marche en
  *   extérieur") — aucun équivalent existant pour une marche extérieure sans
  *   machine (la bibliothèque n'avait que des variantes tapis de course).
+ * - "The Comeback V2" (`the-comeback-v2`, catégorie workout) — variante
+ *   resserrée de `the-comeback` : mêmes séances Force + WOD chaque semaine
+ *   (mêmes charges/reps/formats, round-robin y compris), mais sans les
+ *   séances cardio machines du matin (Triathlon/EMOM/Relais/Assault&Climb/
+ *   3x10 Express) — transcrite depuis un second texte fourni séparément par
+ *   l'utilisateur. Inclut sa propre Semaine 8 (tests 5RM + "Hyrox
+ *   Renaissance", identique dans le contenu à celle de `the-comeback`).
  */
 export const STARTER_PROGRAMS: Program[] = [
   {
@@ -30826,5 +30833,5331 @@ export const STARTER_PROGRAMS: Program[] = [
     ],
     "isCustom": true,
     "category": "cardio"
+  },
+  {
+    "id": "the-comeback-v2",
+    "title": "The Comeback V2",
+    "description": "Version resserrée de The Comeback : force + WOD Hyrox/CrossFit uniquement (sans les séances cardio machines du matin de la V1), 8 semaines en 5 phases : Réveil métabolique, Intensification, Pic de volume, Affûtage, Tests de Force & Hyrox (Test Final \"Hyrox Renaissance\" chronométré). Règle d'or : contrôle la phase de descente sur les mouvements de musculation pour protéger tes articulations, et adapte immédiatement en cas de gêne.",
+    "durationDays": 56,
+    "level": "intermediaire",
+    "goal": "Force & conditionnement",
+    "goalTag": "forme_generale",
+    "coverEmoji": "⚡",
+    "color": "#FF6D00",
+    "days": [
+      {
+        "rest": false,
+        "title": "Semaine 1 — Lundi",
+        "sessions": [
+          {
+            "label": "Force",
+            "title": "Force",
+            "exercises": [
+              {
+                "name": "Squat avec barre",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "8",
+                "weight": "40kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_squat_avec_barre",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Fentes arrière aux haltères",
+                "mode": "reps",
+                "sets": 3,
+                "reps": "10/jambe",
+                "weight": "10kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_fentes_arriere_aux_halteres",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "WOD Hyrox (AMRAP 15)",
+            "title": "WOD Hyrox (AMRAP 15)",
+            "exercises": [
+              {
+                "name": "AMRAP 15 min : 250m Rameur → 15 Wall Balls (5kg) → 10 Box Step-ups",
+                "mode": "amrap",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 900,
+                "notes": "AMRAP 15 min — enchaîne 250m Rameur → 15 Wall Balls (5kg) → 10 Box Step-ups en boucle jusqu'à la fin du temps. Appuie sur + à chaque tour complet.",
+                "exerciseRecordId": null,
+                "matchConfidence": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 1 — Mardi",
+        "sessions": [
+          {
+            "label": "Force",
+            "title": "Force",
+            "exercises": [
+              {
+                "name": "Développé couché",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "8",
+                "weight": "40kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_developpe_couche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tirage poitrine à la poulie",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "10",
+                "weight": "35kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tirage_poitrine_a_la_poulie",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "WOD CrossFit (4 tours)",
+            "title": "WOD CrossFit (4 tours)",
+            "exercises": [
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "15 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "4 tours : Assault Bike → Pompes → Tractions élastique, à la suite. Repos 60s après chaque tour complet.",
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "10",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "5",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "15 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "10",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "5",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "15 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "10",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "5",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "15 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "10",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "5",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 1 — Mercredi",
+        "sessions": [
+          {
+            "label": "WOD Mixeur (5 tours)",
+            "title": "WOD Mixeur (5 tours)",
+            "exercises": [
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "5 tours : Course → Rameur → BikeErg, à la suite. Repos 90s après chaque tour complet.",
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1000m",
+                "weight": null,
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1000m",
+                "weight": null,
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1000m",
+                "weight": null,
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1000m",
+                "weight": null,
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1000m",
+                "weight": null,
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 1 — Jeudi",
+        "sessions": [
+          {
+            "label": "Force",
+            "title": "Force",
+            "exercises": [
+              {
+                "name": "Soulevé de terre",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "6",
+                "weight": "50kg",
+                "rest_seconds": 120,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_souleve_de_terre",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Développé militaire aux haltères",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "8",
+                "weight": "12.5kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_developpe_militaire_aux_halteres",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Renfo EMOM 12",
+            "title": "Renfo EMOM 12",
+            "exercises": [
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 12 min — minute 1/3 : 12 SDT jambes tendues @15kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 15 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 40s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 12 min — minute 1/3 : 12 SDT jambes tendues @15kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 15 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 40s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 12 min — minute 1/3 : 12 SDT jambes tendues @15kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 15 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 40s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 12 min — minute 1/3 : 12 SDT jambes tendues @15kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 15 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 40s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 1 — Vendredi",
+        "sessions": [
+          {
+            "label": "WOD Chipper",
+            "title": "WOD Chipper",
+            "exercises": [
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1km",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "Chipper, pour le temps — réalise chaque mouvement dans l'ordre, une seule fois, le plus vite possible.",
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Wall Balls",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "50",
+                "weight": "5kg",
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_wall_balls",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "40 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Dumbbell Snatches alternés",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "30",
+                "weight": "15kg",
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_dumbbell_snatches_alternes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "20",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "10 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": true,
+        "title": "Récupération active + Mobilité",
+        "sessions": []
+      },
+      {
+        "rest": true,
+        "title": "Récupération active + Mobilité",
+        "sessions": []
+      },
+      {
+        "rest": false,
+        "title": "Semaine 2 — Lundi",
+        "sessions": [
+          {
+            "label": "Force",
+            "title": "Force",
+            "exercises": [
+              {
+                "name": "Squat avec barre",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "8",
+                "weight": "42.5kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_squat_avec_barre",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Fentes arrière aux haltères",
+                "mode": "reps",
+                "sets": 3,
+                "reps": "10/jambe",
+                "weight": "12.5kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_fentes_arriere_aux_halteres",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "WOD Hyrox (AMRAP 15)",
+            "title": "WOD Hyrox (AMRAP 15)",
+            "exercises": [
+              {
+                "name": "AMRAP 15 min : 300m Rameur → 15 Wall Balls (5kg) → 12 Box Step-ups",
+                "mode": "amrap",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 900,
+                "notes": "AMRAP 15 min — enchaîne 300m Rameur → 15 Wall Balls (5kg) → 12 Box Step-ups en boucle jusqu'à la fin du temps. Appuie sur + à chaque tour complet.",
+                "exerciseRecordId": null,
+                "matchConfidence": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 2 — Mardi",
+        "sessions": [
+          {
+            "label": "Force",
+            "title": "Force",
+            "exercises": [
+              {
+                "name": "Développé couché",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "8",
+                "weight": "42.5kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_developpe_couche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tirage poitrine à la poulie",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "10",
+                "weight": "40kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tirage_poitrine_a_la_poulie",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "WOD CrossFit (4 tours)",
+            "title": "WOD CrossFit (4 tours)",
+            "exercises": [
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "18 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "4 tours : Assault Bike → Pompes → Tractions élastique, à la suite. Repos 60s après chaque tour complet.",
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "12",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "6",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "18 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "12",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "6",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "18 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "12",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "6",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "18 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "12",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "6",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 2 — Mercredi",
+        "sessions": [
+          {
+            "label": "WOD Mixeur (5 tours)",
+            "title": "WOD Mixeur (5 tours)",
+            "exercises": [
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "5 tours : Course → Rameur → BikeErg, à la suite. Repos 60s après chaque tour complet.",
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1200m",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1200m",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1200m",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1200m",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1200m",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 2 — Jeudi",
+        "sessions": [
+          {
+            "label": "Force",
+            "title": "Force",
+            "exercises": [
+              {
+                "name": "Soulevé de terre",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "6",
+                "weight": "55kg",
+                "rest_seconds": 120,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_souleve_de_terre",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Développé militaire aux haltères",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "8",
+                "weight": "15kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_developpe_militaire_aux_halteres",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Renfo EMOM 12",
+            "title": "Renfo EMOM 12",
+            "exercises": [
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 12 min — minute 1/3 : 14 SDT jambes tendues @15kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 18 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 45s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 12 min — minute 1/3 : 14 SDT jambes tendues @15kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 18 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 45s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 12 min — minute 1/3 : 14 SDT jambes tendues @15kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 18 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 45s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 12 min — minute 1/3 : 14 SDT jambes tendues @15kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 18 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 45s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 2 — Vendredi",
+        "sessions": [
+          {
+            "label": "WOD Chipper",
+            "title": "WOD Chipper",
+            "exercises": [
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1.2km",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "Chipper, pour le temps — réalise chaque mouvement dans l'ordre, une seule fois, le plus vite possible.",
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Wall Balls",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "50",
+                "weight": "5kg",
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_wall_balls",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "45 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Dumbbell Snatches alternés",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "34",
+                "weight": "15kg",
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_dumbbell_snatches_alternes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "24",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "12 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": true,
+        "title": "Mobilité",
+        "sessions": []
+      },
+      {
+        "rest": true,
+        "title": "Mobilité",
+        "sessions": []
+      },
+      {
+        "rest": false,
+        "title": "Semaine 3 — Lundi",
+        "sessions": [
+          {
+            "label": "Force",
+            "title": "Force",
+            "exercises": [
+              {
+                "name": "Squat avec barre",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "8",
+                "weight": "45kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_squat_avec_barre",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Fentes arrière aux haltères",
+                "mode": "reps",
+                "sets": 3,
+                "reps": "10/jambe",
+                "weight": "12.5kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_fentes_arriere_aux_halteres",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "WOD Hyrox (AMRAP 15)",
+            "title": "WOD Hyrox (AMRAP 15)",
+            "exercises": [
+              {
+                "name": "AMRAP 15 min : 350m Rameur → 15 Wall Balls (5kg) → 14 Box Step-ups",
+                "mode": "amrap",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 900,
+                "notes": "AMRAP 15 min — enchaîne 350m Rameur → 15 Wall Balls (5kg) → 14 Box Step-ups en boucle jusqu'à la fin du temps. Appuie sur + à chaque tour complet.",
+                "exerciseRecordId": null,
+                "matchConfidence": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 3 — Mardi",
+        "sessions": [
+          {
+            "label": "Force",
+            "title": "Force",
+            "exercises": [
+              {
+                "name": "Développé couché",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "8",
+                "weight": "45kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_developpe_couche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tirage poitrine à la poulie",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "10",
+                "weight": "40kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tirage_poitrine_a_la_poulie",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "WOD CrossFit (4 tours)",
+            "title": "WOD CrossFit (4 tours)",
+            "exercises": [
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "20 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "4 tours : Assault Bike → Pompes → Tractions élastique, à la suite. Repos 60s après chaque tour complet.",
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "12",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "6",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "20 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "12",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "6",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "20 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "12",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "6",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "20 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "12",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "6",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 3 — Mercredi",
+        "sessions": [
+          {
+            "label": "WOD Mixeur (5 tours)",
+            "title": "WOD Mixeur (5 tours)",
+            "exercises": [
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "5 tours : Course → Rameur → BikeErg, à la suite. Repos 60s après chaque tour complet.",
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "600m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1200m",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "600m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1200m",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "600m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1200m",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "600m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1200m",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "600m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1200m",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 3 — Jeudi",
+        "sessions": [
+          {
+            "label": "Force",
+            "title": "Force",
+            "exercises": [
+              {
+                "name": "Soulevé de terre",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "6",
+                "weight": "60kg",
+                "rest_seconds": 120,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_souleve_de_terre",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Développé militaire aux haltères",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "8",
+                "weight": "15kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_developpe_militaire_aux_halteres",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Renfo EMOM 12",
+            "title": "Renfo EMOM 12",
+            "exercises": [
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 12 min — minute 1/3 : 14 SDT jambes tendues @15kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 18 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 45s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 12 min — minute 1/3 : 14 SDT jambes tendues @15kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 18 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 45s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 12 min — minute 1/3 : 14 SDT jambes tendues @15kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 18 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 45s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 12 min — minute 1/3 : 14 SDT jambes tendues @15kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 18 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 45s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 3 — Vendredi",
+        "sessions": [
+          {
+            "label": "WOD Chipper",
+            "title": "WOD Chipper",
+            "exercises": [
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1.2km",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "Chipper, pour le temps — réalise chaque mouvement dans l'ordre, une seule fois, le plus vite possible.",
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Wall Balls",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "50",
+                "weight": "5kg",
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_wall_balls",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "50 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Dumbbell Snatches alternés",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "34",
+                "weight": "15kg",
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_dumbbell_snatches_alternes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "24",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "15 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": true,
+        "title": "Mobilité",
+        "sessions": []
+      },
+      {
+        "rest": true,
+        "title": "Mobilité",
+        "sessions": []
+      },
+      {
+        "rest": false,
+        "title": "Semaine 4 — Lundi",
+        "sessions": [
+          {
+            "label": "Force",
+            "title": "Force",
+            "exercises": [
+              {
+                "name": "Squat avec barre",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "8",
+                "weight": "47.5kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_squat_avec_barre",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Fentes arrière aux haltères",
+                "mode": "reps",
+                "sets": 3,
+                "reps": "10/jambe",
+                "weight": "15kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_fentes_arriere_aux_halteres",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "WOD Hyrox (AMRAP 15)",
+            "title": "WOD Hyrox (AMRAP 15)",
+            "exercises": [
+              {
+                "name": "AMRAP 15 min : 350m Rameur → 15 Wall Balls (5kg) → 14 Box Step-ups",
+                "mode": "amrap",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 900,
+                "notes": "AMRAP 15 min — enchaîne 350m Rameur → 15 Wall Balls (5kg) → 14 Box Step-ups en boucle jusqu'à la fin du temps. Appuie sur + à chaque tour complet.",
+                "exerciseRecordId": null,
+                "matchConfidence": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 4 — Mardi",
+        "sessions": [
+          {
+            "label": "Force",
+            "title": "Force",
+            "exercises": [
+              {
+                "name": "Développé couché",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "8",
+                "weight": "47.5kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_developpe_couche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tirage poitrine à la poulie",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "10",
+                "weight": "45kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tirage_poitrine_a_la_poulie",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "WOD CrossFit (4 tours)",
+            "title": "WOD CrossFit (4 tours)",
+            "exercises": [
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "20 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "4 tours : Assault Bike → Pompes → Tractions élastique, à la suite. Repos 60s après chaque tour complet.",
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "14",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "7",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "20 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "14",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "7",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "20 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "14",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "7",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "20 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "14",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "7",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 4 — Mercredi",
+        "sessions": [
+          {
+            "label": "WOD Mixeur (5 tours)",
+            "title": "WOD Mixeur (5 tours)",
+            "exercises": [
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "5 tours : Course → Rameur → BikeErg, à la suite. Repos 60s après chaque tour complet.",
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "600m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1400m",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "600m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1400m",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "600m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1400m",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "600m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1400m",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "600m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1400m",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 4 — Jeudi",
+        "sessions": [
+          {
+            "label": "Force",
+            "title": "Force",
+            "exercises": [
+              {
+                "name": "Soulevé de terre",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "6",
+                "weight": "65kg",
+                "rest_seconds": 120,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_souleve_de_terre",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Développé militaire aux haltères",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "8",
+                "weight": "17.5kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_developpe_militaire_aux_halteres",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Renfo EMOM 12",
+            "title": "Renfo EMOM 12",
+            "exercises": [
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 12 min — minute 1/3 : 14 SDT jambes tendues @15kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 20 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 45s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 12 min — minute 1/3 : 14 SDT jambes tendues @15kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 20 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 45s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 12 min — minute 1/3 : 14 SDT jambes tendues @15kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 20 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 45s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 12 min — minute 1/3 : 14 SDT jambes tendues @15kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 20 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 45s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 4 — Vendredi",
+        "sessions": [
+          {
+            "label": "WOD Chipper",
+            "title": "WOD Chipper",
+            "exercises": [
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1.4km",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "Chipper, pour le temps — réalise chaque mouvement dans l'ordre, une seule fois, le plus vite possible.",
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Wall Balls",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "50",
+                "weight": "5kg",
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_wall_balls",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "50 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Dumbbell Snatches alternés",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "40",
+                "weight": "15kg",
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_dumbbell_snatches_alternes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "30",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "15 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": true,
+        "title": "Mobilité",
+        "sessions": []
+      },
+      {
+        "rest": true,
+        "title": "Mobilité",
+        "sessions": []
+      },
+      {
+        "rest": false,
+        "title": "Semaine 5 — Lundi",
+        "sessions": [
+          {
+            "label": "Force",
+            "title": "Force",
+            "exercises": [
+              {
+                "name": "Squat avec barre",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "8",
+                "weight": "50kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_squat_avec_barre",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Fentes arrière aux haltères",
+                "mode": "reps",
+                "sets": 3,
+                "reps": "10/jambe",
+                "weight": "15kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_fentes_arriere_aux_halteres",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "WOD Hyrox (AMRAP 16)",
+            "title": "WOD Hyrox (AMRAP 16)",
+            "exercises": [
+              {
+                "name": "AMRAP 16 min : 400m Rameur → 15 Wall Balls (5kg) → 16 Box Step-ups",
+                "mode": "amrap",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 960,
+                "notes": "AMRAP 16 min — enchaîne 400m Rameur → 15 Wall Balls (5kg) → 16 Box Step-ups en boucle jusqu'à la fin du temps. Appuie sur + à chaque tour complet.",
+                "exerciseRecordId": null,
+                "matchConfidence": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 5 — Mardi",
+        "sessions": [
+          {
+            "label": "Force",
+            "title": "Force",
+            "exercises": [
+              {
+                "name": "Développé couché",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "8",
+                "weight": "50kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_developpe_couche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tirage poitrine à la poulie",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "10",
+                "weight": "45kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tirage_poitrine_a_la_poulie",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "WOD CrossFit (5 tours)",
+            "title": "WOD CrossFit (5 tours)",
+            "exercises": [
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "15 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "5 tours : Assault Bike → Pompes → Tractions élastique, à la suite. Repos 60s après chaque tour complet.",
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "12",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "6",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "15 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "12",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "6",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "15 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "12",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "6",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "15 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "12",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "6",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "15 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "12",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "6",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 5 — Mercredi",
+        "sessions": [
+          {
+            "label": "WOD Mixeur (5 tours)",
+            "title": "WOD Mixeur (5 tours)",
+            "exercises": [
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "5 tours : Course → Rameur → BikeErg, à la suite. Repos 45s après chaque tour complet.",
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "600m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1400m",
+                "weight": null,
+                "rest_seconds": 45,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "600m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1400m",
+                "weight": null,
+                "rest_seconds": 45,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "600m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1400m",
+                "weight": null,
+                "rest_seconds": 45,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "600m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1400m",
+                "weight": null,
+                "rest_seconds": 45,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "600m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1400m",
+                "weight": null,
+                "rest_seconds": 45,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 5 — Jeudi",
+        "sessions": [
+          {
+            "label": "Force",
+            "title": "Force",
+            "exercises": [
+              {
+                "name": "Soulevé de terre",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "6",
+                "weight": "70kg",
+                "rest_seconds": 120,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_souleve_de_terre",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Développé militaire aux haltères",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "8",
+                "weight": "17.5kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_developpe_militaire_aux_halteres",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Renfo EMOM 15",
+            "title": "Renfo EMOM 15",
+            "exercises": [
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 15 min — minute 1/3 : 15 SDT jambes tendues @15kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 20 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 50s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 15 min — minute 1/3 : 15 SDT jambes tendues @15kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 20 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 50s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 15 min — minute 1/3 : 15 SDT jambes tendues @15kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 20 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 50s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 15 min — minute 1/3 : 15 SDT jambes tendues @15kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 20 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 50s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 15 min — minute 1/3 : 15 SDT jambes tendues @15kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 20 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 50s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 5 — Vendredi",
+        "sessions": [
+          {
+            "label": "WOD Chipper",
+            "title": "WOD Chipper",
+            "exercises": [
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1.5km",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "Chipper, pour le temps — réalise chaque mouvement dans l'ordre, une seule fois, le plus vite possible.",
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Wall Balls",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "60",
+                "weight": "5kg",
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_wall_balls",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "50 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Dumbbell Snatches alternés",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "40",
+                "weight": "20kg",
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_dumbbell_snatches_alternes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "30",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "20 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": true,
+        "title": "Mobilité",
+        "sessions": []
+      },
+      {
+        "rest": true,
+        "title": "Mobilité",
+        "sessions": []
+      },
+      {
+        "rest": false,
+        "title": "Semaine 6 — Lundi",
+        "sessions": [
+          {
+            "label": "Force",
+            "title": "Force",
+            "exercises": [
+              {
+                "name": "Squat avec barre",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "8",
+                "weight": "52.5kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_squat_avec_barre",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Fentes arrière aux haltères",
+                "mode": "reps",
+                "sets": 3,
+                "reps": "10/jambe",
+                "weight": "17.5kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_fentes_arriere_aux_halteres",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "WOD Hyrox (AMRAP 16)",
+            "title": "WOD Hyrox (AMRAP 16)",
+            "exercises": [
+              {
+                "name": "AMRAP 16 min : 400m Rameur → 15 Wall Balls (5kg) → 16 Box Step-ups",
+                "mode": "amrap",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 960,
+                "notes": "AMRAP 16 min — enchaîne 400m Rameur → 15 Wall Balls (5kg) → 16 Box Step-ups en boucle jusqu'à la fin du temps. Appuie sur + à chaque tour complet.",
+                "exerciseRecordId": null,
+                "matchConfidence": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 6 — Mardi",
+        "sessions": [
+          {
+            "label": "Force",
+            "title": "Force",
+            "exercises": [
+              {
+                "name": "Développé couché",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "8",
+                "weight": "52.5kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_developpe_couche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tirage poitrine à la poulie",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "10",
+                "weight": "50kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tirage_poitrine_a_la_poulie",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "WOD CrossFit (5 tours)",
+            "title": "WOD CrossFit (5 tours)",
+            "exercises": [
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "15 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "5 tours : Assault Bike → Pompes → Tractions élastique, à la suite. Repos 60s après chaque tour complet.",
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "14",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "7",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "15 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "14",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "7",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "15 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "14",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "7",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "15 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "14",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "7",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "15 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "14",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "7",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 6 — Mercredi",
+        "sessions": [
+          {
+            "label": "WOD Mixeur (5 tours)",
+            "title": "WOD Mixeur (5 tours)",
+            "exercises": [
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "5 tours : Course → Rameur → BikeErg, à la suite. Repos 45s après chaque tour complet.",
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "700m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1500m",
+                "weight": null,
+                "rest_seconds": 45,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "700m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1500m",
+                "weight": null,
+                "rest_seconds": 45,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "700m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1500m",
+                "weight": null,
+                "rest_seconds": 45,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "700m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1500m",
+                "weight": null,
+                "rest_seconds": 45,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "700m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1500m",
+                "weight": null,
+                "rest_seconds": 45,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 6 — Jeudi",
+        "sessions": [
+          {
+            "label": "Force",
+            "title": "Force",
+            "exercises": [
+              {
+                "name": "Soulevé de terre",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "6",
+                "weight": "75kg",
+                "rest_seconds": 120,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_souleve_de_terre",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Développé militaire aux haltères",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "8",
+                "weight": "20kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_developpe_militaire_aux_halteres",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Renfo EMOM 15",
+            "title": "Renfo EMOM 15",
+            "exercises": [
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 15 min — minute 1/3 : 15 SDT jambes tendues @17.5kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 22 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 50s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 15 min — minute 1/3 : 15 SDT jambes tendues @17.5kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 22 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 50s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 15 min — minute 1/3 : 15 SDT jambes tendues @17.5kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 22 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 50s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 15 min — minute 1/3 : 15 SDT jambes tendues @17.5kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 22 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 50s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 15 min — minute 1/3 : 15 SDT jambes tendues @17.5kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 22 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 50s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 6 — Vendredi",
+        "sessions": [
+          {
+            "label": "WOD Chipper",
+            "title": "WOD Chipper",
+            "exercises": [
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1.5km",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "Chipper, pour le temps — réalise chaque mouvement dans l'ordre, une seule fois, le plus vite possible.",
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Wall Balls",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "60",
+                "weight": "5kg",
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_wall_balls",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "60 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Dumbbell Snatches alternés",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "40",
+                "weight": "20kg",
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_dumbbell_snatches_alternes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "35",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "20 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": true,
+        "title": "Sommeil prioritaire",
+        "sessions": []
+      },
+      {
+        "rest": true,
+        "title": "Sommeil prioritaire",
+        "sessions": []
+      },
+      {
+        "rest": false,
+        "title": "Semaine 7 — Lundi",
+        "sessions": [
+          {
+            "label": "Force",
+            "title": "Force",
+            "exercises": [
+              {
+                "name": "Squat avec barre",
+                "mode": "reps",
+                "sets": 3,
+                "reps": "8",
+                "weight": "55kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_squat_avec_barre",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Fentes arrière aux haltères",
+                "mode": "reps",
+                "sets": 3,
+                "reps": "8/jambe",
+                "weight": "17.5kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_fentes_arriere_aux_halteres",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "WOD Hyrox (AMRAP 12)",
+            "title": "WOD Hyrox (AMRAP 12)",
+            "exercises": [
+              {
+                "name": "AMRAP 12 min : 250m Rameur → 15 Wall Balls (5kg) → 10 Box Step-ups",
+                "mode": "amrap",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 720,
+                "notes": "AMRAP 12 min rapide — enchaîne ces 3 mouvements en boucle à allure soutenue.",
+                "exerciseRecordId": null,
+                "matchConfidence": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 7 — Mardi",
+        "sessions": [
+          {
+            "label": "Force",
+            "title": "Force",
+            "exercises": [
+              {
+                "name": "Développé couché",
+                "mode": "reps",
+                "sets": 3,
+                "reps": "8",
+                "weight": "55kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_developpe_couche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tirage poitrine à la poulie",
+                "mode": "reps",
+                "sets": 3,
+                "reps": "10",
+                "weight": "50kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tirage_poitrine_a_la_poulie",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "WOD CrossFit (3 tours)",
+            "title": "WOD CrossFit (3 tours)",
+            "exercises": [
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "20 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "3 tours : Assault Bike → Pompes → Tractions élastique, à la suite. Repos 60s après chaque tour complet.",
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "15",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "8",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "20 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "15",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "8",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "20 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "15",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "8",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 7 — Mercredi",
+        "sessions": [
+          {
+            "label": "WOD Mixeur (4 tours)",
+            "title": "WOD Mixeur (4 tours)",
+            "exercises": [
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "4 tours : Course → Rameur → BikeErg, à la suite. Repos 60s après chaque tour complet.",
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1000m",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1000m",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1000m",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1000m",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 7 — Jeudi",
+        "sessions": [
+          {
+            "label": "Force",
+            "title": "Force",
+            "exercises": [
+              {
+                "name": "Soulevé de terre",
+                "mode": "reps",
+                "sets": 3,
+                "reps": "6",
+                "weight": "80kg",
+                "rest_seconds": 120,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_souleve_de_terre",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Développé militaire aux haltères",
+                "mode": "reps",
+                "sets": 3,
+                "reps": "8",
+                "weight": "20kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_developpe_militaire_aux_halteres",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Renfo EMOM 10",
+            "title": "Renfo EMOM 10",
+            "exercises": [
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 10 min — minute 1/3 : 12 SDT jambes tendues @20kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 15 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 40s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 10 min — minute 1/3 : 12 SDT jambes tendues @20kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 15 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 40s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 10 min — minute 1/3 : 12 SDT jambes tendues @20kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 15 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 40s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 7 — Vendredi",
+        "sessions": [
+          {
+            "label": "WOD Chipper",
+            "title": "WOD Chipper",
+            "exercises": [
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1km",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "Chipper, pour le temps — réalise chaque mouvement dans l'ordre, une seule fois, le plus vite possible.",
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Wall Balls",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "40",
+                "weight": "5kg",
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_wall_balls",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "30 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Dumbbell Snatches alternés",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "30",
+                "weight": "20kg",
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_dumbbell_snatches_alternes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "20",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "10 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": true,
+        "title": "Repos complet",
+        "sessions": []
+      },
+      {
+        "rest": true,
+        "title": "Repos complet",
+        "sessions": []
+      },
+      {
+        "rest": false,
+        "title": "Semaine 8 — Lundi",
+        "sessions": [
+          {
+            "label": "Force — Test 5RM",
+            "title": "Force — Test 5RM",
+            "exercises": [
+              {
+                "name": "Squat avec barre",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "5",
+                "weight": null,
+                "rest_seconds": 180,
+                "duration_seconds": null,
+                "notes": "Squat — trouve ta charge maximale pour 5 répétitions propres. Contrôle la descente.",
+                "exerciseRecordId": "sys_squat_avec_barre",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Récupération",
+            "title": "Récupération",
+            "exercises": [
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 600,
+                "notes": "10 min BikeErg souple.",
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 8 — Mardi",
+        "sessions": [
+          {
+            "label": "Force — Test 5RM",
+            "title": "Force — Test 5RM",
+            "exercises": [
+              {
+                "name": "Développé couché",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "5",
+                "weight": null,
+                "rest_seconds": 180,
+                "duration_seconds": null,
+                "notes": "Développé couché — trouve ta charge maximale pour 5 répétitions propres. Contrôle la descente.",
+                "exerciseRecordId": "sys_developpe_couche",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "WOD",
+            "title": "WOD",
+            "exercises": [
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "10 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "3 tours : Assault Bike → Pompes, à la suite.",
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "10",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "10 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "10",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "10 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "10",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": true,
+        "title": "Repos complet",
+        "sessions": []
+      },
+      {
+        "rest": false,
+        "title": "Semaine 8 — Jeudi",
+        "sessions": [
+          {
+            "label": "Force — Test 5RM",
+            "title": "Force — Test 5RM",
+            "exercises": [
+              {
+                "name": "Soulevé de terre",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "5",
+                "weight": null,
+                "rest_seconds": 180,
+                "duration_seconds": null,
+                "notes": "Soulevé de terre — trouve ta charge maximale pour 5 répétitions propres. Contrôle la descente, dos neutre.",
+                "exerciseRecordId": "sys_souleve_de_terre",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 8 — Vendredi",
+        "sessions": [
+          {
+            "label": "Vendredi — TEST FINAL : HYROX RENAISSANCE (chronométré)",
+            "title": "Vendredi — TEST FINAL : HYROX RENAISSANCE (chronométré)",
+            "exercises": [
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1000m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "Test Hyrox chronométré — enchaîne les 8 stations dans l'ordre, une seule fois, à fond. Chronomètre le temps total toi-même.",
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1000m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Wall Balls",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "50",
+                "weight": "5kg",
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_wall_balls",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1000m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Dumbbell Snatches alternés",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "50",
+                "weight": "20kg",
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_dumbbell_snatches_alternes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1000m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "40",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "20 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "Sprint final !",
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": true,
+        "title": "Repos complet",
+        "sessions": []
+      },
+      {
+        "rest": true,
+        "title": "Repos complet",
+        "sessions": []
+      }
+    ],
+    "isCustom": true,
+    "category": "workout"
   }
 ];

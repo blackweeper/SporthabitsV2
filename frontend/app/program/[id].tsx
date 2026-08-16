@@ -431,11 +431,16 @@ function ProgramWeekView({
         >
           {columns.map(({ dayIndex, day }) => {
             const today = isActive && dayIndex === todayIdx;
-            const done = day.sessions.every((_, si) =>
-              active?.completedSessions.some(
-                (s) => s.dayIndex === dayIndex && s.sessionIndex === si,
-              ) ?? false,
+            const doneSessionIndices = new Set(
+              day.sessions
+                .map((_, si) => si)
+                .filter((si) =>
+                  active?.completedSessions.some(
+                    (s) => s.dayIndex === dayIndex && s.sessionIndex === si,
+                  ) ?? false,
+                ),
             );
+            const done = day.sessions.length > 0 && day.sessions.every((_, si) => doneSessionIndices.has(si));
             return (
               <ProgramDayCardFull
                 key={dayIndex}
@@ -446,14 +451,9 @@ function ProgramWeekView({
                 plannedDate={active ? plannedDateForDayIndex(active.startedAt, dayIndex) : null}
                 isToday={today}
                 done={done}
-                onLaunch={() => {
-                  const session = day.sessions[0];
-                  if (session) onLaunch(dayIndex, 0, session);
-                }}
-                onPreview={() => {
-                  const session = day.sessions[0];
-                  if (session) onPreview(dayIndex, 0, session);
-                }}
+                doneSessionIndices={doneSessionIndices}
+                onLaunch={(si, s) => onLaunch(dayIndex, si, s)}
+                onPreview={(si, s) => onPreview(dayIndex, si, s)}
                 onPressExercise={(name) =>
                   router.push(`/exercise-detail/${encodeURIComponent(name)}`)
                 }
