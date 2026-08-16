@@ -10,6 +10,7 @@ import { migrateFavoritesToUserData } from "@/src/utils/exercise-user-data-migra
 import { backfillPersonalLibrary } from "@/src/utils/exercise-library-backfill";
 import { seedCoreLibraryIfNeeded } from "@/src/utils/exercise-library-bootstrap";
 import { seedStarterProgramsIfNeeded } from "@/src/utils/program-bootstrap";
+import { seedWodLibraryIfNeeded } from "@/src/utils/wod-bootstrap";
 
 LogBox.ignoreAllLogs(true);
 
@@ -54,7 +55,11 @@ export default function RootLayout() {
       // Programmes de démarrage (Flexy Series) — après la bibliothèque de
       // base, dont ils référencent des `exerciseRecordId` par id.
       .then(() => seedStarterProgramsIfNeeded())
-      .catch((err) => console.warn("Starter programs seed failed:", err));
+      .catch((err) => console.warn("Starter programs seed failed:", err))
+      // Bibliothèque de WODs curés — indépendante des programmes de
+      // démarrage, peut être amorcée dans la même chaîne fire-and-forget.
+      .then(() => seedWodLibraryIfNeeded())
+      .catch((err) => console.warn("WOD library seed failed:", err));
   }, []);
 
   if (!loaded && !error) return null;

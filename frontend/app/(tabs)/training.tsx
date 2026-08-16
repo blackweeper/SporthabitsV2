@@ -41,7 +41,6 @@ import ProgramDayCardFull, {
   PROGRAM_DAY_CARD_FULL_GAP,
   PROGRAM_DAY_CARD_FULL_WIDTH,
 } from "@/src/components/ProgramDayCardFull";
-import SessionPreviewModal from "@/src/components/SessionPreviewModal";
 import {
   nonRestDaysInRange,
   weekDayRange,
@@ -89,13 +88,6 @@ export default function TrainingHub() {
     { active: ActiveProgram; program: Program }[]
   >([]);
   const [exerciseRecords, setExerciseRecords] = useState<ExerciseRecord[]>([]);
-  const [preview, setPreview] = useState<{
-    dayIndex: number;
-    sessionIndex: number;
-    session: ProgramSession;
-    color: string;
-    plannedDate: Date | null;
-  } | null>(null);
 
   useFocusEffect(
     useCallback(() => {
@@ -136,10 +128,12 @@ export default function TrainingHub() {
         ? "Prêt·e pour ta prochaine séance ?"
         : "Choisis un programme pour commencer";
 
-  // Une carte-jour du hub lance directement (jour d'aujourd'hui) ou ouvre
-  // un aperçu lecture seule (tout autre jour) — corrige le bug de l'ancien
-  // `DayColumnsRow` où chaque colonne menait systématiquement à la même
-  // page programme, quel que soit le jour tapé.
+  // Une carte-jour du hub lance toujours directement, quel que soit le jour
+  // — un programme n'est qu'un modèle, rien n'empêche de lancer la séance
+  // d'un autre jour à la demande (`findOrCreateProgramPlan` est déjà
+  // agnostique du jour). Corrige aussi le bug de l'ancien `DayColumnsRow`
+  // où chaque colonne menait systématiquement à la même page programme,
+  // quel que soit le jour tapé.
   const handlePressDay = async (
     program: Program,
     active: ActiveProgram,
@@ -149,22 +143,16 @@ export default function TrainingHub() {
     session: ProgramSession,
   ) => {
     if (!session) return;
-    const todayIdx = currentDayIndex(active, program.durationDays);
-    const plannedDate = plannedDateForDayIndex(active.startedAt, dayIndex);
-    if (dayIndex === todayIdx) {
-      const isStretch = program.category === "stretch";
-      const plan = await findOrCreateProgramPlan(program.id, dayIndex, sessionIndex, () => ({
-        title: `${program.title} · J${dayIndex}${session.label ? " · " + session.label : ""}`,
-        type: isStretch ? "stretch" : "mixte",
-        category: isStretch ? "stretch" : "workout",
-        createdAt: new Date().toISOString(),
-        programSource: { programId: program.id, dayIndex, sessionIndex },
-        exercises: session.exercises.map((e) => ({ ...e, id: uid() })),
-      }));
-      router.push(`/workout/${plan.id}`);
-      return;
-    }
-    setPreview({ dayIndex, sessionIndex, session, color: program.color, plannedDate });
+    const isStretch = program.category === "stretch";
+    const plan = await findOrCreateProgramPlan(program.id, dayIndex, sessionIndex, () => ({
+      title: `${program.title} · J${dayIndex}${session.label ? " · " + session.label : ""}`,
+      type: isStretch ? "stretch" : "mixte",
+      category: isStretch ? "stretch" : "workout",
+      createdAt: new Date().toISOString(),
+      programSource: { programId: program.id, dayIndex, sessionIndex },
+      exercises: session.exercises.map((e) => ({ ...e, id: uid() })),
+    }));
+    router.push(`/workout/${plan.id}`);
   };
 
   return (
@@ -257,15 +245,6 @@ export default function TrainingHub() {
           />
         )}
       </ScrollView>
-
-      <SessionPreviewModal
-        visible={preview !== null}
-        preview={preview}
-        color={preview?.color ?? colors.brand}
-        records={exerciseRecords}
-        plannedDate={preview?.plannedDate ?? null}
-        onClose={() => setPreview(null)}
-      />
     </SafeAreaView>
   );
 }
@@ -465,7 +444,6 @@ function DayCardFullRow({
             done={done}
             doneSessionIndices={doneSessionIndices}
             onLaunch={(si, s) => onPressDay(dayIndex, day, si, s)}
-            onPreview={(si, s) => onPressDay(dayIndex, day, si, s)}
             onPressExercise={(name) => router.push(`/exercise-detail/${encodeURIComponent(name)}`)}
           />
         );
@@ -779,7 +757,54 @@ function SwipeableSessionRow({
   );
 }
 
+type SeancesSubTab = "custom" | "wod";
+
 function IndividualView({
+  plans,
+  router,
+  records,
+  onDeleted,
+}: {
+  plans: Plan[];
+  router: any;
+  records: ExerciseRecord[];
+  onDeleted: () => void;
+}) {
+  const [subTab, setSubTab] = useState<SeancesSubTab>("custom");
+  const customPlans = plans.filter((p) => !p.wodSource);
+  const wodPlans = plans.filter((p) => p.wodSource);
+
+  return (
+    <>
+      <SegmentedTabRow
+        testIDPrefix="seances-subtabs"
+        options={[
+          { key: "custom", label: "Mes séances" },
+          { key: "wod", label: "WOD" },
+        ]}
+        value={subTab}
+        onChange={setSubTab}
+      />
+      {subTab === "custom" ? (
+        <CustomSessionsView
+          plans={customPlans}
+          router={router}
+          records={records}
+          onDeleted={onDeleted}
+        />
+      ) : (
+        <WodLibraryView
+          plans={wodPlans}
+          router={router}
+          records={records}
+          onDeleted={onDeleted}
+        />
+      )}
+    </>
+  );
+}
+
+function CustomSessionsView({
   plans,
   router,
   records,
@@ -934,6 +959,250 @@ function IndividualView({
         </>
       )}
     </>
+  );
+}
+
+const WOD_COLLECTION_LABEL: Record<"home" | "hyrox", string> = {
+  home: "Home WODs",
+  hyrox: "Hyrox",
+};
+
+function IntensityFlames({ level, size = 12 }: { level: number; size?: number }) {
+  return (
+    <View style={{ flexDirection: "row", gap: 1 }}>
+      {Array.from({ length: level }).map((_, i) => (
+        <Ionicons key={i} name="flame" size={size} color={colors.warning} />
+      ))}
+    </View>
+  );
+}
+
+function WodLibraryView({
+  plans,
+  router,
+  records,
+  onDeleted,
+}: {
+  plans: Plan[];
+  router: any;
+  records: ExerciseRecord[];
+  onDeleted: () => void;
+}) {
+  const [collection, setCollection] = useState<"all" | "home" | "hyrox">("all");
+  const [intensity, setIntensity] = useState<number | null>(null);
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
+  const [randomSheetOpen, setRandomSheetOpen] = useState(false);
+  const activeFilterCount = (collection !== "all" ? 1 : 0) + (intensity != null ? 1 : 0);
+
+  const intensityLevels = Array.from(
+    new Set(plans.map((p) => p.wodSource!.intensity)),
+  ).sort((a, b) => a - b);
+
+  const filtered = plans
+    .filter((p) => {
+      if (collection !== "all" && p.wodSource!.collection !== collection) return false;
+      if (intensity != null && p.wodSource!.intensity !== intensity) return false;
+      return true;
+    })
+    .sort((a, b) => {
+      if (a.wodSource!.collection !== b.wodSource!.collection) {
+        return a.wodSource!.collection.localeCompare(b.wodSource!.collection);
+      }
+      return a.wodSource!.number - b.wodSource!.number;
+    });
+
+  function launchRandom(desired: number | null) {
+    const pool = desired == null ? plans : plans.filter((p) => p.wodSource!.intensity === desired);
+    if (pool.length === 0) return;
+    const chosen = pool[Math.floor(Math.random() * pool.length)];
+    setRandomSheetOpen(false);
+    router.push(`/workout/${chosen.id}`);
+  }
+
+  return (
+    <>
+      <PressableScale
+        testID="wod-random-open"
+        style={styles.randomWodBtn}
+        onPress={() => setRandomSheetOpen(true)}
+      >
+        <Ionicons name="shuffle" size={16} color="#fff" />
+        <Text style={styles.randomWodBtnText}>WOD aléatoire</Text>
+      </PressableScale>
+
+      <View style={styles.indFilterRow}>
+        <PressableScale
+          testID="wod-open-filters"
+          style={styles.indFilterBtn}
+          onPress={() => setFilterSheetOpen(true)}
+        >
+          <Ionicons name="options-outline" size={16} color={colors.onSurface} />
+          <Text style={styles.indFilterBtnText}>Filtres</Text>
+          <FilterCountBadge count={activeFilterCount} />
+        </PressableScale>
+      </View>
+
+      <FilterSheet visible={filterSheetOpen} onClose={() => setFilterSheetOpen(false)}>
+        <Text style={styles.indFilterSectionLabel}>Collection</Text>
+        <View style={styles.catRow}>
+          {(["all", "home", "hyrox"] as const).map((c) => {
+            const active = collection === c;
+            return (
+              <PressableScale
+                key={c}
+                testID={`wod-collection-${c}`}
+                style={[styles.catChip, active && styles.catChipActive]}
+                onPress={() => setCollection(c)}
+              >
+                <Text style={[styles.catLabel, active && { color: "#fff" }]}>
+                  {c === "all" ? "Toutes" : WOD_COLLECTION_LABEL[c]}
+                </Text>
+              </PressableScale>
+            );
+          })}
+        </View>
+
+        <Text style={styles.indFilterSectionLabel}>Intensité</Text>
+        <View style={styles.catRow}>
+          <PressableScale
+            testID="wod-intensity-all"
+            style={[styles.catChip, intensity == null && styles.catChipActive]}
+            onPress={() => setIntensity(null)}
+          >
+            <Text style={[styles.catLabel, intensity == null && { color: "#fff" }]}>
+              Toutes
+            </Text>
+          </PressableScale>
+          {intensityLevels.map((lvl) => {
+            const active = intensity === lvl;
+            return (
+              <PressableScale
+                key={lvl}
+                testID={`wod-intensity-${lvl}`}
+                style={[styles.catChip, active && styles.catChipActive]}
+                onPress={() => setIntensity(lvl)}
+              >
+                <IntensityFlames level={lvl} size={11} />
+              </PressableScale>
+            );
+          })}
+        </View>
+      </FilterSheet>
+
+      <FilterSheet visible={randomSheetOpen} onClose={() => setRandomSheetOpen(false)}>
+        <Text style={styles.indFilterSectionLabel}>Quelle intensité ?</Text>
+        <PressableScale
+          testID="wod-random-any"
+          style={styles.randomIntensityRow}
+          onPress={() => launchRandom(null)}
+        >
+          <Text style={styles.randomIntensityText}>Peu importe — surprends-moi</Text>
+          <Ionicons name="chevron-forward" size={16} color={colors.onSurfaceTertiary} />
+        </PressableScale>
+        {intensityLevels.map((lvl) => (
+          <PressableScale
+            key={lvl}
+            testID={`wod-random-${lvl}`}
+            style={styles.randomIntensityRow}
+            onPress={() => launchRandom(lvl)}
+          >
+            <IntensityFlames level={lvl} size={14} />
+            <Ionicons name="chevron-forward" size={16} color={colors.onSurfaceTertiary} />
+          </PressableScale>
+        ))}
+      </FilterSheet>
+
+      {filtered.length === 0 ? (
+        <View style={styles.empty}>
+          <Ionicons name="flame" size={40} color={colors.brand} />
+          <Text style={styles.emptyTitle}>Aucun WOD dans ce filtre</Text>
+        </View>
+      ) : (
+        <>
+          <Text style={styles.hintText}>
+            <Ionicons name="hand-left" size={11} color={colors.onSurfaceTertiary} />
+            {"  "}Glisse vers la gauche pour supprimer un WOD de ta liste
+          </Text>
+          {filtered.map((p, i) => (
+            <EnterItem key={p.id} index={i}>
+              <WodRow
+                plan={p}
+                records={records}
+                onPress={() => router.push(`/plan/${p.id}`)}
+                onStart={() => router.push(`/workout/${p.id}`)}
+                onDeleted={onDeleted}
+              />
+            </EnterItem>
+          ))}
+        </>
+      )}
+    </>
+  );
+}
+
+function WodRow({
+  plan: p,
+  records,
+  onPress,
+  onStart,
+  onDeleted,
+}: {
+  plan: Plan;
+  records: ExerciseRecord[];
+  onPress: () => void;
+  onStart: () => void;
+  onDeleted: () => void;
+}) {
+  const wod = p.wodSource!;
+  const firstEx = p.exercises[0];
+  return (
+    <SwipeableRow
+      testID={`wod-item-${p.id}`}
+      style={styles.swipeContainer}
+      onDelete={async () => {
+        await deletePlan(p.id);
+        onDeleted();
+      }}
+      deleteConfirm={{
+        title: "Supprimer ce WOD de ta liste ?",
+        message: `"${p.title}" — cette action est définitive.`,
+        confirmLabel: "SUPPRIMER",
+        destructive: true,
+      }}
+      onEdit={onPress}
+    >
+      <PressableScale testID={`wod-item-${p.id}`} style={styles.planCard} onPress={onPress}>
+        {firstEx && (
+          <ExerciseThumbnail
+            name={firstEx.name}
+            records={records}
+            photoBase64={firstEx.photoBase64}
+            iconKey={firstEx.iconKey}
+            size={48}
+          />
+        )}
+        <View style={{ flex: 1 }}>
+          <View style={styles.planTagsRow}>
+            <View style={[styles.planTypeTag, { backgroundColor: withAlpha(colors.warning, 15) }]}>
+              <Text style={[styles.planTypeText, { color: colors.warning }]}>
+                {WOD_COLLECTION_LABEL[wod.collection]}
+              </Text>
+            </View>
+            <IntensityFlames level={wod.intensity} size={10} />
+          </View>
+          <Text style={styles.planTitle}>{p.title}</Text>
+          <Text style={styles.planMeta}>{wod.format}</Text>
+        </View>
+        <PressableScale
+          testID={`wod-start-${p.id}`}
+          style={[styles.startBtn, { backgroundColor: colors.warning }]}
+          onPress={onStart}
+        >
+          <Ionicons name="play" size={13} color="#fff" />
+          <Text style={styles.startBtnText}>Lancer</Text>
+        </PressableScale>
+      </PressableScale>
+    </SwipeableRow>
   );
 }
 
@@ -1414,4 +1683,25 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   startBtnText: { color: "#fff", fontWeight: "800", fontSize: 12 },
+  randomWodBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: spacing.sm,
+    paddingVertical: 12,
+    borderRadius: radius.pill,
+    backgroundColor: colors.warning,
+    marginBottom: spacing.sm,
+  },
+  randomWodBtnText: { color: "#fff", fontWeight: "800", fontSize: 14 },
+  randomIntensityRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 14,
+    paddingHorizontal: spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  randomIntensityText: { color: colors.onSurface, fontWeight: "700", fontSize: 13 },
 });

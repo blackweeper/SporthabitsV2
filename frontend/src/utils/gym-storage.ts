@@ -39,6 +39,22 @@ export type Exercise = {
 /** category: 'workout' or 'stretch' — enables re-using the whole program engine for stretching programs. */
 export type PlanCategory = 'workout' | 'stretch';
 
+/** Marks a `Plan` as belonging to the curated IronFlow WOD library
+ * (`src/data/wod-library.ts`) rather than a user-created ad-hoc session —
+ * lets `training.tsx` split "Séances" into a "WOD" sub-tab (sortable/
+ * filterable by `intensity`) vs. "Mes séances" (everything without this
+ * field). `intensity` is a raw integer, not normalized to a fixed range —
+ * the Home WODs source itself goes up to 4. `intensitySource` distinguishes
+ * values actually authored in the source PDF from ones IronFlow estimated
+ * (the Hyrox source has no intensity rating at all). */
+export type WodSource = {
+  collection: 'home' | 'hyrox';
+  number: number;
+  intensity: number;
+  intensitySource: 'authored' | 'estimated';
+  format: string;
+};
+
 export type Plan = {
   id: string;
   title: string;
@@ -51,6 +67,7 @@ export type Plan = {
     dayIndex: number;
     sessionIndex: number;
   };
+  wodSource?: WodSource | null;
 };
 
 export type SetLog = {
@@ -716,6 +733,29 @@ export async function savePlan(plan: Plan): Promise<void> {
   if (idx >= 0) plans[idx] = plan;
   else plans.unshift(plan);
   await AsyncStorage.setItem(PLANS_KEY, JSON.stringify(plans));
+}
+
+/** Appends plans to storage whose id isn't already present, for bulk seeding
+ * (e.g. the WOD library). Reads/writes the raw storage list directly rather
+ * than going through `savePlan` in a loop — `savePlan` rebuilds the list from
+ * `getPlans()`, which filters out `programSource` plans, so calling it
+ * repeatedly would silently drop any program-sourced plans already in
+ * storage. Returns the number of plans actually added. */
+export async function addPlansIfAbsent(plans: Plan[]): Promise<number> {
+  const raw = await AsyncStorage.getItem(PLANS_KEY);
+  const list: Plan[] = raw ? JSON.parse(raw) : [];
+  const existingIds = new Set(list.map((p) => p.id));
+  let added = 0;
+  for (const plan of plans) {
+    if (existingIds.has(plan.id)) continue;
+    list.push(plan);
+    existingIds.add(plan.id);
+    added++;
+  }
+  if (added > 0) {
+    await AsyncStorage.setItem(PLANS_KEY, JSON.stringify(list));
+  }
+  return added;
 }
 
 export async function deletePlan(id: string): Promise<void> {

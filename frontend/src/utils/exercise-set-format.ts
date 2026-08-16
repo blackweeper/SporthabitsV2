@@ -3,7 +3,7 @@ import type { Exercise } from "@/src/utils/gym-storage";
 
 /** "4 × 8 · 70kg" / "3 × 30s" / "AMRAP 10 min" / "EMOM 12 min" · repos —
  * shared by every screen that lists a program/plan exercise row
- * (`program/[id].tsx`, `SessionPreviewModal.tsx`, `ProgramDayCardFull.tsx`). */
+ * (`program/[id].tsx`, `ProgramDayCardFull.tsx`). */
 export function formatExerciseDetail(ex: ExerciseTemplate | Exercise): string {
   const parts: string[] = [];
   if (ex.mode === "reps") {

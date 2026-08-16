@@ -44,7 +44,6 @@ import ProgramDayCardFull, {
   PROGRAM_DAY_CARD_FULL_GAP,
   PROGRAM_DAY_CARD_FULL_WIDTH,
 } from "@/src/components/ProgramDayCardFull";
-import SessionPreviewModal from "@/src/components/SessionPreviewModal";
 import { nonRestDaysInRange } from "@/src/utils/program-week-grouping";
 import { formatExerciseDetail } from "@/src/utils/exercise-set-format";
 
@@ -55,11 +54,6 @@ export default function ProgramDetailScreen() {
   const [active, setActive] = useState<ActiveProgram | null>(null);
   const [otherActiveCount, setOtherActiveCount] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [preview, setPreview] = useState<{
-    dayIndex: number;
-    sessionIndex: number;
-    session: ProgramSession;
-  } | null>(null);
   const [records, setRecords] = useState<ExerciseRecord[]>([]);
   const [view, setView] = useState<"week" | "full">("week");
   const [weekOffset, setWeekOffset] = useState(0);
@@ -307,9 +301,6 @@ export default function ProgramDetailScreen() {
                 color={program.color}
                 records={records}
                 onLaunch={launchSession}
-                onPreview={(di, si, s) =>
-                  setPreview({ dayIndex: di, sessionIndex: si, session: s })
-                }
                 plannedDate={
                   active
                     ? plannedDateForDayIndex(active.startedAt, i + 1)
@@ -328,9 +319,6 @@ export default function ProgramDetailScreen() {
             weekOffset={weekOffset}
             onChangeWeekOffset={setWeekOffset}
             onLaunch={launchSession}
-            onPreview={(di, si, s) =>
-              setPreview({ dayIndex: di, sessionIndex: si, session: s })
-            }
           />
         )}
 
@@ -340,19 +328,6 @@ export default function ProgramDetailScreen() {
         </Pressable>
         <View style={{ height: 40 }} />
       </ScrollView>
-
-      <SessionPreviewModal
-        visible={preview !== null}
-        preview={preview}
-        color={program.color}
-        records={records}
-        plannedDate={
-          preview && active
-            ? plannedDateForDayIndex(active.startedAt, preview.dayIndex)
-            : null
-        }
-        onClose={() => setPreview(null)}
-      />
       {ConfirmModal}
     </SafeAreaView>
   );
@@ -367,7 +342,6 @@ function ProgramWeekView({
   weekOffset,
   onChangeWeekOffset,
   onLaunch,
-  onPreview,
 }: {
   program: Program;
   active: ActiveProgram | null;
@@ -377,7 +351,6 @@ function ProgramWeekView({
   weekOffset: number;
   onChangeWeekOffset: (o: number) => void;
   onLaunch: (di: number, si: number, s: ProgramSession) => void;
-  onPreview: (di: number, si: number, s: ProgramSession) => void;
 }) {
   const router = useRouter();
   const totalWeeks = Math.ceil(program.durationDays / 7);
@@ -453,7 +426,6 @@ function ProgramWeekView({
                 done={done}
                 doneSessionIndices={doneSessionIndices}
                 onLaunch={(si, s) => onLaunch(dayIndex, si, s)}
-                onPreview={(si, s) => onPreview(dayIndex, si, s)}
                 onPressExercise={(name) =>
                   router.push(`/exercise-detail/${encodeURIComponent(name)}`)
                 }
@@ -474,7 +446,6 @@ function ProgramDayCard({
   color,
   records,
   onLaunch,
-  onPreview,
   plannedDate,
 }: {
   dayIndex: number;
@@ -484,7 +455,6 @@ function ProgramDayCard({
   color: string;
   records: ExerciseRecord[];
   onLaunch: (di: number, si: number, s: ProgramSession) => void;
-  onPreview: (di: number, si: number, s: ProgramSession) => void;
   plannedDate: Date | null;
 }) {
   const doneOf = (si: number) =>
@@ -654,13 +624,16 @@ function ProgramDayCard({
             </View>
           );
         }
-        // Other days: preview only, tap opens read-only preview (no launch)
+        // Other days: même bouton de lancement qu'aujourd'hui, dans une
+        // rangée compacte (pas de liste d'exercices dépliée) — indispensable
+        // pour rester lisible sur un programme de plusieurs dizaines de
+        // jours, tout en gardant "toutes les séances" réellement lançables.
         return (
           <Pressable
             key={si}
             testID={`day-${dayIndex}-session-${si}`}
             style={[styles.sessRow, done && styles.sessRowDone]}
-            onPress={() => onPreview(dayIndex, si, s)}
+            onPress={() => onLaunch(dayIndex, si, s)}
           >
             <View style={styles.sessLeft}>
               {s.label ? (
@@ -675,19 +648,19 @@ function ProgramDayCard({
                   <Text style={styles.sessTitle} numberOfLines={1}>
                     {s.title}
                   </Text>
-                  {done ? (
-                    <Ionicons
-                      name="checkmark-circle"
-                      size={20}
-                      color={colors.success}
-                    />
-                  ) : (
-                    <Ionicons
-                      name="chevron-forward"
-                      size={20}
-                      color={colors.onSurfaceTertiary}
-                    />
-                  )}
+                  <View style={styles.sessLaunchTag}>
+                    {done && (
+                      <Ionicons
+                        name="checkmark-circle"
+                        size={14}
+                        color={colors.success}
+                      />
+                    )}
+                    <Ionicons name="play" size={12} color={color} />
+                    <Text style={[styles.sessLaunchTagText, { color }]}>
+                      {done ? "REFAIRE" : "LANCER"}
+                    </Text>
+                  </View>
                 </View>
                 <View style={styles.sessMetaRow}>
                   <View style={styles.metaPill}>
@@ -885,6 +858,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
+  },
+  sessLaunchTag: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+  },
+  sessLaunchTagText: {
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 0.4,
   },
   sessMetaRow: {
     flexDirection: "row",

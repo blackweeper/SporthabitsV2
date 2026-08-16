@@ -24,10 +24,16 @@ export const PROGRAM_DAY_CARD_FULL_GAP = 12;
  *
  * Un jour peut contenir plusieurs séances indépendantes (ex. "Force" +
  * "WOD" pour The Comeback) — chacune reçoit son propre bouton de
- * lancement/aperçu (onLaunch/onPreview reçoivent l'index + la séance
- * concernée) plutôt qu'un bouton unique qui ne lançait jamais que la
- * première séance du jour, empêchant les séances suivantes (ex. le WOD
- * AMRAP) d'être jouables depuis cette vue.
+ * lancement (onLaunch reçoit l'index + la séance concernée) plutôt qu'un
+ * bouton unique qui ne lançait jamais que la première séance du jour,
+ * empêchant les séances suivantes (ex. le WOD AMRAP) d'être jouables
+ * depuis cette vue.
+ *
+ * Chaque jour (pas seulement "aujourd'hui") affiche le bouton de
+ * lancement — un programme n'est qu'un modèle, rien n'empêche de lancer
+ * la séance d'un autre jour à la demande (`findOrCreateProgramPlan` est
+ * déjà agnostique du jour). Seul le style ("AUJOURD'HUI", bordure teintée)
+ * distingue encore visuellement le jour courant.
  */
 export default function ProgramDayCardFull({
   dayIndex,
@@ -39,7 +45,6 @@ export default function ProgramDayCardFull({
   done,
   doneSessionIndices,
   onLaunch,
-  onPreview,
   onPressExercise,
 }: {
   dayIndex: number;
@@ -51,7 +56,6 @@ export default function ProgramDayCardFull({
   done: boolean;
   doneSessionIndices?: Set<number>;
   onLaunch: (sessionIndex: number, session: ProgramSession) => void;
-  onPreview: (sessionIndex: number, session: ProgramSession) => void;
   onPressExercise: (name: string) => void;
 }) {
   if (day.rest) {
@@ -108,9 +112,6 @@ export default function ProgramDayCardFull({
           )}
         </View>
         {isToday && <Text style={[styles.todayTag, { color }]}>AUJOURD&apos;HUI</Text>}
-        {!isToday && (
-          <Ionicons name="chevron-forward" size={16} color={colors.onSurfaceTertiary} />
-        )}
       </View>
 
       <View style={styles.metaRow}>
@@ -169,22 +170,20 @@ export default function ProgramDayCardFull({
                 ))}
               </View>
 
-              {isToday && (
-                <PressableScale
-                  testID={`week-day-full-launch-${dayIndex}-${si}`}
-                  style={[styles.launchBtn, { backgroundColor: color }]}
-                  onPress={() => onLaunch(si, s)}
-                >
-                  <Ionicons name="play" size={14} color="#fff" />
-                  <Text style={styles.launchBtnText}>
-                    {multiSession
-                      ? `${sDone ? "REFAIRE" : "LANCER"} · ${(s.label ?? s.title ?? `SÉANCE ${si + 1}`).toUpperCase()}`
-                      : sDone
-                        ? "REFAIRE LA SÉANCE"
-                        : "LANCER LA SÉANCE"}
-                  </Text>
-                </PressableScale>
-              )}
+              <PressableScale
+                testID={`week-day-full-launch-${dayIndex}-${si}`}
+                style={[styles.launchBtn, { backgroundColor: color }]}
+                onPress={() => onLaunch(si, s)}
+              >
+                <Ionicons name="play" size={14} color="#fff" />
+                <Text style={styles.launchBtnText}>
+                  {multiSession
+                    ? `${sDone ? "REFAIRE" : "LANCER"} · ${(s.label ?? s.title ?? `SÉANCE ${si + 1}`).toUpperCase()}`
+                    : sDone
+                      ? "REFAIRE LA SÉANCE"
+                      : "LANCER LA SÉANCE"}
+                </Text>
+              </PressableScale>
             </View>
           );
         })}
@@ -192,19 +191,7 @@ export default function ProgramDayCardFull({
     </View>
   );
 
-  if (isToday) return body;
-
-  return (
-    <PressableScale
-      testID={`week-day-full-preview-${dayIndex}`}
-      onPress={() => {
-        const first = day.sessions[0];
-        if (first) onPreview(0, first);
-      }}
-    >
-      {body}
-    </PressableScale>
-  );
+  return body;
 }
 
 const styles = StyleSheet.create({
