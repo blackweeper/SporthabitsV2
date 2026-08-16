@@ -96,6 +96,7 @@ export default function WorkoutScreen() {
           targetWeight: ex.weight,
           targetRestSeconds: ex.rest_seconds,
           targetDurationSeconds: ex.duration_seconds,
+          notes: ex.notes,
           sets: Array.from({ length: ex.sets }, () => ({
             reps: ex.mode === "amrap" ? "0" : ex.reps,
             weight: ex.weight ?? "",

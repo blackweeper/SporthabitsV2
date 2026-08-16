@@ -187972,5 +187972,89 @@
       "templateVersion": 3,
       "updatedAt": "2026-08-02T16:51:29.277Z"
     }
+  },
+  {
+    "id": "if_0101",
+    "source": "system",
+    "nameFr": "Marche en extérieur",
+    "nameEn": "Outdoor Walk",
+    "category": "cardio",
+    "primaryMuscle": "quads",
+    "secondaryMuscles": [
+      "hamstrings",
+      "calves"
+    ],
+    "equipment": null,
+    "description": "Marche à allure modérée en extérieur, sans machine — utilisée comme séance cardio Zone 2 à faible impact.",
+    "musclesWorkedNote": null,
+    "instructions": null,
+    "tips": null,
+    "commonMistakes": null,
+    "difficulty": "beginner",
+    "media": null,
+    "movementPattern": "locomotion",
+    "parentExerciseId": null,
+    "variantLabel": null,
+    "aliases": [
+      "Marche extérieure",
+      "Marche dehors",
+      "Outdoor Walk"
+    ],
+    "exerciseTier": null,
+    "collections": null,
+    "favoritedAt": null,
+    "createdAt": "2026-08-16T10:15:58.790Z",
+    "updatedAt": "2026-08-16T10:15:58.790Z",
+    "raw": null,
+    "enrichment": {
+      "translations": {
+        "fr": {
+          "name": null,
+          "description": null,
+          "instructions": null,
+          "executionTips": null,
+          "commonMistakes": null,
+          "breathingTips": null,
+          "precautions": null,
+          "rationale": null,
+          "warmupSuggestion": null,
+          "mistakeCorrections": null
+        }
+      },
+      "verifiedPrimaryMuscle": null,
+      "verifiedSecondaryMuscles": null,
+      "stabilizerMuscles": null,
+      "alternativeExerciseIds": null,
+      "exerciseType": null,
+      "tags": null,
+      "qualityScore": null,
+      "reviewStatus": null,
+      "verifiedBy": "human",
+      "difficulty": null,
+      "technicalLevel": null,
+      "levelGuidance": null,
+      "muscleActivation": null,
+      "equipmentLevel": null,
+      "trainingGoals": null,
+      "fatigueLevel": null,
+      "restTimeByGoal": null,
+      "alternativeEquipment": null,
+      "disciplines": null,
+      "movementPatterns": null,
+      "progressionExercises": null,
+      "regressionExercises": null,
+      "coachNotes": null,
+      "coachScores": {
+        "fatigueNervous": 4,
+        "fatigueMuscular": 5,
+        "technicalDifficulty": 2,
+        "goalValue": {
+          "endurance": 8,
+          "conditioning": 6
+        }
+      },
+      "templateVersion": 3,
+      "updatedAt": "2026-08-16T10:15:58.792Z"
+    }
   }
 ]

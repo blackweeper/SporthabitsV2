@@ -16,6 +16,24 @@ import { Program } from './programs';
  *   donc chaque jour d'entraînement du combiné réunit les 4 séances
  *   d'origine (une par zone, indépendamment lançable) sans aucune
  *   retranscription — mêmes exercices, mêmes `exerciseRecordId`.
+ * - "The Comeback" (`the-comeback`) — programme hybride 8 semaines (56 jours)
+ *   cardio machines + force + WOD Hyrox/CrossFit, transcrit depuis un
+ *   programme texte fourni par l'utilisateur. Tous les mouvements résolus
+ *   vers un `exerciseRecordId` réel (100%, essentiellement la bibliothèque
+ *   `sys_*` déjà curée pour l'entraînement hybride). Semaine 8 ("Tests de
+ *   Force & Hyrox" : 3 tests 5RM + un chipper Hyrox chronométré à 8 stations)
+ *   ajoutée après coup, communiquée séparément par l'utilisateur. Les
+ *   circuits multi-exercices (Triathlon/EMOM/Assault&Climb/3x10 Express/WOD
+ *   Tours/Mixeur) sont encodés en vrai round-robin (une entrée par
+ *   passage, `sets:1`) plutôt qu'en `sets:N` sur un seul exercice, pour que
+ *   le moteur de séance alterne réellement les mouvements au lieu de
+ *   répéter le même N fois de suite avant de passer au suivant.
+ * - "The Comeback" (`the-comeback-cardio`, catégorie cardio) — "Le Moteur",
+ *   le volet cardio matinal du programme ci-dessus décliné en programme
+ *   cardio autonome sur 8 semaines complètes (Semaine 8 "des records" cette
+ *   fois fournie). Un nouvel exercice a dû être créé (`if_0101`, "Marche en
+ *   extérieur") — aucun équivalent existant pour une marche extérieure sans
+ *   machine (la bibliothèque n'avait que des variantes tapis de course).
  */
 export const STARTER_PROGRAMS: Program[] = [
   {
@@ -10119,5 +10137,20694 @@ export const STARTER_PROGRAMS: Program[] = [
     ],
     "isCustom": true,
     "category": "stretch"
+  },
+  {
+    "id": "the-comeback",
+    "title": "The Comeback",
+    "description": "Programme hybride 8 semaines (cardio machines, force, WOD Hyrox/CrossFit) en 5 phases : Réveil métabolique, Intensification, Pic de volume, Affûtage, Tests de Force & Hyrox. Règle d'or : contrôle la phase de descente sur les mouvements de musculation pour protéger tes articulations, et adapte immédiatement en cas de gêne.",
+    "durationDays": 56,
+    "level": "intermediaire",
+    "goal": "Force & conditionnement",
+    "goalTag": "forme_generale",
+    "coverEmoji": "🔥",
+    "color": "#E53935",
+    "days": [
+      {
+        "rest": false,
+        "title": "Semaine 1 — Lundi",
+        "sessions": [
+          {
+            "label": "Matin — Triathlon",
+            "title": "Matin — Triathlon",
+            "exercises": [
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": "3 tours continus : 5 min BikeErg → 5 min Rameur → 5 min SkiErg, sans pause. Change de machine à chaque bip.",
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — Force",
+            "title": "Après-midi — Force",
+            "exercises": [
+              {
+                "name": "Squat avec barre",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "8",
+                "weight": "40kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_squat_avec_barre",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Fentes arrière aux haltères",
+                "mode": "reps",
+                "sets": 3,
+                "reps": "10/jambe",
+                "weight": "10kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_fentes_arriere_aux_halteres",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — WOD Hyrox (AMRAP 15)",
+            "title": "Après-midi — WOD Hyrox (AMRAP 15)",
+            "exercises": [
+              {
+                "name": "AMRAP 15 min : 250m Rameur → 15 Wall Balls (5kg) → 10 Box Step-ups",
+                "mode": "amrap",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 900,
+                "notes": "AMRAP 15 min — enchaîne 250m Rameur → 15 Wall Balls (5kg) → 10 Box Step-ups en boucle jusqu'à la fin du temps. Appuie sur + à chaque tour complet.",
+                "exerciseRecordId": null,
+                "matchConfidence": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 1 — Mardi",
+        "sessions": [
+          {
+            "label": "Matin — EMOM 40",
+            "title": "Matin — EMOM 40",
+            "exercises": [
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 40 min — enchaîne Rameur → BikeErg → SkiErg → Marche inclinée, 1 min chacun (10 cycles). Le minuteur change d'exercice automatiquement.",
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — Force",
+            "title": "Après-midi — Force",
+            "exercises": [
+              {
+                "name": "Développé couché",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "8",
+                "weight": "40kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_developpe_couche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tirage poitrine à la poulie",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "10",
+                "weight": "35kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tirage_poitrine_a_la_poulie",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — WOD CrossFit (4 tours)",
+            "title": "Après-midi — WOD CrossFit (4 tours)",
+            "exercises": [
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "15 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "4 tours : Assault Bike → Pompes → Tractions élastique, à la suite. Repos 60s après chaque tour complet.",
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "10",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "5",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "15 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "10",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "5",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "15 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "10",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "5",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "15 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "10",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "5",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 1 — Mercredi",
+        "sessions": [
+          {
+            "label": "Matin — Relais",
+            "title": "Matin — Relais",
+            "exercises": [
+              {
+                "name": "Relais Hyrox : 1000m BikeErg → 500m Rameur → 500m SkiErg",
+                "mode": "amrap",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 2700,
+                "notes": "AMRAP tranquille — enchaîne 1000m BikeErg → 500m Rameur → 500m SkiErg en boucle pendant 45 min, allure facile. Appuie sur + à chaque boucle complète.",
+                "exerciseRecordId": null,
+                "matchConfidence": null
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — WOD Mixeur (5 tours)",
+            "title": "Après-midi — WOD Mixeur (5 tours)",
+            "exercises": [
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "5 tours : Course → Rameur → BikeErg, à la suite. Repos 90s après chaque tour complet.",
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1000m",
+                "weight": null,
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1000m",
+                "weight": null,
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1000m",
+                "weight": null,
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1000m",
+                "weight": null,
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1000m",
+                "weight": null,
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 1 — Jeudi",
+        "sessions": [
+          {
+            "label": "Matin — Assault & Climb",
+            "title": "Matin — Assault & Climb",
+            "exercises": [
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": "4 tours : 5 min Assault Bike souple → 5 min Marche inclinée 10%, sans pause.",
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — Force",
+            "title": "Après-midi — Force",
+            "exercises": [
+              {
+                "name": "Soulevé de terre",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "6",
+                "weight": "50kg",
+                "rest_seconds": 120,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_souleve_de_terre",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Développé militaire aux haltères",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "8",
+                "weight": "12.5kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_developpe_militaire_aux_halteres",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — Renfo EMOM 12",
+            "title": "Après-midi — Renfo EMOM 12",
+            "exercises": [
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 12 min — minute 1/3 : 12 SDT jambes tendues @15kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 15 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 40s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 12 min — minute 1/3 : 12 SDT jambes tendues @15kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 15 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 40s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 12 min — minute 1/3 : 12 SDT jambes tendues @15kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 15 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 40s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 12 min — minute 1/3 : 12 SDT jambes tendues @15kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 15 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 40s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 1 — Vendredi",
+        "sessions": [
+          {
+            "label": "Matin — 3x10 Express",
+            "title": "Matin — 3x10 Express",
+            "exercises": [
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Bloc 1 (10 min) : alterne 1 min SkiErg / 1 min BikeErg — changement automatique chaque minute.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Bloc 2 (10 min) : alterne 1 min Rameur / 1 min Marche.",
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Bloc 3 (10 min) : alterne 1 min Assault Bike / 1 min BikeErg.",
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — WOD Chipper",
+            "title": "Après-midi — WOD Chipper",
+            "exercises": [
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1km",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "Chipper, pour le temps — réalise chaque mouvement dans l'ordre, une seule fois.",
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Wall Balls",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "50",
+                "weight": "5kg",
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_wall_balls",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "40 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Dumbbell Snatches alternés",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "30",
+                "weight": "15kg",
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_dumbbell_snatches_alternes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "20",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "10 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": true,
+        "title": "Récupération active (45 min marche) + Mobilité",
+        "sessions": []
+      },
+      {
+        "rest": true,
+        "title": "Récupération active (45 min marche) + Mobilité",
+        "sessions": []
+      },
+      {
+        "rest": false,
+        "title": "Semaine 2 — Lundi",
+        "sessions": [
+          {
+            "label": "Matin — Triathlon",
+            "title": "Matin — Triathlon",
+            "exercises": [
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": "3 tours continus : 5 min BikeErg → 5 min Rameur → 5 min SkiErg, sans pause. Change de machine à chaque bip.",
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — Force",
+            "title": "Après-midi — Force",
+            "exercises": [
+              {
+                "name": "Squat avec barre",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "8",
+                "weight": "42.5kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_squat_avec_barre",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Fentes arrière aux haltères",
+                "mode": "reps",
+                "sets": 3,
+                "reps": "10/jambe",
+                "weight": "12.5kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_fentes_arriere_aux_halteres",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — WOD Hyrox (AMRAP 15)",
+            "title": "Après-midi — WOD Hyrox (AMRAP 15)",
+            "exercises": [
+              {
+                "name": "AMRAP 15 min : 300m Rameur → 15 Wall Balls (5kg) → 12 Box Step-ups",
+                "mode": "amrap",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 900,
+                "notes": "AMRAP 15 min — enchaîne 300m Rameur → 15 Wall Balls (5kg) → 12 Box Step-ups en boucle jusqu'à la fin du temps. Appuie sur + à chaque tour complet.",
+                "exerciseRecordId": null,
+                "matchConfidence": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 2 — Mardi",
+        "sessions": [
+          {
+            "label": "Matin — EMOM 40",
+            "title": "Matin — EMOM 40",
+            "exercises": [
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 40 min — enchaîne Rameur → BikeErg → SkiErg → Marche inclinée, 1 min chacun (10 cycles). Le minuteur change d'exercice automatiquement.",
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — Force",
+            "title": "Après-midi — Force",
+            "exercises": [
+              {
+                "name": "Développé couché",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "8",
+                "weight": "42.5kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_developpe_couche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tirage poitrine à la poulie",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "10",
+                "weight": "40kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tirage_poitrine_a_la_poulie",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — WOD CrossFit (4 tours)",
+            "title": "Après-midi — WOD CrossFit (4 tours)",
+            "exercises": [
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "18 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "4 tours : Assault Bike → Pompes → Tractions élastique, à la suite. Repos 60s après chaque tour complet.",
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "12",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "6",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "18 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "12",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "6",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "18 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "12",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "6",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "18 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "12",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "6",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 2 — Mercredi",
+        "sessions": [
+          {
+            "label": "Matin — Relais",
+            "title": "Matin — Relais",
+            "exercises": [
+              {
+                "name": "Relais Hyrox : 1000m BikeErg → 500m Rameur → 500m SkiErg",
+                "mode": "amrap",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 2700,
+                "notes": "AMRAP tranquille — enchaîne 1000m BikeErg → 500m Rameur → 500m SkiErg en boucle pendant 45 min, allure facile. Appuie sur + à chaque boucle complète.",
+                "exerciseRecordId": null,
+                "matchConfidence": null
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — WOD Mixeur (5 tours)",
+            "title": "Après-midi — WOD Mixeur (5 tours)",
+            "exercises": [
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "5 tours : Course → Rameur → BikeErg, à la suite. Repos 60s après chaque tour complet.",
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1200m",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1200m",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1200m",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1200m",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1200m",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 2 — Jeudi",
+        "sessions": [
+          {
+            "label": "Matin — Assault & Climb",
+            "title": "Matin — Assault & Climb",
+            "exercises": [
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": "4 tours : 5 min Assault Bike souple → 5 min Marche inclinée 10%, sans pause.",
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — Force",
+            "title": "Après-midi — Force",
+            "exercises": [
+              {
+                "name": "Soulevé de terre",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "6",
+                "weight": "55kg",
+                "rest_seconds": 120,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_souleve_de_terre",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Développé militaire aux haltères",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "8",
+                "weight": "15kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_developpe_militaire_aux_halteres",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — Renfo EMOM 12",
+            "title": "Après-midi — Renfo EMOM 12",
+            "exercises": [
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 12 min — minute 1/3 : 14 SDT jambes tendues @15kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 18 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 45s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 12 min — minute 1/3 : 14 SDT jambes tendues @15kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 18 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 45s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 12 min — minute 1/3 : 14 SDT jambes tendues @15kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 18 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 45s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 12 min — minute 1/3 : 14 SDT jambes tendues @15kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 18 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 45s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 2 — Vendredi",
+        "sessions": [
+          {
+            "label": "Matin — 3x10 Express",
+            "title": "Matin — 3x10 Express",
+            "exercises": [
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Bloc 1 (10 min) : alterne 1 min SkiErg / 1 min BikeErg — changement automatique chaque minute.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Bloc 2 (10 min) : alterne 1 min Rameur / 1 min Marche.",
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Bloc 3 (10 min) : alterne 1 min Assault Bike / 1 min BikeErg.",
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — WOD Chipper",
+            "title": "Après-midi — WOD Chipper",
+            "exercises": [
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1.2km",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "Chipper, pour le temps — réalise chaque mouvement dans l'ordre, une seule fois.",
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Wall Balls",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "50",
+                "weight": "5kg",
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_wall_balls",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "45 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Dumbbell Snatches alternés",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "34",
+                "weight": "15kg",
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_dumbbell_snatches_alternes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "24",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "12 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": true,
+        "title": "Mobilité",
+        "sessions": []
+      },
+      {
+        "rest": true,
+        "title": "Mobilité",
+        "sessions": []
+      },
+      {
+        "rest": false,
+        "title": "Semaine 3 — Lundi",
+        "sessions": [
+          {
+            "label": "Matin — Triathlon",
+            "title": "Matin — Triathlon",
+            "exercises": [
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": "3 tours continus : 5 min BikeErg → 5 min Rameur → 5 min SkiErg, sans pause. Change de machine à chaque bip.",
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — Force",
+            "title": "Après-midi — Force",
+            "exercises": [
+              {
+                "name": "Squat avec barre",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "8",
+                "weight": "45kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_squat_avec_barre",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Fentes arrière aux haltères",
+                "mode": "reps",
+                "sets": 3,
+                "reps": "10/jambe",
+                "weight": "12.5kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_fentes_arriere_aux_halteres",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — WOD Hyrox (AMRAP 15)",
+            "title": "Après-midi — WOD Hyrox (AMRAP 15)",
+            "exercises": [
+              {
+                "name": "AMRAP 15 min : 350m Rameur → 15 Wall Balls (5kg) → 14 Box Step-ups",
+                "mode": "amrap",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 900,
+                "notes": "AMRAP 15 min — enchaîne 350m Rameur → 15 Wall Balls (5kg) → 14 Box Step-ups en boucle jusqu'à la fin du temps. Appuie sur + à chaque tour complet.",
+                "exerciseRecordId": null,
+                "matchConfidence": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 3 — Mardi",
+        "sessions": [
+          {
+            "label": "Matin — EMOM 40",
+            "title": "Matin — EMOM 40",
+            "exercises": [
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 40 min — enchaîne Rameur → BikeErg → SkiErg → Marche inclinée, 1 min chacun (10 cycles). Le minuteur change d'exercice automatiquement.",
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — Force",
+            "title": "Après-midi — Force",
+            "exercises": [
+              {
+                "name": "Développé couché",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "8",
+                "weight": "45kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_developpe_couche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tirage poitrine à la poulie",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "10",
+                "weight": "40kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tirage_poitrine_a_la_poulie",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — WOD CrossFit (4 tours)",
+            "title": "Après-midi — WOD CrossFit (4 tours)",
+            "exercises": [
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "20 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "4 tours : Assault Bike → Pompes → Tractions élastique, à la suite. Repos 60s après chaque tour complet.",
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "12",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "6",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "20 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "12",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "6",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "20 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "12",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "6",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "20 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "12",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "6",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 3 — Mercredi",
+        "sessions": [
+          {
+            "label": "Matin — Relais",
+            "title": "Matin — Relais",
+            "exercises": [
+              {
+                "name": "Relais Hyrox : 1000m BikeErg → 500m Rameur → 500m SkiErg",
+                "mode": "amrap",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 2700,
+                "notes": "AMRAP tranquille — enchaîne 1000m BikeErg → 500m Rameur → 500m SkiErg en boucle pendant 45 min, allure facile. Appuie sur + à chaque boucle complète.",
+                "exerciseRecordId": null,
+                "matchConfidence": null
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — WOD Mixeur (5 tours)",
+            "title": "Après-midi — WOD Mixeur (5 tours)",
+            "exercises": [
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "5 tours : Course → Rameur → BikeErg, à la suite. Repos 60s après chaque tour complet.",
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "600m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1200m",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "600m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1200m",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "600m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1200m",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "600m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1200m",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "600m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1200m",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 3 — Jeudi",
+        "sessions": [
+          {
+            "label": "Matin — Assault & Climb",
+            "title": "Matin — Assault & Climb",
+            "exercises": [
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": "4 tours : 5 min Assault Bike souple → 5 min Marche inclinée 10%, sans pause.",
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — Force",
+            "title": "Après-midi — Force",
+            "exercises": [
+              {
+                "name": "Soulevé de terre",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "6",
+                "weight": "60kg",
+                "rest_seconds": 120,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_souleve_de_terre",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Développé militaire aux haltères",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "8",
+                "weight": "15kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_developpe_militaire_aux_halteres",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — Renfo EMOM 12",
+            "title": "Après-midi — Renfo EMOM 12",
+            "exercises": [
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 12 min — minute 1/3 : 14 SDT jambes tendues @15kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 18 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 45s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 12 min — minute 1/3 : 14 SDT jambes tendues @15kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 18 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 45s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 12 min — minute 1/3 : 14 SDT jambes tendues @15kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 18 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 45s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 12 min — minute 1/3 : 14 SDT jambes tendues @15kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 18 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 45s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 3 — Vendredi",
+        "sessions": [
+          {
+            "label": "Matin — 3x10 Express",
+            "title": "Matin — 3x10 Express",
+            "exercises": [
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Bloc 1 (10 min) : alterne 1 min SkiErg / 1 min BikeErg — changement automatique chaque minute.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Bloc 2 (10 min) : alterne 1 min Rameur / 1 min Marche.",
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Bloc 3 (10 min) : alterne 1 min Assault Bike / 1 min BikeErg.",
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — WOD Chipper",
+            "title": "Après-midi — WOD Chipper",
+            "exercises": [
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1.2km",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "Chipper, pour le temps — réalise chaque mouvement dans l'ordre, une seule fois.",
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Wall Balls",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "50",
+                "weight": "5kg",
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_wall_balls",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "50 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Dumbbell Snatches alternés",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "34",
+                "weight": "15kg",
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_dumbbell_snatches_alternes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "24",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "15 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": true,
+        "title": "Mobilité",
+        "sessions": []
+      },
+      {
+        "rest": true,
+        "title": "Mobilité",
+        "sessions": []
+      },
+      {
+        "rest": false,
+        "title": "Semaine 4 — Lundi",
+        "sessions": [
+          {
+            "label": "Matin — Triathlon",
+            "title": "Matin — Triathlon",
+            "exercises": [
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": "3 tours continus : 5 min BikeErg → 5 min Rameur → 5 min SkiErg, sans pause. Change de machine à chaque bip.",
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — Force",
+            "title": "Après-midi — Force",
+            "exercises": [
+              {
+                "name": "Squat avec barre",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "8",
+                "weight": "47.5kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_squat_avec_barre",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Fentes arrière aux haltères",
+                "mode": "reps",
+                "sets": 3,
+                "reps": "10/jambe",
+                "weight": "15kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_fentes_arriere_aux_halteres",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — WOD Hyrox (AMRAP 15)",
+            "title": "Après-midi — WOD Hyrox (AMRAP 15)",
+            "exercises": [
+              {
+                "name": "AMRAP 15 min : 350m Rameur → 15 Wall Balls (5kg) → 14 Box Step-ups",
+                "mode": "amrap",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 900,
+                "notes": "Même AMRAP que Semaine 3 — essaie de faire 1 tour de plus.",
+                "exerciseRecordId": null,
+                "matchConfidence": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 4 — Mardi",
+        "sessions": [
+          {
+            "label": "Matin — EMOM 40",
+            "title": "Matin — EMOM 40",
+            "exercises": [
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 40 min — enchaîne Rameur → BikeErg → SkiErg → Marche inclinée, 1 min chacun (10 cycles). Le minuteur change d'exercice automatiquement.",
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — Force",
+            "title": "Après-midi — Force",
+            "exercises": [
+              {
+                "name": "Développé couché",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "8",
+                "weight": "47.5kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_developpe_couche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tirage poitrine à la poulie",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "10",
+                "weight": "45kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tirage_poitrine_a_la_poulie",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — WOD CrossFit (4 tours)",
+            "title": "Après-midi — WOD CrossFit (4 tours)",
+            "exercises": [
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "20 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "4 tours : Assault Bike → Pompes → Tractions élastique, à la suite. Repos 60s après chaque tour complet.",
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "14",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "7",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "20 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "14",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "7",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "20 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "14",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "7",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "20 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "14",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "7",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 4 — Mercredi",
+        "sessions": [
+          {
+            "label": "Matin — Relais",
+            "title": "Matin — Relais",
+            "exercises": [
+              {
+                "name": "Relais Hyrox : 1000m BikeErg → 500m Rameur → 500m SkiErg",
+                "mode": "amrap",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 2700,
+                "notes": "AMRAP tranquille — enchaîne 1000m BikeErg → 500m Rameur → 500m SkiErg en boucle pendant 45 min, allure facile. Appuie sur + à chaque boucle complète.",
+                "exerciseRecordId": null,
+                "matchConfidence": null
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — WOD Mixeur (5 tours)",
+            "title": "Après-midi — WOD Mixeur (5 tours)",
+            "exercises": [
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "5 tours : Course → Rameur → BikeErg, à la suite. Repos 60s après chaque tour complet.",
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "600m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1400m",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "600m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1400m",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "600m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1400m",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "600m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1400m",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "600m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1400m",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 4 — Jeudi",
+        "sessions": [
+          {
+            "label": "Matin — Assault & Climb",
+            "title": "Matin — Assault & Climb",
+            "exercises": [
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": "4 tours : 5 min Assault Bike souple → 5 min Marche inclinée 10%, sans pause.",
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — Force",
+            "title": "Après-midi — Force",
+            "exercises": [
+              {
+                "name": "Soulevé de terre",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "6",
+                "weight": "65kg",
+                "rest_seconds": 120,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_souleve_de_terre",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Développé militaire aux haltères",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "8",
+                "weight": "17.5kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_developpe_militaire_aux_halteres",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — Renfo EMOM 12",
+            "title": "Après-midi — Renfo EMOM 12",
+            "exercises": [
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 12 min — minute 1/3 : 14 SDT jambes tendues @15kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 20 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 45s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 12 min — minute 1/3 : 14 SDT jambes tendues @15kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 20 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 45s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 12 min — minute 1/3 : 14 SDT jambes tendues @15kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 20 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 45s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 12 min — minute 1/3 : 14 SDT jambes tendues @15kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 20 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 45s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 4 — Vendredi",
+        "sessions": [
+          {
+            "label": "Matin — 3x10 Express",
+            "title": "Matin — 3x10 Express",
+            "exercises": [
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Bloc 1 (10 min) : alterne 1 min SkiErg / 1 min BikeErg — changement automatique chaque minute.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Bloc 2 (10 min) : alterne 1 min Rameur / 1 min Marche.",
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Bloc 3 (10 min) : alterne 1 min Assault Bike / 1 min BikeErg.",
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — WOD Chipper",
+            "title": "Après-midi — WOD Chipper",
+            "exercises": [
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1.4km",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "Chipper, pour le temps — réalise chaque mouvement dans l'ordre, une seule fois.",
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Wall Balls",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "50",
+                "weight": "5kg",
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_wall_balls",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "50 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Dumbbell Snatches alternés",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "40",
+                "weight": "15kg",
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_dumbbell_snatches_alternes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "30",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "15 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": true,
+        "title": "Mobilité",
+        "sessions": []
+      },
+      {
+        "rest": true,
+        "title": "Mobilité",
+        "sessions": []
+      },
+      {
+        "rest": false,
+        "title": "Semaine 5 — Lundi",
+        "sessions": [
+          {
+            "label": "Matin — Triathlon",
+            "title": "Matin — Triathlon",
+            "exercises": [
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": "3 tours continus (5 min BikeErg → 5 min Rameur → 5 min SkiErg par tour) — vise ~50 min au total, ajuste l'allure en conséquence.",
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — Force",
+            "title": "Après-midi — Force",
+            "exercises": [
+              {
+                "name": "Squat avec barre",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "8",
+                "weight": "50kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_squat_avec_barre",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Fentes arrière aux haltères",
+                "mode": "reps",
+                "sets": 3,
+                "reps": "10/jambe",
+                "weight": "15kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_fentes_arriere_aux_halteres",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — WOD Hyrox (AMRAP 16)",
+            "title": "Après-midi — WOD Hyrox (AMRAP 16)",
+            "exercises": [
+              {
+                "name": "AMRAP 16 min : 400m Rameur → 15 Wall Balls (5kg) → 16 Box Step-ups",
+                "mode": "amrap",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 960,
+                "notes": "AMRAP 16 min — enchaîne 400m Rameur → 15 Wall Balls (5kg) → 16 Box Step-ups en boucle jusqu'à la fin du temps. Appuie sur + à chaque tour complet.",
+                "exerciseRecordId": null,
+                "matchConfidence": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 5 — Mardi",
+        "sessions": [
+          {
+            "label": "Matin — EMOM 40",
+            "title": "Matin — EMOM 40",
+            "exercises": [
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 40 min — enchaîne Rameur → BikeErg → SkiErg → Marche inclinée, 1 min chacun (10 cycles). Le minuteur change d'exercice automatiquement.",
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — Force",
+            "title": "Après-midi — Force",
+            "exercises": [
+              {
+                "name": "Développé couché",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "8",
+                "weight": "50kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_developpe_couche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tirage poitrine à la poulie",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "10",
+                "weight": "45kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tirage_poitrine_a_la_poulie",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — WOD CrossFit (5 tours)",
+            "title": "Après-midi — WOD CrossFit (5 tours)",
+            "exercises": [
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "15 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "5 tours : Assault Bike → Pompes → Tractions élastique, à la suite. Repos 60s après chaque tour complet.",
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "12",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "6",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "15 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "12",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "6",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "15 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "12",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "6",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "15 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "12",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "6",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "15 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "12",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "6",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 5 — Mercredi",
+        "sessions": [
+          {
+            "label": "Matin — Relais",
+            "title": "Matin — Relais",
+            "exercises": [
+              {
+                "name": "Relais Hyrox : 1000m BikeErg → 500m Rameur → 500m SkiErg",
+                "mode": "amrap",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 3000,
+                "notes": "AMRAP tranquille — enchaîne 1000m BikeErg → 500m Rameur → 500m SkiErg en boucle pendant ~50 min, allure facile. Appuie sur + à chaque boucle complète.",
+                "exerciseRecordId": null,
+                "matchConfidence": null
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — WOD Mixeur (5 tours)",
+            "title": "Après-midi — WOD Mixeur (5 tours)",
+            "exercises": [
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "5 tours : Course → Rameur → BikeErg, à la suite. Repos 45s après chaque tour complet.",
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "600m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1400m",
+                "weight": null,
+                "rest_seconds": 45,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "600m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1400m",
+                "weight": null,
+                "rest_seconds": 45,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "600m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1400m",
+                "weight": null,
+                "rest_seconds": 45,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "600m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1400m",
+                "weight": null,
+                "rest_seconds": 45,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "600m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1400m",
+                "weight": null,
+                "rest_seconds": 45,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 5 — Jeudi",
+        "sessions": [
+          {
+            "label": "Matin — Assault & Climb",
+            "title": "Matin — Assault & Climb",
+            "exercises": [
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": "4 tours : 5 min Assault Bike souple → 5 min Marche inclinée 10% — vise ~45 min au total.",
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — Force",
+            "title": "Après-midi — Force",
+            "exercises": [
+              {
+                "name": "Soulevé de terre",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "6",
+                "weight": "70kg",
+                "rest_seconds": 120,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_souleve_de_terre",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Développé militaire aux haltères",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "8",
+                "weight": "17.5kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_developpe_militaire_aux_halteres",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — Renfo EMOM 15",
+            "title": "Après-midi — Renfo EMOM 15",
+            "exercises": [
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 15 min — minute 1/3 : 15 SDT jambes tendues @15kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 20 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 50s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 15 min — minute 1/3 : 15 SDT jambes tendues @15kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 20 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 50s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 15 min — minute 1/3 : 15 SDT jambes tendues @15kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 20 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 50s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 15 min — minute 1/3 : 15 SDT jambes tendues @15kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 20 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 50s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 15 min — minute 1/3 : 15 SDT jambes tendues @15kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 20 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 50s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 5 — Vendredi",
+        "sessions": [
+          {
+            "label": "Matin — 3x10 Express",
+            "title": "Matin — 3x10 Express",
+            "exercises": [
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Bloc 1 (10 min) : alterne 1 min SkiErg / 1 min BikeErg — changement automatique chaque minute.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Bloc 2 (10 min) : alterne 1 min Rameur / 1 min Marche.",
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Bloc 3 (10 min) : alterne 1 min Assault Bike / 1 min BikeErg.",
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — WOD Chipper",
+            "title": "Après-midi — WOD Chipper",
+            "exercises": [
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1.5km",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "Chipper, pour le temps — réalise chaque mouvement dans l'ordre, une seule fois.",
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Wall Balls",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "60",
+                "weight": "5kg",
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_wall_balls",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "50 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Dumbbell Snatches alternés",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "40",
+                "weight": "20kg",
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_dumbbell_snatches_alternes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "30",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "20 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": true,
+        "title": "Mobilité",
+        "sessions": []
+      },
+      {
+        "rest": true,
+        "title": "Mobilité",
+        "sessions": []
+      },
+      {
+        "rest": false,
+        "title": "Semaine 6 — Lundi",
+        "sessions": [
+          {
+            "label": "Matin — Triathlon",
+            "title": "Matin — Triathlon",
+            "exercises": [
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": "3 tours continus (5 min BikeErg → 5 min Rameur → 5 min SkiErg par tour) — vise ~50 min au total, ajuste l'allure en conséquence.",
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — Force",
+            "title": "Après-midi — Force",
+            "exercises": [
+              {
+                "name": "Squat avec barre",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "8",
+                "weight": "52.5kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_squat_avec_barre",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Fentes arrière aux haltères",
+                "mode": "reps",
+                "sets": 3,
+                "reps": "10/jambe",
+                "weight": "17.5kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_fentes_arriere_aux_halteres",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — WOD Hyrox (AMRAP 16)",
+            "title": "Après-midi — WOD Hyrox (AMRAP 16)",
+            "exercises": [
+              {
+                "name": "AMRAP 16 min : 400m Rameur → 15 Wall Balls (5kg) → 16 Box Step-ups",
+                "mode": "amrap",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 960,
+                "notes": "AMRAP 16 min — enchaîne 400m Rameur → 15 Wall Balls (5kg) → 16 Box Step-ups en boucle jusqu'à la fin du temps. Appuie sur + à chaque tour complet.",
+                "exerciseRecordId": null,
+                "matchConfidence": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 6 — Mardi",
+        "sessions": [
+          {
+            "label": "Matin — EMOM 45",
+            "title": "Matin — EMOM 45",
+            "exercises": [
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 45 min — enchaîne Rameur → BikeErg → SkiErg → Marche inclinée, 1 min chacun (11 cycles). Le minuteur change d'exercice automatiquement.",
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — Force",
+            "title": "Après-midi — Force",
+            "exercises": [
+              {
+                "name": "Développé couché",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "8",
+                "weight": "52.5kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_developpe_couche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tirage poitrine à la poulie",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "10",
+                "weight": "50kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tirage_poitrine_a_la_poulie",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — WOD CrossFit (5 tours)",
+            "title": "Après-midi — WOD CrossFit (5 tours)",
+            "exercises": [
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "15 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "5 tours : Assault Bike → Pompes → Tractions élastique, à la suite. Repos 60s après chaque tour complet.",
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "14",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "7",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "15 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "14",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "7",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "15 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "14",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "7",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "15 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "14",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "7",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "15 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "14",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "7",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 6 — Mercredi",
+        "sessions": [
+          {
+            "label": "Matin — Relais",
+            "title": "Matin — Relais",
+            "exercises": [
+              {
+                "name": "Relais Hyrox : 1000m BikeErg → 500m Rameur → 500m SkiErg",
+                "mode": "amrap",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 3000,
+                "notes": "AMRAP tranquille — enchaîne 1000m BikeErg → 500m Rameur → 500m SkiErg en boucle pendant ~50 min, allure facile. Appuie sur + à chaque boucle complète.",
+                "exerciseRecordId": null,
+                "matchConfidence": null
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — WOD Mixeur (5 tours)",
+            "title": "Après-midi — WOD Mixeur (5 tours)",
+            "exercises": [
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "5 tours : Course → Rameur → BikeErg, à la suite. Repos 45s après chaque tour complet.",
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "700m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1500m",
+                "weight": null,
+                "rest_seconds": 45,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "700m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1500m",
+                "weight": null,
+                "rest_seconds": 45,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "700m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1500m",
+                "weight": null,
+                "rest_seconds": 45,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "700m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1500m",
+                "weight": null,
+                "rest_seconds": 45,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "700m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1500m",
+                "weight": null,
+                "rest_seconds": 45,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 6 — Jeudi",
+        "sessions": [
+          {
+            "label": "Matin — Assault & Climb",
+            "title": "Matin — Assault & Climb",
+            "exercises": [
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": "4 tours : 5 min Assault Bike souple → 5 min Marche inclinée 10% — vise ~45 min au total.",
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — Force",
+            "title": "Après-midi — Force",
+            "exercises": [
+              {
+                "name": "Soulevé de terre",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "6",
+                "weight": "75kg",
+                "rest_seconds": 120,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_souleve_de_terre",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Développé militaire aux haltères",
+                "mode": "reps",
+                "sets": 4,
+                "reps": "8",
+                "weight": "20kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_developpe_militaire_aux_halteres",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — Renfo EMOM 15",
+            "title": "Après-midi — Renfo EMOM 15",
+            "exercises": [
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 15 min — minute 1/3 : 15 SDT jambes tendues @17.5kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 22 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 50s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 15 min — minute 1/3 : 15 SDT jambes tendues @17.5kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 22 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 50s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 15 min — minute 1/3 : 15 SDT jambes tendues @17.5kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 22 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 50s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 15 min — minute 1/3 : 15 SDT jambes tendues @17.5kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 22 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 50s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 15 min — minute 1/3 : 15 SDT jambes tendues @17.5kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 22 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 50s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 6 — Vendredi",
+        "sessions": [
+          {
+            "label": "Matin — 3x10 Express",
+            "title": "Matin — 3x10 Express",
+            "exercises": [
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Bloc 1 (10 min) : alterne 1 min SkiErg / 1 min BikeErg — changement automatique chaque minute.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Bloc 2 (10 min) : alterne 1 min Rameur / 1 min Marche.",
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Bloc 3 (10 min) : alterne 1 min Assault Bike / 1 min BikeErg.",
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — WOD Chipper",
+            "title": "Après-midi — WOD Chipper",
+            "exercises": [
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1.5km",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "Chipper, pour le temps — réalise chaque mouvement dans l'ordre, une seule fois.",
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Wall Balls",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "60",
+                "weight": "5kg",
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_wall_balls",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "60 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Dumbbell Snatches alternés",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "40",
+                "weight": "20kg",
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_dumbbell_snatches_alternes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "35",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "20 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": true,
+        "title": "Sommeil prioritaire",
+        "sessions": []
+      },
+      {
+        "rest": true,
+        "title": "Sommeil prioritaire",
+        "sessions": []
+      },
+      {
+        "rest": false,
+        "title": "Semaine 7 — Lundi",
+        "sessions": [
+          {
+            "label": "Matin — Triathlon",
+            "title": "Matin — Triathlon",
+            "exercises": [
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": "3 tours continus (5 min BikeErg → 5 min Rameur → 5 min SkiErg par tour) — vise ~40 min au total, ajuste l'allure en conséquence.",
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — Force",
+            "title": "Après-midi — Force",
+            "exercises": [
+              {
+                "name": "Squat avec barre",
+                "mode": "reps",
+                "sets": 3,
+                "reps": "8",
+                "weight": "55kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_squat_avec_barre",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Fentes arrière aux haltères",
+                "mode": "reps",
+                "sets": 3,
+                "reps": "8/jambe",
+                "weight": "17.5kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_fentes_arriere_aux_halteres",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — WOD Hyrox (AMRAP 12)",
+            "title": "Après-midi — WOD Hyrox (AMRAP 12)",
+            "exercises": [
+              {
+                "name": "AMRAP 12 min : 250m Rameur → 15 Wall Balls (5kg) → 10 Box Step-ups",
+                "mode": "amrap",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 720,
+                "notes": "AMRAP 12 min rapide — enchaîne ces 3 mouvements en boucle à allure soutenue.",
+                "exerciseRecordId": null,
+                "matchConfidence": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 7 — Mardi",
+        "sessions": [
+          {
+            "label": "Matin — EMOM 35",
+            "title": "Matin — EMOM 35",
+            "exercises": [
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 35 min — enchaîne Rameur → BikeErg → SkiErg → Marche inclinée, 1 min chacun (9 cycles). Le minuteur change d'exercice automatiquement.",
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — Force",
+            "title": "Après-midi — Force",
+            "exercises": [
+              {
+                "name": "Développé couché",
+                "mode": "reps",
+                "sets": 3,
+                "reps": "8",
+                "weight": "55kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_developpe_couche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tirage poitrine à la poulie",
+                "mode": "reps",
+                "sets": 3,
+                "reps": "10",
+                "weight": "50kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tirage_poitrine_a_la_poulie",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — WOD CrossFit (3 tours)",
+            "title": "Après-midi — WOD CrossFit (3 tours)",
+            "exercises": [
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "20 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "3 tours : Assault Bike → Pompes → Tractions élastique, à la suite. Repos 60s après chaque tour complet.",
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "15",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "8",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "20 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "15",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "8",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "20 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "15",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Traction assistée avec bande",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "8",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "wx_0970",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 7 — Mercredi",
+        "sessions": [
+          {
+            "label": "Matin — Relais",
+            "title": "Matin — Relais",
+            "exercises": [
+              {
+                "name": "Relais Hyrox : 1000m BikeErg → 500m Rameur → 500m SkiErg",
+                "mode": "amrap",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 2400,
+                "notes": "AMRAP tranquille — enchaîne 1000m BikeErg → 500m Rameur → 500m SkiErg en boucle pendant ~40 min, allure facile. Appuie sur + à chaque boucle complète.",
+                "exerciseRecordId": null,
+                "matchConfidence": null
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — WOD Mixeur (4 tours)",
+            "title": "Après-midi — WOD Mixeur (4 tours)",
+            "exercises": [
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "4 tours : Course → Rameur → BikeErg, à la suite. Repos 60s après chaque tour complet.",
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1000m",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1000m",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1000m",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "400m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "500m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1000m",
+                "weight": null,
+                "rest_seconds": 60,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 7 — Jeudi",
+        "sessions": [
+          {
+            "label": "Matin — Assault & Climb",
+            "title": "Matin — Assault & Climb",
+            "exercises": [
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": "4 tours : 5 min Assault Bike souple → 5 min Marche inclinée 10% — vise ~35 min au total.",
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — Force",
+            "title": "Après-midi — Force",
+            "exercises": [
+              {
+                "name": "Soulevé de terre",
+                "mode": "reps",
+                "sets": 3,
+                "reps": "6",
+                "weight": "80kg",
+                "rest_seconds": 120,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_souleve_de_terre",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Développé militaire aux haltères",
+                "mode": "reps",
+                "sets": 3,
+                "reps": "8",
+                "weight": "20kg",
+                "rest_seconds": 90,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_developpe_militaire_aux_halteres",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — Renfo EMOM 10",
+            "title": "Après-midi — Renfo EMOM 10",
+            "exercises": [
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 10 min — minute 1/3 : 12 SDT jambes tendues @20kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 15 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 40s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 10 min — minute 1/3 : 12 SDT jambes tendues @20kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 15 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 40s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Soulevés de terre jambes tendues aux haltères",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 10 min — minute 1/3 : 12 SDT jambes tendues @20kg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_souleves_de_terre_jambes_tendues_aux_halteres",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 2/3 : 15 cal SkiErg dans la minute, repose le reste.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Gainage (Planche)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Minute 3/3 : tiens la planche 40s, repose le reste de la minute.",
+                "exerciseRecordId": "sys_gainage_planche",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 7 — Vendredi",
+        "sessions": [
+          {
+            "label": "Matin — Optionnel",
+            "title": "Matin — Optionnel",
+            "exercises": [
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 1200,
+                "notes": "Semaine d'affûtage : repos complet recommandé, ou 20 min BikeErg léger si tu préfères bouger.",
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "Après-midi — WOD Chipper",
+            "title": "Après-midi — WOD Chipper",
+            "exercises": [
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1km",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "Chipper, pour le temps — réalise chaque mouvement dans l'ordre, une seule fois.",
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Wall Balls",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "40",
+                "weight": "5kg",
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_wall_balls",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "30 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Dumbbell Snatches alternés",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "30",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_dumbbell_snatches_alternes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "20",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "10 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": true,
+        "title": "Repos complet",
+        "sessions": []
+      },
+      {
+        "rest": true,
+        "title": "Repos complet",
+        "sessions": []
+      },
+      {
+        "rest": false,
+        "title": "Semaine 8 — Lundi",
+        "sessions": [
+          {
+            "label": "Force — Test 5RM",
+            "title": "Force — Test 5RM",
+            "exercises": [
+              {
+                "name": "Squat avec barre",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "5",
+                "weight": null,
+                "rest_seconds": 180,
+                "duration_seconds": null,
+                "notes": "Squat — cherche ton record sur 5 répétitions, charge à définir selon ta forme du jour. Contrôle la descente.",
+                "exerciseRecordId": "sys_squat_avec_barre",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "WOD",
+            "title": "WOD",
+            "exercises": [
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 600,
+                "notes": "10 min BikeErg souple, Zone 2.",
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 8 — Mardi",
+        "sessions": [
+          {
+            "label": "Force — Test 5RM",
+            "title": "Force — Test 5RM",
+            "exercises": [
+              {
+                "name": "Développé couché",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "5",
+                "weight": null,
+                "rest_seconds": 180,
+                "duration_seconds": null,
+                "notes": "Développé couché — cherche ton record sur 5 répétitions, charge à définir selon ta forme du jour. Contrôle la descente.",
+                "exerciseRecordId": "sys_developpe_couche",
+                "matchConfidence": "exact"
+              }
+            ]
+          },
+          {
+            "label": "WOD",
+            "title": "WOD",
+            "exercises": [
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "10 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "3 tours : Assault Bike → Pompes, à la suite.",
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "10",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "10 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "10",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "10 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "10",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": true,
+        "title": "Repos complet",
+        "sessions": []
+      },
+      {
+        "rest": false,
+        "title": "Semaine 8 — Jeudi",
+        "sessions": [
+          {
+            "label": "Force — Test 5RM",
+            "title": "Force — Test 5RM",
+            "exercises": [
+              {
+                "name": "Soulevé de terre",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "5",
+                "weight": null,
+                "rest_seconds": 180,
+                "duration_seconds": null,
+                "notes": "Soulevé de terre — cherche ton record sur 5 répétitions, charge à définir selon ta forme du jour. Contrôle la descente, dos neutre. Pas de WOD aujourd'hui.",
+                "exerciseRecordId": "sys_souleve_de_terre",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 8 — Vendredi",
+        "sessions": [
+          {
+            "label": "Vendredi — LE TEST HYROX (chronométré)",
+            "title": "Vendredi — LE TEST HYROX (chronométré)",
+            "exercises": [
+              {
+                "name": "Tapis de course (Course à pied)",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1000m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "Test Hyrox chronométré — enchaîne les 8 stations dans l'ordre, une seule fois, à fond. Chronomètre le temps total toi-même.",
+                "exerciseRecordId": "sys_tapis_de_course_course_a_pied",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1000m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Wall Balls",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "50",
+                "weight": "5kg",
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_wall_balls",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1000m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Dumbbell Snatches alternés",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "50",
+                "weight": "20kg",
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_dumbbell_snatches_alternes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "1000m",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Pompes",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "40",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "reps",
+                "sets": 1,
+                "reps": "20 cal",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": null,
+                "notes": "Sprint final !",
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": true,
+        "title": "Repos complet",
+        "sessions": []
+      },
+      {
+        "rest": true,
+        "title": "Repos complet",
+        "sessions": []
+      }
+    ],
+    "isCustom": true,
+    "category": "workout"
+  },
+  {
+    "id": "the-comeback-cardio",
+    "title": "The Comeback",
+    "description": "Le Moteur — cardio matinal 8 semaines en Zone 2 (120-130 BPM), fluidité et mouvement continu : Triathlon Indoor, EMOM, Relais Hyrox, Assault & Climb, 3x10 Express. 4 phases : Fondations & Intensification, Pic de volume, Affûtage, Semaine des records.",
+    "durationDays": 56,
+    "level": "debutant",
+    "goal": "Cardio Zone 2",
+    "goalTag": "forme_generale",
+    "coverEmoji": "💙",
+    "color": "#00B0FF",
+    "days": [
+      {
+        "rest": false,
+        "title": "Semaine 1 — Lundi",
+        "sessions": [
+          {
+            "label": "Triathlon Indoor",
+            "title": "Triathlon Indoor",
+            "exercises": [
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": "3 tours continus : 5 min BikeErg → 5 min Rameur → 5 min SkiErg, sans pause. Reste en Zone 2 (120-130 BPM).",
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 1 — Mardi",
+        "sessions": [
+          {
+            "label": "EMOM 40",
+            "title": "EMOM 40",
+            "exercises": [
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 40 min — enchaîne Rameur → BikeErg → SkiErg → Marche inclinée, 1 min chacun (10 cycles). Zone 2. Le minuteur change d'exercice automatiquement.",
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 1 — Mercredi",
+        "sessions": [
+          {
+            "label": "Relais Hyrox",
+            "title": "Relais Hyrox",
+            "exercises": [
+              {
+                "name": "Relais Hyrox : 1000m BikeErg → 500m Rameur → 500m SkiErg",
+                "mode": "amrap",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 2700,
+                "notes": "AMRAP tranquille — enchaîne 1000m BikeErg → 500m Rameur → 500m SkiErg en boucle pendant ~45 min, allure facile (Zone 2). Appuie sur + à chaque boucle complète.",
+                "exerciseRecordId": null,
+                "matchConfidence": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 1 — Jeudi",
+        "sessions": [
+          {
+            "label": "Assault & Climb",
+            "title": "Assault & Climb",
+            "exercises": [
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": "4 tours : 5 min Assault Bike souple → 5 min Marche inclinée 10%. Zone 2.",
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 1 — Vendredi",
+        "sessions": [
+          {
+            "label": "3x10 Express",
+            "title": "3x10 Express",
+            "exercises": [
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Bloc 1 (0-10 min) : alterne 1 min SkiErg / 1 min BikeErg — changement automatique chaque minute.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Bloc 2 (10-20 min) : alterne 1 min Rameur / 1 min Marche.",
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Bloc 3 (20-30 min) : alterne 1 min Assault Bike / 1 min BikeErg.",
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": true,
+        "title": "Récupération active",
+        "sessions": []
+      },
+      {
+        "rest": true,
+        "title": "Récupération active",
+        "sessions": []
+      },
+      {
+        "rest": false,
+        "title": "Semaine 2 — Lundi",
+        "sessions": [
+          {
+            "label": "Triathlon Indoor",
+            "title": "Triathlon Indoor",
+            "exercises": [
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": "3 tours continus : 5 min BikeErg → 5 min Rameur → 5 min SkiErg, sans pause. Reste en Zone 2 (120-130 BPM).",
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 2 — Mardi",
+        "sessions": [
+          {
+            "label": "EMOM 40",
+            "title": "EMOM 40",
+            "exercises": [
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 40 min — enchaîne Rameur → BikeErg → SkiErg → Marche inclinée, 1 min chacun (10 cycles). Zone 2. Le minuteur change d'exercice automatiquement.",
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 2 — Mercredi",
+        "sessions": [
+          {
+            "label": "Relais Hyrox",
+            "title": "Relais Hyrox",
+            "exercises": [
+              {
+                "name": "Relais Hyrox : 1000m BikeErg → 500m Rameur → 500m SkiErg",
+                "mode": "amrap",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 2700,
+                "notes": "AMRAP tranquille — enchaîne 1000m BikeErg → 500m Rameur → 500m SkiErg en boucle pendant ~45 min, allure facile (Zone 2). Appuie sur + à chaque boucle complète.",
+                "exerciseRecordId": null,
+                "matchConfidence": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 2 — Jeudi",
+        "sessions": [
+          {
+            "label": "Assault & Climb",
+            "title": "Assault & Climb",
+            "exercises": [
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": "4 tours : 5 min Assault Bike souple → 5 min Marche inclinée 10%. Zone 2.",
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 2 — Vendredi",
+        "sessions": [
+          {
+            "label": "3x10 Express",
+            "title": "3x10 Express",
+            "exercises": [
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Bloc 1 (0-10 min) : alterne 1 min SkiErg / 1 min BikeErg — changement automatique chaque minute.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Bloc 2 (10-20 min) : alterne 1 min Rameur / 1 min Marche.",
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Bloc 3 (20-30 min) : alterne 1 min Assault Bike / 1 min BikeErg.",
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": true,
+        "title": "Récupération active",
+        "sessions": []
+      },
+      {
+        "rest": true,
+        "title": "Récupération active",
+        "sessions": []
+      },
+      {
+        "rest": false,
+        "title": "Semaine 3 — Lundi",
+        "sessions": [
+          {
+            "label": "Triathlon Indoor",
+            "title": "Triathlon Indoor",
+            "exercises": [
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": "3 tours continus : 5 min BikeErg → 5 min Rameur → 5 min SkiErg, sans pause. Reste en Zone 2 (120-130 BPM).",
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 3 — Mardi",
+        "sessions": [
+          {
+            "label": "EMOM 40",
+            "title": "EMOM 40",
+            "exercises": [
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 40 min — enchaîne Rameur → BikeErg → SkiErg → Marche inclinée, 1 min chacun (10 cycles). Zone 2. Le minuteur change d'exercice automatiquement.",
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 3 — Mercredi",
+        "sessions": [
+          {
+            "label": "Relais Hyrox",
+            "title": "Relais Hyrox",
+            "exercises": [
+              {
+                "name": "Relais Hyrox : 1000m BikeErg → 500m Rameur → 500m SkiErg",
+                "mode": "amrap",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 2700,
+                "notes": "AMRAP tranquille — enchaîne 1000m BikeErg → 500m Rameur → 500m SkiErg en boucle pendant ~45 min, allure facile (Zone 2). Appuie sur + à chaque boucle complète.",
+                "exerciseRecordId": null,
+                "matchConfidence": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 3 — Jeudi",
+        "sessions": [
+          {
+            "label": "Assault & Climb",
+            "title": "Assault & Climb",
+            "exercises": [
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": "4 tours : 5 min Assault Bike souple → 5 min Marche inclinée 10%. Zone 2.",
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 3 — Vendredi",
+        "sessions": [
+          {
+            "label": "3x10 Express",
+            "title": "3x10 Express",
+            "exercises": [
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Bloc 1 (0-10 min) : alterne 1 min SkiErg / 1 min BikeErg — changement automatique chaque minute.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Bloc 2 (10-20 min) : alterne 1 min Rameur / 1 min Marche.",
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Bloc 3 (20-30 min) : alterne 1 min Assault Bike / 1 min BikeErg.",
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": true,
+        "title": "Récupération active",
+        "sessions": []
+      },
+      {
+        "rest": true,
+        "title": "Récupération active",
+        "sessions": []
+      },
+      {
+        "rest": false,
+        "title": "Semaine 4 — Lundi",
+        "sessions": [
+          {
+            "label": "Triathlon Indoor",
+            "title": "Triathlon Indoor",
+            "exercises": [
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": "3 tours continus : 5 min BikeErg → 5 min Rameur → 5 min SkiErg, sans pause. Reste en Zone 2 (120-130 BPM).",
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 4 — Mardi",
+        "sessions": [
+          {
+            "label": "EMOM 40",
+            "title": "EMOM 40",
+            "exercises": [
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 40 min — enchaîne Rameur → BikeErg → SkiErg → Marche inclinée, 1 min chacun (10 cycles). Zone 2. Le minuteur change d'exercice automatiquement.",
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 4 — Mercredi",
+        "sessions": [
+          {
+            "label": "Relais Hyrox",
+            "title": "Relais Hyrox",
+            "exercises": [
+              {
+                "name": "Relais Hyrox : 1000m BikeErg → 500m Rameur → 500m SkiErg",
+                "mode": "amrap",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 2700,
+                "notes": "AMRAP tranquille — enchaîne 1000m BikeErg → 500m Rameur → 500m SkiErg en boucle pendant ~45 min, allure facile (Zone 2). Appuie sur + à chaque boucle complète.",
+                "exerciseRecordId": null,
+                "matchConfidence": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 4 — Jeudi",
+        "sessions": [
+          {
+            "label": "Assault & Climb",
+            "title": "Assault & Climb",
+            "exercises": [
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": "4 tours : 5 min Assault Bike souple → 5 min Marche inclinée 10%. Zone 2.",
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 4 — Vendredi",
+        "sessions": [
+          {
+            "label": "3x10 Express",
+            "title": "3x10 Express",
+            "exercises": [
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Bloc 1 (0-10 min) : alterne 1 min SkiErg / 1 min BikeErg — changement automatique chaque minute.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Bloc 2 (10-20 min) : alterne 1 min Rameur / 1 min Marche.",
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Bloc 3 (20-30 min) : alterne 1 min Assault Bike / 1 min BikeErg.",
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": true,
+        "title": "Récupération active",
+        "sessions": []
+      },
+      {
+        "rest": true,
+        "title": "Récupération active",
+        "sessions": []
+      },
+      {
+        "rest": false,
+        "title": "Semaine 5 — Lundi",
+        "sessions": [
+          {
+            "label": "Triathlon Indoor",
+            "title": "Triathlon Indoor",
+            "exercises": [
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": "3 tours continus (5 min BikeErg → 5 min Rameur → 5 min SkiErg par tour) — vise ~50 min au total. Reste en Zone 2 (120-130 BPM).",
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 5 — Mardi",
+        "sessions": [
+          {
+            "label": "EMOM 40",
+            "title": "EMOM 40",
+            "exercises": [
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 40 min — enchaîne Rameur → BikeErg → SkiErg → Marche inclinée, 1 min chacun (10 cycles). Zone 2. Le minuteur change d'exercice automatiquement.",
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 5 — Mercredi",
+        "sessions": [
+          {
+            "label": "Relais Hyrox",
+            "title": "Relais Hyrox",
+            "exercises": [
+              {
+                "name": "Relais Hyrox : 1000m BikeErg → 500m Rameur → 500m SkiErg",
+                "mode": "amrap",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 3000,
+                "notes": "AMRAP tranquille — enchaîne 1000m BikeErg → 500m Rameur → 500m SkiErg en boucle pendant ~50 min, allure facile (Zone 2). Appuie sur + à chaque boucle complète.",
+                "exerciseRecordId": null,
+                "matchConfidence": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 5 — Jeudi",
+        "sessions": [
+          {
+            "label": "Assault & Climb",
+            "title": "Assault & Climb",
+            "exercises": [
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": "4 tours : 5 min Assault Bike souple → 5 min Marche inclinée 10% — vise ~45 min au total. Zone 2.",
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 5 — Vendredi",
+        "sessions": [
+          {
+            "label": "3x10 Express",
+            "title": "3x10 Express",
+            "exercises": [
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Bloc 1 (0-10 min) : alterne 1 min SkiErg / 1 min BikeErg — changement automatique chaque minute.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Bloc 2 (10-20 min) : alterne 1 min Rameur / 1 min Marche.",
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Bloc 3 (20-30 min) : alterne 1 min Assault Bike / 1 min BikeErg.",
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": true,
+        "title": "Repos",
+        "sessions": []
+      },
+      {
+        "rest": true,
+        "title": "Repos",
+        "sessions": []
+      },
+      {
+        "rest": false,
+        "title": "Semaine 6 — Lundi",
+        "sessions": [
+          {
+            "label": "Triathlon Indoor",
+            "title": "Triathlon Indoor",
+            "exercises": [
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": "3 tours continus (5 min BikeErg → 5 min Rameur → 5 min SkiErg par tour) — vise ~50 min au total. Reste en Zone 2 (120-130 BPM).",
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 6 — Mardi",
+        "sessions": [
+          {
+            "label": "EMOM 45",
+            "title": "EMOM 45",
+            "exercises": [
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 45 min — enchaîne Rameur → BikeErg → SkiErg → Marche inclinée, 1 min chacun (11 cycles). Zone 2. Le minuteur change d'exercice automatiquement.",
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 6 — Mercredi",
+        "sessions": [
+          {
+            "label": "Relais Hyrox",
+            "title": "Relais Hyrox",
+            "exercises": [
+              {
+                "name": "Relais Hyrox : 1000m BikeErg → 500m Rameur → 500m SkiErg",
+                "mode": "amrap",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 3000,
+                "notes": "AMRAP tranquille — enchaîne 1000m BikeErg → 500m Rameur → 500m SkiErg en boucle pendant ~50 min, allure facile (Zone 2). Appuie sur + à chaque boucle complète.",
+                "exerciseRecordId": null,
+                "matchConfidence": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 6 — Jeudi",
+        "sessions": [
+          {
+            "label": "Assault & Climb",
+            "title": "Assault & Climb",
+            "exercises": [
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": "4 tours : 5 min Assault Bike souple → 5 min Marche inclinée 10% — vise ~45 min au total. Zone 2.",
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 6 — Vendredi",
+        "sessions": [
+          {
+            "label": "3x10 Express",
+            "title": "3x10 Express",
+            "exercises": [
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Bloc 1 (0-10 min) : alterne 1 min SkiErg / 1 min BikeErg — changement automatique chaque minute.",
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Bloc 2 (10-20 min) : alterne 1 min Rameur / 1 min Marche.",
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "Bloc 3 (20-30 min) : alterne 1 min Assault Bike / 1 min BikeErg.",
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": true,
+        "title": "Repos",
+        "sessions": []
+      },
+      {
+        "rest": true,
+        "title": "Repos",
+        "sessions": []
+      },
+      {
+        "rest": false,
+        "title": "Semaine 7 — Lundi",
+        "sessions": [
+          {
+            "label": "Triathlon Indoor",
+            "title": "Triathlon Indoor",
+            "exercises": [
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": "3 tours continus (5 min BikeErg → 5 min Rameur → 5 min SkiErg par tour) — vise ~40 min au total. Reste en Zone 2 (120-130 BPM).",
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 7 — Mardi",
+        "sessions": [
+          {
+            "label": "EMOM 35",
+            "title": "EMOM 35",
+            "exercises": [
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 35 min — enchaîne Rameur → BikeErg → SkiErg → Marche inclinée, 1 min chacun (9 cycles). Zone 2. Le minuteur change d'exercice automatiquement.",
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 7 — Mercredi",
+        "sessions": [
+          {
+            "label": "Relais Hyrox",
+            "title": "Relais Hyrox",
+            "exercises": [
+              {
+                "name": "Relais Hyrox : 1000m BikeErg → 500m Rameur → 500m SkiErg",
+                "mode": "amrap",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 2400,
+                "notes": "AMRAP tranquille — enchaîne 1000m BikeErg → 500m Rameur → 500m SkiErg en boucle pendant ~40 min, allure facile (Zone 2). Appuie sur + à chaque boucle complète.",
+                "exerciseRecordId": null,
+                "matchConfidence": null
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 7 — Jeudi",
+        "sessions": [
+          {
+            "label": "Assault & Climb",
+            "title": "Assault & Climb",
+            "exercises": [
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": "4 tours : 5 min Assault Bike souple → 5 min Marche inclinée 10% — vise ~35 min au total. Zone 2.",
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Assault Bike",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_assault_bike",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 300,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 7 — Vendredi",
+        "sessions": [
+          {
+            "label": "Optionnel",
+            "title": "Optionnel",
+            "exercises": [
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 1200,
+                "notes": "Semaine d'affûtage : repos complet recommandé, ou 20 min BikeErg très léger si tu préfères bouger.",
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": true,
+        "title": "Repos complet",
+        "sessions": []
+      },
+      {
+        "rest": true,
+        "title": "Repos complet",
+        "sessions": []
+      },
+      {
+        "rest": false,
+        "title": "Semaine 8 — Lundi",
+        "sessions": [
+          {
+            "label": "Triathlon Indoor (souple)",
+            "title": "Triathlon Indoor (souple)",
+            "exercises": [
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 200,
+                "notes": "Triathlon très souple — vise ~30 min au total, allure très facile.",
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 200,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 200,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 200,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 200,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 200,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 200,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 200,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 200,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 8 — Mardi",
+        "sessions": [
+          {
+            "label": "EMOM 30 (souple)",
+            "title": "EMOM 30 (souple)",
+            "exercises": [
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": "EMOM 30 min très souple — enchaîne Rameur → BikeErg → SkiErg → Marche inclinée, 1 min chacun (8 cycles), allure très facile.",
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Rameur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_rameur",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "BikeErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_bikeerg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "SkiErg",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_skierg",
+                "matchConfidence": "exact"
+              },
+              {
+                "name": "Tapis de course (Marche inclinée)",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 60,
+                "notes": null,
+                "exerciseRecordId": "sys_tapis_de_course_marche_inclinee",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": false,
+        "title": "Semaine 8 — Mercredi",
+        "sessions": [
+          {
+            "label": "Marche en extérieur",
+            "title": "Marche en extérieur",
+            "exercises": [
+              {
+                "name": "Marche en extérieur",
+                "mode": "time",
+                "sets": 1,
+                "reps": "1",
+                "weight": null,
+                "rest_seconds": 0,
+                "duration_seconds": 2700,
+                "notes": "Marche à allure modérée en extérieur, Zone 2, sans machine.",
+                "exerciseRecordId": "if_0101",
+                "matchConfidence": "exact"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "rest": true,
+        "title": "Repos complet",
+        "sessions": []
+      },
+      {
+        "rest": true,
+        "title": "Repos",
+        "sessions": []
+      },
+      {
+        "rest": true,
+        "title": "Repos",
+        "sessions": []
+      },
+      {
+        "rest": true,
+        "title": "Repos",
+        "sessions": []
+      }
+    ],
+    "isCustom": true,
+    "category": "cardio"
   }
 ];
