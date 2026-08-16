@@ -9,6 +9,7 @@ import { useIconFonts } from "@/src/hooks/use-icon-fonts";
 import { migrateFavoritesToUserData } from "@/src/utils/exercise-user-data-migration";
 import { backfillPersonalLibrary } from "@/src/utils/exercise-library-backfill";
 import { seedCoreLibraryIfNeeded } from "@/src/utils/exercise-library-bootstrap";
+import { seedStarterProgramsIfNeeded } from "@/src/utils/program-bootstrap";
 
 LogBox.ignoreAllLogs(true);
 
@@ -49,7 +50,11 @@ export default function RootLayout() {
       .then(() => migrateFavoritesToUserData())
       .catch((err) => console.warn("Favorites migration failed:", err))
       .then(() => backfillPersonalLibrary())
-      .catch((err) => console.warn("Library backfill failed:", err));
+      .catch((err) => console.warn("Library backfill failed:", err))
+      // Programmes de démarrage (Flexy Series) — après la bibliothèque de
+      // base, dont ils référencent des `exerciseRecordId` par id.
+      .then(() => seedStarterProgramsIfNeeded())
+      .catch((err) => console.warn("Starter programs seed failed:", err));
   }, []);
 
   if (!loaded && !error) return null;

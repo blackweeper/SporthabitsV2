@@ -48,6 +48,7 @@ import {
   weekIndexForDay,
 } from "@/src/utils/program-week-grouping";
 import { PLAN_TYPE_COLORS } from "@/src/utils/plan-type-colors";
+import ProgramBrowseList from "@/src/components/ProgramBrowseList";
 
 type Tab = "program" | "cardio" | "mobility" | "sessions" | "individual";
 type IndCat = "all" | "musculation" | "cardio" | "wod" | "stretch";
@@ -619,24 +620,7 @@ function ProgramView({
   onPressDay: PressDayHandler;
 }) {
   if (actives.length === 0) {
-    return (
-      <View style={styles.empty}>
-        <Ionicons name="calendar" size={40} color={colors.brand} />
-        <Text style={styles.emptyTitle}>Aucun programme actif</Text>
-        <CTAButton
-          testID="browse-programs"
-          variant="primary"
-          label="Parcourir les programmes"
-          onPress={() => router.push("/programs")}
-        />
-        <CTAButton
-          testID="create-program-training"
-          variant="secondary"
-          label="Créer mon programme"
-          onPress={() => router.push("/custom-program/new")}
-        />
-      </View>
-    );
+    return <ProgramBrowseList router={router} />;
   }
   return (
     <>
@@ -1036,29 +1020,7 @@ function CardioView({
 }) {
   const CARDIO_COLOR = TYPE_COLORS.cardio;
   if (actives.length === 0) {
-    return (
-      <View style={styles.empty}>
-        <Ionicons name="stopwatch" size={40} color={CARDIO_COLOR} />
-        <Text style={styles.emptyTitle}>Aucun programme cardio</Text>
-        <Text style={styles.emptySub}>
-          Crée un programme cardio personnalisé pour tes runs, séances de vélo, HIIT ou natation.
-        </Text>
-        <CTAButton
-          testID="browse-cardio"
-          variant="primary"
-          tint={CARDIO_COLOR}
-          label="Parcourir"
-          onPress={() => router.push("/programs?category=cardio")}
-        />
-        <CTAButton
-          testID="create-cardio-program"
-          variant="secondary"
-          tint={CARDIO_COLOR}
-          label="Créer mon programme cardio"
-          onPress={() => router.push("/custom-program/new?category=cardio")}
-        />
-      </View>
-    );
+    return <ProgramBrowseList category="cardio" router={router} />;
   }
   return (
     <>
@@ -1125,30 +1087,7 @@ function MobilityView({
   onPressDay: PressDayHandler;
 }) {
   if (actives.length === 0) {
-    return (
-      <View style={styles.empty}>
-        <Ionicons name="body" size={40} color={colors.success} />
-        <Text style={styles.emptyTitle}>Pas de routine mobilité</Text>
-        <Text style={styles.emptySub}>
-          Découvre les programmes d&apos;étirements et de récupération.
-        </Text>
-        <CTAButton
-          testID="browse-stretch"
-          variant="primary"
-          tint={colors.success}
-          textColor="#000"
-          label="Parcourir les étirements"
-          onPress={() => router.push("/programs?category=stretch")}
-        />
-        <CTAButton
-          testID="create-mobility-program"
-          variant="secondary"
-          tint={colors.success}
-          label="Créer mon programme"
-          onPress={() => router.push("/custom-program/new?category=stretch")}
-        />
-      </View>
-    );
+    return <ProgramBrowseList category="stretch" router={router} />;
   }
   return (
     <>
