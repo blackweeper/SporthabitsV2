@@ -36,9 +36,13 @@
       "bodybuilding"
     ],
     "enrichment": {
-      "translations": {},
+      "translations": {
+        "fr": {
+          "description": "Barre sur le haut du dos (high-bar) ou plus bas (low-bar). Pieds légèrement plus larges que les hanches, pointes de pieds orientées vers l’extérieur. Descends en poussant les genoux vers l’extérieur jusqu’à au moins parallèle. Remonte en poussant le sol. Garde le torse le plus vertical possible et le regard neutre. Exercice roi pour la force des jambes et du tronc."
+        }
+      },
       "templateVersion": 0,
-      "updatedAt": "2026-08-01T17:27:39.305Z",
+      "updatedAt": "2026-08-17T09:08:20.635Z",
       "coachScores": {
         "fatigueNervous": 7,
         "fatigueMuscular": 8,
@@ -49,7 +53,8 @@
           "hypertrophy": 4,
           "stability": 4
         }
-      }
+      },
+      "verifiedBy": "human"
     }
   },
   {
@@ -85,9 +90,13 @@
       "bodybuilding"
     ],
     "enrichment": {
-      "translations": {},
+      "translations": {
+        "fr": {
+          "description": "Allongé sur le banc, pieds ancrés au sol. Attrape la barre un peu plus large que les épaules. Descends contrôlée jusqu’à la poitrine en gardant les omoplates serrées et le dos légèrement cambré. Pousse explosif vers le haut en verrouillant les coudes en fin de course. Exercice roi pour la force du haut du corps (pectoraux, épaules, triceps)."
+        }
+      },
       "templateVersion": 0,
-      "updatedAt": "2026-08-01T17:27:39.305Z",
+      "updatedAt": "2026-08-17T09:08:20.635Z",
       "coachScores": {
         "fatigueNervous": 7,
         "fatigueMuscular": 8,
@@ -98,7 +107,8 @@
           "hypertrophy": 4,
           "stability": 4
         }
-      }
+      },
+      "verifiedBy": "human"
     }
   },
   {
@@ -135,9 +145,13 @@
       "bodybuilding"
     ],
     "enrichment": {
-      "translations": {},
+      "translations": {
+        "fr": {
+          "description": "Barre au sol, pieds largeur de hanches. Attrape la barre, dos neutre, hanches plus hautes que les genoux. Pousse le sol avec les pieds en gardant la barre proche des tibias, puis des cuisses. Verrouille les hanches et les genoux en haut. Redescends contrôlée. Mouvement fondamental de force globale (chaîne postérieure, grip, tronc)."
+        }
+      },
       "templateVersion": 0,
-      "updatedAt": "2026-08-01T17:27:39.305Z",
+      "updatedAt": "2026-08-17T09:08:20.635Z",
       "coachScores": {
         "fatigueNervous": 7,
         "fatigueMuscular": 8,
@@ -148,7 +162,8 @@
           "hypertrophy": 4,
           "stability": 4
         }
-      }
+      },
+      "verifiedBy": "human"
     }
   },
   {
@@ -184,9 +199,13 @@
       "bodybuilding"
     ],
     "enrichment": {
-      "translations": {},
+      "translations": {
+        "fr": {
+          "description": "Haltères dans chaque main le long du corps. Fais un grand pas vers l’arrière et descends jusqu’à ce que le genou arrière frôle le sol. Le genou avant reste au-dessus de la cheville. Pousse sur le pied avant pour revenir. Alterne les jambes. Version plus stable que la fente avant, excellente pour les quadriceps, fessiers et équilibre."
+        }
+      },
       "templateVersion": 0,
-      "updatedAt": "2026-08-01T17:27:39.305Z",
+      "updatedAt": "2026-08-17T09:08:20.635Z",
       "coachScores": {
         "fatigueNervous": 7,
         "fatigueMuscular": 8,
@@ -197,7 +216,8 @@
           "hypertrophy": 4,
           "stability": 4
         }
-      }
+      },
+      "verifiedBy": "human"
     }
   },
   {
@@ -234,9 +254,13 @@
       "hyrox"
     ],
     "enrichment": {
-      "translations": {},
+      "translations": {
+        "fr": {
+          "description": "Assis ou debout, haltères à hauteur d’épaules, paumes vers l’avant ou neutres. Pousse les poids vers le plafond en gardant le tronc gainé et sans cambrer excessivement le bas du dos. Descends contrôlée jusqu’à ce que les haltères reviennent à hauteur d’oreilles. Excellent pour la force et la stabilité des épaules."
+        }
+      },
       "templateVersion": 0,
-      "updatedAt": "2026-08-01T17:27:39.305Z",
+      "updatedAt": "2026-08-17T09:08:20.635Z",
       "coachScores": {
         "fatigueNervous": 7,
         "fatigueMuscular": 8,
@@ -247,7 +271,8 @@
           "hypertrophy": 4,
           "stability": 4
         }
-      }
+      },
+      "verifiedBy": "human"
     }
   },
   {
@@ -284,9 +309,13 @@
       "bodybuilding"
     ],
     "enrichment": {
-      "translations": {},
+      "translations": {
+        "fr": {
+          "description": "Haltères le long des cuisses, légère flexion des genoux. Pousse les hanches vers l’arrière en gardant le dos neutre jusqu’à sentir l’étirement des ischio-jambiers. Remonte en contractant fort les fessiers. Mouvement excellent pour isoler la chaîne postérieure et travailler la souplesse active des ischio-jambiers sous charge."
+        }
+      },
       "templateVersion": 0,
-      "updatedAt": "2026-08-01T17:27:39.305Z",
+      "updatedAt": "2026-08-17T09:08:20.635Z",
       "coachScores": {
         "fatigueNervous": 7,
         "fatigueMuscular": 8,
@@ -297,7 +326,8 @@
           "hypertrophy": 4,
           "stability": 4
         }
-      }
+      },
+      "verifiedBy": "human"
     }
   },
   {
@@ -332,9 +362,13 @@
       "hyrox"
     ],
     "enrichment": {
-      "translations": {},
+      "translations": {
+        "fr": {
+          "description": "Haltère au sol entre les pieds. Attrape-le d’une main, pousse fort avec les jambes et les hanches pour amener le poids d’un seul mouvement jusqu’au-dessus de la tête, bras tendu. Descends contrôlée et change de main. Mouvement explosif full-body qui développe puissance, coordination et condition physique."
+        }
+      },
       "templateVersion": 0,
-      "updatedAt": "2026-08-01T17:27:39.305Z",
+      "updatedAt": "2026-08-17T09:08:20.635Z",
       "coachScores": {
         "fatigueNervous": 4,
         "fatigueMuscular": 5,
@@ -346,7 +380,8 @@
           "power": 5,
           "endurance": 4
         }
-      }
+      },
+      "verifiedBy": "human"
     }
   },
   {
@@ -382,9 +417,13 @@
       "bodybuilding"
     ],
     "enrichment": {
-      "translations": {},
+      "translations": {
+        "fr": {
+          "description": "Assis à la machine, attrape la barre large. Tire vers le haut de la poitrine en serrant les omoplates et en gardant le buste légèrement incliné. Contrôle la remontée. Évite de balancer le corps. Excellent exercice pour développer la largeur du dos et la force de tirage verticale."
+        }
+      },
       "templateVersion": 0,
-      "updatedAt": "2026-08-01T17:27:39.305Z",
+      "updatedAt": "2026-08-17T09:08:20.635Z",
       "coachScores": {
         "fatigueNervous": 4,
         "fatigueMuscular": 5,
@@ -394,7 +433,8 @@
           "strength": 4,
           "stability": 3
         }
-      }
+      },
+      "verifiedBy": "human"
     }
   },
   {
@@ -432,9 +472,13 @@
       "hyrox"
     ],
     "enrichment": {
-      "translations": {},
+      "translations": {
+        "fr": {
+          "description": "Med ball contre la poitrine. Descends en squat profond puis explose vers le haut en lançant la balle contre la cible murale (généralement 3 m). Attrape-la en amortissant et enchaîne directement le prochain squat. Mouvement full-body explosif très utilisé en conditioning et en CrossFit."
+        }
+      },
       "templateVersion": 0,
-      "updatedAt": "2026-08-01T17:27:39.305Z",
+      "updatedAt": "2026-08-17T09:08:20.635Z",
       "coachScores": {
         "fatigueNervous": 4,
         "fatigueMuscular": 5,
@@ -446,7 +490,8 @@
           "power": 5,
           "endurance": 4
         }
-      }
+      },
+      "verifiedBy": "human"
     }
   },
   {
@@ -534,9 +579,13 @@
       "bodybuilding"
     ],
     "enrichment": {
-      "translations": {},
+      "translations": {
+        "fr": {
+          "description": "Position de planche, mains légèrement plus larges que les épaules, corps aligné de la tête aux talons. Descends en contrôlant jusqu’à ce que la poitrine frôle le sol, puis pousse fort pour revenir. Coudes proches du corps ou à 45° selon l’objectif. Garde les fessiers et les abdos engagés. Variante genoux possible si besoin. Exercice fondamental pour la force du haut du corps et la stabilité du tronc."
+        }
+      },
       "templateVersion": 0,
-      "updatedAt": "2026-08-01T17:27:39.305Z",
+      "updatedAt": "2026-08-17T09:08:20.635Z",
       "coachScores": {
         "fatigueNervous": 4,
         "fatigueMuscular": 5,
@@ -548,7 +597,8 @@
           "conditioning": 4,
           "power": 3
         }
-      }
+      },
+      "verifiedBy": "human"
     }
   },
   {
@@ -630,9 +680,13 @@
       "bodybuilding"
     ],
     "enrichment": {
-      "translations": {},
+      "translations": {
+        "fr": {
+          "description": "Sur les avant-bras ou les mains, corps parfaitement aligné de la tête aux talons. Engage les abdominaux, les fessiers et les quadriceps. Ne laisse ni le bassin monter ni s’affaisser. Respire calmement. Maintiens le temps demandé. Exercice de base pour la stabilité du tronc et la posture."
+        }
+      },
       "templateVersion": 0,
-      "updatedAt": "2026-08-01T17:27:39.305Z",
+      "updatedAt": "2026-08-17T09:08:20.635Z",
       "coachScores": {
         "fatigueNervous": 4,
         "fatigueMuscular": 5,
@@ -644,7 +698,8 @@
           "conditioning": 4,
           "power": 3
         }
-      }
+      },
+      "verifiedBy": "human"
     }
   },
   {
@@ -679,9 +734,13 @@
       "running_performance"
     ],
     "enrichment": {
-      "translations": {},
+      "translations": {
+        "fr": {
+          "description": "Vélo Concept2 à résistance par air. Positionne-toi correctement (selle et cintre). Pédale de façon fluide en gardant le haut du corps stable. Concentre-toi sur une cadence régulière et une puissance constante. Excellent outil pour le travail aérobie, les intervalles et le conditioning sans impact. Surveille ton split ou tes watts selon le protocole."
+        }
+      },
       "templateVersion": 0,
-      "updatedAt": "2026-08-01T17:27:39.305Z",
+      "updatedAt": "2026-08-17T09:08:20.635Z",
       "coachScores": {
         "fatigueNervous": 4,
         "fatigueMuscular": 5,
@@ -690,7 +749,8 @@
           "endurance": 8,
           "conditioning": 6
         }
-      }
+      },
+      "verifiedBy": "human"
     }
   },
   {
@@ -727,9 +787,13 @@
       "hyrox"
     ],
     "enrichment": {
-      "translations": {},
+      "translations": {
+        "fr": {
+          "description": "Position de départ : genoux fléchis, bras tendus, buste légèrement penché. Pousse d’abord avec les jambes, puis ouvre le buste, et tire enfin avec les bras jusqu’à la poitrine. Le retour se fait dans l’ordre inverse. Garde le dos long et le mouvement fluide. Excellent cardio full-body à faible impact. Travaille force, endurance et coordination."
+        }
+      },
       "templateVersion": 0,
-      "updatedAt": "2026-08-01T17:27:39.305Z",
+      "updatedAt": "2026-08-17T09:08:20.635Z",
       "coachScores": {
         "fatigueNervous": 4,
         "fatigueMuscular": 5,
@@ -741,7 +805,8 @@
           "power": 5,
           "endurance": 4
         }
-      }
+      },
+      "verifiedBy": "human"
     }
   },
   {
@@ -773,9 +838,13 @@
       "running_performance"
     ],
     "enrichment": {
-      "translations": {},
+      "translations": {
+        "fr": {
+          "description": "Debout face à la machine, attrape les poignées. Tire vers le bas en engageant le tronc, les dorsaux et les hanches dans un mouvement de charnière. Les bras restent relativement tendus en fin de course. Reviens contrôlé. Mouvement excellent pour le conditioning du haut du corps et du tronc, très utilisé en CrossFit et en préparation physique."
+        }
+      },
       "templateVersion": 0,
-      "updatedAt": "2026-08-01T17:27:39.305Z",
+      "updatedAt": "2026-08-17T09:08:20.635Z",
       "coachScores": {
         "fatigueNervous": 4,
         "fatigueMuscular": 5,
@@ -784,7 +853,8 @@
           "endurance": 8,
           "conditioning": 6
         }
-      }
+      },
+      "verifiedBy": "human"
     }
   },
   {
@@ -817,9 +887,13 @@
       "hyrox"
     ],
     "enrichment": {
-      "translations": {},
+      "translations": {
+        "fr": {
+          "description": "Machine à bras et jambes simultanés. Règle la selle à la bonne hauteur. Pédale en poussant fort avec les jambes tout en tirant et poussant les poignées avec les bras. Garde le buste stable et le regard vers l’avant. Idéal pour du travail cardio intense, des intervalles ou un échauffement complet. Surveille ta cadence et ta puissance selon l’objectif de la séance."
+        }
+      },
       "templateVersion": 0,
-      "updatedAt": "2026-08-01T17:27:39.305Z",
+      "updatedAt": "2026-08-17T09:08:20.635Z",
       "coachScores": {
         "fatigueNervous": 4,
         "fatigueMuscular": 5,
@@ -831,7 +905,8 @@
           "power": 5,
           "endurance": 4
         }
-      }
+      },
+      "verifiedBy": "human"
     }
   },
   {
@@ -866,9 +941,13 @@
       "running_performance"
     ],
     "enrichment": {
-      "translations": {},
+      "translations": {
+        "fr": {
+          "description": "Inclinaison élevée (8-15 %), vitesse de marche rapide. Garde le buste droit et les bras actifs. Excellent travail cardio à faible impact qui sollicite fortement les fessiers et les ischio-jambiers. Idéal en récupération active ou en conditioning progressif."
+        }
+      },
       "templateVersion": 0,
-      "updatedAt": "2026-08-01T17:27:39.305Z",
+      "updatedAt": "2026-08-17T09:08:20.635Z",
       "coachScores": {
         "fatigueNervous": 4,
         "fatigueMuscular": 5,
@@ -878,7 +957,8 @@
           "conditioning": 6,
           "running": 8
         }
-      }
+      },
+      "verifiedBy": "human"
     }
   },
   {
@@ -913,9 +993,13 @@
       "running_performance"
     ],
     "enrichment": {
-      "translations": {},
+      "translations": {
+        "fr": {
+          "description": "Règle la vitesse et l’inclinaison selon le protocole. Garde une posture droite, foulée légère et cadence élevée. Évite de t’accrocher aux barres. Concentre-toi sur une respiration régulière. Utilisé pour le travail d’endurance, les intervalles ou les courses continues selon le programme."
+        }
+      },
       "templateVersion": 0,
-      "updatedAt": "2026-08-01T17:27:39.305Z",
+      "updatedAt": "2026-08-17T09:08:20.635Z",
       "coachScores": {
         "fatigueNervous": 4,
         "fatigueMuscular": 5,
@@ -925,7 +1009,8 @@
           "conditioning": 6,
           "running": 8
         }
-      }
+      },
+      "verifiedBy": "human"
     }
   },
   {
@@ -960,9 +1045,13 @@
       "mobility_longevity"
     ],
     "enrichment": {
-      "translations": {},
+      "translations": {
+        "fr": {
+          "description": "Place un genou contre un mur ou le bord d’un canapé, tibia vertical contre la surface. L’autre jambe est en fente avant. Redresse progressivement le buste en gardant le bassin neutre. Tu dois sentir un étirement profond sur le devant de la hanche et du quadriceps de la jambe arrière. Maintenir 1 à 2 minutes de chaque côté. Un des meilleurs étirements pour les fléchisseurs de hanche et le psoas."
+        }
+      },
       "templateVersion": 0,
-      "updatedAt": "2026-08-01T17:27:39.305Z",
+      "updatedAt": "2026-08-17T09:08:20.635Z",
       "coachScores": {
         "fatigueNervous": 1,
         "fatigueMuscular": 2,
@@ -972,7 +1061,8 @@
           "rehabilitation": 5,
           "stability": 4
         }
-      }
+      },
+      "verifiedBy": "human"
     }
   },
   {
@@ -188134,9 +188224,14 @@
     "exerciseTier": "collection_only",
     "collections": null,
     "enrichment": {
-      "translations": {},
+      "translations": {
+        "fr": {
+          "description": "Debout ou à quatre pattes, une jambe légèrement décollée. Dessine de grands cercles avec le genou en gardant le bassin le plus stable possible. Change de sens régulièrement. Le mouvement doit rester fluide et sans à-coups. Excellent pour lubrifier l’articulation de la hanche et améliorer le contrôle moteur en rotation interne et externe."
+        }
+      },
       "templateVersion": 0,
-      "updatedAt": "2026-08-17T07:38:31.269Z"
+      "updatedAt": "2026-08-17T09:08:20.635Z",
+      "verifiedBy": "human"
     }
   },
   {
@@ -188171,9 +188266,14 @@
     "exerciseTier": "collection_only",
     "collections": null,
     "enrichment": {
-      "translations": {},
+      "translations": {
+        "fr": {
+          "description": "À quatre pattes, mains sous les épaules et genoux sous les hanches. Sur l’expiration, arrondis complètement le dos en rentrant le menton et en poussant le sol avec les mains. Imagine que tu arrondis chaque vertèbre une par une. Maintiens un instant en haut puis reviens. Mouvement lent et contrôlé. Excellent pour mobiliser la colonne en flexion et relâcher les tensions du milieu du dos."
+        }
+      },
       "templateVersion": 0,
-      "updatedAt": "2026-08-17T07:38:31.269Z"
+      "updatedAt": "2026-08-17T09:08:20.635Z",
+      "verifiedBy": "human"
     }
   },
   {
@@ -188208,9 +188308,14 @@
     "exerciseTier": "collection_only",
     "collections": null,
     "enrichment": {
-      "translations": {},
+      "translations": {
+        "fr": {
+          "description": "Toujours à quatre pattes. Sur l’inspiration, creuse le dos, ouvre la poitrine vers l’avant et lève légèrement le regard. Les omoplates se rapprochent et le bassin s’incline vers l’avant. Garde les bras tendus. Alterne fluidement avec la posture du chat. Ce mouvement restaure la mobilité en extension de la colonne et contrebalance les postures assises prolongées."
+        }
+      },
       "templateVersion": 0,
-      "updatedAt": "2026-08-17T07:38:31.269Z"
+      "updatedAt": "2026-08-17T09:08:20.635Z",
+      "verifiedBy": "human"
     }
   },
   {
@@ -188244,9 +188349,14 @@
     "exerciseTier": "collection_only",
     "collections": null,
     "enrichment": {
-      "translations": {},
+      "translations": {
+        "fr": {
+          "description": "Place un obstacle bas (step, med ball ou simple ligne au sol). Avance une jambe par-dessus en gardant le bassin stable et le torse droit. La jambe d’appui reste tendue ou légèrement fléchie. Reviens contrôlé puis change de côté. Le mouvement combine fente et étirement dynamique des ischio-jambiers. Idéal en échauffement ou en travail de mobilité active."
+        }
+      },
       "templateVersion": 0,
-      "updatedAt": "2026-08-17T07:38:31.269Z"
+      "updatedAt": "2026-08-17T09:08:20.635Z",
+      "verifiedBy": "human"
     }
   },
   {
@@ -188281,9 +188391,14 @@
     "exerciseTier": "collection_only",
     "collections": null,
     "enrichment": {
-      "translations": {},
+      "translations": {
+        "fr": {
+          "description": "Debout, pieds largeur de hanches, légère flexion des genoux. Pousse les hanches vers l’arrière en gardant le dos neutre et les ischio-jambiers tendus. Descends jusqu’à sentir un étirement franc à l’arrière des cuisses, puis reviens en contractant les fessiers. Mouvement lent et contrôlé. Version au poids du corps parfaite pour apprendre le hinge et gagner en souplesse active des ischio-jambiers."
+        }
+      },
       "templateVersion": 0,
-      "updatedAt": "2026-08-17T07:38:31.269Z"
+      "updatedAt": "2026-08-17T09:08:20.635Z",
+      "verifiedBy": "human"
     }
   },
   {
@@ -188315,9 +188430,14 @@
     "exerciseTier": "collection_only",
     "collections": null,
     "enrichment": {
-      "translations": {},
+      "translations": {
+        "fr": {
+          "description": "Assis au sol, une jambe tendue devant toi, l’autre pliée avec le pied contre la cuisse intérieure. Garde le dos long et penche-toi vers l’avant depuis les hanches en gardant la poitrine ouverte. Attrape le pied ou le tibia selon ta souplesse. Respire calmement et relâche un peu plus à chaque expiration. Change de côté. Cet étirement cible précisément les ischio-jambiers sans forcer le bas du dos."
+        }
+      },
       "templateVersion": 0,
-      "updatedAt": "2026-08-17T07:38:31.269Z"
+      "updatedAt": "2026-08-17T09:08:20.635Z",
+      "verifiedBy": "human"
     }
   },
   {
@@ -188349,9 +188469,14 @@
     "exerciseTier": "collection_only",
     "collections": null,
     "enrichment": {
-      "translations": {},
+      "translations": {
+        "fr": {
+          "description": "Debout, place un talon sur un support bas (step ou barre). Garde la jambe presque tendue et le bassin carré. Penchet-toi depuis les hanches en gardant le dos long jusqu’à sentir l’étirement à l’arrière de la cuisse. Ne force pas en arrondissant le dos. Version simple et efficace pour travailler la souplesse des ischio-jambiers en position debout."
+        }
+      },
       "templateVersion": 0,
-      "updatedAt": "2026-08-17T07:38:31.269Z"
+      "updatedAt": "2026-08-17T09:08:20.635Z",
+      "verifiedBy": "human"
     }
   },
   {
@@ -188383,9 +188508,14 @@
     "exerciseTier": "collection_only",
     "collections": null,
     "enrichment": {
-      "translations": {},
+      "translations": {
+        "fr": {
+          "description": "En fente basse, genou arrière au sol. Avance légèrement le bassin vers l’avant en gardant le torse droit et le bassin neutre (pas de cambrure excessive). Tu dois sentir l’étirement sur le devant de la hanche et du haut de la cuisse de la jambe arrière. Maintenir 30 à 60 secondes de chaque côté. Indispensable si tu restes beaucoup assis ou si tu cours."
+        }
+      },
       "templateVersion": 0,
-      "updatedAt": "2026-08-17T07:38:31.269Z"
+      "updatedAt": "2026-08-17T09:08:20.635Z",
+      "verifiedBy": "human"
     }
   },
   {
