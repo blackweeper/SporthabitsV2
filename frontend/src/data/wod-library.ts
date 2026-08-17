@@ -74,8 +74,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-01-ex-3",
@@ -100,8 +100,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-01-ex-5",
@@ -126,8 +126,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-01-ex-7",
@@ -152,8 +152,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-01-ex-9",
@@ -178,8 +178,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-01-ex-11",
@@ -204,8 +204,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-01-ex-13",
@@ -230,8 +230,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-01-ex-15",
@@ -256,8 +256,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-01-ex-17",
@@ -282,8 +282,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-01-ex-19",
@@ -308,8 +308,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-01-ex-21",
@@ -334,8 +334,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-01-ex-23",
@@ -360,8 +360,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-01-ex-25",
@@ -386,8 +386,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-01-ex-27",
@@ -412,8 +412,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-01-ex-29",
@@ -438,8 +438,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-01-ex-31",
@@ -464,8 +464,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-01-ex-33",
@@ -490,8 +490,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-01-ex-35",
@@ -516,8 +516,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-01-ex-37",
@@ -542,8 +542,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-01-ex-39",
@@ -568,8 +568,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       }
     ],
     "wodSource": {
@@ -597,8 +597,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": "5 tours chronométrés : 50 squats, 400m de course.",
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-02-ex-2",
@@ -623,8 +623,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-02-ex-4",
@@ -649,8 +649,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-02-ex-6",
@@ -675,8 +675,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-02-ex-8",
@@ -701,8 +701,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-02-ex-10",
@@ -756,8 +756,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-03-ex-3",
@@ -769,8 +769,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-03-ex-4",
@@ -795,8 +795,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-03-ex-6",
@@ -808,8 +808,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-03-ex-7",
@@ -834,8 +834,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-03-ex-9",
@@ -847,8 +847,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-03-ex-10",
@@ -873,8 +873,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-03-ex-12",
@@ -886,8 +886,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-03-ex-13",
@@ -912,8 +912,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-03-ex-15",
@@ -925,8 +925,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-03-ex-16",
@@ -951,8 +951,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-03-ex-18",
@@ -964,8 +964,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-03-ex-19",
@@ -990,8 +990,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-03-ex-21",
@@ -1003,8 +1003,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       }
     ],
     "wodSource": {
@@ -1032,8 +1032,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": "5 tours : 10 sprawls, 5 burpees, 10 fentes.",
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_sprawl",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-04-ex-2",
@@ -1058,8 +1058,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-04-ex-4",
@@ -1071,8 +1071,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_sprawl",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-04-ex-5",
@@ -1097,8 +1097,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-04-ex-7",
@@ -1110,8 +1110,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_sprawl",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-04-ex-8",
@@ -1136,8 +1136,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-04-ex-10",
@@ -1149,8 +1149,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_sprawl",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-04-ex-11",
@@ -1175,8 +1175,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-04-ex-13",
@@ -1188,8 +1188,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_sprawl",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-04-ex-14",
@@ -1214,8 +1214,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       }
     ],
     "wodSource": {
@@ -1256,8 +1256,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0514",
+        "matchConfidence": "alias"
       }
     ],
     "wodSource": {
@@ -1285,8 +1285,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": "Annie : 50-40-30-20-10 double unders / sit-ups.",
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_double_under_corde_a_sauter_double_passage",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-06-ex-2",
@@ -1298,8 +1298,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       }
     ],
     "wodSource": {
@@ -1340,8 +1340,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_fente_sautee",
+        "matchConfidence": "alias"
       }
     ],
     "wodSource": {
@@ -1369,8 +1369,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": "Pour temps : 300 double unders, avec 3-7 strict HSPU à chaque pause.",
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_double_under_corde_a_sauter_double_passage",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-08-ex-2",
@@ -1382,8 +1382,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0471",
+        "matchConfidence": "alias"
       }
     ],
     "wodSource": {
@@ -1424,8 +1424,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 10,
         "duration_seconds": 20,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-09-ex-3",
@@ -1450,8 +1450,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 10,
         "duration_seconds": 20,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-09-ex-5",
@@ -1476,8 +1476,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 10,
         "duration_seconds": 20,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-09-ex-7",
@@ -1502,8 +1502,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 10,
         "duration_seconds": 20,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-09-ex-9",
@@ -1528,8 +1528,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 10,
         "duration_seconds": 20,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-09-ex-11",
@@ -1554,8 +1554,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 10,
         "duration_seconds": 20,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-09-ex-13",
@@ -1580,8 +1580,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 10,
         "duration_seconds": 20,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-09-ex-15",
@@ -1606,8 +1606,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 10,
         "duration_seconds": 20,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-09-ex-17",
@@ -1632,8 +1632,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 10,
         "duration_seconds": 20,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-09-ex-19",
@@ -1658,8 +1658,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 10,
         "duration_seconds": 20,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-09-ex-21",
@@ -1684,8 +1684,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 10,
         "duration_seconds": 20,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-09-ex-23",
@@ -1710,8 +1710,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 10,
         "duration_seconds": 20,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-09-ex-25",
@@ -1736,8 +1736,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 10,
         "duration_seconds": 20,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-09-ex-27",
@@ -1762,8 +1762,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 10,
         "duration_seconds": 20,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-09-ex-29",
@@ -1788,8 +1788,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 10,
         "duration_seconds": 20,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-09-ex-31",
@@ -1814,8 +1814,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 10,
         "duration_seconds": 20,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       }
     ],
     "wodSource": {
@@ -1976,8 +1976,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-11-ex-3",
@@ -2002,8 +2002,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_double_under_corde_a_sauter_double_passage",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-11-ex-5",
@@ -2041,8 +2041,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-11-ex-8",
@@ -2067,8 +2067,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_double_under_corde_a_sauter_double_passage",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-11-ex-10",
@@ -2106,8 +2106,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-11-ex-13",
@@ -2132,8 +2132,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_double_under_corde_a_sauter_double_passage",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-11-ex-15",
@@ -2171,8 +2171,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-11-ex-18",
@@ -2197,8 +2197,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_double_under_corde_a_sauter_double_passage",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-11-ex-20",
@@ -2236,8 +2236,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-11-ex-23",
@@ -2262,8 +2262,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_double_under_corde_a_sauter_double_passage",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-11-ex-25",
@@ -2301,8 +2301,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-11-ex-28",
@@ -2327,8 +2327,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_double_under_corde_a_sauter_double_passage",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-11-ex-30",
@@ -2369,8 +2369,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": "EMOM 15 min : 1) max double unders 2) max pompes 3) max squats.",
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_double_under_corde_a_sauter_double_passage",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-12-ex-2",
@@ -2395,8 +2395,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-12-ex-4",
@@ -2408,8 +2408,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_double_under_corde_a_sauter_double_passage",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-12-ex-5",
@@ -2434,8 +2434,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-12-ex-7",
@@ -2447,8 +2447,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_double_under_corde_a_sauter_double_passage",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-12-ex-8",
@@ -2473,8 +2473,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-12-ex-10",
@@ -2486,8 +2486,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_double_under_corde_a_sauter_double_passage",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-12-ex-11",
@@ -2512,8 +2512,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-12-ex-13",
@@ -2525,8 +2525,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_double_under_corde_a_sauter_double_passage",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-12-ex-14",
@@ -2551,8 +2551,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       }
     ],
     "wodSource": {
@@ -2580,8 +2580,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": "Pour temps : 100 squats, 75 pompes, 50 pistols, 75 pompes, 100 squats.",
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-13-ex-2",
@@ -2632,8 +2632,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       }
     ],
     "wodSource": {
@@ -2690,8 +2690,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 1200,
         "notes": "Death by : commence à 5 burpees la 1re minute, +1 burpee chaque minute suivante (6, 7, 8...), jusqu'à l'échec.",
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1160",
+        "matchConfidence": "alias"
       }
     ],
     "wodSource": {
@@ -2748,8 +2748,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": "EMOM 20 min : 1) 10m handstand walk 2) 20 jump lunges 3) 10-15 burpees 4) 45\" gainage planche frontale.",
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_marche_sur_les_mains_handstand_walk",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-17-ex-2",
@@ -2761,8 +2761,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_fente_sautee",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-17-ex-3",
@@ -2800,8 +2800,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_marche_sur_les_mains_handstand_walk",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-17-ex-6",
@@ -2813,8 +2813,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_fente_sautee",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-17-ex-7",
@@ -2852,8 +2852,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_marche_sur_les_mains_handstand_walk",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-17-ex-10",
@@ -2865,8 +2865,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_fente_sautee",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-17-ex-11",
@@ -2904,8 +2904,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_marche_sur_les_mains_handstand_walk",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-17-ex-14",
@@ -2917,8 +2917,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_fente_sautee",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-17-ex-15",
@@ -2956,8 +2956,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_marche_sur_les_mains_handstand_walk",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-17-ex-18",
@@ -2969,8 +2969,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_fente_sautee",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-17-ex-19",
@@ -3024,8 +3024,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": "Pour temps, 2 tours : 30m handstand walk, 30 pistols, 30 burpees, 30 tuck ups.",
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_marche_sur_les_mains_handstand_walk",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-home-18-ex-2",
@@ -3063,8 +3063,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0871",
+        "matchConfidence": "alias"
       }
     ],
     "wodSource": {
@@ -3533,8 +3533,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": "The Pyramid, pour temps : 50 squats, 10 burpees, 40 v-ups, 10 burpees, 20 fentes/jambe, 10 burpees, 20 fentes/jambe, 10 burpees, 40 v-ups, 10 burpees, 50 squats.",
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-23-ex-2",
@@ -3559,8 +3559,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_v_up",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-23-ex-4",
@@ -3585,8 +3585,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-23-ex-6",
@@ -3611,8 +3611,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-23-ex-8",
@@ -3637,8 +3637,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_v_up",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-23-ex-10",
@@ -3663,8 +3663,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       }
     ],
     "wodSource": {
@@ -3692,8 +3692,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": "6 tours : 15 tuck ups, 15 pompes.",
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0871",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-24-ex-2",
@@ -3718,8 +3718,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0871",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-24-ex-4",
@@ -3744,8 +3744,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0871",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-24-ex-6",
@@ -3770,8 +3770,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0871",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-24-ex-8",
@@ -3796,8 +3796,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0871",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-24-ex-10",
@@ -3822,8 +3822,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0871",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-24-ex-12",
@@ -3893,8 +3893,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": "EMOM 16 min : 1) 50 double unders 2) 15 swings avec objet lesté (sac, sacoche, enfant...) 3) 20 rameurs (mouvement) 4) repos.",
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_double_under_corde_a_sauter_double_passage",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-26-ex-2",
@@ -3906,8 +3906,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0549",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-26-ex-3",
@@ -3945,8 +3945,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_double_under_corde_a_sauter_double_passage",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-26-ex-6",
@@ -3958,8 +3958,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0549",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-26-ex-7",
@@ -3997,8 +3997,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_double_under_corde_a_sauter_double_passage",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-26-ex-10",
@@ -4010,8 +4010,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0549",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-26-ex-11",
@@ -4049,8 +4049,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_double_under_corde_a_sauter_double_passage",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-26-ex-14",
@@ -4062,8 +4062,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0549",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-26-ex-15",
@@ -4130,8 +4130,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_v_up",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-27-ex-3",
@@ -4143,8 +4143,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-27-ex-4",
@@ -4169,8 +4169,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_v_up",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-27-ex-6",
@@ -4182,8 +4182,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-27-ex-7",
@@ -4208,8 +4208,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_v_up",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-27-ex-9",
@@ -4221,8 +4221,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       }
     ],
     "wodSource": {
@@ -4422,8 +4422,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": "5 tours pour temps, chaque tour dans une fenêtre de 3 min : 40 squats, 30 fentes, max burpees sur le temps restant. Repos 3' entre les tours.",
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-29-ex-2",
@@ -4435,8 +4435,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-29-ex-3",
@@ -4461,8 +4461,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-29-ex-5",
@@ -4474,8 +4474,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-29-ex-6",
@@ -4500,8 +4500,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-29-ex-8",
@@ -4513,8 +4513,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-29-ex-9",
@@ -4539,8 +4539,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-29-ex-11",
@@ -4552,8 +4552,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-29-ex-12",
@@ -4578,8 +4578,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-29-ex-14",
@@ -4591,8 +4591,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-29-ex-15",
@@ -4646,8 +4646,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-30-ex-3",
@@ -4659,8 +4659,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 180,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-30-ex-4",
@@ -4685,8 +4685,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-30-ex-6",
@@ -4698,8 +4698,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 180,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-30-ex-7",
@@ -4724,8 +4724,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-30-ex-9",
@@ -4737,8 +4737,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 180,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-30-ex-10",
@@ -4763,8 +4763,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-30-ex-12",
@@ -4776,8 +4776,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 180,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-30-ex-13",
@@ -4802,8 +4802,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-30-ex-15",
@@ -4815,8 +4815,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 180,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       }
     ],
     "wodSource": {
@@ -4844,8 +4844,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": "5 tours : 60 double unders, 50 air squats, 40 walking lunges, 30 jump lunges, 20 jump squats, 10 pistols.",
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_double_under_corde_a_sauter_double_passage",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-31-ex-2",
@@ -4857,8 +4857,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-31-ex-3",
@@ -4870,8 +4870,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-31-ex-4",
@@ -4883,8 +4883,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_fente_sautee",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-31-ex-5",
@@ -4896,8 +4896,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0514",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-31-ex-6",
@@ -4922,8 +4922,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_double_under_corde_a_sauter_double_passage",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-31-ex-8",
@@ -4935,8 +4935,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-31-ex-9",
@@ -4948,8 +4948,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-31-ex-10",
@@ -4961,8 +4961,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_fente_sautee",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-31-ex-11",
@@ -4974,8 +4974,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0514",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-31-ex-12",
@@ -5000,8 +5000,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_double_under_corde_a_sauter_double_passage",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-31-ex-14",
@@ -5013,8 +5013,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-31-ex-15",
@@ -5026,8 +5026,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-31-ex-16",
@@ -5039,8 +5039,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_fente_sautee",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-31-ex-17",
@@ -5052,8 +5052,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0514",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-31-ex-18",
@@ -5078,8 +5078,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_double_under_corde_a_sauter_double_passage",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-31-ex-20",
@@ -5091,8 +5091,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-31-ex-21",
@@ -5104,8 +5104,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-31-ex-22",
@@ -5117,8 +5117,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_fente_sautee",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-31-ex-23",
@@ -5130,8 +5130,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0514",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-31-ex-24",
@@ -5156,8 +5156,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_double_under_corde_a_sauter_double_passage",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-31-ex-26",
@@ -5169,8 +5169,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-31-ex-27",
@@ -5182,8 +5182,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-31-ex-28",
@@ -5195,8 +5195,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_fente_sautee",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-31-ex-29",
@@ -5208,8 +5208,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0514",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-31-ex-30",
@@ -5250,8 +5250,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": "Pour temps : 100 double unders, 80 air squats, 60 sit-ups, 40 pompes, 20 burpees, 100 double unders.",
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_double_under_corde_a_sauter_double_passage",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-32-ex-2",
@@ -5263,8 +5263,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-32-ex-3",
@@ -5276,8 +5276,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-32-ex-4",
@@ -5315,8 +5315,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_double_under_corde_a_sauter_double_passage",
+        "matchConfidence": "alias"
       }
     ],
     "wodSource": {
@@ -5415,8 +5415,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": "4 tours : 15 box dips (chaise, banc, etc.), 30'' handstand hold.",
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0129",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-39-ex-2",
@@ -5428,8 +5428,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 30,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_3302",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-39-ex-3",
@@ -5441,8 +5441,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0129",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-39-ex-4",
@@ -5454,8 +5454,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 30,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_3302",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-39-ex-5",
@@ -5467,8 +5467,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0129",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-39-ex-6",
@@ -5480,8 +5480,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 30,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_3302",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-39-ex-7",
@@ -5493,8 +5493,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0129",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-39-ex-8",
@@ -5506,8 +5506,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 30,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_3302",
+        "matchConfidence": "alias"
       }
     ],
     "wodSource": {
@@ -5535,8 +5535,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 20,
         "notes": "CORE, 4 tours : 20'' hollow rock, 20'' hollow hold, 20'' gainage planche, 20'' repos.",
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_hollow_rock",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-home-40-ex-2",
@@ -5548,8 +5548,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 20,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "if_0070",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-home-40-ex-3",
@@ -5574,8 +5574,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 20,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_hollow_rock",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-home-40-ex-5",
@@ -5587,8 +5587,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 20,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "if_0070",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-home-40-ex-6",
@@ -5613,8 +5613,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 20,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_hollow_rock",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-home-40-ex-8",
@@ -5626,8 +5626,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 20,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "if_0070",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-home-40-ex-9",
@@ -5652,8 +5652,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 20,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_hollow_rock",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-home-40-ex-11",
@@ -5665,8 +5665,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 20,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "if_0070",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-home-40-ex-12",
@@ -5707,8 +5707,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": "CORE, 5 tours : 10 v-ups, 10 abs bicycle, 10 tuck ups. Repos 30'' entre les tours.",
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_v_up",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-41-ex-2",
@@ -5720,8 +5720,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_crunch_bicyclette",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-41-ex-3",
@@ -5733,8 +5733,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 30,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0871",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-41-ex-4",
@@ -5746,8 +5746,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_v_up",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-41-ex-5",
@@ -5759,8 +5759,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_crunch_bicyclette",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-41-ex-6",
@@ -5772,8 +5772,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 30,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0871",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-41-ex-7",
@@ -5785,8 +5785,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_v_up",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-41-ex-8",
@@ -5798,8 +5798,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_crunch_bicyclette",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-41-ex-9",
@@ -5811,8 +5811,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 30,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0871",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-41-ex-10",
@@ -5824,8 +5824,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_v_up",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-41-ex-11",
@@ -5837,8 +5837,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_crunch_bicyclette",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-41-ex-12",
@@ -5850,8 +5850,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 30,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0871",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-41-ex-13",
@@ -5863,8 +5863,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_v_up",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-41-ex-14",
@@ -5876,8 +5876,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_crunch_bicyclette",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-41-ex-15",
@@ -5889,8 +5889,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 30,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0871",
+        "matchConfidence": "alias"
       }
     ],
     "wodSource": {
@@ -5918,8 +5918,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": "CORE, 5 tours : 20 side oblique crunch (chaque côté), 20 abs crunch.",
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0635",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-42-ex-2",
@@ -5931,8 +5931,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0274",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-42-ex-3",
@@ -5944,8 +5944,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0635",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-42-ex-4",
@@ -5957,8 +5957,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0274",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-42-ex-5",
@@ -5970,8 +5970,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0635",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-42-ex-6",
@@ -5983,8 +5983,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0274",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-42-ex-7",
@@ -5996,8 +5996,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0635",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-42-ex-8",
@@ -6009,8 +6009,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0274",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-42-ex-9",
@@ -6022,8 +6022,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0635",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-42-ex-10",
@@ -6035,8 +6035,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0274",
+        "matchConfidence": "alias"
       }
     ],
     "wodSource": {
@@ -6064,8 +6064,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 30,
         "notes": "CORE, 5 tours : 30'' side plank (chaque côté), 20 v-ups unilatéraux.",
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_3544",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-43-ex-2",
@@ -6077,8 +6077,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_v_up",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-43-ex-3",
@@ -6090,8 +6090,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 30,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_3544",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-43-ex-4",
@@ -6103,8 +6103,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_v_up",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-43-ex-5",
@@ -6116,8 +6116,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 30,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_3544",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-43-ex-6",
@@ -6129,8 +6129,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_v_up",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-43-ex-7",
@@ -6142,8 +6142,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 30,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_3544",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-43-ex-8",
@@ -6155,8 +6155,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_v_up",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-43-ex-9",
@@ -6168,8 +6168,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 30,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_3544",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-43-ex-10",
@@ -6181,8 +6181,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_v_up",
+        "matchConfidence": "alias"
       }
     ],
     "wodSource": {
@@ -6281,8 +6281,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-46-ex-3",
@@ -6294,8 +6294,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-46-ex-4",
@@ -6320,8 +6320,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-46-ex-6",
@@ -6333,8 +6333,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-46-ex-7",
@@ -6359,8 +6359,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-46-ex-9",
@@ -6372,8 +6372,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-46-ex-10",
@@ -6398,8 +6398,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-46-ex-12",
@@ -6411,8 +6411,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       }
     ],
     "wodSource": {
@@ -6440,8 +6440,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": "3 tours pour temps : 21 double unders, 15 burpees, 9 HSPU.",
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_double_under_corde_a_sauter_double_passage",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-47-ex-2",
@@ -6479,8 +6479,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_double_under_corde_a_sauter_double_passage",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-47-ex-5",
@@ -6518,8 +6518,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_double_under_corde_a_sauter_double_passage",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-47-ex-8",
@@ -6758,8 +6758,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 30,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-49-ex-3",
@@ -6797,8 +6797,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 30,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-49-ex-6",
@@ -6836,8 +6836,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 30,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-49-ex-9",
@@ -6875,8 +6875,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 30,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-49-ex-12",
@@ -6930,8 +6930,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-home-50-ex-3",
@@ -7011,8 +7011,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_sled_push_poussee_de_traineau",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-hyrox-01-ex-4",
@@ -7050,8 +7050,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_sled_push_poussee_de_traineau",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-hyrox-01-ex-7",
@@ -7089,8 +7089,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_sled_push_poussee_de_traineau",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-hyrox-01-ex-10",
@@ -7128,8 +7128,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_sled_push_poussee_de_traineau",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-hyrox-01-ex-13",
@@ -7167,8 +7167,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_sled_push_poussee_de_traineau",
+        "matchConfidence": "exact"
       }
     ],
     "wodSource": {
@@ -7222,8 +7222,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0003",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-hyrox-02-ex-4",
@@ -7274,8 +7274,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-02-ex-8",
@@ -7300,8 +7300,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_box_jump_box_jump_over",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-02-ex-10",
@@ -7394,8 +7394,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": "1000m course (buy-in), puis 20 tours : 2 sandbag lunge (30/20kg), 4 sandbag ground to overhead (30/20kg), 6 burpees, puis 1000m course (cash-out). Cap 40 min.",
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_fente_avec_sac_de_sable_sandbag_lunge",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-03-ex-3",
@@ -7407,8 +7407,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_sac_de_sable_du_sol_a_la_verticale_sandbag_ground_to_overhead",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-03-ex-4",
@@ -7433,8 +7433,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_fente_avec_sac_de_sable_sandbag_lunge",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-03-ex-6",
@@ -7446,8 +7446,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_sac_de_sable_du_sol_a_la_verticale_sandbag_ground_to_overhead",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-03-ex-7",
@@ -7472,8 +7472,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_fente_avec_sac_de_sable_sandbag_lunge",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-03-ex-9",
@@ -7485,8 +7485,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_sac_de_sable_du_sol_a_la_verticale_sandbag_ground_to_overhead",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-03-ex-10",
@@ -7511,8 +7511,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_fente_avec_sac_de_sable_sandbag_lunge",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-03-ex-12",
@@ -7524,8 +7524,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_sac_de_sable_du_sol_a_la_verticale_sandbag_ground_to_overhead",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-03-ex-13",
@@ -7550,8 +7550,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_fente_avec_sac_de_sable_sandbag_lunge",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-03-ex-15",
@@ -7563,8 +7563,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_sac_de_sable_du_sol_a_la_verticale_sandbag_ground_to_overhead",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-03-ex-16",
@@ -7589,8 +7589,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_fente_avec_sac_de_sable_sandbag_lunge",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-03-ex-18",
@@ -7602,8 +7602,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_sac_de_sable_du_sol_a_la_verticale_sandbag_ground_to_overhead",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-03-ex-19",
@@ -7628,8 +7628,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_fente_avec_sac_de_sable_sandbag_lunge",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-03-ex-21",
@@ -7641,8 +7641,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_sac_de_sable_du_sol_a_la_verticale_sandbag_ground_to_overhead",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-03-ex-22",
@@ -7667,8 +7667,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_fente_avec_sac_de_sable_sandbag_lunge",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-03-ex-24",
@@ -7680,8 +7680,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_sac_de_sable_du_sol_a_la_verticale_sandbag_ground_to_overhead",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-03-ex-25",
@@ -7706,8 +7706,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_fente_avec_sac_de_sable_sandbag_lunge",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-03-ex-27",
@@ -7719,8 +7719,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_sac_de_sable_du_sol_a_la_verticale_sandbag_ground_to_overhead",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-03-ex-28",
@@ -7745,8 +7745,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_fente_avec_sac_de_sable_sandbag_lunge",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-03-ex-30",
@@ -7758,8 +7758,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_sac_de_sable_du_sol_a_la_verticale_sandbag_ground_to_overhead",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-03-ex-31",
@@ -7784,8 +7784,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_fente_avec_sac_de_sable_sandbag_lunge",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-03-ex-33",
@@ -7797,8 +7797,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_sac_de_sable_du_sol_a_la_verticale_sandbag_ground_to_overhead",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-03-ex-34",
@@ -7823,8 +7823,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_fente_avec_sac_de_sable_sandbag_lunge",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-03-ex-36",
@@ -7836,8 +7836,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_sac_de_sable_du_sol_a_la_verticale_sandbag_ground_to_overhead",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-03-ex-37",
@@ -7862,8 +7862,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_fente_avec_sac_de_sable_sandbag_lunge",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-03-ex-39",
@@ -7875,8 +7875,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_sac_de_sable_du_sol_a_la_verticale_sandbag_ground_to_overhead",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-03-ex-40",
@@ -7901,8 +7901,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_fente_avec_sac_de_sable_sandbag_lunge",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-03-ex-42",
@@ -7914,8 +7914,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_sac_de_sable_du_sol_a_la_verticale_sandbag_ground_to_overhead",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-03-ex-43",
@@ -7940,8 +7940,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_fente_avec_sac_de_sable_sandbag_lunge",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-03-ex-45",
@@ -7953,8 +7953,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_sac_de_sable_du_sol_a_la_verticale_sandbag_ground_to_overhead",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-03-ex-46",
@@ -7979,8 +7979,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_fente_avec_sac_de_sable_sandbag_lunge",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-03-ex-48",
@@ -7992,8 +7992,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_sac_de_sable_du_sol_a_la_verticale_sandbag_ground_to_overhead",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-03-ex-49",
@@ -8018,8 +8018,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_fente_avec_sac_de_sable_sandbag_lunge",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-03-ex-51",
@@ -8031,8 +8031,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_sac_de_sable_du_sol_a_la_verticale_sandbag_ground_to_overhead",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-03-ex-52",
@@ -8057,8 +8057,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_fente_avec_sac_de_sable_sandbag_lunge",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-03-ex-54",
@@ -8070,8 +8070,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_sac_de_sable_du_sol_a_la_verticale_sandbag_ground_to_overhead",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-03-ex-55",
@@ -8096,8 +8096,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_fente_avec_sac_de_sable_sandbag_lunge",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-03-ex-57",
@@ -8109,8 +8109,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_sac_de_sable_du_sol_a_la_verticale_sandbag_ground_to_overhead",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-03-ex-58",
@@ -8135,8 +8135,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_fente_avec_sac_de_sable_sandbag_lunge",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-03-ex-60",
@@ -8148,8 +8148,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_sac_de_sable_du_sol_a_la_verticale_sandbag_ground_to_overhead",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-03-ex-61",
@@ -8427,8 +8427,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-05-ex-3",
@@ -8440,8 +8440,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-05-ex-4",
@@ -8479,8 +8479,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-05-ex-7",
@@ -8492,8 +8492,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-05-ex-8",
@@ -8531,8 +8531,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-05-ex-11",
@@ -8544,8 +8544,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-05-ex-12",
@@ -8583,8 +8583,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-05-ex-15",
@@ -8596,8 +8596,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-05-ex-16",
@@ -8680,8 +8680,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_fente_avec_sac_de_sable_sandbag_lunge",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-07-ex-3",
@@ -8693,8 +8693,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_slam_ball_medecine_ball_frappe_au_sol",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-07-ex-4",
@@ -8719,8 +8719,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_fente_avec_sac_de_sable_sandbag_lunge",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-07-ex-6",
@@ -8732,8 +8732,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_slam_ball_medecine_ball_frappe_au_sol",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-07-ex-7",
@@ -8758,8 +8758,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_fente_avec_sac_de_sable_sandbag_lunge",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-07-ex-9",
@@ -8771,8 +8771,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_slam_ball_medecine_ball_frappe_au_sol",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-07-ex-10",
@@ -8797,8 +8797,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_fente_avec_sac_de_sable_sandbag_lunge",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-07-ex-12",
@@ -8810,8 +8810,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_slam_ball_medecine_ball_frappe_au_sol",
+        "matchConfidence": "alias"
       }
     ],
     "wodSource": {
@@ -8985,8 +8985,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_double_under_corde_a_sauter_double_passage",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-09-ex-4",
@@ -8998,8 +8998,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-09-ex-5",
@@ -9037,8 +9037,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_double_under_corde_a_sauter_double_passage",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-09-ex-8",
@@ -9050,8 +9050,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-09-ex-9",
@@ -9089,8 +9089,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_double_under_corde_a_sauter_double_passage",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-09-ex-12",
@@ -9102,8 +9102,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-09-ex-13",
@@ -9141,8 +9141,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_double_under_corde_a_sauter_double_passage",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-09-ex-16",
@@ -9154,8 +9154,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-09-ex-17",
@@ -9193,8 +9193,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_double_under_corde_a_sauter_double_passage",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-09-ex-20",
@@ -9206,8 +9206,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-09-ex-21",
@@ -9407,8 +9407,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_broad_jump_saut_en_longueur",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-hyrox-11-ex-8",
@@ -9433,8 +9433,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_squat_avec_barre",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-hyrox-11-ex-10",
@@ -9620,7 +9620,7 @@ export const WOD_LIBRARY: Plan[] = [
       "format": "AMRAP 60'"
     }
   },
-{
+  {
     "id": "wod-classic-death-by-cardio",
     "title": "\"Death by Cardio\"",
     "type": "mixte",
@@ -9692,8 +9692,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_single_under_corde_a_sauter_simple_passage",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-cardio-complex-ex-4",
@@ -9731,8 +9731,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_single_under_corde_a_sauter_simple_passage",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-cardio-complex-ex-7",
@@ -9770,8 +9770,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_single_under_corde_a_sauter_simple_passage",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-cardio-complex-ex-10",
@@ -9809,8 +9809,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_single_under_corde_a_sauter_simple_passage",
+        "matchConfidence": "alias"
       }
     ],
     "wodSource": {
@@ -9864,8 +9864,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-candy-ex-4",
@@ -9903,8 +9903,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-candy-ex-7",
@@ -9942,8 +9942,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-candy-ex-10",
@@ -9981,8 +9981,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-candy-ex-13",
@@ -10020,8 +10020,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       }
     ],
     "wodSource": {
@@ -10062,8 +10062,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_box_jump_box_jump_over",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-open-26-1-ex-3",
@@ -10088,8 +10088,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_box_jump_box_jump_over",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-open-26-1-ex-5",
@@ -10114,8 +10114,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_step_over_sur_boite_avec_medecine_ball",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-open-26-1-ex-7",
@@ -10140,8 +10140,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_step_over_sur_boite_avec_medecine_ball",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-open-26-1-ex-9",
@@ -10166,8 +10166,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_box_jump_box_jump_over",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-open-26-1-ex-11",
@@ -10192,8 +10192,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_box_jump_box_jump_over",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-open-26-1-ex-13",
@@ -10273,8 +10273,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mini-murph-ex-5",
@@ -10312,8 +10312,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mini-murph-ex-8",
@@ -10351,8 +10351,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mini-murph-ex-11",
@@ -10390,8 +10390,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mini-murph-ex-14",
@@ -10429,8 +10429,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mini-murph-ex-17",
@@ -10773,8 +10773,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-sting-ex-4",
@@ -10812,8 +10812,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-sting-ex-7",
@@ -10851,8 +10851,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-sting-ex-10",
@@ -10890,8 +10890,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-sting-ex-13",
@@ -10929,8 +10929,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       }
     ],
     "wodSource": {
@@ -10987,8 +10987,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-time-to-get-chipper-ex-2",
@@ -11013,8 +11013,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-time-to-get-chipper-ex-4",
@@ -11169,8 +11169,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-time-to-get-chipper-ex-16",
@@ -11195,8 +11195,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       }
     ],
     "wodSource": {
@@ -11308,8 +11308,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-555-standard-ex-2",
@@ -11347,8 +11347,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-555-standard-ex-5",
@@ -11386,8 +11386,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-555-standard-ex-8",
@@ -11425,8 +11425,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-555-standard-ex-11",
@@ -11464,8 +11464,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-555-standard-ex-14",
@@ -11613,8 +11613,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-invisible-fran-ex-2",
@@ -11639,8 +11639,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-invisible-fran-ex-4",
@@ -11665,8 +11665,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-invisible-fran-ex-6",
@@ -11707,8 +11707,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0648",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-ship-ex-2",
@@ -11733,8 +11733,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0648",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-ship-ex-4",
@@ -11759,8 +11759,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0648",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-ship-ex-6",
@@ -11785,8 +11785,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0648",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-ship-ex-8",
@@ -11811,8 +11811,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0648",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-ship-ex-10",
@@ -11837,8 +11837,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0648",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-ship-ex-12",
@@ -11863,8 +11863,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0648",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-ship-ex-14",
@@ -11889,8 +11889,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0648",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-ship-ex-16",
@@ -11915,8 +11915,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0648",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-ship-ex-18",
@@ -12194,8 +12194,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-4",
@@ -12207,8 +12207,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-5",
@@ -12220,8 +12220,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-6",
@@ -12259,8 +12259,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-9",
@@ -12272,8 +12272,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-10",
@@ -12285,8 +12285,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-11",
@@ -12324,8 +12324,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-14",
@@ -12337,8 +12337,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-15",
@@ -12350,8 +12350,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-16",
@@ -12389,8 +12389,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-19",
@@ -12402,8 +12402,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-20",
@@ -12415,8 +12415,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-21",
@@ -12454,8 +12454,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-24",
@@ -12467,8 +12467,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-25",
@@ -12480,8 +12480,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-26",
@@ -12519,8 +12519,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-29",
@@ -12532,8 +12532,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-30",
@@ -12545,8 +12545,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-31",
@@ -12584,8 +12584,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-34",
@@ -12597,8 +12597,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-35",
@@ -12610,8 +12610,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-36",
@@ -12649,8 +12649,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-39",
@@ -12662,8 +12662,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-40",
@@ -12675,8 +12675,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-41",
@@ -12714,8 +12714,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-44",
@@ -12727,8 +12727,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-45",
@@ -12740,8 +12740,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-46",
@@ -12779,8 +12779,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-49",
@@ -12792,8 +12792,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-50",
@@ -12805,8 +12805,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-51",
@@ -12844,8 +12844,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-54",
@@ -12857,8 +12857,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-55",
@@ -12870,8 +12870,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-56",
@@ -12909,8 +12909,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-59",
@@ -12922,8 +12922,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-60",
@@ -12935,8 +12935,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-61",
@@ -12974,8 +12974,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-64",
@@ -12987,8 +12987,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-65",
@@ -13000,8 +13000,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-66",
@@ -13039,8 +13039,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-69",
@@ -13052,8 +13052,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-70",
@@ -13065,8 +13065,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-71",
@@ -13104,8 +13104,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-74",
@@ -13117,8 +13117,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-75",
@@ -13130,8 +13130,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-76",
@@ -13169,8 +13169,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-79",
@@ -13182,8 +13182,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-80",
@@ -13195,8 +13195,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-81",
@@ -13234,8 +13234,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-84",
@@ -13247,8 +13247,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-85",
@@ -13260,8 +13260,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-86",
@@ -13299,8 +13299,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-89",
@@ -13312,8 +13312,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-90",
@@ -13325,8 +13325,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-91",
@@ -13364,8 +13364,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-94",
@@ -13377,8 +13377,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-95",
@@ -13390,8 +13390,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-96",
@@ -13429,8 +13429,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-99",
@@ -13442,8 +13442,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-100",
@@ -13455,8 +13455,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-101",
@@ -13494,8 +13494,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-104",
@@ -13507,8 +13507,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-105",
@@ -13520,8 +13520,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-106",
@@ -13559,8 +13559,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-109",
@@ -13572,8 +13572,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-110",
@@ -13585,8 +13585,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-111",
@@ -13624,8 +13624,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-114",
@@ -13637,8 +13637,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-115",
@@ -13650,8 +13650,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-116",
@@ -13689,8 +13689,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-119",
@@ -13702,8 +13702,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-120",
@@ -13715,8 +13715,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-121",
@@ -13754,8 +13754,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-124",
@@ -13767,8 +13767,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-125",
@@ -13780,8 +13780,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-126",
@@ -13819,8 +13819,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-129",
@@ -13832,8 +13832,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-130",
@@ -13845,8 +13845,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-131",
@@ -13884,8 +13884,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-134",
@@ -13897,8 +13897,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-135",
@@ -13910,8 +13910,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-136",
@@ -13949,8 +13949,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-139",
@@ -13962,8 +13962,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-140",
@@ -13975,8 +13975,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-141",
@@ -14014,8 +14014,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-144",
@@ -14027,8 +14027,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-145",
@@ -14040,8 +14040,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-146",
@@ -14079,8 +14079,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-149",
@@ -14092,8 +14092,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-150",
@@ -14105,8 +14105,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-151",
@@ -14144,8 +14144,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-154",
@@ -14157,8 +14157,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-155",
@@ -14170,8 +14170,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-156",
@@ -14209,8 +14209,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-159",
@@ -14222,8 +14222,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-160",
@@ -14235,8 +14235,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-161",
@@ -14274,8 +14274,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-164",
@@ -14287,8 +14287,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-165",
@@ -14300,8 +14300,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-166",
@@ -14339,8 +14339,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-169",
@@ -14352,8 +14352,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-170",
@@ -14365,8 +14365,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-171",
@@ -14404,8 +14404,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-174",
@@ -14417,8 +14417,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-175",
@@ -14430,8 +14430,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-176",
@@ -14469,8 +14469,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-179",
@@ -14482,8 +14482,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-180",
@@ -14495,8 +14495,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-181",
@@ -14534,8 +14534,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-184",
@@ -14547,8 +14547,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-185",
@@ -14560,8 +14560,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-186",
@@ -14599,8 +14599,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-189",
@@ -14612,8 +14612,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-190",
@@ -14625,8 +14625,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-191",
@@ -14664,8 +14664,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-194",
@@ -14677,8 +14677,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-195",
@@ -14690,8 +14690,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-196",
@@ -14729,8 +14729,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-199",
@@ -14742,8 +14742,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-200",
@@ -14755,8 +14755,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-201",
@@ -14794,8 +14794,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-204",
@@ -14807,8 +14807,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-205",
@@ -14820,8 +14820,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-206",
@@ -14859,8 +14859,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-209",
@@ -14872,8 +14872,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-210",
@@ -14885,8 +14885,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-211",
@@ -14924,8 +14924,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-214",
@@ -14937,8 +14937,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-215",
@@ -14950,8 +14950,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-216",
@@ -14989,8 +14989,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-219",
@@ -15002,8 +15002,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-220",
@@ -15015,8 +15015,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-221",
@@ -15054,8 +15054,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-224",
@@ -15067,8 +15067,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-225",
@@ -15080,8 +15080,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-226",
@@ -15119,8 +15119,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-229",
@@ -15132,8 +15132,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-230",
@@ -15145,8 +15145,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-231",
@@ -15184,8 +15184,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-234",
@@ -15197,8 +15197,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-235",
@@ -15210,8 +15210,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-236",
@@ -15249,8 +15249,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-239",
@@ -15262,8 +15262,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-240",
@@ -15275,8 +15275,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-241",
@@ -15314,8 +15314,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-244",
@@ -15327,8 +15327,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-245",
@@ -15340,8 +15340,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-246",
@@ -15379,8 +15379,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-mind-games-ex-249",
@@ -15392,8 +15392,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-mind-games-ex-250",
@@ -15405,8 +15405,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       }
     ],
     "wodSource": {
@@ -15476,8 +15476,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-hotel-workout-3-ex-3",
@@ -15502,8 +15502,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-hotel-workout-3-ex-5",
@@ -15528,8 +15528,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-hotel-workout-3-ex-7",
@@ -15554,8 +15554,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-hotel-workout-3-ex-9",
@@ -15580,8 +15580,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       }
     ],
     "wodSource": {
@@ -15979,8 +15979,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": "Sac lesté 25/15kg",
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-bolger-ex-3",
@@ -16005,8 +16005,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": "Sac lesté 25/15kg",
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-bolger-ex-5",
@@ -16031,8 +16031,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": "Sac lesté 25/15kg",
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-bolger-ex-7",
@@ -16057,8 +16057,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": "Sac lesté 25/15kg",
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-bolger-ex-9",
@@ -16083,8 +16083,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": "Sac lesté 25/15kg",
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       }
     ],
     "wodSource": {
@@ -16976,8 +16976,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-cindy-with-a-twist-ex-5",
@@ -17028,8 +17028,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-cindy-with-a-twist-ex-9",
@@ -17080,8 +17080,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-cindy-with-a-twist-ex-13",
@@ -17132,8 +17132,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-cindy-with-a-twist-ex-17",
@@ -17184,8 +17184,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-cindy-with-a-twist-ex-21",
@@ -17236,8 +17236,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-cindy-with-a-twist-ex-25",
@@ -17288,8 +17288,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-cindy-with-a-twist-ex-29",
@@ -17340,8 +17340,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-cindy-with-a-twist-ex-33",
@@ -17392,8 +17392,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-cindy-with-a-twist-ex-37",
@@ -17444,8 +17444,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-cindy-with-a-twist-ex-41",
@@ -17496,8 +17496,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-cindy-with-a-twist-ex-45",
@@ -17548,8 +17548,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-cindy-with-a-twist-ex-49",
@@ -17600,8 +17600,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-cindy-with-a-twist-ex-53",
@@ -17652,8 +17652,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-cindy-with-a-twist-ex-57",
@@ -17704,8 +17704,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-cindy-with-a-twist-ex-61",
@@ -17756,8 +17756,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-cindy-with-a-twist-ex-65",
@@ -17808,8 +17808,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-cindy-with-a-twist-ex-69",
@@ -17860,8 +17860,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-cindy-with-a-twist-ex-73",
@@ -17912,8 +17912,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-cindy-with-a-twist-ex-77",
@@ -17964,8 +17964,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       }
     ],
     "wodSource": {
@@ -18074,8 +18074,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-4",
@@ -18126,8 +18126,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-8",
@@ -18178,8 +18178,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-12",
@@ -18230,8 +18230,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-16",
@@ -18282,8 +18282,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-20",
@@ -18334,8 +18334,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-24",
@@ -18386,8 +18386,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-28",
@@ -18438,8 +18438,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-32",
@@ -18490,8 +18490,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-36",
@@ -18542,8 +18542,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-40",
@@ -18594,8 +18594,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-44",
@@ -18646,8 +18646,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-48",
@@ -18698,8 +18698,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-52",
@@ -18750,8 +18750,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-56",
@@ -18802,8 +18802,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-60",
@@ -18854,8 +18854,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-64",
@@ -18906,8 +18906,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-68",
@@ -18958,8 +18958,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-72",
@@ -19010,8 +19010,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-76",
@@ -19062,8 +19062,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-80",
@@ -19114,8 +19114,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-84",
@@ -19166,8 +19166,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-88",
@@ -19218,8 +19218,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-92",
@@ -19270,8 +19270,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-96",
@@ -19322,8 +19322,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-100",
@@ -19374,8 +19374,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-104",
@@ -19426,8 +19426,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-108",
@@ -19478,8 +19478,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-112",
@@ -19530,8 +19530,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-116",
@@ -19582,8 +19582,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-120",
@@ -19634,8 +19634,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-124",
@@ -19686,8 +19686,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-128",
@@ -19738,8 +19738,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-132",
@@ -19790,8 +19790,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-136",
@@ -19842,8 +19842,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-140",
@@ -19894,8 +19894,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-144",
@@ -19946,8 +19946,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-148",
@@ -19998,8 +19998,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-152",
@@ -20050,8 +20050,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-156",
@@ -20102,8 +20102,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-160",
@@ -20154,8 +20154,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-164",
@@ -20206,8 +20206,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-168",
@@ -20258,8 +20258,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-172",
@@ -20310,8 +20310,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-176",
@@ -20362,8 +20362,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-180",
@@ -20414,8 +20414,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-184",
@@ -20466,8 +20466,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-188",
@@ -20518,8 +20518,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-192",
@@ -20570,8 +20570,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-196",
@@ -20622,8 +20622,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-the-swedish-mile-ex-200",
@@ -20664,8 +20664,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": "Charge croissante à chaque tour",
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_squat_avec_barre",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-hetfield-ex-2",
@@ -20677,8 +20677,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": "Charge croissante à chaque tour",
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_squat_avec_barre",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-hetfield-ex-3",
@@ -20690,8 +20690,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": "Charge croissante à chaque tour",
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_squat_avec_barre",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-hetfield-ex-4",
@@ -20703,8 +20703,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": "Charge croissante à chaque tour",
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_squat_avec_barre",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-hetfield-ex-5",
@@ -20716,8 +20716,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": "Charge croissante à chaque tour",
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_squat_avec_barre",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-hetfield-ex-6",
@@ -20742,8 +20742,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-hetfield-ex-8",
@@ -20781,8 +20781,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-hetfield-ex-11",
@@ -20820,8 +20820,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-hetfield-ex-14",
@@ -20859,8 +20859,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-hetfield-ex-17",
@@ -20898,8 +20898,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_air_squat",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-hetfield-ex-20",
@@ -22206,8 +22206,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-antenne-gign-ex-5",
@@ -22219,8 +22219,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": "Air squat avec saut à l'extension",
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0514",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-antenne-gign-ex-6",
@@ -22245,8 +22245,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": "Air squat avec saut à l'extension",
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0514",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-antenne-gign-ex-8",
@@ -22258,8 +22258,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_0001",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-antenne-gign-ex-9",
@@ -22368,8 +22368,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-stone-ex-3",
@@ -22381,8 +22381,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": "25 mètres de poussée de traîneau",
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_sled_push_poussee_de_traineau",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-stone-ex-4",
@@ -22394,8 +22394,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": "25 mètres de tirage de traîneau",
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_sled_pull_tirage_de_traineau",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-stone-ex-5",
@@ -22420,8 +22420,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-stone-ex-7",
@@ -22433,8 +22433,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": "25 mètres de poussée de traîneau",
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_sled_push_poussee_de_traineau",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-stone-ex-8",
@@ -22446,8 +22446,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": "25 mètres de tirage de traîneau",
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_sled_pull_tirage_de_traineau",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-stone-ex-9",
@@ -22472,8 +22472,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-stone-ex-11",
@@ -22485,8 +22485,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": "25 mètres de poussée de traîneau",
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_sled_push_poussee_de_traineau",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-stone-ex-12",
@@ -22498,8 +22498,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": "25 mètres de tirage de traîneau",
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_sled_pull_tirage_de_traineau",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-stone-ex-13",
@@ -22524,8 +22524,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "wx_1460",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-stone-ex-15",
@@ -22537,8 +22537,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": "25 mètres de poussée de traîneau",
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_sled_push_poussee_de_traineau",
+        "matchConfidence": "exact"
       },
       {
         "id": "wod-classic-stone-ex-16",
@@ -22550,8 +22550,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": "25 mètres de tirage de traîneau",
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_sled_pull_tirage_de_traineau",
+        "matchConfidence": "exact"
       }
     ],
     "wodSource": {
@@ -22923,8 +22923,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": null
+        "exerciseRecordId": "sys_push_press_barre",
+        "matchConfidence": "alias"
       },
       {
         "id": "wod-classic-partner-2-ex-7",
@@ -22948,5 +22948,4 @@ export const WOD_LIBRARY: Plan[] = [
       "format": "For Time (par équipe de 2)"
     }
   }
-
 ];

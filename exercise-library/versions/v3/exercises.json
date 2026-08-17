@@ -23,7 +23,10 @@
     "movementPattern": null,
     "parentExerciseId": null,
     "variantLabel": null,
-    "aliases": null,
+    "aliases": [
+      "Back squat (60/40kg)",
+      "Back Squats"
+    ],
     "favoritedAt": null,
     "createdAt": "1970-01-01T00:00:00.000Z",
     "updatedAt": null,
@@ -518,7 +521,10 @@
     "movementPattern": null,
     "parentExerciseId": null,
     "variantLabel": null,
-    "aliases": null,
+    "aliases": [
+      "Push-Ups",
+      "Push-Up"
+    ],
     "favoritedAt": null,
     "createdAt": "1970-01-01T00:00:00.000Z",
     "updatedAt": null,
@@ -2411,7 +2417,13 @@
     "movementPattern": "core",
     "parentExerciseId": null,
     "variantLabel": null,
-    "aliases": null,
+    "aliases": [
+      "Sit-ups",
+      "Sit-Up",
+      "Sit-ups (15)",
+      "Ab mat sit-up",
+      "AbMat Sit-Ups"
+    ],
     "favoritedAt": null,
     "createdAt": "2026-07-28T23:33:37.361Z",
     "updatedAt": null,
@@ -20747,7 +20759,9 @@
     "movementPattern": "push",
     "parentExerciseId": null,
     "variantLabel": null,
-    "aliases": null,
+    "aliases": [
+      "Box dips (chaise, banc)"
+    ],
     "favoritedAt": null,
     "createdAt": "2026-07-28T23:33:37.364Z",
     "updatedAt": null,
@@ -34614,7 +34628,9 @@
     "movementPattern": "locomotion",
     "parentExerciseId": null,
     "variantLabel": null,
-    "aliases": null,
+    "aliases": [
+      "Abs crunch"
+    ],
     "favoritedAt": null,
     "createdAt": "2026-07-28T23:33:37.364Z",
     "updatedAt": null,
@@ -62263,7 +62279,9 @@
     "movementPattern": "push",
     "parentExerciseId": null,
     "variantLabel": null,
-    "aliases": null,
+    "aliases": [
+      "Strict HSPU (à chaque pause)"
+    ],
     "favoritedAt": null,
     "createdAt": "2026-07-28T23:33:37.366Z",
     "updatedAt": null,
@@ -65620,7 +65638,11 @@
     "movementPattern": "squat",
     "parentExerciseId": null,
     "variantLabel": null,
-    "aliases": null,
+    "aliases": [
+      "Jump squats (à chaque pause)",
+      "Jump squats",
+      "Squat Jumps"
+    ],
     "favoritedAt": null,
     "createdAt": "2026-07-28T23:33:37.366Z",
     "updatedAt": null,
@@ -70384,7 +70406,9 @@
     "movementPattern": "hinge",
     "parentExerciseId": null,
     "variantLabel": null,
-    "aliases": null,
+    "aliases": [
+      "Swing objet lesté (sac, enfant) (15)"
+    ],
     "favoritedAt": null,
     "createdAt": "2026-07-28T23:33:37.366Z",
     "updatedAt": null,
@@ -76943,7 +76967,9 @@
     "movementPattern": "locomotion",
     "parentExerciseId": null,
     "variantLabel": null,
-    "aliases": null,
+    "aliases": [
+      "Side oblique crunch (chaque côté)"
+    ],
     "favoritedAt": null,
     "createdAt": "2026-07-28T23:33:37.366Z",
     "updatedAt": null,
@@ -78197,7 +78223,9 @@
     "movementPattern": "pull",
     "parentExerciseId": null,
     "variantLabel": null,
-    "aliases": null,
+    "aliases": [
+      "Squat Cleans"
+    ],
     "favoritedAt": null,
     "createdAt": "2026-07-28T23:33:37.366Z",
     "updatedAt": null,
@@ -96314,7 +96342,9 @@
     "movementPattern": "locomotion",
     "parentExerciseId": null,
     "variantLabel": null,
-    "aliases": null,
+    "aliases": [
+      "Tuck ups"
+    ],
     "favoritedAt": null,
     "createdAt": "2026-07-28T23:33:37.367Z",
     "updatedAt": null,
@@ -102219,7 +102249,9 @@
     "movementPattern": "locomotion",
     "parentExerciseId": null,
     "variantLabel": null,
-    "aliases": null,
+    "aliases": [
+      "Death by : Burpees"
+    ],
     "favoritedAt": null,
     "createdAt": "2026-07-28T23:33:37.368Z",
     "updatedAt": null,
@@ -124094,7 +124126,15 @@
     "movementPattern": "squat",
     "parentExerciseId": null,
     "variantLabel": null,
-    "aliases": null,
+    "aliases": [
+      "Fentes",
+      "Fentes (chaque jambe)",
+      "Fentes alternées",
+      "Fentes alternées lestées",
+      "Walking lunges",
+      "Walking lunge (30/20kg)",
+      "Fente"
+    ],
     "favoritedAt": null,
     "createdAt": "2026-07-28T23:33:37.369Z",
     "updatedAt": null,
@@ -164620,7 +164660,9 @@
     "movementPattern": "push",
     "parentExerciseId": null,
     "variantLabel": null,
-    "aliases": null,
+    "aliases": [
+      "Handstand hold"
+    ],
     "favoritedAt": null,
     "createdAt": "2026-07-28T23:33:37.371Z",
     "updatedAt": null,
@@ -167074,7 +167116,9 @@
     "movementPattern": "core",
     "parentExerciseId": null,
     "variantLabel": null,
-    "aliases": null,
+    "aliases": [
+      "Side plank (chaque côté)"
+    ],
     "favoritedAt": null,
     "createdAt": "2026-07-28T23:33:37.371Z",
     "updatedAt": null,
@@ -188055,6 +188099,958 @@
       },
       "templateVersion": 3,
       "updatedAt": "2026-08-16T10:15:58.792Z"
+    }
+  },
+  {
+    "id": "sys_hip_stirs_rotations_de_hanche",
+    "source": "system",
+    "nameFr": "Hip Stirs (rotations de hanche)",
+    "nameEn": "Hip Stirs",
+    "category": "mobility",
+    "primaryMuscle": "hip_flexors",
+    "secondaryMuscles": [
+      "glutes",
+      "adductors"
+    ],
+    "equipment": "bodyweight",
+    "description": null,
+    "musclesWorkedNote": null,
+    "instructions": null,
+    "tips": null,
+    "commonMistakes": null,
+    "difficulty": null,
+    "media": null,
+    "movementPattern": "rotation",
+    "parentExerciseId": null,
+    "variantLabel": null,
+    "aliases": [
+      "Hip Stirs",
+      "Hip CARs"
+    ],
+    "favoritedAt": null,
+    "createdAt": "2026-08-17T07:38:31.269Z",
+    "updatedAt": null,
+    "raw": null,
+    "exerciseTier": "collection_only",
+    "collections": null,
+    "enrichment": {
+      "translations": {},
+      "templateVersion": 0,
+      "updatedAt": "2026-08-17T07:38:31.269Z"
+    }
+  },
+  {
+    "id": "sys_cat_dos_rond_posture_du_chat",
+    "source": "system",
+    "nameFr": "Cat (dos rond, posture du chat)",
+    "nameEn": "Cat Stretch",
+    "category": "mobility",
+    "primaryMuscle": "lower_back",
+    "secondaryMuscles": [
+      "abs"
+    ],
+    "equipment": "bodyweight",
+    "description": null,
+    "musclesWorkedNote": null,
+    "instructions": null,
+    "tips": null,
+    "commonMistakes": null,
+    "difficulty": null,
+    "media": null,
+    "movementPattern": "core",
+    "parentExerciseId": null,
+    "variantLabel": null,
+    "aliases": [
+      "Cat",
+      "Cat Pose"
+    ],
+    "favoritedAt": null,
+    "createdAt": "2026-08-17T07:38:31.269Z",
+    "updatedAt": null,
+    "raw": null,
+    "exerciseTier": "collection_only",
+    "collections": null,
+    "enrichment": {
+      "translations": {},
+      "templateVersion": 0,
+      "updatedAt": "2026-08-17T07:38:31.269Z"
+    }
+  },
+  {
+    "id": "sys_cow_dos_creux_posture_de_la_vache",
+    "source": "system",
+    "nameFr": "Cow (dos creux, posture de la vache)",
+    "nameEn": "Cow Stretch",
+    "category": "mobility",
+    "primaryMuscle": "lower_back",
+    "secondaryMuscles": [
+      "abs"
+    ],
+    "equipment": "bodyweight",
+    "description": null,
+    "musclesWorkedNote": null,
+    "instructions": null,
+    "tips": null,
+    "commonMistakes": null,
+    "difficulty": null,
+    "media": null,
+    "movementPattern": "core",
+    "parentExerciseId": null,
+    "variantLabel": null,
+    "aliases": [
+      "Cow",
+      "Cow Pose"
+    ],
+    "favoritedAt": null,
+    "createdAt": "2026-08-17T07:38:31.269Z",
+    "updatedAt": null,
+    "raw": null,
+    "exerciseTier": "collection_only",
+    "collections": null,
+    "enrichment": {
+      "translations": {},
+      "templateVersion": 0,
+      "updatedAt": "2026-08-17T07:38:31.269Z"
+    }
+  },
+  {
+    "id": "sys_fente_avec_pas_par_dessus_obstacle_hamstring_over_step",
+    "source": "system",
+    "nameFr": "Fente avec pas par-dessus obstacle (Hamstring Over Step)",
+    "nameEn": "Hamstring Over Step",
+    "category": "mobility",
+    "primaryMuscle": "hamstrings",
+    "secondaryMuscles": [
+      "glutes"
+    ],
+    "equipment": "bodyweight",
+    "description": null,
+    "musclesWorkedNote": null,
+    "instructions": null,
+    "tips": null,
+    "commonMistakes": null,
+    "difficulty": null,
+    "media": null,
+    "movementPattern": "hinge",
+    "parentExerciseId": null,
+    "variantLabel": null,
+    "aliases": [
+      "Hamstring Over Step"
+    ],
+    "favoritedAt": null,
+    "createdAt": "2026-08-17T07:38:31.269Z",
+    "updatedAt": null,
+    "raw": null,
+    "exerciseTier": "collection_only",
+    "collections": null,
+    "enrichment": {
+      "translations": {},
+      "templateVersion": 0,
+      "updatedAt": "2026-08-17T07:38:31.269Z"
+    }
+  },
+  {
+    "id": "sys_souleve_de_terre_roumain_jambes_tendues_rdl_au_poids_du_corps",
+    "source": "system",
+    "nameFr": "Soulevé de terre roumain jambes tendues (RDL, au poids du corps)",
+    "nameEn": "Bodyweight Romanian Deadlift",
+    "category": "mobility",
+    "primaryMuscle": "hamstrings",
+    "secondaryMuscles": [
+      "glutes",
+      "lower_back"
+    ],
+    "equipment": "bodyweight",
+    "description": null,
+    "musclesWorkedNote": null,
+    "instructions": null,
+    "tips": null,
+    "commonMistakes": null,
+    "difficulty": null,
+    "media": null,
+    "movementPattern": "hinge",
+    "parentExerciseId": null,
+    "variantLabel": null,
+    "aliases": [
+      "RDL"
+    ],
+    "favoritedAt": null,
+    "createdAt": "2026-08-17T07:38:31.269Z",
+    "updatedAt": null,
+    "raw": null,
+    "exerciseTier": "collection_only",
+    "collections": null,
+    "enrichment": {
+      "translations": {},
+      "templateVersion": 0,
+      "updatedAt": "2026-08-17T07:38:31.269Z"
+    }
+  },
+  {
+    "id": "sys_etirement_ischio_jambiers_jambe_tendue_au_sol",
+    "source": "system",
+    "nameFr": "Étirement ischio-jambiers jambe tendue au sol",
+    "nameEn": "Single Leg Hamstring Stretch",
+    "category": "stretching",
+    "primaryMuscle": "hamstrings",
+    "secondaryMuscles": null,
+    "equipment": "bodyweight",
+    "description": null,
+    "musclesWorkedNote": null,
+    "instructions": null,
+    "tips": null,
+    "commonMistakes": null,
+    "difficulty": null,
+    "media": null,
+    "movementPattern": null,
+    "parentExerciseId": null,
+    "variantLabel": null,
+    "aliases": [
+      "Single Leg Hamstring Stretch"
+    ],
+    "favoritedAt": null,
+    "createdAt": "2026-08-17T07:38:31.269Z",
+    "updatedAt": null,
+    "raw": null,
+    "exerciseTier": "collection_only",
+    "collections": null,
+    "enrichment": {
+      "translations": {},
+      "templateVersion": 0,
+      "updatedAt": "2026-08-17T07:38:31.269Z"
+    }
+  },
+  {
+    "id": "sys_etirement_ischio_jambiers_debout",
+    "source": "system",
+    "nameFr": "Étirement ischio-jambiers debout",
+    "nameEn": "Standing Hamstring Stretch",
+    "category": "stretching",
+    "primaryMuscle": "hamstrings",
+    "secondaryMuscles": null,
+    "equipment": "bodyweight",
+    "description": null,
+    "musclesWorkedNote": null,
+    "instructions": null,
+    "tips": null,
+    "commonMistakes": null,
+    "difficulty": null,
+    "media": null,
+    "movementPattern": null,
+    "parentExerciseId": null,
+    "variantLabel": null,
+    "aliases": [
+      "Standing Hamstring Stretch"
+    ],
+    "favoritedAt": null,
+    "createdAt": "2026-08-17T07:38:31.269Z",
+    "updatedAt": null,
+    "raw": null,
+    "exerciseTier": "collection_only",
+    "collections": null,
+    "enrichment": {
+      "translations": {},
+      "templateVersion": 0,
+      "updatedAt": "2026-08-17T07:38:31.269Z"
+    }
+  },
+  {
+    "id": "sys_etirement_des_flechisseurs_de_hanche",
+    "source": "system",
+    "nameFr": "Étirement des fléchisseurs de hanche",
+    "nameEn": "Hip Flexor Stretch",
+    "category": "stretching",
+    "primaryMuscle": "hip_flexors",
+    "secondaryMuscles": null,
+    "equipment": "bodyweight",
+    "description": null,
+    "musclesWorkedNote": null,
+    "instructions": null,
+    "tips": null,
+    "commonMistakes": null,
+    "difficulty": null,
+    "media": null,
+    "movementPattern": null,
+    "parentExerciseId": null,
+    "variantLabel": null,
+    "aliases": [
+      "Hip Flexor Stretch"
+    ],
+    "favoritedAt": null,
+    "createdAt": "2026-08-17T07:38:31.269Z",
+    "updatedAt": null,
+    "raw": null,
+    "exerciseTier": "collection_only",
+    "collections": null,
+    "enrichment": {
+      "translations": {},
+      "templateVersion": 0,
+      "updatedAt": "2026-08-17T07:38:31.269Z"
+    }
+  },
+  {
+    "id": "sys_air_squat",
+    "source": "system",
+    "nameFr": "Air Squat",
+    "nameEn": "Air Squat",
+    "category": "musculation",
+    "primaryMuscle": "quads",
+    "secondaryMuscles": [
+      "glutes",
+      "hamstrings"
+    ],
+    "equipment": "bodyweight",
+    "description": null,
+    "musclesWorkedNote": null,
+    "instructions": null,
+    "tips": null,
+    "commonMistakes": null,
+    "difficulty": null,
+    "media": null,
+    "movementPattern": "squat",
+    "parentExerciseId": null,
+    "variantLabel": null,
+    "aliases": [
+      "Squats",
+      "Air squats",
+      "Air Squat",
+      "Max squats",
+      "Squat",
+      "Squats (30)",
+      "Squats (12)",
+      "Max squats (temps restant)"
+    ],
+    "favoritedAt": null,
+    "createdAt": "2026-08-17T07:38:31.269Z",
+    "updatedAt": null,
+    "raw": null,
+    "exerciseTier": "collection_only",
+    "collections": null,
+    "enrichment": {
+      "translations": {},
+      "templateVersion": 0,
+      "updatedAt": "2026-08-17T07:38:31.269Z"
+    }
+  },
+  {
+    "id": "sys_sprawl",
+    "source": "system",
+    "nameFr": "Sprawl",
+    "nameEn": "Sprawl",
+    "category": "plyometric",
+    "primaryMuscle": "full_body",
+    "secondaryMuscles": null,
+    "equipment": "bodyweight",
+    "description": null,
+    "musclesWorkedNote": null,
+    "instructions": null,
+    "tips": null,
+    "commonMistakes": null,
+    "difficulty": null,
+    "media": null,
+    "movementPattern": "core",
+    "parentExerciseId": null,
+    "variantLabel": null,
+    "aliases": [
+      "Sprawls"
+    ],
+    "favoritedAt": null,
+    "createdAt": "2026-08-17T07:38:31.269Z",
+    "updatedAt": null,
+    "raw": null,
+    "exerciseTier": "collection_only",
+    "collections": null,
+    "enrichment": {
+      "translations": {},
+      "templateVersion": 0,
+      "updatedAt": "2026-08-17T07:38:31.269Z"
+    }
+  },
+  {
+    "id": "sys_fente_sautee",
+    "source": "system",
+    "nameFr": "Fente sautée",
+    "nameEn": "Jump Lunge",
+    "category": "plyometric",
+    "primaryMuscle": "quads",
+    "secondaryMuscles": [
+      "glutes"
+    ],
+    "equipment": "bodyweight",
+    "description": null,
+    "musclesWorkedNote": null,
+    "instructions": null,
+    "tips": null,
+    "commonMistakes": null,
+    "difficulty": null,
+    "media": null,
+    "movementPattern": "squat",
+    "parentExerciseId": null,
+    "variantLabel": null,
+    "aliases": [
+      "Jump lunges (à chaque pause)",
+      "Jump lunges (20)",
+      "Jump lunges"
+    ],
+    "favoritedAt": null,
+    "createdAt": "2026-08-17T07:38:31.269Z",
+    "updatedAt": null,
+    "raw": null,
+    "exerciseTier": "collection_only",
+    "collections": null,
+    "enrichment": {
+      "translations": {},
+      "templateVersion": 0,
+      "updatedAt": "2026-08-17T07:38:31.269Z"
+    }
+  },
+  {
+    "id": "sys_double_under_corde_a_sauter_double_passage",
+    "source": "system",
+    "nameFr": "Double Under (corde à sauter, double passage)",
+    "nameEn": "Double Under",
+    "category": "cardio",
+    "primaryMuscle": "calves",
+    "secondaryMuscles": null,
+    "equipment": "jump_rope",
+    "description": null,
+    "musclesWorkedNote": null,
+    "instructions": null,
+    "tips": null,
+    "commonMistakes": null,
+    "difficulty": null,
+    "media": null,
+    "movementPattern": "locomotion",
+    "parentExerciseId": null,
+    "variantLabel": null,
+    "aliases": [
+      "Double unders",
+      "Double unders (60)",
+      "Max double unders",
+      "Double unders (50)"
+    ],
+    "favoritedAt": null,
+    "createdAt": "2026-08-17T07:38:31.269Z",
+    "updatedAt": null,
+    "raw": null,
+    "exerciseTier": "collection_only",
+    "collections": null,
+    "enrichment": {
+      "translations": {},
+      "templateVersion": 0,
+      "updatedAt": "2026-08-17T07:38:31.269Z"
+    }
+  },
+  {
+    "id": "sys_single_under_corde_a_sauter_simple_passage",
+    "source": "system",
+    "nameFr": "Single Under (corde à sauter, simple passage)",
+    "nameEn": "Single Under",
+    "category": "cardio",
+    "primaryMuscle": "calves",
+    "secondaryMuscles": null,
+    "equipment": "jump_rope",
+    "description": null,
+    "musclesWorkedNote": null,
+    "instructions": null,
+    "tips": null,
+    "commonMistakes": null,
+    "difficulty": null,
+    "media": null,
+    "movementPattern": "locomotion",
+    "parentExerciseId": null,
+    "variantLabel": null,
+    "aliases": [
+      "Single-Unders",
+      "200 Single-Unders",
+      "150 Single-Unders",
+      "100 Single-Unders",
+      "50 Single-Unders"
+    ],
+    "favoritedAt": null,
+    "createdAt": "2026-08-17T07:38:31.269Z",
+    "updatedAt": null,
+    "raw": null,
+    "exerciseTier": "collection_only",
+    "collections": null,
+    "enrichment": {
+      "translations": {},
+      "templateVersion": 0,
+      "updatedAt": "2026-08-17T07:38:31.269Z"
+    }
+  },
+  {
+    "id": "sys_v_up",
+    "source": "system",
+    "nameFr": "V-up",
+    "nameEn": "V-up",
+    "category": "musculation",
+    "primaryMuscle": "abs",
+    "secondaryMuscles": null,
+    "equipment": "bodyweight",
+    "description": null,
+    "musclesWorkedNote": null,
+    "instructions": null,
+    "tips": null,
+    "commonMistakes": null,
+    "difficulty": null,
+    "media": null,
+    "movementPattern": "core",
+    "parentExerciseId": null,
+    "variantLabel": null,
+    "aliases": [
+      "V-ups",
+      "V-ups alternés",
+      "V-up unilatéral"
+    ],
+    "favoritedAt": null,
+    "createdAt": "2026-08-17T07:38:31.269Z",
+    "updatedAt": null,
+    "raw": null,
+    "exerciseTier": "collection_only",
+    "collections": null,
+    "enrichment": {
+      "translations": {},
+      "templateVersion": 0,
+      "updatedAt": "2026-08-17T07:38:31.269Z"
+    }
+  },
+  {
+    "id": "sys_crunch_bicyclette",
+    "source": "system",
+    "nameFr": "Crunch bicyclette",
+    "nameEn": "Bicycle Crunch",
+    "category": "musculation",
+    "primaryMuscle": "abs",
+    "secondaryMuscles": null,
+    "equipment": "bodyweight",
+    "description": null,
+    "musclesWorkedNote": null,
+    "instructions": null,
+    "tips": null,
+    "commonMistakes": null,
+    "difficulty": null,
+    "media": null,
+    "movementPattern": "core",
+    "parentExerciseId": null,
+    "variantLabel": null,
+    "aliases": [
+      "Abs bicycle"
+    ],
+    "favoritedAt": null,
+    "createdAt": "2026-08-17T07:38:31.269Z",
+    "updatedAt": null,
+    "raw": null,
+    "exerciseTier": "collection_only",
+    "collections": null,
+    "enrichment": {
+      "translations": {},
+      "templateVersion": 0,
+      "updatedAt": "2026-08-17T07:38:31.269Z"
+    }
+  },
+  {
+    "id": "sys_box_jump_box_jump_over",
+    "source": "system",
+    "nameFr": "Box Jump / Box Jump-Over",
+    "nameEn": "Box Jump-Over",
+    "category": "plyometric",
+    "primaryMuscle": "quads",
+    "secondaryMuscles": [
+      "glutes",
+      "calves"
+    ],
+    "equipment": "bodyweight",
+    "description": null,
+    "musclesWorkedNote": null,
+    "instructions": null,
+    "tips": null,
+    "commonMistakes": null,
+    "difficulty": null,
+    "media": null,
+    "movementPattern": "squat",
+    "parentExerciseId": null,
+    "variantLabel": null,
+    "aliases": [
+      "Box jump (24/20\")",
+      "Box Jump-Overs"
+    ],
+    "favoritedAt": null,
+    "createdAt": "2026-08-17T07:38:31.269Z",
+    "updatedAt": null,
+    "raw": null,
+    "exerciseTier": "collection_only",
+    "collections": null,
+    "enrichment": {
+      "translations": {},
+      "templateVersion": 0,
+      "updatedAt": "2026-08-17T07:38:31.269Z"
+    }
+  },
+  {
+    "id": "sys_step_over_sur_boite_avec_medecine_ball",
+    "source": "system",
+    "nameFr": "Step-Over sur boîte avec médecine-ball",
+    "nameEn": "Medicine-Ball Box Step-Over",
+    "category": "plyometric",
+    "primaryMuscle": "quads",
+    "secondaryMuscles": [
+      "glutes"
+    ],
+    "equipment": "other",
+    "description": null,
+    "musclesWorkedNote": null,
+    "instructions": null,
+    "tips": null,
+    "commonMistakes": null,
+    "difficulty": null,
+    "media": null,
+    "movementPattern": "locomotion",
+    "parentExerciseId": null,
+    "variantLabel": null,
+    "aliases": [
+      "Medicine-Ball Box Step-Overs"
+    ],
+    "favoritedAt": null,
+    "createdAt": "2026-08-17T07:38:31.269Z",
+    "updatedAt": null,
+    "raw": null,
+    "exerciseTier": "collection_only",
+    "collections": null,
+    "enrichment": {
+      "translations": {},
+      "templateVersion": 0,
+      "updatedAt": "2026-08-17T07:38:31.269Z"
+    }
+  },
+  {
+    "id": "sys_broad_jump_saut_en_longueur",
+    "source": "system",
+    "nameFr": "Broad Jump (saut en longueur)",
+    "nameEn": "Broad Jump",
+    "category": "plyometric",
+    "primaryMuscle": "quads",
+    "secondaryMuscles": [
+      "glutes",
+      "calves"
+    ],
+    "equipment": "bodyweight",
+    "description": null,
+    "musclesWorkedNote": null,
+    "instructions": null,
+    "tips": null,
+    "commonMistakes": null,
+    "difficulty": null,
+    "media": null,
+    "movementPattern": "squat",
+    "parentExerciseId": null,
+    "variantLabel": null,
+    "aliases": [
+      "Broad jump"
+    ],
+    "favoritedAt": null,
+    "createdAt": "2026-08-17T07:38:31.269Z",
+    "updatedAt": null,
+    "raw": null,
+    "exerciseTier": "collection_only",
+    "collections": null,
+    "enrichment": {
+      "translations": {},
+      "templateVersion": 0,
+      "updatedAt": "2026-08-17T07:38:31.269Z"
+    }
+  },
+  {
+    "id": "sys_sled_push_poussee_de_traineau",
+    "source": "system",
+    "nameFr": "Sled Push (poussée de traîneau)",
+    "nameEn": "Sled Push",
+    "category": "plyometric",
+    "primaryMuscle": "quads",
+    "secondaryMuscles": [
+      "glutes",
+      "calves"
+    ],
+    "equipment": "other",
+    "description": null,
+    "musclesWorkedNote": null,
+    "instructions": null,
+    "tips": null,
+    "commonMistakes": null,
+    "difficulty": null,
+    "media": null,
+    "movementPattern": "locomotion",
+    "parentExerciseId": null,
+    "variantLabel": null,
+    "aliases": [
+      "Sled push"
+    ],
+    "favoritedAt": null,
+    "createdAt": "2026-08-17T07:38:31.269Z",
+    "updatedAt": null,
+    "raw": null,
+    "exerciseTier": "collection_only",
+    "collections": null,
+    "enrichment": {
+      "translations": {},
+      "templateVersion": 0,
+      "updatedAt": "2026-08-17T07:38:31.269Z"
+    }
+  },
+  {
+    "id": "sys_sled_pull_tirage_de_traineau",
+    "source": "system",
+    "nameFr": "Sled Pull (tirage de traîneau)",
+    "nameEn": "Sled Pull",
+    "category": "plyometric",
+    "primaryMuscle": "back",
+    "secondaryMuscles": [
+      "biceps",
+      "hamstrings"
+    ],
+    "equipment": "other",
+    "description": null,
+    "musclesWorkedNote": null,
+    "instructions": null,
+    "tips": null,
+    "commonMistakes": null,
+    "difficulty": null,
+    "media": null,
+    "movementPattern": "pull",
+    "parentExerciseId": null,
+    "variantLabel": null,
+    "aliases": [
+      "Sled Pull"
+    ],
+    "favoritedAt": null,
+    "createdAt": "2026-08-17T07:38:31.269Z",
+    "updatedAt": null,
+    "raw": null,
+    "exerciseTier": "collection_only",
+    "collections": null,
+    "enrichment": {
+      "translations": {},
+      "templateVersion": 0,
+      "updatedAt": "2026-08-17T07:38:31.269Z"
+    }
+  },
+  {
+    "id": "sys_fente_avec_sac_de_sable_sandbag_lunge",
+    "source": "system",
+    "nameFr": "Fente avec sac de sable (Sandbag Lunge)",
+    "nameEn": "Sandbag Lunge",
+    "category": "musculation",
+    "primaryMuscle": "quads",
+    "secondaryMuscles": [
+      "glutes"
+    ],
+    "equipment": "other",
+    "description": null,
+    "musclesWorkedNote": null,
+    "instructions": null,
+    "tips": null,
+    "commonMistakes": null,
+    "difficulty": null,
+    "media": null,
+    "movementPattern": "squat",
+    "parentExerciseId": null,
+    "variantLabel": null,
+    "aliases": [
+      "Sandbag lunge (30/20kg)"
+    ],
+    "favoritedAt": null,
+    "createdAt": "2026-08-17T07:38:31.269Z",
+    "updatedAt": null,
+    "raw": null,
+    "exerciseTier": "collection_only",
+    "collections": null,
+    "enrichment": {
+      "translations": {},
+      "templateVersion": 0,
+      "updatedAt": "2026-08-17T07:38:31.269Z"
+    }
+  },
+  {
+    "id": "sys_sac_de_sable_du_sol_a_la_verticale_sandbag_ground_to_overhead",
+    "source": "system",
+    "nameFr": "Sac de sable du sol à la verticale (Sandbag Ground to Overhead)",
+    "nameEn": "Sandbag Ground to Overhead",
+    "category": "musculation",
+    "primaryMuscle": "shoulders",
+    "secondaryMuscles": [
+      "quads",
+      "lower_back"
+    ],
+    "equipment": "other",
+    "description": null,
+    "musclesWorkedNote": null,
+    "instructions": null,
+    "tips": null,
+    "commonMistakes": null,
+    "difficulty": null,
+    "media": null,
+    "movementPattern": "push",
+    "parentExerciseId": null,
+    "variantLabel": null,
+    "aliases": [
+      "Sandbag ground to overhead (30/20kg)"
+    ],
+    "favoritedAt": null,
+    "createdAt": "2026-08-17T07:38:31.269Z",
+    "updatedAt": null,
+    "raw": null,
+    "exerciseTier": "collection_only",
+    "collections": null,
+    "enrichment": {
+      "translations": {},
+      "templateVersion": 0,
+      "updatedAt": "2026-08-17T07:38:31.269Z"
+    }
+  },
+  {
+    "id": "sys_slam_ball_medecine_ball_frappe_au_sol",
+    "source": "system",
+    "nameFr": "Slam Ball (médecine-ball frappé au sol)",
+    "nameEn": "Slam Ball",
+    "category": "plyometric",
+    "primaryMuscle": "abs",
+    "secondaryMuscles": [
+      "shoulders",
+      "back"
+    ],
+    "equipment": "other",
+    "description": null,
+    "musclesWorkedNote": null,
+    "instructions": null,
+    "tips": null,
+    "commonMistakes": null,
+    "difficulty": null,
+    "media": null,
+    "movementPattern": "core",
+    "parentExerciseId": null,
+    "variantLabel": null,
+    "aliases": [
+      "Slam ball (20/16kg)"
+    ],
+    "favoritedAt": null,
+    "createdAt": "2026-08-17T07:38:31.269Z",
+    "updatedAt": null,
+    "raw": null,
+    "exerciseTier": "collection_only",
+    "collections": null,
+    "enrichment": {
+      "translations": {},
+      "templateVersion": 0,
+      "updatedAt": "2026-08-17T07:38:31.269Z"
+    }
+  },
+  {
+    "id": "sys_push_press_barre",
+    "source": "system",
+    "nameFr": "Push Press (barre)",
+    "nameEn": "Barbell Push Press",
+    "category": "musculation",
+    "primaryMuscle": "shoulders",
+    "secondaryMuscles": [
+      "triceps",
+      "quads"
+    ],
+    "equipment": "barbell",
+    "description": null,
+    "musclesWorkedNote": null,
+    "instructions": null,
+    "tips": null,
+    "commonMistakes": null,
+    "difficulty": null,
+    "media": null,
+    "movementPattern": "push",
+    "parentExerciseId": null,
+    "variantLabel": null,
+    "aliases": [
+      "Push Press"
+    ],
+    "favoritedAt": null,
+    "createdAt": "2026-08-17T07:38:31.269Z",
+    "updatedAt": null,
+    "raw": null,
+    "exerciseTier": "collection_only",
+    "collections": null,
+    "enrichment": {
+      "translations": {},
+      "templateVersion": 0,
+      "updatedAt": "2026-08-17T07:38:31.269Z"
+    }
+  },
+  {
+    "id": "sys_marche_sur_les_mains_handstand_walk",
+    "source": "system",
+    "nameFr": "Marche sur les mains (Handstand Walk)",
+    "nameEn": "Handstand Walk",
+    "category": "musculation",
+    "primaryMuscle": "shoulders",
+    "secondaryMuscles": [
+      "triceps",
+      "abs"
+    ],
+    "equipment": "bodyweight",
+    "description": null,
+    "musclesWorkedNote": null,
+    "instructions": null,
+    "tips": null,
+    "commonMistakes": null,
+    "difficulty": null,
+    "media": null,
+    "movementPattern": "push",
+    "parentExerciseId": null,
+    "variantLabel": null,
+    "aliases": [
+      "Handstand walk (10m)",
+      "Handstand walk"
+    ],
+    "favoritedAt": null,
+    "createdAt": "2026-08-17T07:38:31.269Z",
+    "updatedAt": null,
+    "raw": null,
+    "exerciseTier": "collection_only",
+    "collections": null,
+    "enrichment": {
+      "translations": {},
+      "templateVersion": 0,
+      "updatedAt": "2026-08-17T07:38:31.269Z"
+    }
+  },
+  {
+    "id": "sys_hollow_rock",
+    "source": "system",
+    "nameFr": "Hollow Rock",
+    "nameEn": "Hollow Rock",
+    "category": "musculation",
+    "primaryMuscle": "abs",
+    "secondaryMuscles": null,
+    "equipment": "bodyweight",
+    "description": null,
+    "musclesWorkedNote": null,
+    "instructions": null,
+    "tips": null,
+    "commonMistakes": null,
+    "difficulty": null,
+    "media": null,
+    "movementPattern": "core",
+    "parentExerciseId": null,
+    "variantLabel": null,
+    "aliases": [
+      "Hollow rock"
+    ],
+    "favoritedAt": null,
+    "createdAt": "2026-08-17T07:38:31.269Z",
+    "updatedAt": null,
+    "raw": null,
+    "exerciseTier": "collection_only",
+    "collections": null,
+    "enrichment": {
+      "translations": {},
+      "templateVersion": 0,
+      "updatedAt": "2026-08-17T07:38:31.269Z"
     }
   }
 ]

@@ -758,6 +758,31 @@ export async function addPlansIfAbsent(plans: Plan[]): Promise<number> {
   return added;
 }
 
+/** Replaces plans in storage whose id already exists there, for bulk data
+ * corrections (e.g. relinking WOD `exerciseRecordId` after a library
+ * update). Same rationale as `addPlansIfAbsent` — reads/writes the raw
+ * storage list directly rather than going through `savePlan` in a loop, so
+ * program-sourced plans already in storage are never dropped. Ids not
+ * currently present are left alone (this is a correction pass, not a seed —
+ * a plan the user deleted must not be resurrected). Returns the number of
+ * plans actually replaced. */
+export async function replacePlansIfPresent(plans: Plan[]): Promise<number> {
+  const raw = await AsyncStorage.getItem(PLANS_KEY);
+  const list: Plan[] = raw ? JSON.parse(raw) : [];
+  const byId = new Map(plans.map((p) => [p.id, p]));
+  let replaced = 0;
+  const next = list.map((p) => {
+    const updated = byId.get(p.id);
+    if (!updated) return p;
+    replaced++;
+    return updated;
+  });
+  if (replaced > 0) {
+    await AsyncStorage.setItem(PLANS_KEY, JSON.stringify(next));
+  }
+  return replaced;
+}
+
 export async function deletePlan(id: string): Promise<void> {
   const plans = await getPlans();
   await AsyncStorage.setItem(

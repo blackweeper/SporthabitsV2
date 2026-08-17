@@ -12,8 +12,14 @@ const SEEDED_IDS_KEY = '@ironflow/starterProgramsSeededIds';
 // Bumped to _v2 when Semaine 8 ("Tests de Force & Hyrox") was added to
 // the-comeback — same force-replace mechanism, new version so it re-applies
 // even on installs that already ran _v1.
-const COMEBACK_CIRCUIT_FIX_KEY = '@ironflow/comebackCircuitFixApplied_v2';
-const COMEBACK_PROGRAM_IDS = ['the-comeback', 'the-comeback-cardio'];
+// Bumped to _v3 + the-comeback-v2 added: the exercise-library audit pass
+// relinked ~90 exercise slots across these 3 programs (bodyweight/HYROX
+// movements that either didn't exist in the library yet or existed under a
+// different name — Air Squat, Walking Lunge, Sit-up, Push-Up...) to real
+// `exerciseRecordId`s, so already-seeded installs need this force-replace
+// again to actually see the new thumbnails/fiches.
+const COMEBACK_CIRCUIT_FIX_KEY = '@ironflow/comebackCircuitFixApplied_v3';
+const COMEBACK_PROGRAM_IDS = ['the-comeback', 'the-comeback-cardio', 'the-comeback-v2'];
 
 /**
  * Amorce les programmes de démarrage (Flexy Series + The Comeback) dans le

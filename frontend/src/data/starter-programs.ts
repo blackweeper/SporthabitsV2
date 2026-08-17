@@ -1329,7 +1329,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "alias"
               },
               {
                 "name": "Chest Pulse",
@@ -1416,7 +1418,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "alias"
               },
               {
                 "name": "Lat Pulse",
@@ -1503,7 +1507,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "alias"
               },
               {
                 "name": "Chest Pulse",
@@ -1595,7 +1601,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "alias"
               },
               {
                 "name": "Lat Pulse",
@@ -1682,7 +1690,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "alias"
               },
               {
                 "name": "Banded Chest Pull Backs",
@@ -1769,7 +1779,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "alias"
               },
               {
                 "name": "Wall Chest & Bicep",
@@ -1861,7 +1873,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "alias"
               },
               {
                 "name": "Banded Chest Pull Backs",
@@ -1948,7 +1962,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "alias"
               },
               {
                 "name": "Wall Chest & Bicep",
@@ -2035,7 +2051,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "alias"
               },
               {
                 "name": "Flappy Bird",
@@ -2127,7 +2145,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "alias"
               },
               {
                 "name": "Wall Lat Hold",
@@ -2214,7 +2234,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "alias"
               },
               {
                 "name": "Flappy Bird",
@@ -2301,7 +2323,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "alias"
               },
               {
                 "name": "Wall Lat Hold",
@@ -2408,7 +2432,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_hip_stirs_rotations_de_hanche",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Cat Cow",
@@ -2495,7 +2521,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_hip_stirs_rotations_de_hanche",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Lateral Stretch",
@@ -2582,7 +2610,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_hip_stirs_rotations_de_hanche",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Cat Cow",
@@ -2674,7 +2704,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_hip_stirs_rotations_de_hanche",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Lateral Stretch",
@@ -2761,7 +2793,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_hip_stirs_rotations_de_hanche",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Wall Angels",
@@ -2848,7 +2882,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_hip_stirs_rotations_de_hanche",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Cobra Push-ups",
@@ -2940,7 +2976,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_hip_stirs_rotations_de_hanche",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Wall Angels",
@@ -3027,7 +3065,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_hip_stirs_rotations_de_hanche",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Cobra Push-ups",
@@ -3114,7 +3154,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_hip_stirs_rotations_de_hanche",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Basic Back Extension",
@@ -3148,7 +3190,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 20,
                 "duration_seconds": 30,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_cat_dos_rond_posture_du_chat",
+                "matchConfidence": "alias"
               },
               {
                 "name": "Cow",
@@ -3158,7 +3202,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 20,
                 "duration_seconds": 30,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_cow_dos_creux_posture_de_la_vache",
+                "matchConfidence": "alias"
               }
             ]
           }
@@ -3202,7 +3248,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_hip_stirs_rotations_de_hanche",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Seated Roll Downs",
@@ -3289,7 +3337,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_hip_stirs_rotations_de_hanche",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Basic Back Extension",
@@ -3323,7 +3373,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 20,
                 "duration_seconds": 30,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_cat_dos_rond_posture_du_chat",
+                "matchConfidence": "alias"
               },
               {
                 "name": "Cow",
@@ -3333,7 +3385,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 20,
                 "duration_seconds": 30,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_cow_dos_creux_posture_de_la_vache",
+                "matchConfidence": "alias"
               }
             ]
           }
@@ -3372,7 +3426,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_hip_stirs_rotations_de_hanche",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Seated Roll Downs",
@@ -3467,7 +3523,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_fente_avec_pas_par_dessus_obstacle_hamstring_over_step",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Elephant Walks",
@@ -3501,7 +3559,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_souleve_de_terre_roumain_jambes_tendues_rdl_au_poids_du_corps",
+                "matchConfidence": "alias"
               },
               {
                 "name": "Single Leg Hamstring Stretch",
@@ -3511,7 +3571,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 20,
                 "duration_seconds": 30,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_etirement_ischio_jambiers_jambe_tendue_au_sol",
+                "matchConfidence": "exact"
               }
             ]
           }
@@ -3538,7 +3600,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_fente_avec_pas_par_dessus_obstacle_hamstring_over_step",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Elephant Walks",
@@ -3613,7 +3677,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_fente_avec_pas_par_dessus_obstacle_hamstring_over_step",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Elephant Walks",
@@ -3647,7 +3713,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_souleve_de_terre_roumain_jambes_tendues_rdl_au_poids_du_corps",
+                "matchConfidence": "alias"
               },
               {
                 "name": "Single Leg Hamstring Stretch",
@@ -3657,7 +3725,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 20,
                 "duration_seconds": 30,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_etirement_ischio_jambiers_jambe_tendue_au_sol",
+                "matchConfidence": "exact"
               }
             ]
           }
@@ -3689,7 +3759,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_fente_avec_pas_par_dessus_obstacle_hamstring_over_step",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Elephant Walks",
@@ -3764,7 +3836,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_fente_avec_pas_par_dessus_obstacle_hamstring_over_step",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Elephant Walks",
@@ -3839,7 +3913,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_fente_avec_pas_par_dessus_obstacle_hamstring_over_step",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Elephant Walks",
@@ -3919,7 +3995,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_fente_avec_pas_par_dessus_obstacle_hamstring_over_step",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Elephant Walks",
@@ -3994,7 +4072,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_fente_avec_pas_par_dessus_obstacle_hamstring_over_step",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Elephant Walks",
@@ -4069,7 +4149,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_fente_avec_pas_par_dessus_obstacle_hamstring_over_step",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Elephant Walks",
@@ -4149,7 +4231,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_fente_avec_pas_par_dessus_obstacle_hamstring_over_step",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Elephant Walks",
@@ -4224,7 +4308,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_fente_avec_pas_par_dessus_obstacle_hamstring_over_step",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Elephant Walks",
@@ -4299,7 +4385,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_fente_avec_pas_par_dessus_obstacle_hamstring_over_step",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Elephant Walks",
@@ -4490,7 +4578,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 20,
                 "duration_seconds": 30,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_etirement_ischio_jambiers_debout",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Hip Flexor Stretch",
@@ -4500,7 +4590,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 20,
                 "duration_seconds": 30,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_etirement_des_flechisseurs_de_hanche",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Butterfly Stretch",
@@ -4808,7 +4900,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 20,
                 "duration_seconds": 30,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_etirement_ischio_jambiers_debout",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Hip Flexor Stretch",
@@ -4818,7 +4912,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 20,
                 "duration_seconds": 30,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_etirement_des_flechisseurs_de_hanche",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Butterfly Stretch",
@@ -5780,7 +5876,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 20,
                 "duration_seconds": 30,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_etirement_ischio_jambiers_jambe_tendue_au_sol",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Hip Flexor Reach",
@@ -6117,7 +6215,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 20,
                 "duration_seconds": 30,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_etirement_ischio_jambiers_jambe_tendue_au_sol",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Crossbody Hamstring Stretch",
@@ -6451,7 +6551,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "alias"
               },
               {
                 "name": "Chest Pulse",
@@ -6527,7 +6629,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_hip_stirs_rotations_de_hanche",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Cat Cow",
@@ -6591,7 +6695,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_fente_avec_pas_par_dessus_obstacle_hamstring_over_step",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Elephant Walks",
@@ -6625,7 +6731,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_souleve_de_terre_roumain_jambes_tendues_rdl_au_poids_du_corps",
+                "matchConfidence": "alias"
               },
               {
                 "name": "Single Leg Hamstring Stretch",
@@ -6635,7 +6743,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 20,
                 "duration_seconds": 30,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_etirement_ischio_jambiers_jambe_tendue_au_sol",
+                "matchConfidence": "exact"
               }
             ]
           }
@@ -6764,7 +6874,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "alias"
               },
               {
                 "name": "Lat Pulse",
@@ -6840,7 +6952,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_hip_stirs_rotations_de_hanche",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Lateral Stretch",
@@ -6904,7 +7018,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_fente_avec_pas_par_dessus_obstacle_hamstring_over_step",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Elephant Walks",
@@ -7081,7 +7197,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "alias"
               },
               {
                 "name": "Chest Pulse",
@@ -7157,7 +7275,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_hip_stirs_rotations_de_hanche",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Cat Cow",
@@ -7221,7 +7341,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_fente_avec_pas_par_dessus_obstacle_hamstring_over_step",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Elephant Walks",
@@ -7255,7 +7377,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_souleve_de_terre_roumain_jambes_tendues_rdl_au_poids_du_corps",
+                "matchConfidence": "alias"
               },
               {
                 "name": "Single Leg Hamstring Stretch",
@@ -7265,7 +7389,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 20,
                 "duration_seconds": 30,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_etirement_ischio_jambiers_jambe_tendue_au_sol",
+                "matchConfidence": "exact"
               }
             ]
           }
@@ -7399,7 +7525,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "alias"
               },
               {
                 "name": "Lat Pulse",
@@ -7475,7 +7603,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_hip_stirs_rotations_de_hanche",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Lateral Stretch",
@@ -7539,7 +7669,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_fente_avec_pas_par_dessus_obstacle_hamstring_over_step",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Elephant Walks",
@@ -7716,7 +7848,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "alias"
               },
               {
                 "name": "Banded Chest Pull Backs",
@@ -7792,7 +7926,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_hip_stirs_rotations_de_hanche",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Wall Angels",
@@ -7856,7 +7992,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_fente_avec_pas_par_dessus_obstacle_hamstring_over_step",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Elephant Walks",
@@ -8033,7 +8171,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "alias"
               },
               {
                 "name": "Wall Chest & Bicep",
@@ -8109,7 +8249,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_hip_stirs_rotations_de_hanche",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Cobra Push-ups",
@@ -8173,7 +8315,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_fente_avec_pas_par_dessus_obstacle_hamstring_over_step",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Elephant Walks",
@@ -8355,7 +8499,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "alias"
               },
               {
                 "name": "Banded Chest Pull Backs",
@@ -8431,7 +8577,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_hip_stirs_rotations_de_hanche",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Wall Angels",
@@ -8495,7 +8643,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_fente_avec_pas_par_dessus_obstacle_hamstring_over_step",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Elephant Walks",
@@ -8672,7 +8822,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "alias"
               },
               {
                 "name": "Wall Chest & Bicep",
@@ -8748,7 +8900,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_hip_stirs_rotations_de_hanche",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Cobra Push-ups",
@@ -8812,7 +8966,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_fente_avec_pas_par_dessus_obstacle_hamstring_over_step",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Elephant Walks",
@@ -8989,7 +9145,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "alias"
               },
               {
                 "name": "Flappy Bird",
@@ -9065,7 +9223,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_hip_stirs_rotations_de_hanche",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Basic Back Extension",
@@ -9099,7 +9259,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 20,
                 "duration_seconds": 30,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_cat_dos_rond_posture_du_chat",
+                "matchConfidence": "alias"
               },
               {
                 "name": "Cow",
@@ -9109,7 +9271,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 20,
                 "duration_seconds": 30,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_cow_dos_creux_posture_de_la_vache",
+                "matchConfidence": "alias"
               }
             ]
           },
@@ -9125,7 +9289,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_fente_avec_pas_par_dessus_obstacle_hamstring_over_step",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Elephant Walks",
@@ -9307,7 +9473,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "alias"
               },
               {
                 "name": "Wall Lat Hold",
@@ -9383,7 +9551,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_hip_stirs_rotations_de_hanche",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Seated Roll Downs",
@@ -9447,7 +9617,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_fente_avec_pas_par_dessus_obstacle_hamstring_over_step",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Elephant Walks",
@@ -9624,7 +9796,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "alias"
               },
               {
                 "name": "Flappy Bird",
@@ -9700,7 +9874,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_hip_stirs_rotations_de_hanche",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Basic Back Extension",
@@ -9734,7 +9910,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 20,
                 "duration_seconds": 30,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_cat_dos_rond_posture_du_chat",
+                "matchConfidence": "alias"
               },
               {
                 "name": "Cow",
@@ -9744,7 +9922,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 20,
                 "duration_seconds": 30,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_cow_dos_creux_posture_de_la_vache",
+                "matchConfidence": "alias"
               }
             ]
           },
@@ -9760,7 +9940,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_fente_avec_pas_par_dessus_obstacle_hamstring_over_step",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Elephant Walks",
@@ -9937,7 +10119,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_pompes",
+                "matchConfidence": "alias"
               },
               {
                 "name": "Wall Lat Hold",
@@ -10013,7 +10197,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_hip_stirs_rotations_de_hanche",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Seated Roll Downs",
@@ -10077,7 +10263,9 @@ export const STARTER_PROGRAMS: Program[] = [
                 "weight": null,
                 "rest_seconds": 30,
                 "duration_seconds": null,
-                "notes": null
+                "notes": null,
+                "exerciseRecordId": "sys_fente_avec_pas_par_dessus_obstacle_hamstring_over_step",
+                "matchConfidence": "exact"
               },
               {
                 "name": "Elephant Walks",
@@ -10144,7 +10332,7 @@ export const STARTER_PROGRAMS: Program[] = [
     ],
     "isCustom": true,
     "category": "stretch"
-  },
+  },
   {
     "id": "the-comeback",
     "title": "The Comeback",
