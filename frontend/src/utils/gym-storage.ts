@@ -48,7 +48,7 @@ export type PlanCategory = 'workout' | 'stretch';
  * values actually authored in the source PDF from ones IronFlow estimated
  * (the Hyrox source has no intensity rating at all). */
 export type WodSource = {
-  collection: 'home' | 'hyrox';
+  collection: 'home' | 'hyrox' | 'classics';
   number: number;
   intensity: number;
   intensitySource: 'authored' | 'estimated';

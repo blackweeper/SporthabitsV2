@@ -962,9 +962,10 @@ function CustomSessionsView({
   );
 }
 
-const WOD_COLLECTION_LABEL: Record<"home" | "hyrox", string> = {
+const WOD_COLLECTION_LABEL: Record<"home" | "hyrox" | "classics", string> = {
   home: "Home WODs",
   hyrox: "Hyrox",
+  classics: "Classiques",
 };
 
 function IntensityFlames({ level, size = 12 }: { level: number; size?: number }) {
@@ -988,7 +989,7 @@ function WodLibraryView({
   records: ExerciseRecord[];
   onDeleted: () => void;
 }) {
-  const [collection, setCollection] = useState<"all" | "home" | "hyrox">("all");
+  const [collection, setCollection] = useState<"all" | "home" | "hyrox" | "classics">("all");
   const [intensity, setIntensity] = useState<number | null>(null);
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
   const [randomSheetOpen, setRandomSheetOpen] = useState(false);
@@ -1045,7 +1046,7 @@ function WodLibraryView({
       <FilterSheet visible={filterSheetOpen} onClose={() => setFilterSheetOpen(false)}>
         <Text style={styles.indFilterSectionLabel}>Collection</Text>
         <View style={styles.catRow}>
-          {(["all", "home", "hyrox"] as const).map((c) => {
+          {(["all", "home", "hyrox", "classics"] as const).map((c) => {
             const active = collection === c;
             return (
               <PressableScale
