@@ -14,8 +14,9 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
-import Svg, { Circle } from "react-native-svg";
 import { colors, radius, spacing, withAlpha } from "@/src/theme";
+import TimerCircle from "@/src/components/TimerCircle";
+import EmomLiveOverlay from "@/src/components/EmomLiveOverlay";
 import ExerciseMediaFrame from "@/src/components/exercise-library/ExerciseMediaFrame";
 import { useExerciseMediaSources } from "@/src/hooks/useExerciseMedia";
 import { CORE_LIBRARY_ASSETS } from "@/src/data/core-library-assets.generated";
@@ -31,6 +32,7 @@ import {
   speakNumber,
   speakStop,
 } from "@/src/utils/audio";
+import { playCountdownTick, playRoundChime } from "@/src/utils/timer-sound";
 import {
   estimateCalories,
   getPlan,
@@ -99,6 +101,7 @@ export default function WorkoutScreen() {
           targetRestSeconds: ex.rest_seconds,
           targetDurationSeconds: ex.duration_seconds,
           notes: ex.notes,
+          emomBlock: ex.emomBlock ?? null,
           sets: Array.from({ length: ex.sets }, () => ({
             reps: ex.mode === "amrap" ? "0" : ex.reps,
             weight: ex.weight ?? "",
@@ -122,6 +125,13 @@ export default function WorkoutScreen() {
 
   useEffect(() => {
     if (!overlay) return;
+    // L'exercice qui "gouverne" le décompte courant : pour un repos, c'est
+    // celui vers lequel on reprend (pendingResume), pas celui qui vient de
+    // se terminer — un repos avant un round EMOM "nouvelle génération" doit
+    // déjà sonner avec les nouveaux bips, pas la voix.
+    const governingEx =
+      overlay === "rest" ? logs[pendingResume?.exI ?? exIdx] : logs[exIdx];
+    const useTones = governingEx?.mode === "emom" && !!governingEx.emomBlock;
     timerRef.current = setInterval(() => {
       setOverlayRemaining((r) => {
         if (r <= 1) {
@@ -129,7 +139,13 @@ export default function WorkoutScreen() {
           return 0;
         }
         const next = r - 1;
-        // Voice countdown cues
+        if (useTones) {
+          // Nouveau moteur EMOM : vrais bips, pas de voix — aucun signal à
+          // 10s, seulement le décompte final (comportement d'un interval timer).
+          if (next > 0 && next <= 3) playCountdownTick();
+          return next;
+        }
+        // Voice countdown cues (chemin historique, inchangé)
         if (next === 10) {
           if (overlay === "work") {
             speak("10 secondes");
@@ -175,7 +191,10 @@ export default function WorkoutScreen() {
     const ex = logs[exI];
     if (!ex) return;
     const dur = ex.targetDurationSeconds || (ex.mode === "emom" ? 60 : 300);
-    if (ex.mode === "emom") speak(`Round ${setIdx + 1}`);
+    if (ex.mode === "emom") {
+      if (ex.emomBlock) playRoundChime();
+      else speak(`Round ${setIdx + 1}`);
+    }
     if (ex.mode === "time" || ex.mode === "emom") {
       startWork(setIdx, dur);
     } else if (ex.mode === "amrap") {
@@ -268,7 +287,8 @@ export default function WorkoutScreen() {
         nextSetIdx < currentLog.sets.length
       ) {
         const dur = currentLog.targetDurationSeconds || 60;
-        speak(`Round ${nextSetIdx + 1}`);
+        if (currentLog.emomBlock) playRoundChime();
+        else speak(`Round ${nextSetIdx + 1}`);
         setOverlaySetIdx(nextSetIdx);
         setOverlayTotal(dur);
         setOverlayRemaining(dur);
@@ -780,6 +800,22 @@ export default function WorkoutScreen() {
       <Modal visible={overlay !== null} animationType="slide" transparent>
         <View style={styles.restBackdrop}>
           <View style={styles.restSheet}>
+            {overlay === "work" && currentEx.mode === "emom" && currentEx.emomBlock ? (
+              <EmomLiveOverlay
+                exerciseName={currentEx.name}
+                targetReps={currentEx.targetReps}
+                notes={currentEx.notes}
+                roundIndex={currentEx.emomBlock.roundIndex}
+                totalRounds={currentEx.emomBlock.totalRounds}
+                blockTitle={currentEx.emomBlock.title}
+                remaining={overlayRemaining}
+                total={overlayTotal}
+                thumbnailSource={illustrationSource}
+                onAddTime={addTime}
+                onSkip={skipOverlay}
+              />
+            ) : (
+            <>
             <Text
               style={[
                 styles.restLabel,
@@ -879,6 +915,8 @@ export default function WorkoutScreen() {
                 {overlay === "rest" ? "PASSER LA PAUSE" : "TERMINER"}
               </Text>
             </Pressable>
+            </>
+            )}
           </View>
         </View>
       </Modal>
@@ -915,64 +953,6 @@ function buildStatChips(
     chips.push({ icon: "layers-outline", value: `${completedSets}/${ex.targetSets}`, label: "Séries" });
   }
   return chips;
-}
-
-function TimerCircle({
-  remaining,
-  total,
-  color,
-}: {
-  remaining: number;
-  total: number;
-  color: string;
-}) {
-  const size = 240;
-  const strokeWidth = 12;
-  const r = (size - strokeWidth) / 2;
-  const circ = 2 * Math.PI * r;
-  const pct = remaining / total;
-  const offset = circ * (1 - pct);
-  return (
-    <View
-      style={{
-        width: size,
-        height: size,
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      <Svg width={size} height={size} style={{ position: "absolute" }}>
-        <Circle
-          cx={size / 2}
-          cy={size / 2}
-          r={r}
-          stroke={colors.surfaceTertiary}
-          strokeWidth={strokeWidth}
-          fill="none"
-        />
-        <Circle
-          cx={size / 2}
-          cy={size / 2}
-          r={r}
-          stroke={color}
-          strokeWidth={strokeWidth}
-          fill="none"
-          strokeDasharray={`${circ},${circ}`}
-          strokeDashoffset={offset}
-          strokeLinecap="round"
-          transform={`rotate(-90 ${size / 2} ${size / 2})`}
-        />
-      </Svg>
-      <Text style={styles.restBig}>
-        {remaining >= 60
-          ? `${Math.floor(remaining / 60)}:${String(remaining % 60).padStart(2, "0")}`
-          : remaining}
-      </Text>
-      <Text style={styles.restUnit}>
-        {remaining >= 60 ? "MIN" : "SECONDES"}
-      </Text>
-    </View>
-  );
 }
 
 function formatTime(seconds: number) {
@@ -1260,18 +1240,6 @@ const styles = StyleSheet.create({
     color: colors.onSurfaceSecondary,
     fontWeight: "700",
     fontSize: 12,
-  },
-  restBig: {
-    color: colors.onSurface,
-    fontSize: 72,
-    fontWeight: "800",
-    lineHeight: 78,
-  },
-  restUnit: {
-    color: colors.onSurfaceTertiary,
-    fontSize: 11,
-    letterSpacing: 3,
-    marginTop: 4,
   },
   amrapCounter: {
     flexDirection: "row",

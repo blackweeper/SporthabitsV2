@@ -1,0 +1,145 @@
+import { View, Text, Image, StyleSheet, Pressable } from "react-native";
+import type { ImageSourcePropType } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { colors, radius, spacing, withAlpha } from "@/src/theme";
+import TimerCircle from "@/src/components/TimerCircle";
+
+/**
+ * Contenu de l'overlay EMOM "nouvelle génération" — affichage en direct de
+ * l'exercice/reps/consignes de la minute en cours + transition automatique
+ * (gérée par l'appelant, `app/workout/[id].tsx`, qui reste seul propriétaire
+ * de la state machine du timer). Rendu à l'intérieur du même `Modal`/sheet
+ * que le timer historique — seul le CONTENU diffère, jamais activé pour une
+ * séance déjà générée (voir `Exercise.emomBlock`, additif).
+ */
+export default function EmomLiveOverlay({
+  exerciseName,
+  targetReps,
+  notes,
+  roundIndex,
+  totalRounds,
+  blockTitle,
+  remaining,
+  total,
+  thumbnailSource,
+  onAddTime,
+  onSkip,
+}: {
+  exerciseName: string;
+  targetReps: string;
+  notes?: string | null;
+  roundIndex: number;
+  totalRounds: number;
+  blockTitle?: string | null;
+  remaining: number;
+  total: number;
+  thumbnailSource?: ImageSourcePropType | null;
+  onAddTime: (sec: number) => void;
+  onSkip: () => void;
+}) {
+  return (
+    <View style={styles.wrap} testID="emom-live-overlay">
+      <Text style={styles.eyebrow}>
+        {blockTitle ? `${blockTitle} · ` : ""}
+        ROUND {roundIndex + 1}/{totalRounds}
+      </Text>
+
+      {thumbnailSource && (
+        <Image source={thumbnailSource} style={styles.thumb} resizeMode="cover" />
+      )}
+
+      <Text style={styles.exerciseName} numberOfLines={2}>
+        {exerciseName}
+      </Text>
+      {!!targetReps && (
+        <Text style={styles.targetReps}>{targetReps}</Text>
+      )}
+
+      <TimerCircle remaining={remaining} total={Math.max(1, total)} color={colors.warning} />
+
+      {!!notes && (
+        <View style={styles.notesBox}>
+          <Ionicons name="information-circle" size={14} color={colors.warning} />
+          <Text style={styles.notesText}>{notes}</Text>
+        </View>
+      )}
+
+      <View style={styles.ctlRow}>
+        <Pressable testID="emom-timer-minus" style={styles.ctl} onPress={() => onAddTime(-15)}>
+          <Text style={styles.ctlText}>-15s</Text>
+        </Pressable>
+        <Pressable testID="emom-timer-plus" style={styles.ctl} onPress={() => onAddTime(15)}>
+          <Text style={styles.ctlText}>+15s</Text>
+        </Pressable>
+      </View>
+      <Pressable testID="emom-timer-skip" style={styles.skipBtn} onPress={onSkip}>
+        <Ionicons name="checkmark-done" size={18} color="#fff" />
+        <Text style={styles.skipText}>TERMINER</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  wrap: { alignItems: "center", gap: spacing.md },
+  eyebrow: {
+    color: colors.warning,
+    fontWeight: "800",
+    letterSpacing: 2,
+    fontSize: 12,
+  },
+  thumb: {
+    width: 72,
+    height: 72,
+    borderRadius: radius.md,
+    backgroundColor: colors.surfaceTertiary,
+  },
+  exerciseName: {
+    color: colors.onSurface,
+    fontWeight: "800",
+    fontSize: 26,
+    textAlign: "center",
+    paddingHorizontal: spacing.lg,
+  },
+  targetReps: {
+    color: colors.onSurfaceSecondary,
+    fontWeight: "700",
+    fontSize: 16,
+    marginTop: -spacing.sm,
+  },
+  notesBox: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 6,
+    backgroundColor: withAlpha(colors.warning, 12),
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.md,
+    maxWidth: "100%",
+  },
+  notesText: {
+    color: colors.onSurfaceSecondary,
+    fontSize: 12,
+    flex: 1,
+  },
+  ctlRow: { flexDirection: "row", gap: spacing.md },
+  ctl: {
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceTertiary,
+    borderWidth: 1,
+    borderColor: colors.borderStrong,
+  },
+  ctlText: { color: colors.onSurface, fontWeight: "800", letterSpacing: 0.5 },
+  skipBtn: {
+    backgroundColor: colors.brand,
+    paddingVertical: 16,
+    paddingHorizontal: spacing.xl2,
+    borderRadius: radius.md,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+  },
+  skipText: { color: "#fff", fontWeight: "800", letterSpacing: 1 },
+});

@@ -14,6 +14,31 @@ export type ExerciseMode = 'reps' | 'time' | 'amrap' | 'emom';
  * l'écran de revue ; "unmatched" = aucun candidat trouvé, jamais résolu. */
 export type ExerciseMatchConfidence = 'exact' | 'alias' | 'fuzzy' | 'manual' | 'unmatched';
 
+/**
+ * Métadonnées d'un bloc EMOM "nouvelle génération" (timer premium — affichage
+ * en direct de l'exercice/reps/consignes + vrais bips audio, voir
+ * `EmomLiveOverlay`/`timer-sound.ts`). Champ additif, jamais présent sur les
+ * séances déjà générées : leur comportement EMOM reste strictement celui
+ * d'avant (voix, overlay générique) — le nouveau moteur ne s'active que
+ * lorsque ce champ est renseigné.
+ *
+ * Convention de génération (à respecter par tout futur générateur de
+ * séances) : un bloc EMOM = toujours N `Exercise` séparées, une par minute
+ * (`mode:'emom'`, `sets:1` chacune, `duration_seconds` = durée de la minute,
+ * généralement 60) — que le mouvement se répète ou change à chaque minute
+ * (round-robin), même convention que le chaînage EMOM déjà utilisé par
+ * `wod-library.ts`. Chaque `Exercise` du bloc porte le même `blockId`.
+ */
+export type EmomBlock = {
+  blockId: string;
+  /** Position 0-based de cette minute dans le bloc. */
+  roundIndex: number;
+  /** Nombre total de minutes du bloc. */
+  totalRounds: number;
+  /** Libellé optionnel affiché en en-tête, ex. "EMOM 40". */
+  title?: string | null;
+};
+
 export type Exercise = {
   id: string;
   name: string;
@@ -34,6 +59,8 @@ export type Exercise = {
    * reste en texte libre (comportement historique, toujours supporté). */
   exerciseRecordId?: string | null;
   matchConfidence?: ExerciseMatchConfidence | null;
+  /** Voir `EmomBlock` — absent sur toute séance déjà générée. */
+  emomBlock?: EmomBlock | null;
 };
 
 /** category: 'workout' or 'stretch' — enables re-using the whole program engine for stretching programs. */
@@ -92,6 +119,8 @@ export type SessionExerciseLog = {
    * computeExerciseProgress in src/utils/exercise-progress.ts). */
   libraryExerciseId?: string | null;
   notes?: string | null;
+  /** Voir `EmomBlock` sur `Exercise` — recopié tel quel à la construction du log. */
+  emomBlock?: EmomBlock | null;
 };
 
 export type CardioActivity =
@@ -672,6 +701,7 @@ function normalizeExercise(ex: any): Exercise {
     notes: ex.notes ?? null,
     photoBase64: ex.photoBase64 ?? null,
     iconKey: ex.iconKey ?? null,
+    emomBlock: ex.emomBlock ?? null,
   };
 }
 

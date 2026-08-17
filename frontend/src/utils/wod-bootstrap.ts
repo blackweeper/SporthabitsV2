@@ -1,8 +1,15 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { addPlansIfAbsent, getAllPlansIncludingProgram, replacePlansIfPresent } from '@/src/utils/gym-storage';
+import { addPlansIfAbsent, deletePlan, getAllPlansIncludingProgram, replacePlansIfPresent } from '@/src/utils/gym-storage';
 import { WOD_LIBRARY } from '@/src/data/wod-library';
 
 const WOD_SEEDED_IDS_KEY = '@ironflow/wodLibrarySeededIds';
+// Nettoyage ponctuel demandé par l'utilisateur : retire tous les WODs déjà
+// semés (l'ancienne bibliothèque va être recréée proprement et renvoyée plus
+// tard). Ne touche jamais aux séances personnelles (`!p.wodSource`) ni au
+// bouton "WOD aléatoire" (`WodLibraryView` dans training.tsx pioche dans les
+// plans stockés, pas dans `WOD_LIBRARY` — vider `WOD_LIBRARY` ci-dessous
+// suffit à empêcher un nouveau semis tant qu'aucun nouveau WOD n'est ajouté).
+const WOD_PURGE_2026_08_KEY = '@ironflow/wodLibraryPurged_2026_08';
 // One-time force-relink: the exercise-library audit pass added
 // `exerciseRecordId` to ~630 WOD exercise slots that were previously
 // unlinked free text (round-robin bodyweight/HYROX movements like Air
@@ -27,6 +34,7 @@ const WOD_RELINK_FIX_KEY = '@ironflow/wodExerciseRelinkApplied_v1';
  * premier lancement de l'utilisateur est bien semé au lancement suivant.
  */
 export async function seedWodLibraryIfNeeded(): Promise<void> {
+  await purgeSeededWodsOnce();
   await applyWodExerciseRelinkIfNeeded();
 
   const seededIdsRaw = await AsyncStorage.getItem(WOD_SEEDED_IDS_KEY);
@@ -56,4 +64,29 @@ async function applyWodExerciseRelinkIfNeeded(): Promise<void> {
   }
 
   await AsyncStorage.setItem(WOD_RELINK_FIX_KEY, '1');
+}
+
+/**
+ * Purge ponctuelle : supprime tout `Plan` déjà semé portant `wodSource`, pour
+ * repartir d'une bibliothèque de WODs vide le temps qu'une nouvelle liste
+ * soit fournie. Ne touche jamais aux séances personnelles (`!p.wodSource`).
+ * Exécutée une seule fois par install (`WOD_PURGE_2026_08_KEY`) : un WOD que
+ * l'utilisateur aurait déjà supprimé lui-même reste supprimé, et un nouvel
+ * ajout à `WOD_LIBRARY` après cette purge se sème normalement au lancement
+ * suivant via `seedWodLibraryIfNeeded`.
+ */
+async function purgeSeededWodsOnce(): Promise<void> {
+  const purged = await AsyncStorage.getItem(WOD_PURGE_2026_08_KEY);
+  if (purged) return;
+
+  const existing = await getAllPlansIncludingProgram();
+  const toRemove = existing.filter((p) => p.wodSource);
+  for (const p of toRemove) {
+    await deletePlan(p.id);
+  }
+  if (toRemove.length > 0) {
+    console.log(`[purgeSeededWodsOnce] ${toRemove.length} WOD(s) retiré(s).`);
+  }
+
+  await AsyncStorage.setItem(WOD_PURGE_2026_08_KEY, '1');
 }
