@@ -14,7 +14,7 @@ import { EXERCISE_LIBRARY_MANIFEST_URL } from "@/src/utils/exercise-library-sour
  * priorité ne touche qu'à cette liste, jamais aux appelants ni à
  * `ExerciseRecord` : c'est tout l'intérêt de ce resolver centralisé.
  */
-export type ExerciseMediaSource = "ironflow" | "gymgifsdb" | "workoutx" | null;
+export type ExerciseMediaSource = "ironflow" | "workoutx" | null;
 
 const LIBRARY_ORIGIN = EXERCISE_LIBRARY_MANIFEST_URL?.replace(/manifest\.json$/, "") ?? null;
 
@@ -24,36 +24,24 @@ type MediaCandidate = { source: Exclude<ExerciseMediaSource, null>; url: string 
  * recommandé (voir `NEW-EXERCISE-TEMPLATE-GUIDE.md`), mais la production
  * d'illustrations est manuelle et un mauvais export (`.png`/`.jpg`) arrive
  * (déjà observé en pratique) : mieux vaut afficher l'image quand même que
- * la perdre silencieusement en attendant une re-conversion. `gymgifsdb` reste
- * strictement `.webp`/`.gif` — c'est un jeu de données déjà normalisé, pas du
- * contenu produit au fil de l'eau comme `ironflow`. */
+ * la perdre silencieusement en attendant une re-conversion. */
 const IRONFLOW_IMAGE_EXTENSIONS = ["webp", "png", "jpg", "jpeg"];
 
 /**
- * Chaque fournisseur peut couvrir un ou deux "rôles" pour un exercice :
- * `image` — une illustration/photo statique (identité visuelle) ;
- * `gif`   — une démonstration animée de l'exécution.
- * `ironflow` ne fournit (pour l'instant) que des images dessinées en interne ;
- * `gymgifsdb` fournit les deux pour chaque exercice qu'il couvre ; `workoutx`
- * ne fournit que des GIF. La priorité **entre fournisseurs** (ironflow avant
- * gymgifsdb avant workoutx) est la même quel que soit le rôle — seul ce qui
- * est réellement disponible par fournisseur change.
+ * Chaque fournisseur couvre un "rôle" pour un exercice :
+ * `image` — une illustration/photo statique (identité visuelle), fournie par
+ * `ironflow` ; `gif` — une démonstration animée de l'exécution, fournie par
+ * `workoutx`.
  */
 function buildCandidates(exerciseId: string, role: "image" | "gif"): MediaCandidate[] | null {
   if (!LIBRARY_ORIGIN) return null;
   if (role === "image") {
-    return [
-      ...IRONFLOW_IMAGE_EXTENSIONS.map((ext) => ({
-        source: "ironflow" as const,
-        url: `${LIBRARY_ORIGIN}media/ironflow/${exerciseId}.${ext}`,
-      })),
-      { source: "gymgifsdb", url: `${LIBRARY_ORIGIN}media/gymgifsdb/${exerciseId}.webp` },
-    ];
+    return IRONFLOW_IMAGE_EXTENSIONS.map((ext) => ({
+      source: "ironflow" as const,
+      url: `${LIBRARY_ORIGIN}media/ironflow/${exerciseId}.${ext}`,
+    }));
   }
-  return [
-    { source: "gymgifsdb", url: `${LIBRARY_ORIGIN}media/gymgifsdb/${exerciseId}.gif` },
-    { source: "workoutx", url: `${LIBRARY_ORIGIN}media/workoutx/${exerciseId}.gif` },
-  ];
+  return [{ source: "workoutx", url: `${LIBRARY_ORIGIN}media/workoutx/${exerciseId}.gif` }];
 }
 
 /** Essaie chaque candidat dans l'ordre, retourne le premier qui existe
@@ -100,10 +88,8 @@ export function useExerciseMedia(exerciseId: string | null | undefined): {
 
     setLoading(true);
     (async () => {
-      // Une seule "meilleure image possible" pour cet exercice — les rôles
-      // image puis gif sont essayés dans l'ordre (ironflow > gymgifsdb en
-      // statique, puis gymgifsdb > workoutx en GIF), cohérent avec la
-      // priorité globale des fournisseurs.
+      // Une seule "meilleure image possible" pour cet exercice — le rôle
+      // image (ironflow) est essayé avant le rôle gif (workoutx).
       const found =
         (await resolveFirst(imageCandidates, cancelledRef)) ??
         (await resolveFirst(gifCandidates, cancelledRef));
@@ -125,9 +111,8 @@ export function useExerciseMedia(exerciseId: string | null | undefined): {
  * indépendamment (pas de priorité/fallback entre les deux), pour la fiche
  * exercice qui les affiche ensemble : l'illustration reste l'identité
  * visuelle, le GIF la démonstration d'exécution — voir le plan "Bibliothèque
- * V3". Chaque champ peut désormais venir de plusieurs fournisseurs
- * (`ironflowUri` = ironflow sinon gymgifsdb ; `workoutxUri` = gymgifsdb sinon
- * workoutx) mais les noms de champs restent stables : ce sont des **rôles**
+ * V3". `ironflowUri` vient du fournisseur ironflow, `workoutxUri` du
+ * fournisseur workoutx — noms de champs stables, ce sont des **rôles**
  * ("l'image d'identité", "le GIF d'exécution"), pas des noms de fournisseur
  * littéraux — aucun changement requis chez les appelants existants.
  */

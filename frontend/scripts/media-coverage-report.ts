@@ -9,15 +9,12 @@
  *   1. media/ironflow/{id}.webp puis .png/.jpg/.jpeg — illustration IronFlow
  *      définitive (.webp reste le format recommandé, les autres sont
  *      tolérés pour ne jamais perdre silencieusement un mauvais export)
- *   2. media/gymgifsdb/{id}.webp  — source secondaire déjà en place (import
- *                                   GymGifsDB, distinct de "workoutx")
- *   3. media/gymgifsdb/{id}.gif
- *   4. media/workoutx/{id}.gif    — dernier repli, la source à remplacer
+ *   2. media/workoutx/{id}.gif    — dernier repli, la source à remplacer
  *   sinon : repli emoji (pas de fichier "placeholder" statique aujourd'hui)
- * `media/gymgifsdb/` et `media/workoutx/` restent strictement `.webp`/`.gif`
- * (jeux de données déjà normalisés, pas du contenu produit au fil de l'eau) —
- * un fichier présent sous une AUTRE extension à ces deux endroits n'est
- * jamais trouvé par le résolveur ; ce script le signale explicitement.
+ * `media/workoutx/` reste strictement `.gif` (jeu de données déjà normalisé,
+ * pas du contenu produit au fil de l'eau) — un fichier présent sous une AUTRE
+ * extension à cet endroit n'est jamais trouvé par le résolveur ; ce script le
+ * signale explicitement.
  *
  * Usage (depuis frontend/) :
  *   TS_NODE_COMPILER_OPTIONS='{"module":"commonjs","moduleResolution":"node"}' \
@@ -30,14 +27,13 @@ import { dirname } from "node:path";
 import type { ExerciseRecord } from "../src/utils/exercise-records";
 
 const IRONFLOW_DIR = "../exercise-library/media/ironflow";
-const GYMGIFSDB_DIR = "../exercise-library/media/gymgifsdb";
 const WORKOUTX_DIR = "../exercise-library/media/workoutx";
 // Doit rester en phase avec IRONFLOW_IMAGE_EXTENSIONS dans useExerciseMedia.ts.
 const IRONFLOW_EXTS = ["webp", "png", "jpg", "jpeg"];
 const WORKOUTX_EXT = "gif";
 
 type FileEntry = { file: string; base: string; ext: string };
-type Source = "ironflow" | "gymgifsdb" | "workoutx" | "none";
+type Source = "ironflow" | "workoutx" | "none";
 
 function listDir(dir: string): FileEntry[] {
   if (!existsSync(dir)) return [];
@@ -88,15 +84,12 @@ function main() {
   const exercises: ExerciseRecord[] = JSON.parse(readFileSync(`../exercise-library/${current.path}/exercises.json`, "utf-8"));
 
   const ironflowFiles = listDir(IRONFLOW_DIR);
-  const gymgifsdbFiles = listDir(GYMGIFSDB_DIR);
   const workoutxFiles = listDir(WORKOUTX_DIR);
   const ironflowByBase = groupByBase(ironflowFiles);
-  const gymgifsdbByBase = groupByBase(gymgifsdbFiles);
   const workoutxByBase = groupByBase(workoutxFiles);
 
   const byStatus: Record<Exclude<Source, "none">, { id: string; nameFr: string; file: string }[]> = {
     ironflow: [],
-    gymgifsdb: [],
     workoutx: [],
   };
   const noImageAtAll: { id: string; nameFr: string }[] = [];
@@ -105,11 +98,9 @@ function main() {
     const ironflowFilesForId = ironflowByBase.get(r.id) ?? [];
     // Même ordre de préférence que le résolveur (webp d'abord).
     const ironflowUsable = IRONFLOW_EXTS.map((ext) => ironflowFilesForId.find((f) => f.ext === ext)).find(Boolean);
-    const gymgifsdbAny = (gymgifsdbByBase.get(r.id) ?? []).find((f) => f.ext === "webp" || f.ext === "gif");
     const workoutxGif = (workoutxByBase.get(r.id) ?? []).find((f) => f.ext === WORKOUTX_EXT);
 
     if (ironflowUsable) byStatus.ironflow.push({ id: r.id, nameFr: r.nameFr, file: ironflowUsable.file });
-    else if (gymgifsdbAny) byStatus.gymgifsdb.push({ id: r.id, nameFr: r.nameFr, file: gymgifsdbAny.file });
     else if (workoutxGif) byStatus.workoutx.push({ id: r.id, nameFr: r.nameFr, file: workoutxGif.file });
     else noImageAtAll.push({ id: r.id, nameFr: r.nameFr });
   }
@@ -123,8 +114,8 @@ function main() {
 
   // Anomalies d'extension : fichier présent sous une extension totalement
   // inconnue du résolveur (ex. .bmp/.heic) — invisible quel que soit le cas.
-  // ironflow tolère webp/png/jpg/jpeg (voir IRONFLOW_EXTS) ; gymgifsdb/
-  // workoutx restent strictement webp+gif / gif.
+  // ironflow tolère webp/png/jpg/jpeg (voir IRONFLOW_EXTS) ; workoutx reste
+  // strictement gif.
   const wrongExtIronflow = wrongExtensionAnomalies(ironflowByBase, IRONFLOW_EXTS);
   const wrongExtWorkoutx = wrongExtensionAnomalies(workoutxByBase, [WORKOUTX_EXT]);
 
@@ -153,7 +144,6 @@ function main() {
     summary: {
       avecIllustrationIronflow: byStatus.ironflow.length,
       pourcentageMigrationIronflow: pct(byStatus.ironflow.length),
-      surGymgifsdb: byStatus.gymgifsdb.length,
       surWorkoutxTemporaire: byStatus.workoutx.length,
       sansAucuneImage: noImageAtAll.length,
       imagesIronflowOrphelines: orphanIronflow.length,
@@ -164,7 +154,6 @@ function main() {
       doublonsIronflow: duplicateUsableIronflow.length,
     },
     avecIllustrationIronflow: byStatus.ironflow,
-    surGymgifsdb: byStatus.gymgifsdb,
     surWorkoutxTemporaire: byStatus.workoutx,
     sansAucuneImage: noImageAtAll,
     imagesIronflowOrphelines: orphanIronflow,
@@ -180,7 +169,6 @@ function main() {
 
   console.log(`\n=== Rapport de couverture média (bibliothèque v${current.version}, ${exercises.length} exercices) ===\n`);
   console.log(`Illustration IronFlow définitive : ${byStatus.ironflow.length} (${report.summary.pourcentageMigrationIronflow}%)`);
-  console.log(`Sur GymGifsDB (source secondaire) : ${byStatus.gymgifsdb.length}`);
   console.log(`Sur GIF WorkoutX temporaire (dernier repli) : ${byStatus.workoutx.length}`);
   console.log(`Aucune image du tout              : ${noImageAtAll.length}`);
 

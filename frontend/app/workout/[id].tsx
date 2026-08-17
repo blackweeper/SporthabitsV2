@@ -21,6 +21,8 @@ import { useExerciseMediaSources } from "@/src/hooks/useExerciseMedia";
 import { CORE_LIBRARY_ASSETS } from "@/src/data/core-library-assets.generated";
 import { ExerciseRecord, getExerciseRecords } from "@/src/utils/exercise-records";
 import { matchExerciseRecord } from "@/src/utils/exercise-record-match";
+import { parseCompositeExerciseName, parseCompositePrefix } from "@/src/utils/composite-exercise";
+import CompositeExerciseImage from "@/src/components/CompositeExerciseImage";
 import { iconEmojiForExercise } from "@/src/data/exercise-icons";
 import { useConfirmDialog } from "@/src/hooks/use-confirm-dialog";
 import {
@@ -462,6 +464,8 @@ export default function WorkoutScreen() {
   const progress = totalSets ? totalCompleted / totalSets : 0;
   const currentSetIdx = currentEx.sets.findIndex((s) => !s.completed);
   const statChips = buildStatChips(currentEx, completedSets);
+  const compositeItems = parseCompositeExerciseName(currentEx.name);
+  const compositePrefix = compositeItems ? parseCompositePrefix(currentEx.name) : null;
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
@@ -543,51 +547,77 @@ export default function WorkoutScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.mediaWrap}>
-          <ExerciseMediaFrame
-            testID="workout-media-frame"
-            source={mediaMode === "gif" ? (gifSource ?? illustrationSource) : illustrationSource}
-            fallbackEmoji={iconEmojiForExercise(currentEx.name, planEx?.iconKey)}
-            fallbackTint={colors.brand}
-            minHeight={200}
-            maxHeight={280}
-          />
-          <LinearGradient
-            colors={["transparent", withAlpha("#000000", 88)]}
-            style={styles.mediaGradient}
-            pointerEvents="none"
-          />
-          <View style={styles.mediaControls}>
-            {gifSource && (
+        {compositeItems ? (
+          <View style={styles.mediaWrap}>
+            <CompositeExerciseImage
+              items={compositeItems}
+              records={allRecords}
+              height={300}
+              showLabel={false}
+            />
+            <View style={styles.compositeBadgeWrap} pointerEvents="none">
+              <View style={styles.modeBadge}>
+                <Text style={styles.modeBadgeText}>{compositePrefix ?? currentEx.mode.toUpperCase()}</Text>
+              </View>
+            </View>
+            <View style={styles.mediaControls}>
               <Pressable
-                testID="media-toggle-gif"
+                testID="media-open-fiche"
                 hitSlop={4}
-                style={[styles.mediaBtn, mediaMode === "gif" && styles.mediaBtnActive]}
-                onPress={() => setMediaMode((m) => (m === "gif" ? "photo" : "gif"))}
+                style={styles.mediaBtn}
+                onPress={() => router.push(`/exercise-detail/${encodeURIComponent(currentEx.name)}` as any)}
               >
-                <Ionicons name={mediaMode === "gif" ? "image" : "film"} size={16} color="#fff" />
+                <Ionicons name="information-circle" size={16} color="#fff" />
               </Pressable>
-            )}
-            <Pressable
-              testID="media-open-fiche"
-              hitSlop={4}
-              style={styles.mediaBtn}
-              onPress={() => router.push(`/exercise-detail/${encodeURIComponent(currentEx.name)}` as any)}
-            >
-              <Ionicons name="information-circle" size={16} color="#fff" />
-            </Pressable>
+            </View>
           </View>
-          <View style={styles.mediaOverlayInfo} pointerEvents="none">
-            <View style={styles.modeBadge}>
-              <Text style={styles.modeBadgeText}>
-                {currentEx.mode.toUpperCase()}
+        ) : (
+          <View style={styles.mediaWrap}>
+            <ExerciseMediaFrame
+              testID="workout-media-frame"
+              source={mediaMode === "gif" ? (gifSource ?? illustrationSource) : illustrationSource}
+              fallbackEmoji={iconEmojiForExercise(currentEx.name, planEx?.iconKey)}
+              fallbackTint={colors.brand}
+              minHeight={200}
+              maxHeight={280}
+            />
+            <LinearGradient
+              colors={["transparent", withAlpha("#000000", 88)]}
+              style={styles.mediaGradient}
+              pointerEvents="none"
+            />
+            <View style={styles.mediaControls}>
+              {gifSource && (
+                <Pressable
+                  testID="media-toggle-gif"
+                  hitSlop={4}
+                  style={[styles.mediaBtn, mediaMode === "gif" && styles.mediaBtnActive]}
+                  onPress={() => setMediaMode((m) => (m === "gif" ? "photo" : "gif"))}
+                >
+                  <Ionicons name={mediaMode === "gif" ? "image" : "film"} size={16} color="#fff" />
+                </Pressable>
+              )}
+              <Pressable
+                testID="media-open-fiche"
+                hitSlop={4}
+                style={styles.mediaBtn}
+                onPress={() => router.push(`/exercise-detail/${encodeURIComponent(currentEx.name)}` as any)}
+              >
+                <Ionicons name="information-circle" size={16} color="#fff" />
+              </Pressable>
+            </View>
+            <View style={styles.mediaOverlayInfo} pointerEvents="none">
+              <View style={styles.modeBadge}>
+                <Text style={styles.modeBadgeText}>
+                  {currentEx.mode.toUpperCase()}
+                </Text>
+              </View>
+              <Text style={styles.exNameBig} numberOfLines={2}>
+                {currentEx.name}
               </Text>
             </View>
-            <Text style={styles.exNameBig} numberOfLines={2}>
-              {currentEx.name}
-            </Text>
           </View>
-        </View>
+        )}
 
         <View style={styles.statChipsRow}>
           {statChips.map((c, i) => (
@@ -1037,6 +1067,11 @@ const styles = StyleSheet.create({
     right: 10,
     flexDirection: "row",
     gap: 8,
+  },
+  compositeBadgeWrap: {
+    position: "absolute",
+    top: 10,
+    left: 10,
   },
   mediaBtn: {
     width: 36,

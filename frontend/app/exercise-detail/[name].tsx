@@ -43,6 +43,8 @@ import PressableScale from "@/src/components/ui/PressableScale";
 import StatHero from "@/src/components/ui/StatHero";
 import { computeFicheCompleteness } from "@/src/utils/exercise-fiche-completeness";
 import MuscleActivationView from "@/src/components/exercise-library/MuscleActivationView";
+import { parseCompositeExerciseName, parseCompositePrefix, cleanCompositeItemLabel } from "@/src/utils/composite-exercise";
+import CompositeExerciseImage from "@/src/components/CompositeExerciseImage";
 
 function shortDate(iso: string): string {
   const d = new Date(iso);
@@ -237,6 +239,73 @@ export default function ExerciseDetailFiche() {
     setAddSheetOpen(false);
     router.push(`/plan/${newPlan.id}` as any);
   };
+
+  // Une entrée composite (AMRAP/EMOM/relais — voir `parseCompositeExerciseName`)
+  // ne matche jamais un `ExerciseLibraryItem` puisque son "nom" est la phrase
+  // entière du circuit, pas un exercice unique — sans ce cas particulier,
+  // l'écran retombait sur "Exercice introuvable". Fiche dédiée : le montage
+  // en une image, puis chaque mouvement réel du circuit dans sa propre ligne,
+  // cliquable vers sa vraie fiche quand une correspondance existe.
+  const compositeItems = parseCompositeExerciseName(decoded);
+  if (compositeItems) {
+    const compositeTitle = parseCompositePrefix(decoded) ?? decoded;
+    return (
+      <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+        <View style={styles.header}>
+          <Pressable testID="close-ex-detail" onPress={() => router.back()} hitSlop={12}>
+            <Ionicons name="chevron-back" size={24} color={colors.onSurface} />
+          </Pressable>
+          <Text style={styles.title} numberOfLines={1}>
+            {compositeTitle}
+          </Text>
+          <View style={{ width: 24 }} />
+        </View>
+        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+          <CompositeExerciseImage items={compositeItems} records={allRecords} height={220} showLabel={false} />
+          <Text style={styles.circuitFullName}>{decoded}</Text>
+          <Card title="Mouvements du circuit" icon="list-outline">
+            <View style={{ gap: spacing.sm }}>
+              {compositeItems.map((raw, i) => {
+                const cleaned = cleanCompositeItemLabel(raw);
+                const record = matchExerciseRecord(cleaned, allRecords);
+                const content = (
+                  <>
+                    <ExerciseThumbnail name={cleaned} records={allRecords} size={44} square />
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.circuitRowName}>{raw}</Text>
+                      {!record && (
+                        <Text style={styles.circuitRowHint}>Pas encore dans la bibliothèque</Text>
+                      )}
+                    </View>
+                    {record && (
+                      <Ionicons name="chevron-forward" size={16} color={colors.onSurfaceTertiary} />
+                    )}
+                  </>
+                );
+                if (record) {
+                  return (
+                    <PressableScale
+                      key={i}
+                      testID={`circuit-item-${i}`}
+                      style={styles.circuitRow}
+                      onPress={() => router.push(`/exercise-detail/${encodeURIComponent(record.nameFr)}` as any)}
+                    >
+                      {content}
+                    </PressableScale>
+                  );
+                }
+                return (
+                  <View key={i} testID={`circuit-item-${i}`} style={styles.circuitRow}>
+                    {content}
+                  </View>
+                );
+              })}
+            </View>
+          </Card>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
 
   if (!item) {
     return (
@@ -971,6 +1040,17 @@ const styles = StyleSheet.create({
   scroll: { padding: spacing.lg, gap: spacing.lg, paddingBottom: 40 },
   emptyWrap: { flex: 1, alignItems: "center", justifyContent: "center", gap: spacing.sm },
   emptyText: { color: colors.onSurfaceTertiary },
+  circuitFullName: { color: colors.onSurface, fontSize: 15, fontWeight: "700", lineHeight: 21 },
+  circuitRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    backgroundColor: colors.surfaceTertiary,
+    borderRadius: radius.md,
+    padding: spacing.sm,
+  },
+  circuitRowName: { color: colors.onSurface, fontSize: 13, fontWeight: "700" },
+  circuitRowHint: { color: colors.onSurfaceTertiary, fontSize: 11, marginTop: 2 },
   mediaCard: { gap: 6, overflow: "hidden" },
   mediaToggleBtn: {
     position: "absolute",

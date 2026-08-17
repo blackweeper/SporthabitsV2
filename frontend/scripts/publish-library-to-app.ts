@@ -9,7 +9,7 @@
  * exercise version never requires rebuilding/redeploying the app itself.
  *
  * Every media file listed in `media-manifest.json` (built from a scan of
- * `media/ironflow/`, `media/gymgifsdb/` and `media/workoutx/`, not from `ExerciseRecord`
+ * `media/ironflow/` and `media/workoutx/`, not from `ExerciseRecord`
  * references) is re-verified against what's actually on disk — publishing
  * stops with a clear error rather than shipping a library with
  * broken/missing/corrupted media.
@@ -56,7 +56,7 @@ function main() {
 
   // Verify every checksummed media file against what's actually on disk —
   // no longer conditioned on any ExerciseRecord referencing it: the media
-  // library (media/ironflow/, media/gymgifsdb/, media/workoutx/) is its own
+  // library (media/ironflow/, media/workoutx/) is its own
   // source of truth, resolved by exercise id at read time
   // (src/hooks/useExerciseMedia.ts).
   const problems: string[] = [];

@@ -28,7 +28,7 @@ proposition, le schéma effectivement utilisé par l'app aujourd'hui.
   le télécharge à la demande (voir `frontend/src/hooks/useLibraryUpdate.ts`)
   et le fusionne dans le stockage local de l'utilisateur (`AsyncStorage`,
   clé `@ironflow/exerciseRecords`).
-- **Médias** : `exercise-library/media/{ironflow,workoutx,gymgifsdb}/{id}.{webp,gif}`,
+- **Médias** : `exercise-library/media/{ironflow,workoutx}/{id}.{webp,gif}`,
   publiés sur la même branche `gh-pages`, résolus **uniquement par `id`** — un
   exercice n'a jamais besoin de référencer son propre média dans le JSON (voir
   §7).
@@ -248,9 +248,7 @@ Priorité de résolution (premier fichier trouvé qui gagne) :
 | Rôle | Ordre | Chemin |
 |---|---|---|
 | Image statique | 1 | `exercise-library/media/ironflow/{id}.webp` |
-| Image statique | 2 | `exercise-library/media/gymgifsdb/{id}.webp` |
-| GIF démonstration | 1 | `exercise-library/media/gymgifsdb/{id}.gif` |
-| GIF démonstration | 2 | `exercise-library/media/workoutx/{id}.gif` |
+| GIF démonstration | 1 | `exercise-library/media/workoutx/{id}.gif` |
 
 **Pour ajouter une image à `sys_squat_gobelet`** : déposer un fichier
 `squat_gobelet.webp` (format WebP, fond transparent recommandé, ~800×800)

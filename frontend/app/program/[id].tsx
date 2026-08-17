@@ -38,6 +38,7 @@ import {
 } from "@/src/utils/session-estimate";
 import { ExerciseRecord, getExerciseRecords } from "@/src/utils/exercise-records";
 import ExerciseThumbnail from "@/src/components/ExerciseThumbnail";
+import { groupRoundRobinExercises } from "@/src/utils/exercise-round-grouping";
 import SegmentedTabRow from "@/src/components/ui/SegmentedTabRow";
 import ProgramWeekTabs from "@/src/components/ProgramWeekTabs";
 import ProgramDayCardFull, {
@@ -538,6 +539,7 @@ function ProgramDayCard({
       {day.sessions.map((s, si) => {
         const done = doneOf(si);
         const est = estimateSessionDurationSeconds(s.exercises);
+        const groupedExercises = groupRoundRobinExercises(s.exercises);
         if (isToday) {
           // Today: fully expanded — details of all exercises + explicit CTA
           return (
@@ -573,7 +575,7 @@ function ProgramDayCard({
                     color={colors.onSurfaceTertiary}
                   />
                   <Text style={styles.metaPillText}>
-                    {s.exercises.length} exercice{s.exercises.length > 1 ? "s" : ""}
+                    {groupedExercises.length} exercice{groupedExercises.length > 1 ? "s" : ""}
                   </Text>
                 </View>
                 {est > 0 && (
@@ -590,7 +592,7 @@ function ProgramDayCard({
                 )}
               </View>
               <View style={styles.exList}>
-                {s.exercises.map((ex, ei) => (
+                {groupedExercises.map(({ exercise: ex, count }, ei) => (
                   <View key={ei} style={styles.exRow}>
                     <ExerciseThumbnail
                       name={ex.name}
@@ -601,9 +603,16 @@ function ProgramDayCard({
                       square
                     />
                     <View style={{ flex: 1 }}>
-                      <Text style={styles.exName} numberOfLines={1}>
-                        {ex.name}
-                      </Text>
+                      <View style={styles.exNameRow}>
+                        <Text style={styles.exName} numberOfLines={1}>
+                          {ex.name}
+                        </Text>
+                        {count > 1 && (
+                          <View style={styles.roundBadge}>
+                            <Text style={styles.roundBadgeText}>× {count}</Text>
+                          </View>
+                        )}
+                      </View>
                       <Text style={styles.exDetail}>
                         {formatExerciseDetail(ex)}
                       </Text>
@@ -930,10 +939,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  exNameRow: { flexDirection: "row", alignItems: "center", gap: 6 },
   exName: {
     color: colors.onSurface,
     fontWeight: "800",
     fontSize: 13,
+    flexShrink: 1,
   },
   exDetail: {
     color: colors.onSurfaceTertiary,
@@ -941,6 +952,13 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginTop: 2,
   },
+  roundBadge: {
+    backgroundColor: colors.surface,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: radius.pill,
+  },
+  roundBadgeText: { color: colors.onSurfaceSecondary, fontSize: 9, fontWeight: "800" },
   launchBtn: {
     flexDirection: "row",
     alignItems: "center",

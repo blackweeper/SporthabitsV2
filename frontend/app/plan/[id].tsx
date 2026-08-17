@@ -22,10 +22,15 @@ import {
   savePlan,
   uid,
 } from "@/src/utils/gym-storage";
-import { ExerciseRecord, getExerciseRecords } from "@/src/utils/exercise-records";
+import { ExerciseRecord, getExerciseRecords, saveExerciseRecord } from "@/src/utils/exercise-records";
+import { matchExerciseRecord } from "@/src/utils/exercise-record-match";
+import { learnAlias } from "@/src/utils/exercise-matching";
+import { parseCompositeExerciseName } from "@/src/utils/composite-exercise";
 import ExerciseThumbnail from "@/src/components/ExerciseThumbnail";
 import ExercisePicturePicker from "@/src/components/ExercisePicturePicker";
 import ExerciseLibraryPicker from "@/src/components/ExerciseLibraryPicker";
+import ExerciseLinkModal from "@/src/components/ExerciseLinkModal";
+import CompositeExerciseImage from "@/src/components/CompositeExerciseImage";
 import DurationField from "@/src/components/DurationField";
 
 const TYPES: Plan["type"][] = ["musculation", "hiit", "cardio", "mixte"];
@@ -44,6 +49,7 @@ export default function PlanDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [pickingExerciseId, setPickingExerciseId] = useState<string | null>(null);
   const [libraryOpen, setLibraryOpen] = useState(false);
+  const [linkingExerciseId, setLinkingExerciseId] = useState<string | null>(null);
   const [records, setRecords] = useState<ExerciseRecord[]>([]);
 
   useEffect(() => {
@@ -81,6 +87,23 @@ export default function PlanDetailScreen() {
         e.id === exId ? { ...e, ...patch } : e,
       ),
     });
+  };
+
+  /** Lie l'exercice `exId` (texte libre, pas d'illustration/description
+   * puisqu'aucun `ExerciseRecord` ne matche son nom) au `record` choisi —
+   * même mécanisme que `import-review/[id].tsx` : le nom original devient un
+   * alias du record (`learnAlias`) pour que la résolution par nom déjà
+   * utilisée partout (`ExerciseThumbnail`, la fiche, la séance active)
+   * retrouve désormais une vraie image/description, plus seulement l'emoji
+   * de repli. */
+  const linkExerciseToRecord = async (exId: string, rawName: string, record: ExerciseRecord) => {
+    const learned = learnAlias(record, rawName);
+    if (learned !== record) {
+      await saveExerciseRecord(learned);
+      setRecords((prev) => prev.map((r) => (r.id === learned.id ? learned : r)));
+    }
+    updateExercise(exId, { exerciseRecordId: learned.id, matchConfidence: "manual" });
+    setLinkingExerciseId(null);
   };
 
   const addExercise = (name = "Nouvel exercice") => {
@@ -228,7 +251,10 @@ export default function PlanDetailScreen() {
             </Text>
           )}
 
-          {plan.exercises.map((ex, idx) => (
+          {plan.exercises.map((ex, idx) => {
+            const composite = parseCompositeExerciseName(ex.name);
+            const needsLink = !composite && !matchExerciseRecord(ex.name, records);
+            return (
             <View key={ex.id} style={styles.exCard} testID={`ex-${ex.id}`}>
               <View style={styles.exCardHead}>
                 <Text style={styles.exIdx}>#{idx + 1}</Text>
@@ -269,6 +295,24 @@ export default function PlanDetailScreen() {
                   placeholderTextColor={colors.onSurfaceTertiary}
                 />
               </View>
+
+              {needsLink && (
+                <Pressable
+                  testID={`ex-link-${ex.id}`}
+                  style={styles.linkHint}
+                  onPress={() => setLinkingExerciseId(ex.id)}
+                >
+                  <Ionicons name="link-outline" size={12} color={colors.warning} />
+                  <Text style={styles.linkHintText}>
+                    Pas encore illustré — lier à la bibliothèque
+                  </Text>
+                  <Ionicons name="chevron-forward" size={12} color={colors.warning} />
+                </Pressable>
+              )}
+
+              {composite && (
+                <CompositeExerciseImage items={composite} records={records} />
+              )}
 
               {/* Mode selector */}
               <View style={styles.modeRow}>
@@ -449,7 +493,8 @@ export default function PlanDetailScreen() {
                 </>
               )}
             </View>
-          ))}
+            );
+          })}
           <View style={{ height: 40 }} />
         </ScrollView>
       </KeyboardAvoidingView>
@@ -480,6 +525,34 @@ export default function PlanDetailScreen() {
           setLibraryOpen(false);
         }}
       />
+
+      {linkingExerciseId && (
+        <ExerciseLinkModal
+          rawName={plan.exercises.find((e) => e.id === linkingExerciseId)?.name ?? ""}
+          records={records}
+          onClose={() => setLinkingExerciseId(null)}
+          onPickRecord={(record) => {
+            const ex = plan.exercises.find((e) => e.id === linkingExerciseId);
+            if (ex) linkExerciseToRecord(ex.id, ex.name, record);
+          }}
+          onCreateRecord={async (nameFr, category, equipment) => {
+            const ex = plan.exercises.find((e) => e.id === linkingExerciseId);
+            if (!ex) return;
+            const record: ExerciseRecord = {
+              id: uid(),
+              source: "custom",
+              nameFr,
+              nameEn: null,
+              category,
+              equipment,
+              createdAt: new Date().toISOString(),
+            };
+            await saveExerciseRecord(record);
+            setRecords((prev) => [...prev, record]);
+            await linkExerciseToRecord(ex.id, ex.name, record);
+          }}
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -674,6 +747,17 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   exIdx: { color: colors.brand, fontWeight: "800", fontSize: 12 },
+  linkHint: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: colors.surfaceTertiary,
+    borderRadius: radius.sm,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    marginBottom: spacing.sm,
+  },
+  linkHintText: { flex: 1, color: colors.warning, fontSize: 11, fontWeight: "600" },
   fieldRow: { flexDirection: "row", gap: spacing.sm },
   miniLabel: {
     color: colors.onSurfaceTertiary,

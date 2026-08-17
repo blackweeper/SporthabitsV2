@@ -11,6 +11,7 @@ import {
   formatPlannedDate,
 } from "@/src/utils/session-estimate";
 import { formatExerciseDetail } from "@/src/utils/exercise-set-format";
+import { groupRoundRobinExercises } from "@/src/utils/exercise-round-grouping";
 
 export const PROGRAM_DAY_CARD_FULL_WIDTH = 300;
 export const PROGRAM_DAY_CARD_FULL_GAP = 12;
@@ -73,6 +74,7 @@ export default function ProgramDayCardFull({
   }
 
   const exercises = day.sessions.flatMap((s) => s.exercises);
+  const uniqueExerciseCount = new Set(exercises.map((e) => e.name)).size;
   const est = day.sessions.reduce(
     (a, s) => a + estimateSessionDurationSeconds(s.exercises),
     0,
@@ -118,7 +120,7 @@ export default function ProgramDayCardFull({
         <View style={styles.metaPill}>
           <Ionicons name="barbell" size={10} color={colors.onSurfaceTertiary} />
           <Text style={styles.metaPillText}>
-            {exercises.length} exercice{exercises.length > 1 ? "s" : ""}
+            {uniqueExerciseCount} exercice{uniqueExerciseCount > 1 ? "s" : ""}
           </Text>
         </View>
         {est > 0 && (
@@ -145,7 +147,7 @@ export default function ProgramDayCardFull({
                 </View>
               )}
               <View style={styles.exList}>
-                {s.exercises.map((ex, ei) => (
+                {groupRoundRobinExercises(s.exercises).map(({ exercise: ex, count }, ei) => (
                   <PressableScale
                     key={ei}
                     testID={`week-day-full-${dayIndex}-s${si}-ex-${ei}`}
@@ -161,9 +163,16 @@ export default function ProgramDayCardFull({
                       square
                     />
                     <View style={{ flex: 1 }}>
-                      <Text style={styles.exName} numberOfLines={1}>
-                        {ex.name}
-                      </Text>
+                      <View style={styles.exNameRow}>
+                        <Text style={styles.exName} numberOfLines={1}>
+                          {ex.name}
+                        </Text>
+                        {count > 1 && (
+                          <View style={styles.roundBadge}>
+                            <Text style={styles.roundBadgeText}>× {count}</Text>
+                          </View>
+                        )}
+                      </View>
                       <Text style={styles.exDetail}>{formatExerciseDetail(ex)}</Text>
                     </View>
                   </PressableScale>
@@ -275,8 +284,16 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     borderRadius: radius.sm,
   },
-  exName: { color: colors.onSurface, fontWeight: "800", fontSize: 12 },
+  exNameRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  exName: { color: colors.onSurface, fontWeight: "800", fontSize: 12, flexShrink: 1 },
   exDetail: { color: colors.onSurfaceTertiary, fontSize: 10, fontWeight: "600", marginTop: 2 },
+  roundBadge: {
+    backgroundColor: colors.surfaceTertiary,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: radius.pill,
+  },
+  roundBadgeText: { color: colors.onSurfaceSecondary, fontSize: 9, fontWeight: "800" },
   launchBtn: {
     flexDirection: "row",
     alignItems: "center",

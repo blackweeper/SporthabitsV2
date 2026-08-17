@@ -3,11 +3,10 @@
  * (`exercise-library/current.json`) en re-scannant les dossiers média
  * partagés — sans toucher à `exercises.json` ni couper une nouvelle version.
  *
- * À utiliser chaque fois que des fichiers sont ajoutés/modifiés directement
- * dans `media/{ironflow,gymgifsdb,workoutx}/` sans passer par
- * `commit-library-version.ts` (ex. import média seul, comme
- * `import-gymgifsdb-media.ts --apply`) — `media-manifest.json` est le
- * garde-fou d'intégrité vérifié par `publish-library-to-app.ts` avant toute
+ * À utiliser chaque fois que des fichiers sont ajoutés/modifiés/retirés
+ * directement dans `media/{ironflow,workoutx}/` sans passer par
+ * `commit-library-version.ts` — `media-manifest.json` est le garde-fou
+ * d'intégrité vérifié par `publish-library-to-app.ts` avant toute
  * publication ; le laisser périmé ferait échouer cette vérification (fichier
  * présent sur disque mais absent du manifeste, ou inversement).
  *
@@ -18,7 +17,7 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 
 const LIBRARY_ROOT = "../exercise-library";
-const MEDIA_SOURCES = ["ironflow", "gymgifsdb", "workoutx"] as const;
+const MEDIA_SOURCES = ["ironflow", "workoutx"] as const;
 
 function sha256File(path: string): string {
   return createHash("sha256").update(readFileSync(path)).digest("hex");
