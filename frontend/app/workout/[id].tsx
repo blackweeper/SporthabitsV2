@@ -751,7 +751,6 @@ export default function WorkoutScreen() {
             <CompositeExerciseImage
               items={compositeItems}
               records={allRecords}
-              height={300}
               showLabel={false}
             />
             <View style={styles.compositeBadgeWrap} pointerEvents="none">

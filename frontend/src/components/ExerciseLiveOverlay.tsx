@@ -55,7 +55,7 @@ export default function ExerciseLiveOverlay({
 
       {compositeItems && compositeItems.length >= 2 ? (
         <View style={styles.compositeThumbWrap}>
-          <CompositeExerciseImage items={compositeItems} records={records ?? []} height={64} showLabel={false} />
+          <CompositeExerciseImage items={compositeItems} records={records ?? []} compact showLabel={false} />
         </View>
       ) : (
         thumbnailSource && (

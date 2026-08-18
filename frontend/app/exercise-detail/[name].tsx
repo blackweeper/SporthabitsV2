@@ -261,7 +261,7 @@ export default function ExerciseDetailFiche() {
           <View style={{ width: 24 }} />
         </View>
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-          <CompositeExerciseImage items={compositeItems} records={allRecords} height={220} showLabel={false} />
+          <CompositeExerciseImage items={compositeItems} records={allRecords} showLabel={false} />
           <Text style={styles.circuitFullName}>{decoded}</Text>
           <Card title="Mouvements du circuit" icon="list-outline">
             <View style={{ gap: spacing.sm }}>
