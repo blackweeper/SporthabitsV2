@@ -704,6 +704,7 @@ export default function WorkoutScreen() {
 
       <ScrollView
         horizontal
+        style={styles.chipsScroll}
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.chipsRow}
       >
@@ -1174,6 +1175,12 @@ const styles = StyleSheet.create({
     height: "100%",
     backgroundColor: colors.brand,
   },
+  // `flexGrow:0` explicite : sans style propre, ce `ScrollView horizontal`
+  // hérite du comportement par défaut de react-native-web (flexGrow:1) et
+  // s'étire pour occuper tout l'espace restant de la colonne flex parente,
+  // au détriment du ScrollView vertical de contenu juste en dessous — d'où
+  // le grand espace vide observé entre les chips et le média.
+  chipsScroll: { flexGrow: 0, flexShrink: 0 },
   chipsRow: {
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,

@@ -91,7 +91,7 @@ export default function CompositeExerciseImage({
   // éviter un flash de vignettes à taille nulle — même discipline que
   // `useDynamicMediaHeight`.
   const [frameWidth, setFrameWidth] = useState(343);
-  const panelSize = compact ? 48 : Math.max(0, (frameWidth - gap * (columns - 1)) / columns);
+  const panelSize = compact ? 64 : Math.max(0, (frameWidth - gap * (columns - 1)) / columns);
   const onLayout = compact ? undefined : (e: LayoutChangeEvent) => setFrameWidth(e.nativeEvent.layout.width);
 
   return (
@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     letterSpacing: 0.8,
   },
-  frame: { flexDirection: "row", flexWrap: "wrap" },
+  frame: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center" },
   panel: {
     borderRadius: radius.md,
     overflow: "hidden",

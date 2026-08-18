@@ -53,6 +53,13 @@ export default function ExerciseLiveOverlay({
     <View style={styles.wrap} testID="exercise-live-overlay">
       <Text style={styles.eyebrow}>{eyebrow}</Text>
 
+      <Text style={styles.exerciseName} numberOfLines={2}>
+        {exerciseName}
+      </Text>
+      {!!targetReps && (
+        <Text style={styles.targetReps}>{targetReps}</Text>
+      )}
+
       {compositeItems && compositeItems.length >= 2 ? (
         <View style={styles.compositeThumbWrap}>
           <CompositeExerciseImage items={compositeItems} records={records ?? []} compact showLabel={false} />
@@ -61,13 +68,6 @@ export default function ExerciseLiveOverlay({
         thumbnailSource && (
           <Image source={thumbnailSource} style={styles.thumb} resizeMode="contain" />
         )
-      )}
-
-      <Text style={styles.exerciseName} numberOfLines={2}>
-        {exerciseName}
-      </Text>
-      {!!targetReps && (
-        <Text style={styles.targetReps}>{targetReps}</Text>
       )}
 
       <TimerCircle remaining={remaining} total={Math.max(1, total)} color={colors.warning} />
