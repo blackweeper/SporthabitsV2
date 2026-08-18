@@ -1,0 +1,27 @@
+{
+  "totalExistingBefore": 27,
+  "totalCustomKept": 0,
+  "totalIncoming": 1327,
+  "updatedCount": 0,
+  "replacedCount": 0,
+  "addedCount": 1321,
+  "unmatchedExistingKept": 27,
+  "duplicatesSkipped": 6,
+  "warnings": [],
+  "possibleMatches": [
+    {
+      "systemId": "sys_dumbbell_snatches_alternes",
+      "systemName": "Dumbbell Snatches alternés",
+      "candidateId": "wx_0286",
+      "candidateName": "Dumbbell Alternate Side Press",
+      "score": 0.72
+    },
+    {
+      "systemId": "sys_world_s_greatest_stretch",
+      "systemName": "World's Greatest Stretch",
+      "candidateId": "wx_1604",
+      "candidateName": "World Greatest Stretch",
+      "score": 0.9
+    }
+  ]
+}
