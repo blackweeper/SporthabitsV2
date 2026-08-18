@@ -30,6 +30,7 @@ import ExerciseThumbnail from "@/src/components/ExerciseThumbnail";
 import ExercisePicturePicker from "@/src/components/ExercisePicturePicker";
 import ExerciseLibraryPicker from "@/src/components/ExerciseLibraryPicker";
 import ExerciseLinkModal from "@/src/components/ExerciseLinkModal";
+import ExerciseNameSuggestions from "@/src/components/ExerciseNameSuggestions";
 import CompositeExerciseImage from "@/src/components/CompositeExerciseImage";
 import DurationField from "@/src/components/DurationField";
 import CircuitCardListEditor, {
@@ -87,6 +88,15 @@ export default function PlanDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [pickingExerciseId, setPickingExerciseId] = useState<string | null>(null);
   const [linkingExerciseId, setLinkingExerciseId] = useState<string | null>(null);
+  /** Exercice dont le champ nom a le focus — pilote l'affichage des
+   * suggestions live (`ExerciseNameSuggestions`) même quand l'exercice est
+   * DÉJÀ lié (`exerciseRecordId` renseigné) : sans ça, remplacer le texte
+   * d'un exercice déjà relié (ex. les WOD pré-liés par le script de
+   * bibliothèque, comme "Double unders" dans Annie) ne déclenchait ni le
+   * hint ni les suggestions, puisque `needsLink` devient faux dès qu'un id
+   * est présent — l'utilisateur ne pouvait alors plus corriger le lien
+   * depuis ce champ. */
+  const [focusedNameExerciseId, setFocusedNameExerciseId] = useState<string | null>(null);
   const [records, setRecords] = useState<ExerciseRecord[]>([]);
   // Cartes du générateur de circuit (AMRAP/EMOM/For Time), tenues côté UI
   // uniquement — la source de vérité persistée reste `Exercise.name`/`notes`
@@ -152,14 +162,30 @@ export default function PlanDetailScreen() {
    * alias du record (`learnAlias`) pour que la résolution par nom déjà
    * utilisée partout (`ExerciseThumbnail`, la fiche, la séance active)
    * retrouve désormais une vraie image/description, plus seulement l'emoji
-   * de repli. */
+   * de repli. Le nom AFFICHÉ est aussi corrigé vers le nom canonique de la
+   * bibliothèque (`learned.nameFr`) — sans ça, seul `exerciseRecordId`
+   * changeait et le texte tapé par l'utilisateur restait affiché tel quel,
+   * donnant l'impression que "rien ne se corrige". Tout autre exercice du
+   * même plan portant exactement le même nom d'origine (ex. "Double
+   * unders" répété à chaque round d'Annie) est mis à jour en même temps —
+   * une seule liaison suffit pour toutes les occurrences de la séance. */
   const linkExerciseToRecord = async (exId: string, rawName: string, record: ExerciseRecord) => {
+    if (!plan) return;
     const learned = learnAlias(record, rawName);
     if (learned !== record) {
       await saveExerciseRecord(learned);
       setRecords((prev) => prev.map((r) => (r.id === learned.id ? learned : r)));
     }
-    updateExercise(exId, { exerciseRecordId: learned.id, matchConfidence: "manual" });
+    const key = rawName.trim().toLowerCase();
+    setPlan({
+      ...plan,
+      exercises: plan.exercises.map((e) => {
+        const sameEntry = e.id === exId;
+        const sameName = key.length > 0 && e.name.trim().toLowerCase() === key;
+        if (!sameEntry && !sameName) return e;
+        return { ...e, name: learned.nameFr, exerciseRecordId: learned.id, matchConfidence: "manual" };
+      }),
+    });
     setLinkingExerciseId(null);
   };
 
@@ -504,7 +530,14 @@ export default function PlanDetailScreen() {
 
           {plan.exercises.map((ex, idx) => {
             const composite = parseCompositeExerciseName(ex.name);
-            const needsLink = !composite && !matchExerciseRecord(ex.name, records);
+            const needsLink = !composite && !ex.exerciseRecordId && !matchExerciseRecord(ex.name, records);
+            const linkedRecord = ex.exerciseRecordId ? records.find((r) => r.id === ex.exerciseRecordId) : undefined;
+            const nameMatchesLinked = !!linkedRecord && linkedRecord.nameFr.trim().toLowerCase() === ex.name.trim().toLowerCase();
+            const showSuggestions =
+              !composite &&
+              ex.name.trim().length >= 2 &&
+              !nameMatchesLinked &&
+              (needsLink || focusedNameExerciseId === ex.id);
             return (
             <View key={ex.id} style={styles.exCard} testID={`ex-${ex.id}`}>
               <View style={styles.exCardHead}>
@@ -548,6 +581,7 @@ export default function PlanDetailScreen() {
                     }
                     updateExercise(ex.id, { name: t });
                   }}
+                  onFocus={() => setFocusedNameExerciseId(ex.id)}
                   placeholder="Nom de l'exercice"
                   placeholderTextColor={colors.onSurfaceTertiary}
                 />
@@ -565,6 +599,13 @@ export default function PlanDetailScreen() {
                   </Text>
                   <Ionicons name="chevron-forward" size={12} color={colors.warning} />
                 </Pressable>
+              )}
+              {showSuggestions && (
+                <ExerciseNameSuggestions
+                  query={ex.name}
+                  records={records}
+                  onPick={(record) => linkExerciseToRecord(ex.id, ex.name, record)}
+                />
               )}
 
               {composite && (

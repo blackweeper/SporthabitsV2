@@ -23,7 +23,13 @@ const WOD_PURGE_2026_08_KEY = '@ironflow/wodLibraryPurged_2026_08';
 // time, so replacing a Plan's `exercises` array never corrupts past
 // progress (same guarantee already relied on by
 // `applyComebackCircuitFixIfNeeded` in `program-bootstrap.ts`).
-const WOD_RELINK_FIX_KEY = '@ironflow/wodExerciseRelinkApplied_v1';
+// Bumped to `_v2`: `_v1` had already marked itself "done" on installs from
+// before `exerciseRecordId` was actually populated in `WOD_LIBRARY` (or
+// before `normalizeExercise` stopped silently dropping it on every read —
+// see `gym-storage.ts`), so those installs never got the real relink despite
+// the flag being set. Bumping forces one more pass; a `_v1`-only install
+// converges to the same correct state as a fresh install.
+const WOD_RELINK_FIX_KEY = '@ironflow/wodExerciseRelinkApplied_v2';
 
 /**
  * Amorce la bibliothèque de WODs curés (`WOD_LIBRARY`) dans le stockage

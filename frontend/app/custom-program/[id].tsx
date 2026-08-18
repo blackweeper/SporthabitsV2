@@ -23,6 +23,7 @@ import { ExerciseRecord, getExerciseRecords, saveExerciseRecord } from "@/src/ut
 import { matchExerciseRecord } from "@/src/utils/exercise-record-match";
 import { learnAlias } from "@/src/utils/exercise-matching";
 import ExerciseLinkModal from "@/src/components/ExerciseLinkModal";
+import ExerciseNameSuggestions from "@/src/components/ExerciseNameSuggestions";
 import DurationField from "@/src/components/DurationField";
 import { useConfirmDialog } from "@/src/hooks/use-confirm-dialog";
 import {
@@ -181,6 +182,12 @@ export default function CustomProgramEditor() {
   // — absent jusqu'ici dans cet écran, ajouté pour la parité de liaison
   // bibliothèque entre les deux éditeurs.
   const [linkingExercise, setLinkingExercise] = useState<{ sessionIdx: number; exIdx: number } | null>(null);
+  /** Même rôle que dans `plan/[id].tsx` : exercice dont le champ nom a le
+   * focus, pour afficher les suggestions live même quand l'exercice est
+   * DÉJÀ lié (sinon remplacer le texte d'un exercice pré-lié ne déclenche
+   * ni hint ni suggestions puisque `needsLink` devient faux dès qu'un id
+   * est présent). */
+  const [focusedNameExercise, setFocusedNameExercise] = useState<{ sessionIdx: number; exIdx: number } | null>(null);
   const { confirm, ConfirmModal } = useConfirmDialog();
 
   useEffect(() => {
@@ -259,8 +266,12 @@ export default function CustomProgramEditor() {
   }, []);
 
   /** Lie l'exercice `(sessionIdx, exIdx)` (texte libre) au `record` choisi —
-   * même mécanisme que `plan/[id].tsx` (`linkExerciseToRecord`), absent
-   * jusqu'ici de cet écran. */
+   * même mécanisme que `plan/[id].tsx` (`linkExerciseToRecord`). Corrige
+   * aussi le nom affiché vers `learned.nameFr` (sinon seul `exerciseRecordId`
+   * changeait et le texte tapé restait affiché tel quel) et propage la
+   * liaison à tout autre exercice de la MÊME séance portant exactement le
+   * même nom d'origine — un mouvement répété plusieurs fois dans une séance
+   * (ex. un round-robin) n'a besoin que d'une seule liaison. */
   const linkExerciseToRecord = async (
     sessionIdx: number,
     exIdx: number,
@@ -272,6 +283,7 @@ export default function CustomProgramEditor() {
       await saveExerciseRecord(learned);
       setRecords((prev) => prev.map((r) => (r.id === learned.id ? learned : r)));
     }
+    const key = rawName.trim().toLowerCase();
     updateDay(selectedDay, (d) => ({
       ...d,
       sessions: d.sessions.map((s, si) =>
@@ -279,9 +291,12 @@ export default function CustomProgramEditor() {
           ? s
           : {
               ...s,
-              exercises: s.exercises.map((ex, ei) =>
-                ei !== exIdx ? ex : { ...ex, exerciseRecordId: learned.id, matchConfidence: "manual" },
-              ),
+              exercises: s.exercises.map((ex, ei) => {
+                const sameEntry = ei === exIdx;
+                const sameName = key.length > 0 && ex.name.trim().toLowerCase() === key;
+                if (!sameEntry && !sameName) return ex;
+                return { ...ex, name: learned.nameFr, exerciseRecordId: learned.id, matchConfidence: "manual" };
+              }),
             },
       ),
     }));
@@ -797,6 +812,11 @@ export default function CustomProgramEditor() {
                         }
                         onOpenToursBuilder={() => setToursBuilderSessionIdx(si)}
                         onRequestLink={(exIdx) => setLinkingExercise({ sessionIdx: si, exIdx })}
+                        onPickSuggestion={(exIdx, record) =>
+                          linkExerciseToRecord(si, exIdx, s.exercises[exIdx]?.name ?? "", record)
+                        }
+                        onFocusName={(exIdx) => setFocusedNameExercise({ sessionIdx: si, exIdx })}
+                        focusedExIdx={focusedNameExercise?.sessionIdx === si ? focusedNameExercise.exIdx : null}
                         onGenerateEmom={(exIdx, cards, minutes) =>
                           applyEmomBlockToSession(si, exIdx, cards, minutes)
                         }
@@ -1185,6 +1205,9 @@ function SessionEditor({
   onOpenCardPicker,
   onOpenToursBuilder,
   onRequestLink,
+  onPickSuggestion,
+  onFocusName,
+  focusedExIdx,
   onGenerateEmom,
 }: {
   session: ProgramSession;
@@ -1199,6 +1222,9 @@ function SessionEditor({
   onOpenCardPicker: (exIdx: number, cardId: string) => void;
   onOpenToursBuilder: () => void;
   onRequestLink: (exIdx: number) => void;
+  onPickSuggestion: (exIdx: number, record: ExerciseRecord) => void;
+  onFocusName: (exIdx: number) => void;
+  focusedExIdx: number | null;
   onGenerateEmom: (exIdx: number, cards: CircuitCardDraft[], totalMinutes: number) => void;
 }) {
   return (
@@ -1279,6 +1305,9 @@ function SessionEditor({
           onCircuitCardsChange={(cards) => onCircuitCardsChange(ei, e, cards)}
           onOpenCardPicker={(cardId) => onOpenCardPicker(ei, cardId)}
           onRequestLink={() => onRequestLink(ei)}
+          onPickSuggestion={(record) => onPickSuggestion(ei, record)}
+          onFocusName={() => onFocusName(ei)}
+          isFocused={focusedExIdx === ei}
           onGenerateEmom={(cards, minutes) => onGenerateEmom(ei, cards, minutes)}
         />
       ))}
@@ -1341,6 +1370,9 @@ function ExerciseEditor({
   onCircuitCardsChange,
   onOpenCardPicker,
   onRequestLink,
+  onPickSuggestion,
+  onFocusName,
+  isFocused,
   onGenerateEmom,
 }: {
   exercise: ExerciseTemplate;
@@ -1355,10 +1387,17 @@ function ExerciseEditor({
   onCircuitCardsChange: (cards: CircuitCardDraft[]) => void;
   onOpenCardPicker: (cardId: string) => void;
   onRequestLink: () => void;
+  onPickSuggestion: (record: ExerciseRecord) => void;
+  onFocusName: () => void;
+  isFocused: boolean;
   onGenerateEmom: (cards: CircuitCardDraft[], totalMinutes: number) => void;
 }) {
   const composite = parseCompositeExerciseName(exercise.name);
   const needsLink = !composite && !exercise.exerciseRecordId && !matchExerciseRecord(exercise.name, records);
+  const linkedRecord = exercise.exerciseRecordId ? records.find((r) => r.id === exercise.exerciseRecordId) : undefined;
+  const nameMatchesLinked = !!linkedRecord && linkedRecord.nameFr.trim().toLowerCase() === exercise.name.trim().toLowerCase();
+  const showSuggestions =
+    !composite && exercise.name.trim().length >= 2 && !nameMatchesLinked && (needsLink || isFocused);
   const setMode = (m: ExerciseMode) => {
     const patch: Partial<ExerciseTemplate> = { mode: m };
     if (m === "reps") {
@@ -1413,6 +1452,7 @@ function ExerciseEditor({
             }
             onChange({ name: t });
           }}
+          onFocus={onFocusName}
           placeholder="Nom de l'exercice"
           placeholderTextColor={colors.onSurfaceTertiary}
         />
@@ -1465,6 +1505,9 @@ function ExerciseEditor({
           </Text>
           <Ionicons name="chevron-forward" size={12} color={colors.warning} />
         </Pressable>
+      )}
+      {showSuggestions && (
+        <ExerciseNameSuggestions query={exercise.name} records={records} onPick={onPickSuggestion} />
       )}
 
       <View style={styles.modeRow}>

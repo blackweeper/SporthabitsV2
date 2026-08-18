@@ -736,6 +736,8 @@ function normalizeExercise(ex: any): Exercise {
     notes: ex.notes ?? null,
     photoBase64: ex.photoBase64 ?? null,
     iconKey: ex.iconKey ?? null,
+    exerciseRecordId: ex.exerciseRecordId ?? null,
+    matchConfidence: ex.matchConfidence ?? null,
     emomBlock: ex.emomBlock ?? null,
     roundBlock: ex.roundBlock ?? null,
     targetRounds:

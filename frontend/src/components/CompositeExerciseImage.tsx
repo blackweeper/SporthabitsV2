@@ -2,7 +2,7 @@ import { useState } from "react";
 import { View, Text, StyleSheet, Image, LayoutChangeEvent } from "react-native";
 import { colors, radius, spacing } from "@/src/theme";
 import { ExerciseRecord } from "@/src/utils/exercise-records";
-import { matchExerciseRecord } from "@/src/utils/exercise-record-match";
+import { matchExerciseRecordLoose } from "@/src/utils/exercise-record-match";
 import { cleanCompositeItemLabel } from "@/src/utils/composite-exercise";
 import { CORE_LIBRARY_ASSETS } from "@/src/data/core-library-assets.generated";
 import { useExerciseMedia } from "@/src/hooks/useExerciseMedia";
@@ -29,7 +29,7 @@ function CompositePanel({
   // Rameur" -> "Rameur") : la quantité en tête ne matche jamais un nom de
   // bibliothèque, elle rendait toute résolution impossible.
   const cleanedName = cleanCompositeItemLabel(name);
-  const record = matchExerciseRecord(cleanedName, records);
+  const record = matchExerciseRecordLoose(cleanedName, records);
   const bundled = record?.id ? CORE_LIBRARY_ASSETS[record.id] : undefined;
   const { uri: networkUri } = useExerciseMedia(!bundled ? (record?.id ?? null) : null);
   const source = bundled ?? (networkUri ? { uri: networkUri } : null);

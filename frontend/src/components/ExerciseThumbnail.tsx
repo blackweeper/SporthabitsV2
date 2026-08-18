@@ -2,7 +2,7 @@ import { View, Text, StyleSheet, Image } from "react-native";
 import { colors, radius } from "@/src/theme";
 import { iconEmojiForExercise } from "@/src/data/exercise-icons";
 import { ExerciseRecord } from "@/src/utils/exercise-records";
-import { matchExerciseRecord } from "@/src/utils/exercise-record-match";
+import { matchExerciseRecordLoose } from "@/src/utils/exercise-record-match";
 import { CORE_LIBRARY_ASSETS } from "@/src/data/core-library-assets.generated";
 import { useExerciseMedia } from "@/src/hooks/useExerciseMedia";
 
@@ -37,7 +37,7 @@ export default function ExerciseThumbnail({
   square?: boolean;
 }) {
   const byId = exerciseRecordId ? records.find((r) => r.id === exerciseRecordId) : undefined;
-  const record = byId ?? matchExerciseRecord(name, records);
+  const record = byId ?? matchExerciseRecordLoose(name, records);
   const bundled = record?.id ? CORE_LIBRARY_ASSETS[record.id] : undefined;
   const { uri: networkUri } = useExerciseMedia(!photoBase64 && !bundled ? record?.id ?? null : null);
 
