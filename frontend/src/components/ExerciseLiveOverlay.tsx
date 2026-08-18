@@ -3,49 +3,64 @@ import type { ImageSourcePropType } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing, withAlpha } from "@/src/theme";
 import TimerCircle from "@/src/components/TimerCircle";
+import CompositeExerciseImage from "@/src/components/CompositeExerciseImage";
+import { ExerciseRecord } from "@/src/utils/exercise-records";
 
 /**
- * Contenu de l'overlay EMOM "nouvelle génération" — affichage en direct de
- * l'exercice/reps/consignes de la minute en cours + transition automatique
- * (gérée par l'appelant, `app/workout/[id].tsx`, qui reste seul propriétaire
- * de la state machine du timer). Rendu à l'intérieur du même `Modal`/sheet
- * que le timer historique — seul le CONTENU diffère, jamais activé pour une
- * séance déjà générée (voir `Exercise.emomBlock`, additif).
+ * Contenu de l'overlay "en direct" — affichage riche de l'exercice/reps/
+ * consignes en cours + transition automatique (gérée par l'appelant,
+ * `app/workout/[id].tsx`, qui reste seul propriétaire de la state machine du
+ * timer). Rendu à l'intérieur du même `Modal`/sheet que le timer historique.
+ * Généralisé depuis l'ancien `EmomLiveOverlay` (EMOM uniquement) pour couvrir
+ * aussi AMRAP et For Time — même présentation, seul l'`eyebrow` (libellé
+ * d'en-tête) et le `stepper` (compteur de tours) changent par variante.
  */
-export default function EmomLiveOverlay({
+export default function ExerciseLiveOverlay({
+  variant,
+  eyebrow,
   exerciseName,
   targetReps,
   notes,
-  roundIndex,
-  totalRounds,
-  blockTitle,
   remaining,
   total,
   thumbnailSource,
+  compositeItems,
+  records,
+  stepper,
   onAddTime,
   onSkip,
 }: {
+  variant: "emom" | "amrap" | "for_time";
+  eyebrow: string;
   exerciseName: string;
-  targetReps: string;
+  targetReps?: string | null;
   notes?: string | null;
-  roundIndex: number;
-  totalRounds: number;
-  blockTitle?: string | null;
   remaining: number;
   total: number;
   thumbnailSource?: ImageSourcePropType | null;
+  /** Segments d'un exercice composite (AMRAP/For Time à plusieurs
+   * mouvements) — quand présent (≥2 segments), remplace `thumbnailSource`
+   * par le montage multi-panneaux (mêmes mini-photos que l'écran principal)
+   * au lieu d'une vignette unique qui ne peut résoudre aucune image pour un
+   * nom composite complet. */
+  compositeItems?: string[] | null;
+  records?: ExerciseRecord[];
+  stepper?: React.ReactNode;
   onAddTime: (sec: number) => void;
   onSkip: () => void;
 }) {
   return (
-    <View style={styles.wrap} testID="emom-live-overlay">
-      <Text style={styles.eyebrow}>
-        {blockTitle ? `${blockTitle} · ` : ""}
-        ROUND {roundIndex + 1}/{totalRounds}
-      </Text>
+    <View style={styles.wrap} testID="exercise-live-overlay">
+      <Text style={styles.eyebrow}>{eyebrow}</Text>
 
-      {thumbnailSource && (
-        <Image source={thumbnailSource} style={styles.thumb} resizeMode="cover" />
+      {compositeItems && compositeItems.length >= 2 ? (
+        <View style={styles.compositeThumbWrap}>
+          <CompositeExerciseImage items={compositeItems} records={records ?? []} height={64} showLabel={false} />
+        </View>
+      ) : (
+        thumbnailSource && (
+          <Image source={thumbnailSource} style={styles.thumb} resizeMode="contain" />
+        )
       )}
 
       <Text style={styles.exerciseName} numberOfLines={2}>
@@ -64,15 +79,17 @@ export default function EmomLiveOverlay({
         </View>
       )}
 
+      {stepper}
+
       <View style={styles.ctlRow}>
-        <Pressable testID="emom-timer-minus" style={styles.ctl} onPress={() => onAddTime(-15)}>
+        <Pressable testID="live-overlay-minus" style={styles.ctl} onPress={() => onAddTime(-15)}>
           <Text style={styles.ctlText}>-15s</Text>
         </Pressable>
-        <Pressable testID="emom-timer-plus" style={styles.ctl} onPress={() => onAddTime(15)}>
+        <Pressable testID="live-overlay-plus" style={styles.ctl} onPress={() => onAddTime(15)}>
           <Text style={styles.ctlText}>+15s</Text>
         </Pressable>
       </View>
-      <Pressable testID="emom-timer-skip" style={styles.skipBtn} onPress={onSkip}>
+      <Pressable testID="live-overlay-skip" style={styles.skipBtn} onPress={onSkip}>
         <Ionicons name="checkmark-done" size={18} color="#fff" />
         <Text style={styles.skipText}>TERMINER</Text>
       </Pressable>
@@ -82,6 +99,7 @@ export default function EmomLiveOverlay({
 
 const styles = StyleSheet.create({
   wrap: { alignItems: "center", gap: spacing.md },
+  compositeThumbWrap: { width: "100%", paddingHorizontal: spacing.lg },
   eyebrow: {
     color: colors.warning,
     fontWeight: "800",

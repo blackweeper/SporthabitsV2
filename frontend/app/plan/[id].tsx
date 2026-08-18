@@ -25,21 +25,59 @@ import {
 import { ExerciseRecord, getExerciseRecords, saveExerciseRecord } from "@/src/utils/exercise-records";
 import { matchExerciseRecord } from "@/src/utils/exercise-record-match";
 import { learnAlias } from "@/src/utils/exercise-matching";
-import { parseCompositeExerciseName } from "@/src/utils/composite-exercise";
+import { parseCompositeExerciseName, splitCompositeItemQuantity } from "@/src/utils/composite-exercise";
 import ExerciseThumbnail from "@/src/components/ExerciseThumbnail";
 import ExercisePicturePicker from "@/src/components/ExercisePicturePicker";
 import ExerciseLibraryPicker from "@/src/components/ExerciseLibraryPicker";
 import ExerciseLinkModal from "@/src/components/ExerciseLinkModal";
 import CompositeExerciseImage from "@/src/components/CompositeExerciseImage";
 import DurationField from "@/src/components/DurationField";
+import CircuitCardListEditor, {
+  CircuitCardDraft,
+  newCircuitCard,
+} from "@/src/components/CircuitCardListEditor";
 
 const TYPES: Plan["type"][] = ["musculation", "hiit", "cardio", "mixte"];
+// "Tours" n'est pas un ExerciseMode réel (voir RoundBlock) — c'est un
+// générateur séparé (bouton dédié, pas une chip de mode par exercice)
+// puisqu'il produit PLUSIEURS Exercise à partir d'une seule séquence, pas
+// une propriété d'un exercice existant.
 const MODES: { key: ExerciseMode; label: string; hint: string }[] = [
   { key: "reps", label: "REPS", hint: "Séries × répétitions" },
   { key: "time", label: "TIME", hint: "X minutes / série (WOD)" },
   { key: "amrap", label: "AMRAP", hint: "Tours max sur une durée" },
   { key: "emom", label: "EMOM", hint: "X reps chaque minute pendant N minutes" },
+  { key: "for_time", label: "FOR TIME", hint: "Cap chrono + tours cible, décompte" },
 ];
+
+/** Compose le nom composite d'un circuit AMRAP/EMOM/For Time à partir des
+ * cartes du générateur — même convention que l'entrée "Cindy"
+ * (`src/data/wod-library.ts`) : `"{prefix} : {reps} {nom} → {reps} {nom} → ..."`.
+ * Une seule carte remplie : nom pur (pas de préfixe/flèche, cohérent avec
+ * `parseCompositeExerciseName` qui exige ≥2 segments pour traiter une entrée
+ * comme composite) — la carte unique va dans `notes` à la place. */
+function composeCircuitFromCards(
+  cards: CircuitCardDraft[],
+  prefix: string,
+): { name: string; notes: string | null; exerciseRecordId: string | null } {
+  const filled = cards.filter((c) => c.name.trim());
+  if (filled.length <= 1) {
+    const only = filled[0];
+    return {
+      name: only ? only.name.trim() : "Nouvel exercice",
+      notes: only?.reps.trim() ? only.reps.trim() : null,
+      exerciseRecordId: only?.exerciseRecordId ?? null,
+    };
+  }
+  const parts = filled.map((c) =>
+    c.reps.trim() ? `${c.reps.trim()} ${c.name.trim()}` : c.name.trim(),
+  );
+  return {
+    name: `${prefix} : ${parts.join(" → ")}`,
+    notes: null,
+    exerciseRecordId: filled[0].exerciseRecordId ?? null,
+  };
+}
 
 export default function PlanDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -48,9 +86,28 @@ export default function PlanDetailScreen() {
   const [plan, setPlan] = useState<Plan | null>(null);
   const [loading, setLoading] = useState(true);
   const [pickingExerciseId, setPickingExerciseId] = useState<string | null>(null);
-  const [libraryOpen, setLibraryOpen] = useState(false);
   const [linkingExerciseId, setLinkingExerciseId] = useState<string | null>(null);
   const [records, setRecords] = useState<ExerciseRecord[]>([]);
+  // Cartes du générateur de circuit (AMRAP/EMOM/For Time), tenues côté UI
+  // uniquement — la source de vérité persistée reste `Exercise.name`/`notes`
+  // (voir `composeCircuitFromCards`), reconstruites depuis eux à l'ouverture.
+  const [circuitCards, setCircuitCards] = useState<Record<string, CircuitCardDraft[]>>({});
+  // Un seul `ExerciseLibraryPicker` partagé, routé selon le contexte qui l'a
+  // ouvert : ajout classique d'un exercice au plan, ou sélection pour une
+  // carte de circuit (du plan ou du brouillon Tours).
+  const [libraryTarget, setLibraryTarget] = useState<
+    | { kind: "add" }
+    | { kind: "card"; exId: string; cardId: string }
+    | { kind: "tours-card"; cardId: string }
+    | null
+  >(null);
+  // Brouillon du bloc Tours (séquence + tours + repos entre tours) — n'existe
+  // que le temps de la construction, jamais persisté tel quel : à la
+  // génération, aplati en plusieurs `Exercise` taggées `roundBlock`.
+  const [toursBuilderOpen, setToursBuilderOpen] = useState(false);
+  const [toursCards, setToursCards] = useState<CircuitCardDraft[]>([newCircuitCard()]);
+  const [toursRounds, setToursRounds] = useState(3);
+  const [toursRestSeconds, setToursRestSeconds] = useState(0);
 
   useEffect(() => {
     getExerciseRecords().then(setRecords);
@@ -106,7 +163,7 @@ export default function PlanDetailScreen() {
     setLinkingExerciseId(null);
   };
 
-  const addExercise = (name = "Nouvel exercice") => {
+  const addExercise = (name = "", exerciseRecordId: string | null = null) => {
     if (!plan) return;
     setPlan({
       ...plan,
@@ -122,6 +179,8 @@ export default function PlanDetailScreen() {
           rest_seconds: 60,
           duration_seconds: null,
           notes: null,
+          exerciseRecordId,
+          matchConfidence: exerciseRecordId ? "manual" : null,
         },
       ],
     });
@@ -133,6 +192,148 @@ export default function PlanDetailScreen() {
       ...plan,
       exercises: plan.exercises.filter((e) => e.id !== exId),
     });
+    setCircuitCards((prev) => {
+      if (!(exId in prev)) return prev;
+      const { [exId]: _, ...rest } = prev;
+      return rest;
+    });
+  };
+
+  /** Cartes du circuit pour `ex` — dérivées de son nom composite existant si
+   * déjà construit ainsi (une carte par segment, texte complet non splitté
+   * pour ne rien perdre), sinon d'une seule carte reprenant le nom/notes
+   * actuels. Mémorisées dans `circuitCards` dès la première lecture pour ne
+   * pas régénérer des ids à chaque frappe. */
+  const getCircuitCards = (ex: Exercise): CircuitCardDraft[] => {
+    const existing = circuitCards[ex.id];
+    if (existing) return existing;
+    const parsed = parseCompositeExerciseName(ex.name);
+    const seeded: CircuitCardDraft[] =
+      parsed && parsed.length > 0
+        ? parsed.map((item) => {
+            const { reps, name } = splitCompositeItemQuantity(item);
+            return {
+              id: uid(),
+              name,
+              exerciseRecordId: matchExerciseRecord(name, records)?.id ?? null,
+              reps,
+            };
+          })
+        : [
+            {
+              id: uid(),
+              name: ex.name,
+              exerciseRecordId: ex.exerciseRecordId ?? null,
+              reps: ex.notes || "",
+            },
+          ];
+    setCircuitCards((prev) => (prev[ex.id] ? prev : { ...prev, [ex.id]: seeded }));
+    return seeded;
+  };
+
+  const titlePrefixFor = (ex: Exercise): string => {
+    if (ex.mode === "for_time") {
+      const mm = Math.round((ex.duration_seconds ?? 900) / 60);
+      return `FOR TIME (cap ${mm} min · ${ex.targetRounds ?? 0} tours)`;
+    }
+    const mm = Math.round((ex.duration_seconds ?? 720) / 60);
+    return `AMRAP ${mm} min`;
+  };
+
+  const applyCircuitCards = (ex: Exercise, cards: CircuitCardDraft[]) => {
+    setCircuitCards((prev) => ({ ...prev, [ex.id]: cards }));
+    const composed = composeCircuitFromCards(cards, titlePrefixFor(ex));
+    updateExercise(ex.id, {
+      name: composed.name,
+      notes: composed.notes,
+      exerciseRecordId: composed.exerciseRecordId,
+      matchConfidence: composed.exerciseRecordId ? "manual" : null,
+    });
+  };
+
+  /** Génère un bloc EMOM round-robin : `totalMinutes` `Exercise` distinctes
+   * (une par minute, `mode:'emom'`, `sets:1`), les cartes tournant en boucle
+   * (`filled[i % filled.length]`) — même principe d'aplatissement que
+   * `addToursBlock`, mais basé sur le temps (1 round = 1 minute) plutôt que
+   * sur la complétion. Remplace le SEUL exercice stub édité (`ex`) par les N
+   * rounds générés, contrairement à `applyCircuitCards` qui patche un objet
+   * unique en place — l'EMOM produit toujours plusieurs `Exercise`. */
+  const applyEmomBlock = (ex: Exercise, cards: CircuitCardDraft[], totalMinutes: number) => {
+    if (!plan) return;
+    const filled = cards.filter((c) => c.name.trim());
+    if (filled.length === 0 || totalMinutes < 1) return;
+    const blockId = uid();
+    const title = `EMOM ${totalMinutes} min`;
+    const generated: Exercise[] = Array.from({ length: totalMinutes }, (_, roundIndex) => {
+      const card = filled[roundIndex % filled.length];
+      return {
+        id: uid(),
+        name: card.name.trim(),
+        mode: "emom",
+        sets: 1,
+        reps: card.reps.trim() || "",
+        weight: null,
+        rest_seconds: 0,
+        duration_seconds: 60,
+        notes: card.reps.trim() || null,
+        exerciseRecordId: card.exerciseRecordId ?? null,
+        matchConfidence: card.exerciseRecordId ? "manual" : null,
+        emomBlock: { blockId, roundIndex, totalRounds: totalMinutes, title },
+      };
+    });
+    setPlan({
+      ...plan,
+      exercises: plan.exercises.flatMap((e) => (e.id === ex.id ? generated : [e])),
+    });
+    setCircuitCards((prev) => {
+      const { [ex.id]: _, ...rest } = prev;
+      return rest;
+    });
+  };
+
+  /** Génère un bloc Tours : aplati `sequence × rounds` en `Exercise` `reps`
+   * distinctes (jamais `sets:N`, même convention round-robin que
+   * `scripts/import-wod-json.js`), taguées d'un `roundBlock` commun. Repos
+   * uniquement sur le dernier exercice de chaque round sauf le dernier
+   * (voir `toggleSet`/`chainRestAndAdvance` côté séance active). */
+  const addToursBlock = (sequence: CircuitCardDraft[], rounds: number, restSeconds: number) => {
+    if (!plan) return;
+    const filled = sequence.filter((c) => c.name.trim());
+    if (filled.length === 0 || rounds < 1) return;
+    const blockId = uid();
+    const generated: Exercise[] = [];
+    for (let roundIndex = 0; roundIndex < rounds; roundIndex++) {
+      filled.forEach((card, sequenceIndex) => {
+        const isLastOfRound = sequenceIndex === filled.length - 1;
+        const isLastRound = roundIndex === rounds - 1;
+        generated.push({
+          id: uid(),
+          name: card.name.trim(),
+          mode: "reps",
+          sets: 1,
+          reps: card.reps.trim() || "10",
+          weight: null,
+          rest_seconds: isLastOfRound && !isLastRound ? restSeconds : 0,
+          duration_seconds: null,
+          notes: null,
+          exerciseRecordId: card.exerciseRecordId ?? null,
+          matchConfidence: card.exerciseRecordId ? "manual" : null,
+          roundBlock: {
+            blockId,
+            roundIndex,
+            totalRounds: rounds,
+            sequenceIndex,
+            sequenceLength: filled.length,
+            title: null,
+          },
+        });
+      });
+    }
+    setPlan({ ...plan, exercises: [...plan.exercises, ...generated] });
+    setToursBuilderOpen(false);
+    setToursCards([newCircuitCard()]);
+    setToursRounds(3);
+    setToursRestSeconds(0);
   };
 
   const save = async () => {
@@ -227,9 +428,17 @@ export default function PlanDetailScreen() {
             <Text style={styles.label}>Exercices ({plan.exercises.length})</Text>
             <View style={styles.addBtnRow}>
               <Pressable
+                testID="add-tours-block-btn"
+                style={styles.addBtnGhost}
+                onPress={() => setToursBuilderOpen((v) => !v)}
+              >
+                <Ionicons name="repeat" size={14} color={colors.brand} />
+                <Text style={styles.addBtnGhostText}>TOURS</Text>
+              </Pressable>
+              <Pressable
                 testID="add-from-library-btn"
                 style={styles.addBtnGhost}
-                onPress={() => setLibraryOpen(true)}
+                onPress={() => setLibraryTarget({ kind: "add" })}
               >
                 <Ionicons name="library" size={14} color={colors.brand} />
                 <Text style={styles.addBtnGhostText}>BIBLIOTHÈQUE</Text>
@@ -244,6 +453,48 @@ export default function PlanDetailScreen() {
               </Pressable>
             </View>
           </View>
+
+          {toursBuilderOpen && (
+            <View style={styles.exCard} testID="tours-builder">
+              <Text style={styles.toursBuilderTitle}>Bloc Tours</Text>
+              <Text style={styles.modeHint}>
+                Construis la séquence d'exercices, puis choisis combien de fois elle se répète.
+              </Text>
+              <CircuitCardListEditor
+                cards={toursCards}
+                onChange={setToursCards}
+                records={records}
+                onOpenPicker={(cardId) => setLibraryTarget({ kind: "tours-card", cardId })}
+              />
+              <Pressable
+                testID="tours-add-card-btn"
+                style={styles.addCardBtn}
+                onPress={() => setToursCards((prev) => [...prev, newCircuitCard()])}
+              >
+                <Ionicons name="add" size={14} color={colors.brand} />
+                <Text style={styles.addCardBtnText}>Ajouter un exercice</Text>
+              </Pressable>
+              <View style={styles.fieldRow}>
+                <FieldNum label="Nombre de tours" value={toursRounds} onChange={setToursRounds} />
+                <DurationField
+                  testID="tours-rest"
+                  label="Repos entre tours"
+                  valueSeconds={toursRestSeconds}
+                  onChange={setToursRestSeconds}
+                />
+              </View>
+              <Pressable
+                testID="tours-generate-btn"
+                style={styles.addBtn}
+                onPress={() => addToursBlock(toursCards, toursRounds, toursRestSeconds)}
+              >
+                <Ionicons name="checkmark" size={16} color="#fff" />
+                <Text style={styles.addBtnText}>
+                  GÉNÉRER {toursRounds * toursCards.filter((c) => c.name.trim()).length || ""} EXERCICES
+                </Text>
+              </Pressable>
+            </View>
+          )}
 
           {plan.exercises.length === 0 && (
             <Text style={styles.emptyEx}>
@@ -281,6 +532,7 @@ export default function PlanDetailScreen() {
                     iconKey={ex.iconKey}
                     name={ex.name}
                     records={records}
+                    exerciseRecordId={ex.exerciseRecordId}
                     size={48}
                   />
                   <View style={styles.exPicEdit}>
@@ -290,7 +542,12 @@ export default function PlanDetailScreen() {
                 <TextInput
                   style={[styles.input, styles.inputCompact, { flex: 1 }]}
                   value={ex.name}
-                  onChangeText={(t) => updateExercise(ex.id, { name: t })}
+                  onChangeText={(t) => {
+                    if (!ex.name.trim() && t.trim() && !ex.exerciseRecordId) {
+                      setLinkingExerciseId(ex.id);
+                    }
+                    updateExercise(ex.id, { name: t });
+                  }}
                   placeholder="Nom de l'exercice"
                   placeholderTextColor={colors.onSurfaceTertiary}
                 />
@@ -330,7 +587,7 @@ export default function PlanDetailScreen() {
                         updateExercise(ex.id, {
                           mode: m.key,
                           sets:
-                            m.key === "amrap"
+                            m.key === "amrap" || m.key === "for_time"
                               ? 1
                               : m.key === "emom"
                                 ? ex.sets || 10
@@ -340,9 +597,12 @@ export default function PlanDetailScreen() {
                               ? null
                               : m.key === "emom"
                                 ? 60
-                                : ex.duration_seconds || 300,
+                                : m.key === "for_time"
+                                  ? ex.duration_seconds || 900
+                                  : ex.duration_seconds || 300,
+                          targetRounds: m.key === "for_time" ? ex.targetRounds || 3 : null,
                           rest_seconds:
-                            m.key === "amrap" || m.key === "emom"
+                            m.key === "amrap" || m.key === "emom" || m.key === "for_time"
                               ? 0
                               : ex.rest_seconds || 60,
                         })
@@ -435,61 +695,104 @@ export default function PlanDetailScreen() {
               )}
 
               {ex.mode === "amrap" && (
-                <View style={styles.fieldRow}>
-                  <DurationField
-                    testID={`ex-duration-${ex.id}`}
-                    label="Durée totale"
-                    valueSeconds={ex.duration_seconds ?? 720}
-                    presetsSeconds={[300, 480, 600, 720, 900, 1200]}
-                    onChange={(v) =>
-                      updateExercise(ex.id, { duration_seconds: v })
-                    }
+                <>
+                  <View style={styles.fieldRow}>
+                    <DurationField
+                      testID={`ex-duration-${ex.id}`}
+                      label="Durée totale"
+                      valueSeconds={ex.duration_seconds ?? 720}
+                      presetsSeconds={[300, 480, 600, 720, 900, 1200]}
+                      onChange={(v) =>
+                        updateExercise(ex.id, { duration_seconds: v })
+                      }
+                    />
+                  </View>
+                  <CircuitCardListEditor
+                    cards={getCircuitCards(ex)}
+                    onChange={(cards) => applyCircuitCards(ex, cards)}
+                    records={records}
+                    onOpenPicker={(cardId) => setLibraryTarget({ kind: "card", exId: ex.id, cardId })}
                   />
-                  <FieldText
-                    label="Consigne"
-                    value={ex.notes || ""}
-                    onChange={(v) =>
-                      updateExercise(ex.id, { notes: v.trim() ? v : null })
-                    }
-                    placeholder="10 squats + 5 pompes…"
-                  />
-                </View>
+                  <Pressable
+                    testID={`ex-add-card-${ex.id}`}
+                    style={styles.addCardBtn}
+                    onPress={() => applyCircuitCards(ex, [...getCircuitCards(ex), newCircuitCard()])}
+                  >
+                    <Ionicons name="add" size={14} color={colors.brand} />
+                    <Text style={styles.addCardBtnText}>Ajouter un exercice</Text>
+                  </Pressable>
+                </>
               )}
 
               {ex.mode === "emom" && (
                 <>
                   <View style={styles.fieldRow}>
                     <FieldNum
-                      label="Rounds (minutes)"
+                      label="Durée totale (minutes)"
                       value={ex.sets}
                       onChange={(v) => updateExercise(ex.id, { sets: v })}
                     />
-                    <FieldText
-                      label="Reps / round"
-                      value={ex.reps}
-                      onChange={(v) => updateExercise(ex.id, { reps: v })}
-                      placeholder="10"
-                    />
                   </View>
+                  <Text style={styles.modeHint}>
+                    Construis les mouvements qui tournent minute par minute, puis génère les rounds.
+                  </Text>
+                  <CircuitCardListEditor
+                    cards={getCircuitCards(ex)}
+                    onChange={(cards) => setCircuitCards((prev) => ({ ...prev, [ex.id]: cards }))}
+                    records={records}
+                    onOpenPicker={(cardId) => setLibraryTarget({ kind: "card", exId: ex.id, cardId })}
+                  />
+                  <Pressable
+                    testID={`ex-add-card-${ex.id}`}
+                    style={styles.addCardBtn}
+                    onPress={() =>
+                      setCircuitCards((prev) => ({ ...prev, [ex.id]: [...getCircuitCards(ex), newCircuitCard()] }))
+                    }
+                  >
+                    <Ionicons name="add" size={14} color={colors.brand} />
+                    <Text style={styles.addCardBtnText}>Ajouter un exercice</Text>
+                  </Pressable>
+                  <Pressable
+                    testID={`ex-generate-emom-${ex.id}`}
+                    style={styles.addBtn}
+                    onPress={() => applyEmomBlock(ex, getCircuitCards(ex), ex.sets)}
+                  >
+                    <Ionicons name="checkmark" size={16} color="#fff" />
+                    <Text style={styles.addBtnText}>GÉNÉRER {ex.sets} EXERCICES</Text>
+                  </Pressable>
+                </>
+              )}
+
+              {ex.mode === "for_time" && (
+                <>
                   <View style={styles.fieldRow}>
                     <DurationField
                       testID={`ex-duration-${ex.id}`}
-                      label="Durée round"
-                      valueSeconds={ex.duration_seconds ?? 60}
-                      presetsSeconds={[30, 45, 60, 90, 120]}
-                      onChange={(v) =>
-                        updateExercise(ex.id, { duration_seconds: v })
-                      }
+                      label="Cap chrono"
+                      valueSeconds={ex.duration_seconds ?? 900}
+                      presetsSeconds={[300, 600, 720, 900, 1200, 1500]}
+                      onChange={(v) => updateExercise(ex.id, { duration_seconds: v })}
                     />
-                    <FieldText
-                      label="Notes"
-                      value={ex.notes || ""}
-                      onChange={(v) =>
-                        updateExercise(ex.id, { notes: v.trim() ? v : null })
-                      }
-                      placeholder="Ex: Pompes"
+                    <FieldNum
+                      label="Tours cible"
+                      value={ex.targetRounds ?? 1}
+                      onChange={(v) => updateExercise(ex.id, { targetRounds: v })}
                     />
                   </View>
+                  <CircuitCardListEditor
+                    cards={getCircuitCards(ex)}
+                    onChange={(cards) => applyCircuitCards(ex, cards)}
+                    records={records}
+                    onOpenPicker={(cardId) => setLibraryTarget({ kind: "card", exId: ex.id, cardId })}
+                  />
+                  <Pressable
+                    testID={`ex-add-card-${ex.id}`}
+                    style={styles.addCardBtn}
+                    onPress={() => applyCircuitCards(ex, [...getCircuitCards(ex), newCircuitCard()])}
+                  >
+                    <Ionicons name="add" size={14} color={colors.brand} />
+                    <Text style={styles.addCardBtnText}>Ajouter un exercice</Text>
+                  </Pressable>
                 </>
               )}
             </View>
@@ -518,11 +821,31 @@ export default function PlanDetailScreen() {
       />
 
       <ExerciseLibraryPicker
-        visible={libraryOpen}
-        onClose={() => setLibraryOpen(false)}
-        onPick={(name) => {
-          addExercise(name);
-          setLibraryOpen(false);
+        visible={libraryTarget !== null}
+        onClose={() => setLibraryTarget(null)}
+        onPick={(name, exerciseRecordId) => {
+          if (libraryTarget?.kind === "card") {
+            const ex = plan.exercises.find((e) => e.id === libraryTarget.exId);
+            if (ex) {
+              const cards = getCircuitCards(ex).map((c) =>
+                c.id === libraryTarget.cardId ? { ...c, name, exerciseRecordId: exerciseRecordId ?? null } : c,
+              );
+              if (ex.mode === "emom") {
+                setCircuitCards((prev) => ({ ...prev, [ex.id]: cards }));
+              } else {
+                applyCircuitCards(ex, cards);
+              }
+            }
+          } else if (libraryTarget?.kind === "tours-card") {
+            setToursCards((prev) =>
+              prev.map((c) =>
+                c.id === libraryTarget.cardId ? { ...c, name, exerciseRecordId: exerciseRecordId ?? null } : c,
+              ),
+            );
+          } else {
+            addExercise(name, exerciseRecordId ?? null);
+          }
+          setLibraryTarget(null);
         }}
       />
 
@@ -726,6 +1049,24 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     fontSize: 10,
     letterSpacing: 0.5,
+  },
+  toursBuilderTitle: {
+    color: colors.onSurface,
+    fontWeight: "800",
+    fontSize: 15,
+    marginBottom: 4,
+  },
+  addCardBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    alignSelf: "flex-start",
+    paddingVertical: 6,
+  },
+  addCardBtnText: {
+    color: colors.brand,
+    fontWeight: "700",
+    fontSize: 12,
   },
   emptyEx: {
     color: colors.onSurfaceTertiary,

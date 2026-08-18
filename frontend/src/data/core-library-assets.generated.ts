@@ -114,4 +114,6 @@ export const CORE_LIBRARY_ASSETS: Record<string, ImageSourcePropType> = {
   "wx_2368": require("../../assets/exercise-media/wx_2368.webp"),
   "wx_3655": require("../../assets/exercise-media/wx_3655.webp"),
   "wx_3888": require("../../assets/exercise-media/wx_3888.webp"),
+  "if_0001": require("../../assets/exercise-media/if_0001.webp"),
+  "if_0078": require("../../assets/exercise-media/if_0078.webp"),
 };

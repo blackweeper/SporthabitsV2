@@ -21,6 +21,7 @@ export default function ExerciseThumbnail({
   records,
   photoBase64,
   iconKey,
+  exerciseRecordId,
   size = 48,
   square = false,
 }: {
@@ -28,23 +29,34 @@ export default function ExerciseThumbnail({
   records: ExerciseRecord[];
   photoBase64?: string | null;
   iconKey?: string | null;
+  /** Id déjà connu du record lié (évite de re-matcher par nom, qui échoue
+   * silencieusement si le nom affiché diverge légèrement du `nameFr`/alias
+   * enregistré) — additif, retombe sur la résolution par nom si absent. */
+  exerciseRecordId?: string | null;
   size?: number;
   square?: boolean;
 }) {
-  const record = matchExerciseRecord(name, records);
+  const byId = exerciseRecordId ? records.find((r) => r.id === exerciseRecordId) : undefined;
+  const record = byId ?? matchExerciseRecord(name, records);
   const bundled = record?.id ? CORE_LIBRARY_ASSETS[record.id] : undefined;
   const { uri: networkUri } = useExerciseMedia(!photoBase64 && !bundled ? record?.id ?? null : null);
 
   const style = { width: size, height: size, borderRadius: square ? radius.sm : radius.md } as const;
 
   if (photoBase64) {
-    return <Image source={{ uri: `data:image/jpeg;base64,${photoBase64}` }} style={[style, styles.img]} />;
+    return (
+      <Image
+        source={{ uri: `data:image/jpeg;base64,${photoBase64}` }}
+        style={[style, styles.img]}
+        resizeMode="contain"
+      />
+    );
   }
   if (bundled) {
-    return <Image source={bundled} style={[style, styles.img]} resizeMode="cover" />;
+    return <Image source={bundled} style={[style, styles.img]} resizeMode="contain" />;
   }
   if (networkUri) {
-    return <Image source={{ uri: networkUri }} style={[style, styles.img]} resizeMode="cover" />;
+    return <Image source={{ uri: networkUri }} style={[style, styles.img]} resizeMode="contain" />;
   }
   const emoji = iconEmojiForExercise(name, iconKey);
   return (

@@ -6,7 +6,7 @@ import type { ExerciseEquipment } from '@/src/utils/exercise-equipment';
 import type { Discipline } from '@/src/utils/exercise-discipline';
 import { ensureProgramExercisesInLibrary } from '@/src/utils/program-library-sync';
 
-export type ExerciseMode = 'reps' | 'time' | 'amrap' | 'emom';
+export type ExerciseMode = 'reps' | 'time' | 'amrap' | 'emom' | 'for_time';
 
 /** How `exerciseRecordId` below was determined — see `exercise-matching.ts`.
  * "exact"/"alias" = auto-lié à l'import ; "fuzzy" = suggestion affichée mais
@@ -17,7 +17,7 @@ export type ExerciseMatchConfidence = 'exact' | 'alias' | 'fuzzy' | 'manual' | '
 /**
  * Métadonnées d'un bloc EMOM "nouvelle génération" (timer premium — affichage
  * en direct de l'exercice/reps/consignes + vrais bips audio, voir
- * `EmomLiveOverlay`/`timer-sound.ts`). Champ additif, jamais présent sur les
+ * `ExerciseLiveOverlay`/`timer-sound.ts`). Champ additif, jamais présent sur les
  * séances déjà générées : leur comportement EMOM reste strictement celui
  * d'avant (voix, overlay générique) — le nouveau moteur ne s'active que
  * lorsque ce champ est renseigné.
@@ -36,6 +36,31 @@ export type EmomBlock = {
   /** Nombre total de minutes du bloc. */
   totalRounds: number;
   /** Libellé optionnel affiché en en-tête, ex. "EMOM 40". */
+  title?: string | null;
+};
+
+/**
+ * Métadonnées d'un bloc "Tours" (séquence d'exercices répétée N fois,
+ * enchaînement automatique par complétion — pas de minuteur par round,
+ * contrairement à `EmomBlock`). Champ additif, même principe que
+ * `EmomBlock` : absent sur toute séance déjà générée, le comportement
+ * "reps" historique reste inchangé quand il est absent.
+ *
+ * Convention de génération : un bloc Tours = toujours
+ * `totalRounds × sequenceLength` `Exercise` aplaties (`mode:'reps'` ou
+ * `'time'`, `sets:1` chacune, jamais `sets:N`), même convention round-robin
+ * déjà utilisée par `scripts/import-wod-json.js` (`buildMultiRound`/
+ * `repeatRound`). Chaque `Exercise` du bloc porte le même `blockId`.
+ */
+export type RoundBlock = {
+  blockId: string;
+  /** Position 0-based de ce passage de la séquence complète. */
+  roundIndex: number;
+  totalRounds: number;
+  /** Position 0-based dans un passage de la séquence. */
+  sequenceIndex: number;
+  sequenceLength: number;
+  /** Libellé optionnel affiché en en-tête. */
   title?: string | null;
 };
 
@@ -61,6 +86,12 @@ export type Exercise = {
   matchConfidence?: ExerciseMatchConfidence | null;
   /** Voir `EmomBlock` — absent sur toute séance déjà générée. */
   emomBlock?: EmomBlock | null;
+  /** Voir `RoundBlock` — absent sur toute séance déjà générée. */
+  roundBlock?: RoundBlock | null;
+  /** Mode `for_time` uniquement : nombre de tours cible, décompté en direct
+   * (bouton "-"). `duration_seconds` est réutilisé comme cap chrono, même
+   * pattern que le mode `amrap` qui réutilise déjà ce champ pour sa durée. */
+  targetRounds?: number | null;
 };
 
 /** category: 'workout' or 'stretch' — enables re-using the whole program engine for stretching programs. */
@@ -121,6 +152,10 @@ export type SessionExerciseLog = {
   notes?: string | null;
   /** Voir `EmomBlock` sur `Exercise` — recopié tel quel à la construction du log. */
   emomBlock?: EmomBlock | null;
+  /** Voir `RoundBlock` sur `Exercise` — recopié tel quel à la construction du log. */
+  roundBlock?: RoundBlock | null;
+  /** Voir `Exercise.targetRounds`. */
+  targetRounds?: number | null;
 };
 
 export type CardioActivity =
@@ -702,6 +737,13 @@ function normalizeExercise(ex: any): Exercise {
     photoBase64: ex.photoBase64 ?? null,
     iconKey: ex.iconKey ?? null,
     emomBlock: ex.emomBlock ?? null,
+    roundBlock: ex.roundBlock ?? null,
+    targetRounds:
+      typeof ex.targetRounds === 'number'
+        ? ex.targetRounds
+        : ex.targetRounds != null
+          ? parseInt(ex.targetRounds, 10) || null
+          : null,
   };
 }
 

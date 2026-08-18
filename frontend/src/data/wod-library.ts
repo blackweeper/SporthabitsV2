@@ -36,7 +36,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Cindy",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.692Z",
+    "createdAt": "2026-08-17T20:07:09.113Z",
     "exercises": [
       {
         "id": "cindy-ex-1",
@@ -65,7 +65,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Mikko's Triangle",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.693Z",
+    "createdAt": "2026-08-17T20:07:09.114Z",
     "exercises": [
       {
         "id": "mikkos_triangle-ex-2",
@@ -841,7 +841,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Loredo",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.693Z",
+    "createdAt": "2026-08-17T20:07:09.114Z",
     "exercises": [
       {
         "id": "loredo-ex-42",
@@ -1169,7 +1169,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Cooper",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.693Z",
+    "createdAt": "2026-08-17T20:07:09.114Z",
     "exercises": [
       {
         "id": "cooper-ex-66",
@@ -1705,7 +1705,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Helen",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.694Z",
+    "createdAt": "2026-08-17T20:07:09.114Z",
     "exercises": [
       {
         "id": "helen-ex-106",
@@ -1838,7 +1838,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Annie",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.694Z",
+    "createdAt": "2026-08-17T20:07:09.114Z",
     "exercises": [
       {
         "id": "annie-ex-115",
@@ -1984,7 +1984,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "The Happening",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.694Z",
+    "createdAt": "2026-08-17T20:07:09.114Z",
     "exercises": [
       {
         "id": "the_happening-ex-125",
@@ -2260,7 +2260,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Wyck",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.694Z",
+    "createdAt": "2026-08-17T20:07:09.114Z",
     "exercises": [
       {
         "id": "wyck-ex-145",
@@ -2445,7 +2445,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Jennifer",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.694Z",
+    "createdAt": "2026-08-17T20:07:09.114Z",
     "exercises": [
       {
         "id": "jennifer-ex-158",
@@ -2474,7 +2474,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Barbara",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.694Z",
+    "createdAt": "2026-08-17T20:07:09.114Z",
     "exercises": [
       {
         "id": "barbara-ex-159",
@@ -2802,7 +2802,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Bordesley",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.694Z",
+    "createdAt": "2026-08-17T20:07:09.114Z",
     "exercises": [
       {
         "id": "bordesley-ex-183",
@@ -2905,8 +2905,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0102",
+        "matchConfidence": "exact"
       },
       {
         "id": "bordesley-ex-191",
@@ -2974,7 +2974,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Orbison",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.694Z",
+    "createdAt": "2026-08-17T20:07:09.114Z",
     "exercises": [
       {
         "id": "orbison-ex-195",
@@ -3370,7 +3370,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Whitten",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.694Z",
+    "createdAt": "2026-08-17T20:07:09.114Z",
     "exercises": [
       {
         "id": "whitten-ex-215",
@@ -3711,7 +3711,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Flint",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.694Z",
+    "createdAt": "2026-08-17T20:07:09.115Z",
     "exercises": [
       {
         "id": "flint-ex-240",
@@ -3974,7 +3974,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Triple 3",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.694Z",
+    "createdAt": "2026-08-17T20:07:09.115Z",
     "exercises": [
       {
         "id": "triple_3-ex-259",
@@ -4029,7 +4029,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Maupin",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.694Z",
+    "createdAt": "2026-08-17T20:07:09.115Z",
     "exercises": [
       {
         "id": "maupin-ex-262",
@@ -4253,7 +4253,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Nicole",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.694Z",
+    "createdAt": "2026-08-17T20:07:09.115Z",
     "exercises": [
       {
         "id": "nicole-ex-278",
@@ -4282,11 +4282,11 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Swole-Tel",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.694Z",
+    "createdAt": "2026-08-17T20:07:09.115Z",
     "exercises": [
       {
         "id": "swole_tel-ex-279",
-        "name": "Bloc 1 (3 min) : 15 (2x30 lb) Rowing haltères → 10 Pompe",
+        "name": "Bloc 1 (3 min) : 15 (2x30 lb) Dumbbell Rows → 10 Pompe",
         "mode": "amrap",
         "sets": 1,
         "reps": "2",
@@ -4294,12 +4294,12 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 180,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0114",
+        "matchConfidence": "exact"
       },
       {
         "id": "swole_tel-ex-280",
-        "name": "Bloc 2 (3 min) : 10 (2x40 lb) Rowing haltères → 10 Pompe",
+        "name": "Bloc 2 (3 min) : 10 (2x40 lb) Dumbbell Rows → 10 Pompe",
         "mode": "amrap",
         "sets": 1,
         "reps": "2",
@@ -4307,12 +4307,12 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 180,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0114",
+        "matchConfidence": "exact"
       },
       {
         "id": "swole_tel-ex-281",
-        "name": "Bloc 3 (3 min) : 5 (2x45 lb) Rowing haltères → 10 Pompe",
+        "name": "Bloc 3 (3 min) : 5 (2x45 lb) Dumbbell Rows → 10 Pompe",
         "mode": "amrap",
         "sets": 1,
         "reps": "2",
@@ -4320,21 +4320,21 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 180,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0114",
+        "matchConfidence": "exact"
       },
       {
         "id": "swole_tel-ex-282",
-        "name": "Bloc 4 — AMRAP (3 min) : max (2x30 lb) Rowing haltères",
+        "name": "Dumbbell Rows",
         "mode": "amrap",
         "sets": 1,
-        "reps": "1",
+        "reps": "max (2x30 lb)",
         "weight": null,
         "rest_seconds": 0,
         "duration_seconds": 180,
-        "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "notes": "Bloc 4 — AMRAP (3 min) · max (2x30 lb)",
+        "exerciseRecordId": "if_0114",
+        "matchConfidence": "exact"
       }
     ],
     "wodSource": {
@@ -4350,7 +4350,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Death Row",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.694Z",
+    "createdAt": "2026-08-17T20:07:09.115Z",
     "exercises": [
       {
         "id": "death_row-ex-283",
@@ -4746,7 +4746,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Row Cindy Row",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.694Z",
+    "createdAt": "2026-08-17T20:07:09.115Z",
     "exercises": [
       {
         "id": "row_cindy_row-ex-303",
@@ -4775,7 +4775,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "The Ghost",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.694Z",
+    "createdAt": "2026-08-17T20:07:09.115Z",
     "exercises": [
       {
         "id": "the_ghost-ex-304",
@@ -5103,7 +5103,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Recovery Day",
     "type": "cardio",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.694Z",
+    "createdAt": "2026-08-17T20:07:09.115Z",
     "exercises": [
       {
         "id": "recovery_day-ex-328",
@@ -5340,7 +5340,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Jenkins",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.694Z",
+    "createdAt": "2026-08-17T20:07:09.115Z",
     "exercises": [
       {
         "id": "jenkins-ex-345",
@@ -5369,7 +5369,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Grinder",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.694Z",
+    "createdAt": "2026-08-17T20:07:09.115Z",
     "exercises": [
       {
         "id": "grinder-ex-346",
@@ -5386,7 +5386,7 @@ export const WOD_LIBRARY: Plan[] = [
       },
       {
         "id": "grinder-ex-347",
-        "name": "Partie 2 (3 rounds) : 30/20 cal Rameur → 40 (24/20 in) Step-Overs latéraux → 100m (70/55 lb) Farmer's Walk",
+        "name": "Partie 2 (3 rounds) : 30/20 cal Rameur → 40 (24/20 in) Lateral Box Step-Overs → 100m (70/55 lb) Farmer's Walk",
         "mode": "amrap",
         "sets": 1,
         "reps": "3",
@@ -5424,7 +5424,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Expecto Squatronum",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.694Z",
+    "createdAt": "2026-08-17T20:07:09.115Z",
     "exercises": [
       {
         "id": "expecto_squatronum-ex-349",
@@ -5896,7 +5896,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "The Lou",
     "type": "mixte",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.694Z",
+    "createdAt": "2026-08-17T20:07:09.115Z",
     "exercises": [
       {
         "id": "the_lou-ex-373",
@@ -8200,7 +8200,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "CrossFit Open 22.1",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.694Z",
+    "createdAt": "2026-08-17T20:07:09.115Z",
     "exercises": [
       {
         "id": "open_22_1-ex-549",
@@ -8212,8 +8212,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 900,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0108",
+        "matchConfidence": "exact"
       }
     ],
     "wodSource": {
@@ -8229,7 +8229,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Holly",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.694Z",
+    "createdAt": "2026-08-17T20:07:09.115Z",
     "exercises": [
       {
         "id": "holly-ex-550",
@@ -8258,11 +8258,11 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Johnson",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.694Z",
+    "createdAt": "2026-08-17T20:07:09.115Z",
     "exercises": [
       {
         "id": "johnson-ex-551",
-        "name": "AMRAP 45 min : 1000m Course → 20 Burpees saut en longueur → 1000m Rameur → 40 Fente en marchant → 1000m SkiErg → 20 Pompes Hand Release",
+        "name": "AMRAP 45 min : 1000m Course → 20 Burpee Broad Jumps → 1000m Rameur → 40 Fente en marchant → 1000m SkiErg → 20 Pompes Hand Release",
         "mode": "amrap",
         "sets": 1,
         "reps": "6",
@@ -8287,7 +8287,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Coach Ivan 03/09/24 Hyrox",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.694Z",
+    "createdAt": "2026-08-17T20:07:09.115Z",
     "exercises": [
       {
         "id": "coach_ivan_030924_hyrox-ex-552",
@@ -8368,7 +8368,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Coach Ivan 24/09/24 Hyrox",
     "type": "mixte",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.694Z",
+    "createdAt": "2026-08-17T20:07:09.115Z",
     "exercises": [
       {
         "id": "coach_ivan_240924_hyrox-ex-557",
@@ -8449,7 +8449,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Death by Cardio",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.694Z",
+    "createdAt": "2026-08-17T20:07:09.115Z",
     "exercises": [
       {
         "id": "death_by_cardio-ex-562",
@@ -8579,7 +8579,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Cardio Complex",
     "type": "cardio",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.694Z",
+    "createdAt": "2026-08-17T20:07:09.115Z",
     "exercises": [
       {
         "id": "cardio_complex-ex-568",
@@ -8751,7 +8751,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Candy",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.694Z",
+    "createdAt": "2026-08-17T20:07:09.115Z",
     "exercises": [
       {
         "id": "candy-ex-580",
@@ -8962,7 +8962,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "CrossFit Open 26.1",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.694Z",
+    "createdAt": "2026-08-17T20:07:09.115Z",
     "exercises": [
       {
         "id": "open_26_1-ex-595",
@@ -9147,7 +9147,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Mini Murph",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.694Z",
+    "createdAt": "2026-08-17T20:07:09.115Z",
     "exercises": [
       {
         "id": "mini_murph-ex-608",
@@ -9384,7 +9384,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Elliott",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.694Z",
+    "createdAt": "2026-08-17T20:07:09.115Z",
     "exercises": [
       {
         "id": "elliott-ex-625",
@@ -9660,7 +9660,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Sting",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.694Z",
+    "createdAt": "2026-08-17T20:07:09.115Z",
     "exercises": [
       {
         "id": "sting-ex-645",
@@ -9871,7 +9871,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Time to Get Chipper",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.694Z",
+    "createdAt": "2026-08-17T20:07:09.115Z",
     "exercises": [
       {
         "id": "time_to_get_chipper-ex-660",
@@ -10108,7 +10108,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Bare Cove Travel WOD 32",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.694Z",
+    "createdAt": "2026-08-17T20:07:09.115Z",
     "exercises": [
       {
         "id": "bare_cove_travel_32-ex-677",
@@ -10137,7 +10137,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Brock",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.694Z",
+    "createdAt": "2026-08-17T20:07:09.115Z",
     "exercises": [
       {
         "id": "brock-ex-678",
@@ -10192,7 +10192,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "The 555 Standard",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.694Z",
+    "createdAt": "2026-08-17T20:07:09.115Z",
     "exercises": [
       {
         "id": "the_555_standard-ex-681",
@@ -10230,8 +10230,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0102",
+        "matchConfidence": "exact"
       },
       {
         "id": "the_555_standard-ex-684",
@@ -10269,8 +10269,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0102",
+        "matchConfidence": "exact"
       },
       {
         "id": "the_555_standard-ex-687",
@@ -10308,8 +10308,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0102",
+        "matchConfidence": "exact"
       },
       {
         "id": "the_555_standard-ex-690",
@@ -10347,8 +10347,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0102",
+        "matchConfidence": "exact"
       },
       {
         "id": "the_555_standard-ex-693",
@@ -10386,8 +10386,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0102",
+        "matchConfidence": "exact"
       }
     ],
     "wodSource": {
@@ -10403,7 +10403,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Double Trouble",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.694Z",
+    "createdAt": "2026-08-17T20:07:09.115Z",
     "exercises": [
       {
         "id": "double_trouble-ex-696",
@@ -10497,7 +10497,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Invisible Fran",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.694Z",
+    "createdAt": "2026-08-17T20:07:09.115Z",
     "exercises": [
       {
         "id": "invisible_fran-ex-702",
@@ -10591,7 +10591,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Ship",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.695Z",
+    "createdAt": "2026-08-17T20:07:09.115Z",
     "exercises": [
       {
         "id": "ship-ex-708",
@@ -10603,8 +10603,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0116",
+        "matchConfidence": "exact"
       },
       {
         "id": "ship-ex-709",
@@ -10616,8 +10616,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0106",
+        "matchConfidence": "exact"
       },
       {
         "id": "ship-ex-710",
@@ -10629,8 +10629,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0116",
+        "matchConfidence": "exact"
       },
       {
         "id": "ship-ex-711",
@@ -10642,8 +10642,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0106",
+        "matchConfidence": "exact"
       },
       {
         "id": "ship-ex-712",
@@ -10655,8 +10655,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0116",
+        "matchConfidence": "exact"
       },
       {
         "id": "ship-ex-713",
@@ -10668,8 +10668,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0106",
+        "matchConfidence": "exact"
       },
       {
         "id": "ship-ex-714",
@@ -10681,8 +10681,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0116",
+        "matchConfidence": "exact"
       },
       {
         "id": "ship-ex-715",
@@ -10694,8 +10694,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0106",
+        "matchConfidence": "exact"
       },
       {
         "id": "ship-ex-716",
@@ -10707,8 +10707,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0116",
+        "matchConfidence": "exact"
       },
       {
         "id": "ship-ex-717",
@@ -10720,8 +10720,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0106",
+        "matchConfidence": "exact"
       },
       {
         "id": "ship-ex-718",
@@ -10733,8 +10733,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0116",
+        "matchConfidence": "exact"
       },
       {
         "id": "ship-ex-719",
@@ -10746,8 +10746,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0106",
+        "matchConfidence": "exact"
       },
       {
         "id": "ship-ex-720",
@@ -10759,8 +10759,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0116",
+        "matchConfidence": "exact"
       },
       {
         "id": "ship-ex-721",
@@ -10772,8 +10772,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0106",
+        "matchConfidence": "exact"
       },
       {
         "id": "ship-ex-722",
@@ -10785,8 +10785,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0116",
+        "matchConfidence": "exact"
       },
       {
         "id": "ship-ex-723",
@@ -10798,8 +10798,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0106",
+        "matchConfidence": "exact"
       },
       {
         "id": "ship-ex-724",
@@ -10811,8 +10811,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0116",
+        "matchConfidence": "exact"
       },
       {
         "id": "ship-ex-725",
@@ -10824,8 +10824,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0106",
+        "matchConfidence": "exact"
       }
     ],
     "wodSource": {
@@ -10841,7 +10841,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Lucy",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.695Z",
+    "createdAt": "2026-08-17T20:07:09.115Z",
     "exercises": [
       {
         "id": "lucy-ex-726",
@@ -11052,7 +11052,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Mind Games",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.695Z",
+    "createdAt": "2026-08-17T20:07:09.115Z",
     "exercises": [
       {
         "id": "mind_games-ex-741",
@@ -14318,7 +14318,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Stimulus Travel WOD 7",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.695Z",
+    "createdAt": "2026-08-17T20:07:09.115Z",
     "exercises": [
       {
         "id": "stimulus_travel_7-ex-991",
@@ -14619,7 +14619,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Hotel Workout 3",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.695Z",
+    "createdAt": "2026-08-17T20:07:09.115Z",
     "exercises": [
       {
         "id": "hotel_workout_3-ex-1006",
@@ -14765,7 +14765,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Rocket",
     "type": "cardio",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.695Z",
+    "createdAt": "2026-08-17T20:07:09.115Z",
     "exercises": [
       {
         "id": "rocket-ex-1016",
@@ -14777,8 +14777,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 1800,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0111",
+        "matchConfidence": "exact"
       }
     ],
     "wodSource": {
@@ -14794,7 +14794,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "The Eagle",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.695Z",
+    "createdAt": "2026-08-17T20:07:09.115Z",
     "exercises": [
       {
         "id": "the_eagle-ex-1017",
@@ -14806,8 +14806,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0113",
+        "matchConfidence": "exact"
       },
       {
         "id": "the_eagle-ex-1018",
@@ -14832,8 +14832,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0113",
+        "matchConfidence": "exact"
       },
       {
         "id": "the_eagle-ex-1020",
@@ -14845,8 +14845,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0113",
+        "matchConfidence": "exact"
       },
       {
         "id": "the_eagle-ex-1021",
@@ -14871,8 +14871,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0113",
+        "matchConfidence": "exact"
       },
       {
         "id": "the_eagle-ex-1023",
@@ -14884,8 +14884,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0113",
+        "matchConfidence": "exact"
       },
       {
         "id": "the_eagle-ex-1024",
@@ -14910,8 +14910,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0113",
+        "matchConfidence": "exact"
       },
       {
         "id": "the_eagle-ex-1026",
@@ -14923,8 +14923,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0113",
+        "matchConfidence": "exact"
       },
       {
         "id": "the_eagle-ex-1027",
@@ -14949,8 +14949,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0113",
+        "matchConfidence": "exact"
       },
       {
         "id": "the_eagle-ex-1029",
@@ -14962,8 +14962,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0113",
+        "matchConfidence": "exact"
       },
       {
         "id": "the_eagle-ex-1030",
@@ -14988,8 +14988,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0113",
+        "matchConfidence": "exact"
       },
       {
         "id": "the_eagle-ex-1032",
@@ -15001,8 +15001,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0113",
+        "matchConfidence": "exact"
       },
       {
         "id": "the_eagle-ex-1033",
@@ -15027,8 +15027,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0113",
+        "matchConfidence": "exact"
       },
       {
         "id": "the_eagle-ex-1035",
@@ -15040,8 +15040,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0113",
+        "matchConfidence": "exact"
       },
       {
         "id": "the_eagle-ex-1036",
@@ -15066,8 +15066,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0113",
+        "matchConfidence": "exact"
       },
       {
         "id": "the_eagle-ex-1038",
@@ -15079,8 +15079,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0113",
+        "matchConfidence": "exact"
       },
       {
         "id": "the_eagle-ex-1039",
@@ -15105,8 +15105,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0113",
+        "matchConfidence": "exact"
       }
     ],
     "wodSource": {
@@ -15122,7 +15122,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Bolger",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.695Z",
+    "createdAt": "2026-08-17T20:07:09.115Z",
     "exercises": [
       {
         "id": "bolger-ex-1041",
@@ -15268,7 +15268,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "The Coyote",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.695Z",
+    "createdAt": "2026-08-17T20:07:09.115Z",
     "exercises": [
       {
         "id": "the_coyote-ex-1051",
@@ -16064,7 +16064,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Nelson",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.695Z",
+    "createdAt": "2026-08-17T20:07:09.115Z",
     "exercises": [
       {
         "id": "nelson-ex-1111",
@@ -16087,7 +16087,7 @@ export const WOD_LIBRARY: Plan[] = [
       },
       {
         "id": "nelson-ex-1112",
-        "name": "Burpees saut en longueur",
+        "name": "Burpee Broad Jumps",
         "mode": "emom",
         "sets": 1,
         "reps": "10",
@@ -16095,8 +16095,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched",
+        "exerciseRecordId": "if_0104",
+        "matchConfidence": "exact",
         "emomBlock": {
           "blockId": "nelson-emom",
           "roundIndex": 1,
@@ -16182,7 +16182,7 @@ export const WOD_LIBRARY: Plan[] = [
       },
       {
         "id": "nelson-ex-1117",
-        "name": "Burpees saut en longueur",
+        "name": "Burpee Broad Jumps",
         "mode": "emom",
         "sets": 1,
         "reps": "10",
@@ -16190,8 +16190,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched",
+        "exerciseRecordId": "if_0104",
+        "matchConfidence": "exact",
         "emomBlock": {
           "blockId": "nelson-emom",
           "roundIndex": 6,
@@ -16277,7 +16277,7 @@ export const WOD_LIBRARY: Plan[] = [
       },
       {
         "id": "nelson-ex-1122",
-        "name": "Burpees saut en longueur",
+        "name": "Burpee Broad Jumps",
         "mode": "emom",
         "sets": 1,
         "reps": "10",
@@ -16285,8 +16285,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched",
+        "exerciseRecordId": "if_0104",
+        "matchConfidence": "exact",
         "emomBlock": {
           "blockId": "nelson-emom",
           "roundIndex": 11,
@@ -16372,7 +16372,7 @@ export const WOD_LIBRARY: Plan[] = [
       },
       {
         "id": "nelson-ex-1127",
-        "name": "Burpees saut en longueur",
+        "name": "Burpee Broad Jumps",
         "mode": "emom",
         "sets": 1,
         "reps": "10",
@@ -16380,8 +16380,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched",
+        "exerciseRecordId": "if_0104",
+        "matchConfidence": "exact",
         "emomBlock": {
           "blockId": "nelson-emom",
           "roundIndex": 16,
@@ -16467,7 +16467,7 @@ export const WOD_LIBRARY: Plan[] = [
       },
       {
         "id": "nelson-ex-1132",
-        "name": "Burpees saut en longueur",
+        "name": "Burpee Broad Jumps",
         "mode": "emom",
         "sets": 1,
         "reps": "10",
@@ -16475,8 +16475,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched",
+        "exerciseRecordId": "if_0104",
+        "matchConfidence": "exact",
         "emomBlock": {
           "blockId": "nelson-emom",
           "roundIndex": 21,
@@ -16562,7 +16562,7 @@ export const WOD_LIBRARY: Plan[] = [
       },
       {
         "id": "nelson-ex-1137",
-        "name": "Burpees saut en longueur",
+        "name": "Burpee Broad Jumps",
         "mode": "emom",
         "sets": 1,
         "reps": "10",
@@ -16570,8 +16570,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched",
+        "exerciseRecordId": "if_0104",
+        "matchConfidence": "exact",
         "emomBlock": {
           "blockId": "nelson-emom",
           "roundIndex": 26,
@@ -16650,7 +16650,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Cindy with a Twist",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.695Z",
+    "createdAt": "2026-08-17T20:07:09.115Z",
     "exercises": [
       {
         "id": "cindy_with_a_twist-ex-1141",
@@ -17706,7 +17706,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "C2 Triathlon",
     "type": "cardio",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.695Z",
+    "createdAt": "2026-08-17T20:07:09.115Z",
     "exercises": [
       {
         "id": "c2_triathlon-ex-1221",
@@ -17761,7 +17761,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "The Swedish Mile",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.695Z",
+    "createdAt": "2026-08-17T20:07:09.116Z",
     "exercises": [
       {
         "id": "the_swedish_mile-ex-1224",
@@ -20377,7 +20377,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Hetfield",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.695Z",
+    "createdAt": "2026-08-17T20:07:09.116Z",
     "exercises": [
       {
         "id": "hetfield-ex-1424",
@@ -20653,7 +20653,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Shaky Legs",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.695Z",
+    "createdAt": "2026-08-17T20:07:09.116Z",
     "exercises": [
       {
         "id": "shaky_legs-ex-1444",
@@ -20747,7 +20747,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Hamilton",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.695Z",
+    "createdAt": "2026-08-17T20:07:09.116Z",
     "exercises": [
       {
         "id": "hamilton-ex-1450",
@@ -20919,7 +20919,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Aplin",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.696Z",
+    "createdAt": "2026-08-17T20:07:09.116Z",
     "exercises": [
       {
         "id": "aplin-ex-1462",
@@ -21455,7 +21455,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Nash",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.696Z",
+    "createdAt": "2026-08-17T20:07:09.116Z",
     "exercises": [
       {
         "id": "nash-ex-1502",
@@ -21662,7 +21662,7 @@ export const WOD_LIBRARY: Plan[] = [
       },
       {
         "id": "nash-ex-1513",
-        "name": "Burpees saut en longueur",
+        "name": "Burpee Broad Jumps",
         "mode": "emom",
         "sets": 1,
         "reps": "10",
@@ -21670,8 +21670,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched",
+        "exerciseRecordId": "if_0104",
+        "matchConfidence": "exact",
         "emomBlock": {
           "blockId": "nash-emom",
           "roundIndex": 0,
@@ -21681,7 +21681,7 @@ export const WOD_LIBRARY: Plan[] = [
       },
       {
         "id": "nash-ex-1514",
-        "name": "Burpees saut en longueur",
+        "name": "Burpee Broad Jumps",
         "mode": "emom",
         "sets": 1,
         "reps": "10",
@@ -21689,8 +21689,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched",
+        "exerciseRecordId": "if_0104",
+        "matchConfidence": "exact",
         "emomBlock": {
           "blockId": "nash-emom",
           "roundIndex": 1,
@@ -21700,7 +21700,7 @@ export const WOD_LIBRARY: Plan[] = [
       },
       {
         "id": "nash-ex-1515",
-        "name": "Burpees saut en longueur",
+        "name": "Burpee Broad Jumps",
         "mode": "emom",
         "sets": 1,
         "reps": "10",
@@ -21708,8 +21708,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched",
+        "exerciseRecordId": "if_0104",
+        "matchConfidence": "exact",
         "emomBlock": {
           "blockId": "nash-emom",
           "roundIndex": 2,
@@ -21719,7 +21719,7 @@ export const WOD_LIBRARY: Plan[] = [
       },
       {
         "id": "nash-ex-1516",
-        "name": "Burpees saut en longueur",
+        "name": "Burpee Broad Jumps",
         "mode": "emom",
         "sets": 1,
         "reps": "10",
@@ -21727,8 +21727,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched",
+        "exerciseRecordId": "if_0104",
+        "matchConfidence": "exact",
         "emomBlock": {
           "blockId": "nash-emom",
           "roundIndex": 3,
@@ -21738,7 +21738,7 @@ export const WOD_LIBRARY: Plan[] = [
       },
       {
         "id": "nash-ex-1517",
-        "name": "Burpees saut en longueur",
+        "name": "Burpee Broad Jumps",
         "mode": "emom",
         "sets": 1,
         "reps": "10",
@@ -21746,8 +21746,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched",
+        "exerciseRecordId": "if_0104",
+        "matchConfidence": "exact",
         "emomBlock": {
           "blockId": "nash-emom",
           "roundIndex": 4,
@@ -21757,7 +21757,7 @@ export const WOD_LIBRARY: Plan[] = [
       },
       {
         "id": "nash-ex-1518",
-        "name": "Burpees saut en longueur",
+        "name": "Burpee Broad Jumps",
         "mode": "emom",
         "sets": 1,
         "reps": "10",
@@ -21765,8 +21765,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched",
+        "exerciseRecordId": "if_0104",
+        "matchConfidence": "exact",
         "emomBlock": {
           "blockId": "nash-emom",
           "roundIndex": 5,
@@ -21776,7 +21776,7 @@ export const WOD_LIBRARY: Plan[] = [
       },
       {
         "id": "nash-ex-1519",
-        "name": "Burpees saut en longueur",
+        "name": "Burpee Broad Jumps",
         "mode": "emom",
         "sets": 1,
         "reps": "10",
@@ -21784,8 +21784,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched",
+        "exerciseRecordId": "if_0104",
+        "matchConfidence": "exact",
         "emomBlock": {
           "blockId": "nash-emom",
           "roundIndex": 6,
@@ -21795,7 +21795,7 @@ export const WOD_LIBRARY: Plan[] = [
       },
       {
         "id": "nash-ex-1520",
-        "name": "Burpees saut en longueur",
+        "name": "Burpee Broad Jumps",
         "mode": "emom",
         "sets": 1,
         "reps": "10",
@@ -21803,8 +21803,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched",
+        "exerciseRecordId": "if_0104",
+        "matchConfidence": "exact",
         "emomBlock": {
           "blockId": "nash-emom",
           "roundIndex": 7,
@@ -21814,7 +21814,7 @@ export const WOD_LIBRARY: Plan[] = [
       },
       {
         "id": "nash-ex-1521",
-        "name": "Burpees saut en longueur",
+        "name": "Burpee Broad Jumps",
         "mode": "emom",
         "sets": 1,
         "reps": "10",
@@ -21822,8 +21822,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched",
+        "exerciseRecordId": "if_0104",
+        "matchConfidence": "exact",
         "emomBlock": {
           "blockId": "nash-emom",
           "roundIndex": 8,
@@ -21833,7 +21833,7 @@ export const WOD_LIBRARY: Plan[] = [
       },
       {
         "id": "nash-ex-1522",
-        "name": "Burpees saut en longueur",
+        "name": "Burpee Broad Jumps",
         "mode": "emom",
         "sets": 1,
         "reps": "10",
@@ -21841,8 +21841,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": 60,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched",
+        "exerciseRecordId": "if_0104",
+        "matchConfidence": "exact",
         "emomBlock": {
           "blockId": "nash-emom",
           "roundIndex": 9,
@@ -22067,7 +22067,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Relentless",
     "type": "cardio",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.696Z",
+    "createdAt": "2026-08-17T20:07:09.116Z",
     "exercises": [
       {
         "id": "relentless-ex-1534",
@@ -22473,7 +22473,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Paz",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.696Z",
+    "createdAt": "2026-08-17T20:07:09.116Z",
     "exercises": [
       {
         "id": "paz-ex-1564",
@@ -22528,7 +22528,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Antenne GIGN Guyane Française",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.696Z",
+    "createdAt": "2026-08-17T20:07:09.116Z",
     "exercises": [
       {
         "id": "antenne_gign_guyane-ex-1567",
@@ -22687,7 +22687,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "TK",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.696Z",
+    "createdAt": "2026-08-17T20:07:09.116Z",
     "exercises": [
       {
         "id": "tk-ex-1578",
@@ -22716,7 +22716,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Stone",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.696Z",
+    "createdAt": "2026-08-17T20:07:09.116Z",
     "exercises": [
       {
         "id": "stone-ex-1579",
@@ -22741,8 +22741,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0103",
+        "matchConfidence": "exact"
       },
       {
         "id": "stone-ex-1581",
@@ -22793,8 +22793,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0103",
+        "matchConfidence": "exact"
       },
       {
         "id": "stone-ex-1585",
@@ -22845,8 +22845,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0103",
+        "matchConfidence": "exact"
       },
       {
         "id": "stone-ex-1589",
@@ -22897,8 +22897,8 @@ export const WOD_LIBRARY: Plan[] = [
         "rest_seconds": 0,
         "duration_seconds": null,
         "notes": null,
-        "exerciseRecordId": null,
-        "matchConfidence": "unmatched"
+        "exerciseRecordId": "if_0103",
+        "matchConfidence": "exact"
       },
       {
         "id": "stone-ex-1593",
@@ -22940,7 +22940,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "East Atlanta Santa",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.696Z",
+    "createdAt": "2026-08-17T20:07:09.116Z",
     "exercises": [
       {
         "id": "east_atlanta_santa-ex-1595",
@@ -23255,11 +23255,11 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Union",
     "type": "hiit",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.696Z",
+    "createdAt": "2026-08-17T20:07:09.116Z",
     "exercises": [
       {
         "id": "union-ex-1618",
-        "name": "AMRAP 12 min : 6 Burpee → 8 (24/16 kg) KB Snatch → 10 Fente en marchant",
+        "name": "AMRAP 12 min : 6 Burpee → 8 (24/16 kg) KB Snatches → 10 Fente en marchant",
         "mode": "amrap",
         "sets": 1,
         "reps": "3",
@@ -23284,7 +23284,7 @@ export const WOD_LIBRARY: Plan[] = [
     "title": "Partner 2",
     "type": "mixte",
     "category": "workout",
-    "createdAt": "2026-08-17T16:30:13.696Z",
+    "createdAt": "2026-08-17T20:07:09.116Z",
     "exercises": [
       {
         "id": "partner_2-ex-1619",

@@ -7,6 +7,7 @@ import { Exercise } from '@/src/utils/gym-storage';
  *  - reps:  sets * (2s * repsAvg or 20s default) + (sets - 1) * rest_seconds
  *  - time:  sets * duration_seconds + (sets - 1) * rest_seconds
  *  - amrap: duration_seconds
+ *  - for_time: duration_seconds (le cap chrono, même champ réutilisé que amrap)
  *  - emom:  sets * 60s (rounds × 1 min)
  * + 20s transition between exercises.
  */
@@ -40,6 +41,8 @@ function singleExerciseSeconds(ex: ExerciseTemplate | Exercise): number {
     }
     case 'amrap':
       return ex.duration_seconds || 600;
+    case 'for_time':
+      return ex.duration_seconds || 900;
     case 'emom':
       // Rounds × 1 minute
       return sets * 60;

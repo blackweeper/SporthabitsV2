@@ -111,7 +111,13 @@ export default function WeekDayCard({
       <View style={styles.exList}>
         {exercises.slice(0, 3).map((ex, i) => (
           <View key={i} style={styles.exRow}>
-            <ExerciseThumbnail name={ex.name} records={records} size={24} square />
+            <ExerciseThumbnail
+              name={ex.name}
+              records={records}
+              exerciseRecordId={ex.exerciseRecordId}
+              size={24}
+              square
+            />
             <Text style={styles.exName} numberOfLines={1}>
               {ex.name}
             </Text>

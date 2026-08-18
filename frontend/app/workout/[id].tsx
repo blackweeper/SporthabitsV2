@@ -16,7 +16,7 @@ import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import { colors, radius, spacing, withAlpha } from "@/src/theme";
 import TimerCircle from "@/src/components/TimerCircle";
-import EmomLiveOverlay from "@/src/components/EmomLiveOverlay";
+import ExerciseLiveOverlay from "@/src/components/ExerciseLiveOverlay";
 import ExerciseMediaFrame from "@/src/components/exercise-library/ExerciseMediaFrame";
 import { useExerciseMediaSources } from "@/src/hooks/useExerciseMedia";
 import { CORE_LIBRARY_ASSETS } from "@/src/data/core-library-assets.generated";
@@ -46,7 +46,7 @@ import {
   WorkoutSession,
 } from "@/src/utils/gym-storage";
 
-type OverlayMode = null | "rest" | "work" | "amrap";
+type OverlayMode = null | "rest" | "work" | "amrap" | "for_time";
 
 export default function WorkoutScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -62,17 +62,28 @@ export default function WorkoutScreen() {
   // over to an unrelated exercise).
   const [mediaMode, setMediaMode] = useState<"photo" | "gif">("photo");
 
-  // Overlay timer (rest / work / amrap)
+  // Overlay timer (rest / work / amrap / for_time)
   const [overlay, setOverlay] = useState<OverlayMode>(null);
   const [overlayRemaining, setOverlayRemaining] = useState(0);
   const [overlayTotal, setOverlayTotal] = useState(0);
   const [overlaySetIdx, setOverlaySetIdx] = useState<number | null>(null);
+  // Incrémenté à chaque nouveau segment de décompte démarré (startWork/
+  // startAmrap/startForTime/startRest/round EMOM historique suivant) — force
+  // le useEffect de tick à se relancer avec une closure fraîche même quand
+  // `overlay` reste la même valeur d'un round à l'autre (chaînage EMOM/Tours
+  // sans repos) : sans ça, l'intervalle garderait la closure du tout premier
+  // segment et relirait indéfiniment un `exIdx`/`overlaySetIdx` obsolètes.
+  const [tickKey, setTickKey] = useState(0);
   const [amrapRounds, setAmrapRounds] = useState(0);
-  // What to auto-start (no interaction needed) once the current rest ends —
-  // only set for timed exercises (time/amrap/emom); reps stay fully manual.
+  const [forTimeRoundsRemaining, setForTimeRoundsRemaining] = useState(0);
+  // What to auto-start (no interaction needed) once the current rest ends.
+  // `kind:"timer"` (default) relance un minuteur (time/amrap/emom/for_time) ;
+  // `kind:"reps"` avance juste `exIdx` sans minuteur — cas d'un "repos entre
+  // tours" (Tours) suivi d'un exercice reps, qui reste sans minuteur.
   const [pendingResume, setPendingResume] = useState<{
     exI: number;
     setIdx: number;
+    kind?: "timer" | "reps";
   } | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -102,6 +113,9 @@ export default function WorkoutScreen() {
           targetDurationSeconds: ex.duration_seconds,
           notes: ex.notes,
           emomBlock: ex.emomBlock ?? null,
+          roundBlock: ex.roundBlock ?? null,
+          targetRounds: ex.targetRounds ?? null,
+          libraryExerciseId: ex.exerciseRecordId ?? null,
           sets: Array.from({ length: ex.sets }, () => ({
             reps: ex.mode === "amrap" ? "0" : ex.reps,
             weight: ex.weight ?? "",
@@ -125,13 +139,11 @@ export default function WorkoutScreen() {
 
   useEffect(() => {
     if (!overlay) return;
-    // L'exercice qui "gouverne" le décompte courant : pour un repos, c'est
-    // celui vers lequel on reprend (pendingResume), pas celui qui vient de
-    // se terminer — un repos avant un round EMOM "nouvelle génération" doit
-    // déjà sonner avec les nouveaux bips, pas la voix.
-    const governingEx =
-      overlay === "rest" ? logs[pendingResume?.exI ?? exIdx] : logs[exIdx];
-    const useTones = governingEx?.mode === "emom" && !!governingEx.emomBlock;
+    // Bips (jamais de voix) pour tout décompte, quel que soit le mode ou le
+    // type d'overlay (repos/travail/amrap/for_time) — comportement identique
+    // partout, comme un vrai interval timer : pas de signal à 10s, juste le
+    // décompte final 3-2-1, puis le bip distinct de fin de round/set (voir
+    // `playRoundChime` dans `startSetTimer`/`onOverlayComplete`).
     timerRef.current = setInterval(() => {
       setOverlayRemaining((r) => {
         if (r <= 1) {
@@ -139,31 +151,14 @@ export default function WorkoutScreen() {
           return 0;
         }
         const next = r - 1;
-        if (useTones) {
-          // Nouveau moteur EMOM : vrais bips, pas de voix — aucun signal à
-          // 10s, seulement le décompte final (comportement d'un interval timer).
-          if (next > 0 && next <= 3) playCountdownTick();
-          return next;
-        }
-        // Voice countdown cues (chemin historique, inchangé)
-        if (next === 10) {
-          if (overlay === "work") {
-            speak("10 secondes");
-          } else if (overlay === "rest") {
-            speak("10 secondes, prochain exercice");
-          } else if (overlay === "amrap") {
-            speak("10 secondes");
-          }
-        } else if (next > 0 && next <= 3) {
-          speakNumber(next);
-        }
+        if (next > 0 && next <= 3) playCountdownTick();
         return next;
       });
     }, 1000);
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [overlay]);
+  }, [overlay, tickKey]);
 
   // Announce workout start once loaded
   useEffect(() => {
@@ -185,20 +180,23 @@ export default function WorkoutScreen() {
     );
   }
 
-  /** Start the work/amrap timer for a given exercise+set, whatever the
-   *  current exIdx is — used both for manual taps and auto-advance. */
+  /** Start the work/amrap/for_time timer for a given exercise+set, whatever
+   *  the current exIdx is — used both for manual taps and auto-advance.
+   *  Always chimes once (signal "changement d'exercice"), quel que soit le
+   *  mode — comportement identique partout (plus de voix ici). */
   function startSetTimer(exI: number, setIdx: number) {
     const ex = logs[exI];
     if (!ex) return;
-    const dur = ex.targetDurationSeconds || (ex.mode === "emom" ? 60 : 300);
-    if (ex.mode === "emom") {
-      if (ex.emomBlock) playRoundChime();
-      else speak(`Round ${setIdx + 1}`);
-    }
+    const dur =
+      ex.targetDurationSeconds ||
+      (ex.mode === "emom" ? 60 : ex.mode === "for_time" ? 900 : 300);
+    playRoundChime();
     if (ex.mode === "time" || ex.mode === "emom") {
       startWork(setIdx, dur);
     } else if (ex.mode === "amrap") {
       startAmrap(setIdx, dur);
+    } else if (ex.mode === "for_time") {
+      startForTime(setIdx, dur);
     }
   }
 
@@ -207,6 +205,12 @@ export default function WorkoutScreen() {
    * queue them; otherwise, if the next exercise is also timed, queue that.
    * Reps exercises are never auto-started — the user stays in control there.
    * Returns true if a rest or next timer was queued (caller should stop).
+   *
+   * Entre deux rounds d'un même bloc EMOM/Tours (même `blockId`), le repos
+   * est toujours forcé à 0 — garanti par le code, jamais dépendant de la
+   * convention `rest_seconds:0` des données générées (voir `EmomBlock`/
+   * `RoundBlock`) : un bloc EMOM/Tours doit toujours s'enchaîner sans
+   * interaction, quoi que porte `rest_seconds`.
    */
   function chainRestAndAdvance(
     exI: number,
@@ -232,9 +236,16 @@ export default function WorkoutScreen() {
     const nextEx = logs[nextExI];
     if (
       nextEx &&
-      (nextEx.mode === "time" || nextEx.mode === "amrap" || nextEx.mode === "emom")
+      (nextEx.mode === "time" ||
+        nextEx.mode === "amrap" ||
+        nextEx.mode === "emom" ||
+        nextEx.mode === "for_time")
     ) {
-      const rest = currentLog.targetRestSeconds || 0;
+      const sameEmomBlock =
+        !!currentLog.emomBlock && nextEx.emomBlock?.blockId === currentLog.emomBlock.blockId;
+      const sameRoundBlock =
+        !!currentLog.roundBlock && nextEx.roundBlock?.blockId === currentLog.roundBlock.blockId;
+      const rest = sameEmomBlock || sameRoundBlock ? 0 : currentLog.targetRestSeconds || 0;
       if (rest > 0) {
         speak("Repos, exercice suivant");
         setPendingResume({ exI: nextExI, setIdx: 0 });
@@ -255,13 +266,26 @@ export default function WorkoutScreen() {
   }
 
   function onOverlayComplete() {
-    if (timerRef.current) clearInterval(timerRef.current);
+    // Ne PAS clear l'intervalle ici : quand on enchaîne round→round au sein
+    // du même overlay (EMOM/Tours, `overlay` reste "work"/"amrap"/"for_time"
+    // sans changer de valeur), le useEffect de tick (dépendance `[overlay]`)
+    // ne se relance pas — c'est l'intervalle déjà actif qui doit continuer à
+    // tourner sur le nouveau `overlayRemaining` fixé par `startSetTimer`.
+    // Les vraies transitions (rest<->work, ->null) sont déjà gérées par le
+    // cleanup automatique de l'effet quand `overlay` change réellement.
     haptic();
     if (overlay === "rest") {
       setTotalRest((t) => t + overlayTotal);
       const resume = pendingResume;
       setPendingResume(null);
       if (resume) {
+        if (resume.kind === "reps") {
+          // Repos entre tours (Tours) : juste avancer, pas de minuteur.
+          setExIdx(resume.exI);
+          setOverlaySetIdx(null);
+          setOverlay(null);
+          return;
+        }
         speakGo("C'est parti");
         setExIdx(resume.exI);
         setOverlaySetIdx(null);
@@ -281,17 +305,18 @@ export default function WorkoutScreen() {
         };
         return copy;
       });
-      // EMOM: auto-chain to next round without rest
+      // EMOM historique (plusieurs sets sur une même Exercise) : enchaîne au
+      // round suivant sans repos, toujours avec un bip (plus de voix ici).
       if (
         currentLog?.mode === "emom" &&
         nextSetIdx < currentLog.sets.length
       ) {
         const dur = currentLog.targetDurationSeconds || 60;
-        if (currentLog.emomBlock) playRoundChime();
-        else speak(`Round ${nextSetIdx + 1}`);
+        playRoundChime();
         setOverlaySetIdx(nextSetIdx);
         setOverlayTotal(dur);
         setOverlayRemaining(dur);
+        setTickKey((k) => k + 1);
         return;
       }
       // Timed exercise: automatically chain into rest, then the next
@@ -309,16 +334,30 @@ export default function WorkoutScreen() {
         return copy;
       });
       if (chainRestAndAdvance(exIdx, currentLog, overlaySetIdx + 1)) return;
+    } else if (overlay === "for_time" && overlaySetIdx !== null) {
+      const currentLog = logs[exIdx];
+      setLogs((prev) => {
+        const copy = prev.map((l) => ({ ...l, sets: [...l.sets] }));
+        copy[exIdx].sets[overlaySetIdx!] = {
+          ...copy[exIdx].sets[overlaySetIdx!],
+          reps: String(forTimeRoundsRemaining),
+          completed: true,
+        };
+        return copy;
+      });
+      if (chainRestAndAdvance(exIdx, currentLog, overlaySetIdx + 1)) return;
     }
     setOverlay(null);
     setOverlaySetIdx(null);
     setAmrapRounds(0);
+    setForTimeRoundsRemaining(0);
   }
 
   function startRest(seconds: number) {
     setOverlayTotal(seconds);
     setOverlayRemaining(seconds);
     setOverlay("rest");
+    setTickKey((k) => k + 1);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
   }
 
@@ -327,6 +366,7 @@ export default function WorkoutScreen() {
     setOverlayTotal(seconds);
     setOverlayRemaining(seconds);
     setOverlay("work");
+    setTickKey((k) => k + 1);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
   }
 
@@ -336,7 +376,56 @@ export default function WorkoutScreen() {
     setOverlayRemaining(seconds);
     setAmrapRounds(0);
     setOverlay("amrap");
+    setTickKey((k) => k + 1);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+  }
+
+  /** Mode For Time : décompte du cap chrono + tours restants décomptés
+   * manuellement (bouton "-"). Voir `RoundBlock`/`targetRounds`. */
+  function startForTime(setIdx: number, seconds: number) {
+    setOverlaySetIdx(setIdx);
+    setOverlayTotal(seconds);
+    setOverlayRemaining(seconds);
+    setForTimeRoundsRemaining(logs[exIdx]?.targetRounds ?? 0);
+    setOverlay("for_time");
+    setTickKey((k) => k + 1);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+  }
+
+  /** Décrémente les tours restants (For Time) ; termine l'exercice
+   * immédiatement si le compte atteint 0 avant l'expiration du cap. */
+  function decrementForTimeRounds() {
+    setForTimeRoundsRemaining((r) => {
+      const next = Math.max(0, r - 1);
+      if (next === 0) {
+        // Terminaison anticipée (tours cible atteint avant le cap) : gérée
+        // ici, synchrone, avec `next` plutôt que délégué à `skipOverlay()`
+        // via `setTimeout` — un `setTimeout` capturerait la closure de CE
+        // rendu (où `forTimeRoundsRemaining` vaut encore l'ancienne valeur
+        // r, pas `next`), et s'exécuterait après le prochain rendu, donc
+        // avec un `skipOverlay` obsolète enregistrant le mauvais nombre de
+        // tours. Même comportement qu'un skip manuel (pas d'auto-chaînement,
+        // règle déjà établie) mais avec la valeur fraîche.
+        if (timerRef.current) clearInterval(timerRef.current);
+        speakStop();
+        if (overlaySetIdx !== null) {
+          const setIdx = overlaySetIdx;
+          const currentExIdx = exIdx;
+          setLogs((prev) => {
+            const copy = prev.map((l) => ({ ...l, sets: [...l.sets] }));
+            copy[currentExIdx].sets[setIdx] = {
+              ...copy[currentExIdx].sets[setIdx],
+              reps: String(next),
+              completed: true,
+            };
+            return copy;
+          });
+        }
+        setOverlay(null);
+        setOverlaySetIdx(null);
+      }
+      return next;
+    });
   }
 
   function skipOverlay() {
@@ -349,11 +438,15 @@ export default function WorkoutScreen() {
       if (resume) {
         setExIdx(resume.exI);
         setOverlaySetIdx(null);
+        if (resume.kind === "reps") {
+          setOverlay(null);
+          return;
+        }
         startSetTimer(resume.exI, resume.setIdx);
         return;
       }
     } else if (
-      (overlay === "work" || overlay === "amrap") &&
+      (overlay === "work" || overlay === "amrap" || overlay === "for_time") &&
       overlaySetIdx !== null
     ) {
       // still mark the set as completed if user skips a work timer
@@ -364,7 +457,9 @@ export default function WorkoutScreen() {
           reps:
             overlay === "amrap"
               ? String(amrapRounds)
-              : copy[exIdx].sets[overlaySetIdx].reps,
+              : overlay === "for_time"
+                ? String(forTimeRoundsRemaining)
+                : copy[exIdx].sets[overlaySetIdx].reps,
           completed: true,
         };
         return copy;
@@ -373,6 +468,7 @@ export default function WorkoutScreen() {
     setOverlay(null);
     setOverlaySetIdx(null);
     setAmrapRounds(0);
+    setForTimeRoundsRemaining(0);
   }
 
   function addTime(sec: number) {
@@ -383,24 +479,47 @@ export default function WorkoutScreen() {
   function toggleSet(exI: number, setI: number) {
     const ex = logs[exI];
     if (!ex) return;
-    // For time/amrap/emom, tapping the check button opens the timer instead of toggling directly
+    // For time/amrap/emom/for_time, tapping the check button opens the timer instead of toggling directly
     if (
       !ex.sets[setI].completed &&
-      (ex.mode === "time" || ex.mode === "amrap" || ex.mode === "emom")
+      (ex.mode === "time" ||
+        ex.mode === "amrap" ||
+        ex.mode === "emom" ||
+        ex.mode === "for_time")
     ) {
       startSetTimer(exI, setI);
       return;
     }
+    const wasCompleted = ex.sets[setI].completed;
     setLogs((prev) => {
       const copy = prev.map((l) => ({ ...l, sets: [...l.sets] }));
       const s = copy[exI].sets[setI];
       copy[exI].sets[setI] = { ...s, completed: !s.completed };
-      if (!s.completed && ex.mode === "reps") {
-        const rest = ex.targetRestSeconds || 60;
-        if (rest > 0) startRest(rest);
-      }
       return copy;
     });
+    if (wasCompleted || ex.mode !== "reps") return;
+    // Reps : plus de repos forcé — uniquement si explicitement configuré
+    // (rest_seconds > 0). Clic sur valider = passage immédiat par défaut.
+    const rest = ex.targetRestSeconds || 0;
+    const nextExI = exI + 1;
+    const nextEx = logs[nextExI];
+    const sameRoundBlock =
+      !!ex.roundBlock && nextEx?.roundBlock?.blockId === ex.roundBlock.blockId;
+    if (sameRoundBlock) {
+      // Tours : avance automatiquement vers l'exercice suivant du même
+      // bloc — repos uniquement si un "repos entre tours" a été configuré
+      // (rest_seconds > 0, porté seulement par le dernier exercice d'un
+      // round dans les données générées par le bloc Tours).
+      if (rest > 0) {
+        setPendingResume({ exI: nextExI, setIdx: 0, kind: "reps" });
+        setOverlaySetIdx(null);
+        startRest(rest);
+      } else {
+        setExIdx(nextExI);
+      }
+      return;
+    }
+    if (rest > 0) startRest(rest);
   }
 
   function updateSet(exI: number, setI: number, patch: Partial<SetLog>) {
@@ -458,7 +577,11 @@ export default function WorkoutScreen() {
   // network-cached illustration > null; GIF resolved independently so both
   // can be shown/toggled without one displacing the other.
   const planEx = plan?.exercises.find((e) => e.id === currentEx?.exerciseId);
-  const libraryRecord = currentEx ? matchExerciseRecord(currentEx.name, allRecords) : undefined;
+  const libraryRecord = currentEx
+    ? currentEx.libraryExerciseId
+      ? allRecords.find((r) => r.id === currentEx.libraryExerciseId)
+      : matchExerciseRecord(currentEx.name, allRecords)
+    : undefined;
   const { ironflowUri, workoutxUri } = useExerciseMediaSources(libraryRecord?.id ?? null);
   const bundledIllustration = libraryRecord?.id ? CORE_LIBRARY_ASSETS[libraryRecord.id] : undefined;
   const illustrationSource =
@@ -486,6 +609,62 @@ export default function WorkoutScreen() {
   const statChips = buildStatChips(currentEx, completedSets);
   const compositeItems = parseCompositeExerciseName(currentEx.name);
   const compositePrefix = compositeItems ? parseCompositePrefix(currentEx.name) : null;
+
+  // Overlay "en direct" riche (vignette+nom+notes) : EMOM nouvelle génération,
+  // AMRAP et For Time — même présentation partout (demande "identique sur
+  // tous les modes"), seuls l'eyebrow et le stepper de tours changent.
+  const showLiveOverlay =
+    (overlay === "work" && currentEx.mode === "emom" && !!currentEx.emomBlock) ||
+    overlay === "amrap" ||
+    overlay === "for_time";
+  const liveOverlayVariant: "emom" | "amrap" | "for_time" =
+    overlay === "amrap" ? "amrap" : overlay === "for_time" ? "for_time" : "emom";
+  const liveOverlayEyebrow =
+    liveOverlayVariant === "amrap"
+      ? "AMRAP"
+      : liveOverlayVariant === "for_time"
+        ? "FOR TIME"
+        : `${currentEx.emomBlock?.title ? currentEx.emomBlock.title + " · " : ""}ROUND ${(currentEx.emomBlock?.roundIndex ?? 0) + 1}/${currentEx.emomBlock?.totalRounds ?? 1}`;
+  const liveOverlayStepper =
+    liveOverlayVariant === "amrap" ? (
+      <View style={styles.amrapCounter}>
+        <Pressable
+          testID="amrap-minus"
+          style={styles.roundBtn}
+          onPress={() => setAmrapRounds((r) => Math.max(0, r - 1))}
+        >
+          <Ionicons name="remove" size={22} color="#fff" />
+        </Pressable>
+        <View style={styles.amrapRoundsBox}>
+          <Text style={styles.amrapRoundsBig}>{amrapRounds}</Text>
+          <Text style={styles.amrapRoundsLbl}>TOURS</Text>
+        </View>
+        <Pressable
+          testID="amrap-plus"
+          style={[styles.roundBtn, styles.roundBtnPrimary]}
+          onPress={() => {
+            setAmrapRounds((r) => r + 1);
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          }}
+        >
+          <Ionicons name="add" size={22} color="#fff" />
+        </Pressable>
+      </View>
+    ) : liveOverlayVariant === "for_time" ? (
+      <View style={styles.amrapCounter}>
+        <Pressable
+          testID="for-time-minus"
+          style={[styles.roundBtn, styles.roundBtnPrimary]}
+          onPress={decrementForTimeRounds}
+        >
+          <Ionicons name="remove" size={22} color="#fff" />
+        </Pressable>
+        <View style={styles.amrapRoundsBox}>
+          <Text style={styles.amrapRoundsBig}>{forTimeRoundsRemaining}</Text>
+          <Text style={styles.amrapRoundsLbl}>TOURS RESTANTS</Text>
+        </View>
+      </View>
+    ) : null;
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
@@ -743,6 +922,28 @@ export default function WorkoutScreen() {
                   </View>
                 </>
               )}
+              {currentEx.mode === "for_time" && (
+                <>
+                  <View style={styles.setInputBlock}>
+                    <Text style={styles.setInputLabel}>CAP</Text>
+                    <Text style={styles.timeDisplay}>
+                      {formatDur(currentEx.targetDurationSeconds ?? 0)}
+                    </Text>
+                  </View>
+                  <View style={styles.setInputBlock}>
+                    <Text style={styles.setInputLabel}>TOURS RESTANTS</Text>
+                    <TextInput
+                      testID={`set-fortime-rounds-${i}`}
+                      style={styles.setInput}
+                      value={s.reps}
+                      keyboardType="number-pad"
+                      onChangeText={(t) => updateSet(exIdx, i, { reps: t })}
+                      placeholder={String(currentEx.targetRounds ?? 0)}
+                      placeholderTextColor={colors.onSurfaceTertiary}
+                    />
+                  </View>
+                </>
+              )}
             </View>
             <Pressable
               testID={`toggle-set-${i}`}
@@ -796,21 +997,23 @@ export default function WorkoutScreen() {
         <View style={{ height: 40 }} />
       </ScrollView>
 
-      {/* Timer overlay: rest / work / amrap */}
+      {/* Timer overlay: rest / work / amrap / for_time */}
       <Modal visible={overlay !== null} animationType="slide" transparent>
         <View style={styles.restBackdrop}>
           <View style={styles.restSheet}>
-            {overlay === "work" && currentEx.mode === "emom" && currentEx.emomBlock ? (
-              <EmomLiveOverlay
+            {showLiveOverlay ? (
+              <ExerciseLiveOverlay
+                variant={liveOverlayVariant}
+                eyebrow={liveOverlayEyebrow}
                 exerciseName={currentEx.name}
                 targetReps={currentEx.targetReps}
                 notes={currentEx.notes}
-                roundIndex={currentEx.emomBlock.roundIndex}
-                totalRounds={currentEx.emomBlock.totalRounds}
-                blockTitle={currentEx.emomBlock.title}
                 remaining={overlayRemaining}
                 total={overlayTotal}
                 thumbnailSource={illustrationSource}
+                compositeItems={compositeItems}
+                records={allRecords}
+                stepper={liveOverlayStepper}
                 onAddTime={addTime}
                 onSkip={skipOverlay}
               />
@@ -819,33 +1022,17 @@ export default function WorkoutScreen() {
             <Text
               style={[
                 styles.restLabel,
-                overlay === "work" &&
-                  currentEx.mode === "emom" && { color: colors.warning },
-                overlay === "work" &&
-                  currentEx.mode !== "emom" && { color: colors.success },
-                overlay === "amrap" && { color: colors.warning },
+                overlay === "work" && { color: colors.success },
               ]}
             >
               {overlay === "rest"
                 ? "TEMPS DE PAUSE"
-                : overlay === "work"
-                  ? currentEx.mode === "emom"
-                    ? `EMOM · ROUND ${(overlaySetIdx ?? 0) + 1}/${currentEx.sets.length}`
-                    : `EFFORT · ${currentEx.name.toUpperCase()}`
-                  : `AMRAP · ${currentEx.name.toUpperCase()}`}
+                : `EFFORT · ${currentEx.name.toUpperCase()}`}
             </Text>
             <TimerCircle
               remaining={overlayRemaining}
               total={Math.max(1, overlayTotal)}
-              color={
-                overlay === "rest"
-                  ? colors.brand
-                  : overlay === "work"
-                    ? currentEx.mode === "emom"
-                      ? colors.warning
-                      : colors.success
-                    : colors.warning
-              }
+              color={overlay === "rest" ? colors.brand : colors.success}
             />
             {overlay === "rest" && pendingResume && (
               <View style={styles.nextUpBox} testID="rest-next-up">
@@ -856,31 +1043,6 @@ export default function WorkoutScreen() {
                     ? `${currentEx.name} — série ${pendingResume.setIdx + 1}/${currentEx.sets.length}`
                     : logs[pendingResume.exI]?.name}
                 </Text>
-              </View>
-            )}
-            {overlay === "amrap" && (
-              <View style={styles.amrapCounter}>
-                <Pressable
-                  testID="amrap-minus"
-                  style={styles.roundBtn}
-                  onPress={() => setAmrapRounds((r) => Math.max(0, r - 1))}
-                >
-                  <Ionicons name="remove" size={22} color="#fff" />
-                </Pressable>
-                <View style={styles.amrapRoundsBox}>
-                  <Text style={styles.amrapRoundsBig}>{amrapRounds}</Text>
-                  <Text style={styles.amrapRoundsLbl}>TOURS</Text>
-                </View>
-                <Pressable
-                  testID="amrap-plus"
-                  style={[styles.roundBtn, styles.roundBtnPrimary]}
-                  onPress={() => {
-                    setAmrapRounds((r) => r + 1);
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  }}
-                >
-                  <Ionicons name="add" size={22} color="#fff" />
-                </Pressable>
               </View>
             )}
             <View style={styles.restBtnsRow}>
@@ -948,9 +1110,21 @@ function buildStatChips(
     chips.push({ icon: "repeat-outline", value: `${completedSets}/${ex.targetSets}`, label: "Rounds" });
     chips.push({ icon: "stopwatch-outline", value: formatDur(ex.targetDurationSeconds ?? 60), label: "Round" });
     chips.push({ icon: "flag-outline", value: ex.targetReps, label: "Cible" });
+  } else if (ex.mode === "for_time") {
+    chips.push({ icon: "stopwatch-outline", value: formatDur(ex.targetDurationSeconds ?? 0), label: "Cap" });
+    chips.push({ icon: "flag-outline", value: String(ex.targetRounds ?? 0), label: "Tours cible" });
   } else {
     chips.push({ icon: "stopwatch-outline", value: formatDur(ex.targetDurationSeconds ?? 0), label: "AMRAP" });
     chips.push({ icon: "layers-outline", value: `${completedSets}/${ex.targetSets}`, label: "Séries" });
+  }
+  // Tours : indicateur "Round X/N" toujours affiché en premier, quel que
+  // soit le mode réel (reps/time) de l'exercice généré.
+  if (ex.roundBlock) {
+    chips.unshift({
+      icon: "repeat-outline",
+      value: `${ex.roundBlock.roundIndex + 1}/${ex.roundBlock.totalRounds}`,
+      label: "Tour",
+    });
   }
   return chips;
 }

@@ -19,7 +19,10 @@ import { PLAN_TYPE_COLORS } from "@/src/utils/plan-type-colors";
 import { programIconFor } from "@/src/utils/program-goal-icon";
 import ExerciseThumbnail from "@/src/components/ExerciseThumbnail";
 import ExercisePicturePicker from "@/src/components/ExercisePicturePicker";
-import { ExerciseRecord, getExerciseRecords } from "@/src/utils/exercise-records";
+import { ExerciseRecord, getExerciseRecords, saveExerciseRecord } from "@/src/utils/exercise-records";
+import { matchExerciseRecord } from "@/src/utils/exercise-record-match";
+import { learnAlias } from "@/src/utils/exercise-matching";
+import ExerciseLinkModal from "@/src/components/ExerciseLinkModal";
 import DurationField from "@/src/components/DurationField";
 import { useConfirmDialog } from "@/src/hooks/use-confirm-dialog";
 import {
@@ -45,6 +48,11 @@ import {
 } from "@/src/utils/gym-storage";
 import { estimateSessionDurationSeconds, formatEstimatedDuration } from "@/src/utils/session-estimate";
 import ExerciseLibraryPicker from "@/src/components/ExerciseLibraryPicker";
+import { parseCompositeExerciseName, splitCompositeItemQuantity } from "@/src/utils/composite-exercise";
+import CircuitCardListEditor, {
+  CircuitCardDraft,
+  newCircuitCard,
+} from "@/src/components/CircuitCardListEditor";
 
 const LEVELS: ProgramLevel[] = ["debutant", "intermediaire", "avance"];
 const MODES: { key: ExerciseMode; label: string }[] = [
@@ -52,10 +60,47 @@ const MODES: { key: ExerciseMode; label: string }[] = [
   { key: "time", label: "TIME" },
   { key: "amrap", label: "AMRAP" },
   { key: "emom", label: "EMOM" },
+  { key: "for_time", label: "FOR TIME" },
 ];
 
 function emptyDay(): ProgramDay {
   return { rest: true, title: "Repos", sessions: [] };
+}
+
+/** Même convention que `plan/[id].tsx` (`composeCircuitFromCards`) — voir
+ * ce fichier pour la doc complète. Dupliqué plutôt qu'importé : les deux
+ * écrans opèrent sur des types distincts (`Exercise` vs `ExerciseTemplate`)
+ * et n'ont pas de module utilitaire partagé pour ce genre d'aide UI-only. */
+function composeCircuitFromCards(
+  cards: CircuitCardDraft[],
+  prefix: string,
+): { name: string; notes: string | null; exerciseRecordId: string | null } {
+  const filled = cards.filter((c) => c.name.trim());
+  if (filled.length <= 1) {
+    const only = filled[0];
+    return {
+      name: only ? only.name.trim() : "Nouvel exercice",
+      notes: only?.reps.trim() ? only.reps.trim() : null,
+      exerciseRecordId: only?.exerciseRecordId ?? null,
+    };
+  }
+  const parts = filled.map((c) =>
+    c.reps.trim() ? `${c.reps.trim()} ${c.name.trim()}` : c.name.trim(),
+  );
+  return {
+    name: `${prefix} : ${parts.join(" → ")}`,
+    notes: null,
+    exerciseRecordId: filled[0].exerciseRecordId ?? null,
+  };
+}
+
+function titlePrefixForExercise(exercise: ExerciseTemplate): string {
+  if (exercise.mode === "for_time") {
+    const mm = Math.round((exercise.duration_seconds ?? 900) / 60);
+    return `FOR TIME (cap ${mm} min · ${exercise.targetRounds ?? 0} tours)`;
+  }
+  const mm = Math.round((exercise.duration_seconds ?? 600) / 60);
+  return `AMRAP ${mm} min`;
 }
 
 /** Résume le résultat d'un import (program-import.tsx / import-review) en une
@@ -80,7 +125,7 @@ function newSession(): ProgramSession {
     title: "Nouvelle séance",
     exercises: [
       {
-        name: "Exercice",
+        name: "",
         mode: "reps",
         sets: 3,
         reps: "10",
@@ -108,13 +153,34 @@ export default function CustomProgramEditor() {
   const [program, setProgram] = useState<Program | null>(null);
   const [selectedDay, setSelectedDay] = useState(1);
   const [pickingIdx, setPickingIdx] = useState<{ sessionIdx: number; exIdx: number } | null>(null);
-  // Cible la séance à laquelle ajouter un exercice depuis la bibliothèque —
+  // Un seul `ExerciseLibraryPicker` partagé, routé selon le contexte —
   // réutilise ExerciseLibraryPicker tel quel (comme plan/[id].tsx), aucun
-  // doublon de code.
-  const [libraryPickerSessionIdx, setLibraryPickerSessionIdx] = useState<number | null>(null);
+  // doublon de code : ajout classique à une séance, ou sélection pour une
+  // carte de circuit (d'un exercice existant ou du brouillon Tours).
+  const [libraryTarget, setLibraryTarget] = useState<
+    | { kind: "add"; sessionIdx: number }
+    | { kind: "card"; sessionIdx: number; exIdx: number; cardId: string }
+    | { kind: "tours-card"; sessionIdx: number; cardId: string }
+    | null
+  >(null);
   const [importOpen, setImportOpen] = useState(false);
   const [availablePlans, setAvailablePlans] = useState<Plan[]>([]);
   const [records, setRecords] = useState<ExerciseRecord[]>([]);
+  // Cartes du générateur de circuit (AMRAP/For Time), UI-only — voir
+  // `composeCircuitFromCards`. Clé = `${selectedDay}-${sessionIdx}-${exIdx}`
+  // pour ne jamais collisionner entre jours.
+  const [circuitCards, setCircuitCards] = useState<Record<string, CircuitCardDraft[]>>({});
+  // Brouillon du bloc Tours — même principe que `plan/[id].tsx`, scopé à une
+  // séance précise (`toursBuilderSessionIdx`) puisqu'un bloc Tours s'ajoute
+  // aux exercices d'UNE séance.
+  const [toursBuilderSessionIdx, setToursBuilderSessionIdx] = useState<number | null>(null);
+  const [toursCards, setToursCards] = useState<CircuitCardDraft[]>([newCircuitCard()]);
+  const [toursRounds, setToursRounds] = useState(3);
+  const [toursRestSeconds, setToursRestSeconds] = useState(0);
+  // Même mécanisme que `plan/[id].tsx` (`linkingExerciseId`/`ExerciseLinkModal`)
+  // — absent jusqu'ici dans cet écran, ajouté pour la parité de liaison
+  // bibliothèque entre les deux éditeurs.
+  const [linkingExercise, setLinkingExercise] = useState<{ sessionIdx: number; exIdx: number } | null>(null);
   const { confirm, ConfirmModal } = useConfirmDialog();
 
   useEffect(() => {
@@ -191,6 +257,197 @@ export default function CustomProgramEditor() {
       return { ...p, days };
     });
   }, []);
+
+  /** Lie l'exercice `(sessionIdx, exIdx)` (texte libre) au `record` choisi —
+   * même mécanisme que `plan/[id].tsx` (`linkExerciseToRecord`), absent
+   * jusqu'ici de cet écran. */
+  const linkExerciseToRecord = async (
+    sessionIdx: number,
+    exIdx: number,
+    rawName: string,
+    record: ExerciseRecord,
+  ) => {
+    const learned = learnAlias(record, rawName);
+    if (learned !== record) {
+      await saveExerciseRecord(learned);
+      setRecords((prev) => prev.map((r) => (r.id === learned.id ? learned : r)));
+    }
+    updateDay(selectedDay, (d) => ({
+      ...d,
+      sessions: d.sessions.map((s, si) =>
+        si !== sessionIdx
+          ? s
+          : {
+              ...s,
+              exercises: s.exercises.map((ex, ei) =>
+                ei !== exIdx ? ex : { ...ex, exerciseRecordId: learned.id, matchConfidence: "manual" },
+              ),
+            },
+      ),
+    }));
+    setLinkingExercise(null);
+  };
+
+  /** Cartes du circuit pour l'exercice `(sessionIdx, exIdx)` du jour
+   * sélectionné — même logique de dérivation que `plan/[id].tsx`. */
+  const getCircuitCardsFor = (
+    sessionIdx: number,
+    exIdx: number,
+    exercise: ExerciseTemplate,
+  ): CircuitCardDraft[] => {
+    const key = `${selectedDay}-${sessionIdx}-${exIdx}`;
+    const existing = circuitCards[key];
+    if (existing) return existing;
+    const parsed = parseCompositeExerciseName(exercise.name);
+    const seeded: CircuitCardDraft[] =
+      parsed && parsed.length > 0
+        ? parsed.map((item) => {
+            const { reps, name } = splitCompositeItemQuantity(item);
+            return {
+              id: uid(),
+              name,
+              exerciseRecordId: matchExerciseRecord(name, records)?.id ?? null,
+              reps,
+            };
+          })
+        : [
+            {
+              id: uid(),
+              name: exercise.name,
+              exerciseRecordId: (exercise as any).exerciseRecordId ?? null,
+              reps: exercise.notes || "",
+            },
+          ];
+    setCircuitCards((prev) => (prev[key] ? prev : { ...prev, [key]: seeded }));
+    return seeded;
+  };
+
+  const applyCircuitCardsFor = (
+    sessionIdx: number,
+    exIdx: number,
+    exercise: ExerciseTemplate,
+    cards: CircuitCardDraft[],
+  ) => {
+    const key = `${selectedDay}-${sessionIdx}-${exIdx}`;
+    setCircuitCards((prev) => ({ ...prev, [key]: cards }));
+    const composed = composeCircuitFromCards(cards, titlePrefixForExercise(exercise));
+    updateDay(selectedDay, (d) => ({
+      ...d,
+      sessions: d.sessions.map((s, si) =>
+        si !== sessionIdx
+          ? s
+          : {
+              ...s,
+              exercises: s.exercises.map((ex, ei) =>
+                ei !== exIdx
+                  ? ex
+                  : {
+                      ...ex,
+                      name: composed.name,
+                      notes: composed.notes,
+                      exerciseRecordId: composed.exerciseRecordId,
+                      matchConfidence: composed.exerciseRecordId ? "manual" : null,
+                    },
+              ),
+            },
+      ),
+    }));
+  };
+
+  /** Génère un bloc EMOM round-robin dans la séance `sessionIdx` — miroir de
+   * `applyEmomBlock` (`plan/[id].tsx`) : remplace le SEUL exercice stub édité
+   * `(sessionIdx, exIdx)` par `totalMinutes` `ExerciseTemplate` distinctes,
+   * les cartes tournant en boucle. */
+  const applyEmomBlockToSession = (
+    sessionIdx: number,
+    exIdx: number,
+    cards: CircuitCardDraft[],
+    totalMinutes: number,
+  ) => {
+    const filled = cards.filter((c) => c.name.trim());
+    if (filled.length === 0 || totalMinutes < 1) return;
+    const blockId = uid();
+    const title = `EMOM ${totalMinutes} min`;
+    const generated: ExerciseTemplate[] = Array.from({ length: totalMinutes }, (_, roundIndex) => {
+      const card = filled[roundIndex % filled.length];
+      return {
+        name: card.name.trim(),
+        mode: "emom",
+        sets: 1,
+        reps: card.reps.trim() || "",
+        weight: null,
+        rest_seconds: 0,
+        duration_seconds: 60,
+        notes: card.reps.trim() || null,
+        exerciseRecordId: card.exerciseRecordId ?? null,
+        matchConfidence: card.exerciseRecordId ? "manual" : null,
+        emomBlock: { blockId, roundIndex, totalRounds: totalMinutes, title },
+      } as ExerciseTemplate;
+    });
+    updateDay(selectedDay, (d) => ({
+      ...d,
+      sessions: d.sessions.map((s, si) =>
+        si !== sessionIdx
+          ? s
+          : { ...s, exercises: s.exercises.flatMap((e, ei) => (ei === exIdx ? generated : [e])) },
+      ),
+    }));
+    const key = `${selectedDay}-${sessionIdx}-${exIdx}`;
+    setCircuitCards((prev) => {
+      const { [key]: _, ...rest } = prev;
+      return rest;
+    });
+  };
+
+  /** Génère un bloc Tours dans la séance `sessionIdx` du jour sélectionné —
+   * même convention d'aplatissement que `plan/[id].tsx` (`addToursBlock`). */
+  const addToursBlockToSession = (
+    sessionIdx: number,
+    sequence: CircuitCardDraft[],
+    rounds: number,
+    restSeconds: number,
+  ) => {
+    const filled = sequence.filter((c) => c.name.trim());
+    if (filled.length === 0 || rounds < 1) return;
+    const blockId = uid();
+    const generated: ExerciseTemplate[] = [];
+    for (let roundIndex = 0; roundIndex < rounds; roundIndex++) {
+      filled.forEach((card, sequenceIndex) => {
+        const isLastOfRound = sequenceIndex === filled.length - 1;
+        const isLastRound = roundIndex === rounds - 1;
+        generated.push({
+          name: card.name.trim(),
+          mode: "reps",
+          sets: 1,
+          reps: card.reps.trim() || "10",
+          weight: null,
+          rest_seconds: isLastOfRound && !isLastRound ? restSeconds : 0,
+          duration_seconds: null,
+          notes: null,
+          exerciseRecordId: card.exerciseRecordId ?? null,
+          matchConfidence: card.exerciseRecordId ? "manual" : null,
+          roundBlock: {
+            blockId,
+            roundIndex,
+            totalRounds: rounds,
+            sequenceIndex,
+            sequenceLength: filled.length,
+            title: null,
+          },
+        } as ExerciseTemplate);
+      });
+    }
+    updateDay(selectedDay, (d) => ({
+      ...d,
+      sessions: d.sessions.map((s, si) =>
+        si !== sessionIdx ? s : { ...s, exercises: [...s.exercises, ...generated] },
+      ),
+    }));
+    setToursBuilderSessionIdx(null);
+    setToursCards([newCircuitCard()]);
+    setToursRounds(3);
+    setToursRestSeconds(0);
+  };
 
   const setDuration = (n: number) => {
     if (!program) return;
@@ -508,30 +765,90 @@ export default function CustomProgramEditor() {
               {!currentDay.rest && (
                 <>
                   {currentDay.sessions.map((s, si) => (
-                    <SessionEditor
-                      key={si}
-                      session={s}
-                      onChange={(patch) =>
-                        updateDay(selectedDay, (d) => ({
-                          ...d,
-                          sessions: d.sessions.map((x, i) =>
-                            i === si ? { ...x, ...patch } : x,
-                          ),
-                        }))
-                      }
-                      onRemove={() =>
-                        updateDay(selectedDay, (d) => ({
-                          ...d,
-                          sessions: d.sessions.filter((_, i) => i !== si),
-                        }))
-                      }
-                      onPickExercisePic={(exIdx) =>
-                        setPickingIdx({ sessionIdx: si, exIdx })
-                      }
-                      onAddFromLibrary={() => setLibraryPickerSessionIdx(si)}
-                      index={si}
-                      records={records}
-                    />
+                    <View key={si}>
+                      <SessionEditor
+                        session={s}
+                        onChange={(patch) =>
+                          updateDay(selectedDay, (d) => ({
+                            ...d,
+                            sessions: d.sessions.map((x, i) =>
+                              i === si ? { ...x, ...patch } : x,
+                            ),
+                          }))
+                        }
+                        onRemove={() =>
+                          updateDay(selectedDay, (d) => ({
+                            ...d,
+                            sessions: d.sessions.filter((_, i) => i !== si),
+                          }))
+                        }
+                        onPickExercisePic={(exIdx) =>
+                          setPickingIdx({ sessionIdx: si, exIdx })
+                        }
+                        onAddFromLibrary={() => setLibraryTarget({ kind: "add", sessionIdx: si })}
+                        index={si}
+                        records={records}
+                        getCircuitCards={(exIdx, exercise) => getCircuitCardsFor(si, exIdx, exercise)}
+                        onCircuitCardsChange={(exIdx, exercise, cards) =>
+                          applyCircuitCardsFor(si, exIdx, exercise, cards)
+                        }
+                        onOpenCardPicker={(exIdx, cardId) =>
+                          setLibraryTarget({ kind: "card", sessionIdx: si, exIdx, cardId })
+                        }
+                        onOpenToursBuilder={() => setToursBuilderSessionIdx(si)}
+                        onRequestLink={(exIdx) => setLinkingExercise({ sessionIdx: si, exIdx })}
+                        onGenerateEmom={(exIdx, cards, minutes) =>
+                          applyEmomBlockToSession(si, exIdx, cards, minutes)
+                        }
+                      />
+                      {toursBuilderSessionIdx === si && (
+                        <View style={styles.exCard} testID={`tours-builder-${si}`}>
+                          <Text style={styles.toursBuilderTitle}>Bloc Tours</Text>
+                          <Text style={styles.miniLabel}>
+                            Séquence répétée N fois, enchaînement automatique.
+                          </Text>
+                          <CircuitCardListEditor
+                            cards={toursCards}
+                            onChange={setToursCards}
+                            records={records}
+                            onOpenPicker={(cardId) => setLibraryTarget({ kind: "tours-card", sessionIdx: si, cardId })}
+                          />
+                          <Pressable
+                            testID="tours-add-card-btn"
+                            style={styles.addCardBtn}
+                            onPress={() => setToursCards((prev) => [...prev, newCircuitCard()])}
+                          >
+                            <Ionicons name="add" size={14} color={colors.brand} />
+                            <Text style={styles.addCardBtnText}>Ajouter un exercice</Text>
+                          </Pressable>
+                          <View style={styles.fieldsRow}>
+                            <MiniField
+                              label="Nombre de tours"
+                              value={String(toursRounds)}
+                              keyboard="number-pad"
+                              onChange={(t) => setToursRounds(parseInt(t || "0", 10) || 0)}
+                              testID="tours-rounds"
+                            />
+                            <DurationField
+                              label="Repos entre tours"
+                              valueSeconds={toursRestSeconds}
+                              onChange={setToursRestSeconds}
+                              testID="tours-rest"
+                            />
+                          </View>
+                          <Pressable
+                            testID="tours-generate-btn"
+                            style={styles.addExBtn}
+                            onPress={() => addToursBlockToSession(si, toursCards, toursRounds, toursRestSeconds)}
+                          >
+                            <Ionicons name="checkmark" size={14} color={colors.brand} />
+                            <Text style={styles.addExText}>
+                              Générer {toursRounds * toursCards.filter((c) => c.name.trim()).length || ""} exercices
+                            </Text>
+                          </Pressable>
+                        </View>
+                      )}
+                    </View>
                   ))}
                   <View style={styles.addSessRow}>
                     <Pressable
@@ -653,37 +970,94 @@ export default function CustomProgramEditor() {
         }}
       />
       <ExerciseLibraryPicker
-        visible={libraryPickerSessionIdx !== null}
-        onClose={() => setLibraryPickerSessionIdx(null)}
-        onPick={(name) => {
-          if (libraryPickerSessionIdx === null) return;
-          const targetSessionIdx = libraryPickerSessionIdx;
-          updateDay(selectedDay, (d) => ({
-            ...d,
-            sessions: d.sessions.map((s, si) =>
-              si !== targetSessionIdx
-                ? s
-                : {
-                    ...s,
-                    exercises: [
-                      ...s.exercises,
-                      {
-                        name,
-                        mode: "reps",
-                        sets: 3,
-                        reps: "10",
-                        weight: null,
-                        rest_seconds: 60,
-                        duration_seconds: null,
-                        notes: null,
-                      },
-                    ],
-                  },
-            ),
-          }));
-          setLibraryPickerSessionIdx(null);
+        visible={libraryTarget !== null}
+        onClose={() => setLibraryTarget(null)}
+        onPick={(name, exerciseRecordId) => {
+          if (!libraryTarget) return;
+          if (libraryTarget.kind === "add") {
+            const targetSessionIdx = libraryTarget.sessionIdx;
+            updateDay(selectedDay, (d) => ({
+              ...d,
+              sessions: d.sessions.map((s, si) =>
+                si !== targetSessionIdx
+                  ? s
+                  : {
+                      ...s,
+                      exercises: [
+                        ...s.exercises,
+                        {
+                          name,
+                          mode: "reps",
+                          sets: 3,
+                          reps: "10",
+                          weight: null,
+                          rest_seconds: 60,
+                          duration_seconds: null,
+                          notes: null,
+                          exerciseRecordId: exerciseRecordId ?? null,
+                          matchConfidence: exerciseRecordId ? "manual" : null,
+                        },
+                      ],
+                    },
+              ),
+            }));
+          } else if (libraryTarget.kind === "card") {
+            const { sessionIdx, exIdx, cardId } = libraryTarget;
+            const exercise = program.days[selectedDay - 1]?.sessions[sessionIdx]?.exercises[exIdx];
+            if (exercise) {
+              const cards = getCircuitCardsFor(sessionIdx, exIdx, exercise).map((c) =>
+                c.id === cardId ? { ...c, name, exerciseRecordId: exerciseRecordId ?? null } : c,
+              );
+              if (exercise.mode === "emom") {
+                const key = `${selectedDay}-${sessionIdx}-${exIdx}`;
+                setCircuitCards((prev) => ({ ...prev, [key]: cards }));
+              } else {
+                applyCircuitCardsFor(sessionIdx, exIdx, exercise, cards);
+              }
+            }
+          } else if (libraryTarget.kind === "tours-card") {
+            const { cardId } = libraryTarget;
+            setToursCards((prev) =>
+              prev.map((c) =>
+                c.id === cardId ? { ...c, name, exerciseRecordId: exerciseRecordId ?? null } : c,
+              ),
+            );
+          }
+          setLibraryTarget(null);
         }}
       />
+      {linkingExercise && (
+        <ExerciseLinkModal
+          rawName={
+            program.days[selectedDay - 1]?.sessions[linkingExercise.sessionIdx]
+              ?.exercises[linkingExercise.exIdx]?.name ?? ""
+          }
+          records={records}
+          onClose={() => setLinkingExercise(null)}
+          onPickRecord={(record) => {
+            const exercise =
+              program.days[selectedDay - 1]?.sessions[linkingExercise.sessionIdx]
+                ?.exercises[linkingExercise.exIdx];
+            if (exercise) {
+              linkExerciseToRecord(linkingExercise.sessionIdx, linkingExercise.exIdx, exercise.name, record);
+            }
+          }}
+          onCreateRecord={async (nameFr, category, equipment) => {
+            const record: ExerciseRecord = {
+              id: uid(),
+              source: "custom",
+              nameFr,
+              nameEn: null,
+              category,
+              equipment,
+              createdAt: new Date().toISOString(),
+            };
+            await saveExerciseRecord(record);
+            setRecords((prev) => [...prev, record]);
+            await linkExerciseToRecord(linkingExercise.sessionIdx, linkingExercise.exIdx, nameFr, record);
+          }}
+        />
+      )}
       {ConfirmModal}
     </SafeAreaView>
   );
@@ -806,6 +1180,12 @@ function SessionEditor({
   onAddFromLibrary,
   index,
   records,
+  getCircuitCards,
+  onCircuitCardsChange,
+  onOpenCardPicker,
+  onOpenToursBuilder,
+  onRequestLink,
+  onGenerateEmom,
 }: {
   session: ProgramSession;
   onChange: (p: Partial<ProgramSession>) => void;
@@ -814,6 +1194,12 @@ function SessionEditor({
   onAddFromLibrary: () => void;
   index: number;
   records: ExerciseRecord[];
+  getCircuitCards: (exIdx: number, exercise: ExerciseTemplate) => CircuitCardDraft[];
+  onCircuitCardsChange: (exIdx: number, exercise: ExerciseTemplate, cards: CircuitCardDraft[]) => void;
+  onOpenCardPicker: (exIdx: number, cardId: string) => void;
+  onOpenToursBuilder: () => void;
+  onRequestLink: (exIdx: number) => void;
+  onGenerateEmom: (exIdx: number, cards: CircuitCardDraft[], totalMinutes: number) => void;
 }) {
   return (
     <View style={styles.sessBox} testID={`session-editor-${index}`}>
@@ -889,9 +1275,22 @@ function SessionEditor({
                 }
               : undefined
           }
+          circuitCards={getCircuitCards(ei, e)}
+          onCircuitCardsChange={(cards) => onCircuitCardsChange(ei, e, cards)}
+          onOpenCardPicker={(cardId) => onOpenCardPicker(ei, cardId)}
+          onRequestLink={() => onRequestLink(ei)}
+          onGenerateEmom={(cards, minutes) => onGenerateEmom(ei, cards, minutes)}
         />
       ))}
       <View style={styles.addExRow}>
+        <Pressable
+          testID={`add-tours-${index}`}
+          style={[styles.addExBtn, { flex: 1 }]}
+          onPress={onOpenToursBuilder}
+        >
+          <Ionicons name="repeat" size={14} color={colors.brand} />
+          <Text style={styles.addExText}>Tours</Text>
+        </Pressable>
         <Pressable
           testID={`add-ex-${index}`}
           style={[styles.addExBtn, { flex: 1 }]}
@@ -900,7 +1299,7 @@ function SessionEditor({
               exercises: [
                 ...session.exercises,
                 {
-                  name: "Exercice",
+                  name: "",
                   mode: "reps",
                   sets: 3,
                   reps: "10",
@@ -938,6 +1337,11 @@ function ExerciseEditor({
   onMoveUp,
   onMoveDown,
   records,
+  circuitCards,
+  onCircuitCardsChange,
+  onOpenCardPicker,
+  onRequestLink,
+  onGenerateEmom,
 }: {
   exercise: ExerciseTemplate;
   index: number;
@@ -947,25 +1351,41 @@ function ExerciseEditor({
   onMoveUp?: () => void;
   onMoveDown?: () => void;
   records: ExerciseRecord[];
+  circuitCards: CircuitCardDraft[];
+  onCircuitCardsChange: (cards: CircuitCardDraft[]) => void;
+  onOpenCardPicker: (cardId: string) => void;
+  onRequestLink: () => void;
+  onGenerateEmom: (cards: CircuitCardDraft[], totalMinutes: number) => void;
 }) {
+  const composite = parseCompositeExerciseName(exercise.name);
+  const needsLink = !composite && !exercise.exerciseRecordId && !matchExerciseRecord(exercise.name, records);
   const setMode = (m: ExerciseMode) => {
     const patch: Partial<ExerciseTemplate> = { mode: m };
     if (m === "reps") {
       patch.duration_seconds = null;
       patch.rest_seconds = exercise.rest_seconds || 60;
       patch.sets = exercise.sets || 3;
+      patch.targetRounds = null;
     } else if (m === "time") {
       patch.duration_seconds = exercise.duration_seconds || 30;
       patch.rest_seconds = exercise.rest_seconds || 30;
       patch.sets = exercise.sets || 3;
+      patch.targetRounds = null;
     } else if (m === "amrap") {
       patch.sets = 1;
       patch.duration_seconds = exercise.duration_seconds || 600;
       patch.rest_seconds = 0;
+      patch.targetRounds = null;
     } else if (m === "emom") {
       patch.sets = exercise.sets || 10;
       patch.duration_seconds = 60;
       patch.rest_seconds = 0;
+      patch.targetRounds = null;
+    } else if (m === "for_time") {
+      patch.sets = 1;
+      patch.duration_seconds = exercise.duration_seconds || 900;
+      patch.rest_seconds = 0;
+      patch.targetRounds = exercise.targetRounds || 3;
     }
     onChange(patch);
   };
@@ -979,6 +1399,7 @@ function ExerciseEditor({
             iconKey={(exercise as any).iconKey}
             name={exercise.name}
             records={records}
+            exerciseRecordId={exercise.exerciseRecordId}
             size={40}
           />
         </Pressable>
@@ -986,7 +1407,12 @@ function ExerciseEditor({
           testID={`ex-name-${index}`}
           style={styles.exNameInput}
           value={exercise.name}
-          onChangeText={(t) => onChange({ name: t })}
+          onChangeText={(t) => {
+            if (!exercise.name.trim() && t.trim() && !exercise.exerciseRecordId) {
+              onRequestLink();
+            }
+            onChange({ name: t });
+          }}
           placeholder="Nom de l'exercice"
           placeholderTextColor={colors.onSurfaceTertiary}
         />
@@ -1026,6 +1452,20 @@ function ExerciseEditor({
           />
         </Pressable>
       </View>
+
+      {needsLink && (
+        <Pressable
+          testID={`ex-link-${index}`}
+          style={styles.linkHint}
+          onPress={onRequestLink}
+        >
+          <Ionicons name="link-outline" size={12} color={colors.warning} />
+          <Text style={styles.linkHintText}>
+            Pas encore illustré — lier à la bibliothèque
+          </Text>
+          <Ionicons name="chevron-forward" size={12} color={colors.warning} />
+        </Pressable>
+      )}
 
       <View style={styles.modeRow}>
         {MODES.map((m) => {
@@ -1118,41 +1558,102 @@ function ExerciseEditor({
       )}
 
       {exercise.mode === "amrap" && (
-        <DurationField
-          label="Durée totale"
-          valueSeconds={exercise.duration_seconds ?? 600}
-          presetsSeconds={[300, 480, 600, 720, 900, 1200]}
-          onChange={(v) => onChange({ duration_seconds: v })}
-          testID={`ex-duration-${index}`}
-        />
+        <>
+          <DurationField
+            label="Durée totale"
+            valueSeconds={exercise.duration_seconds ?? 600}
+            presetsSeconds={[300, 480, 600, 720, 900, 1200]}
+            onChange={(v) => onChange({ duration_seconds: v })}
+            testID={`ex-duration-${index}`}
+          />
+          <CircuitCardListEditor
+            cards={circuitCards}
+            onChange={onCircuitCardsChange}
+            records={records}
+            onOpenPicker={onOpenCardPicker}
+          />
+          <Pressable
+            testID={`ex-add-card-${index}`}
+            style={styles.addCardBtn}
+            onPress={() => onCircuitCardsChange([...circuitCards, newCircuitCard()])}
+          >
+            <Ionicons name="add" size={14} color={colors.brand} />
+            <Text style={styles.addCardBtnText}>Ajouter un exercice</Text>
+          </Pressable>
+        </>
+      )}
+
+      {exercise.mode === "for_time" && (
+        <>
+          <View style={styles.fieldsRow}>
+            <DurationField
+              label="Cap chrono"
+              valueSeconds={exercise.duration_seconds ?? 900}
+              presetsSeconds={[300, 600, 720, 900, 1200, 1500]}
+              onChange={(v) => onChange({ duration_seconds: v })}
+              testID={`ex-duration-${index}`}
+            />
+            <MiniField
+              label="Tours cible"
+              value={String(exercise.targetRounds ?? 1)}
+              keyboard="number-pad"
+              onChange={(t) => onChange({ targetRounds: parseInt(t || "0", 10) || 0 })}
+              testID={`ex-target-rounds-${index}`}
+            />
+          </View>
+          <CircuitCardListEditor
+            cards={circuitCards}
+            onChange={onCircuitCardsChange}
+            records={records}
+            onOpenPicker={onOpenCardPicker}
+          />
+          <Pressable
+            testID={`ex-add-card-${index}`}
+            style={styles.addCardBtn}
+            onPress={() => onCircuitCardsChange([...circuitCards, newCircuitCard()])}
+          >
+            <Ionicons name="add" size={14} color={colors.brand} />
+            <Text style={styles.addCardBtnText}>Ajouter un exercice</Text>
+          </Pressable>
+        </>
       )}
 
       {exercise.mode === "emom" && (
         <>
           <View style={styles.fieldsRow}>
             <MiniField
-              label="Rounds (min)"
+              label="Durée totale (minutes)"
               value={String(exercise.sets)}
               keyboard="number-pad"
-              onChange={(t) =>
-                onChange({ sets: parseInt(t || "0", 10) || 0 })
-              }
+              onChange={(t) => onChange({ sets: parseInt(t || "0", 10) || 0 })}
               testID={`ex-sets-${index}`}
             />
-            <MiniField
-              label="Reps / round"
-              value={exercise.reps}
-              onChange={(t) => onChange({ reps: t })}
-              testID={`ex-reps-${index}`}
-            />
           </View>
-          <DurationField
-            label="Durée round"
-            valueSeconds={exercise.duration_seconds ?? 60}
-            presetsSeconds={[30, 45, 60, 90, 120]}
-            onChange={(v) => onChange({ duration_seconds: v })}
-            testID={`ex-duration-${index}`}
+          <Text style={styles.miniLabel}>
+            Construis les mouvements qui tournent minute par minute, puis génère les rounds.
+          </Text>
+          <CircuitCardListEditor
+            cards={circuitCards}
+            onChange={onCircuitCardsChange}
+            records={records}
+            onOpenPicker={onOpenCardPicker}
           />
+          <Pressable
+            testID={`ex-add-card-${index}`}
+            style={styles.addCardBtn}
+            onPress={() => onCircuitCardsChange([...circuitCards, newCircuitCard()])}
+          >
+            <Ionicons name="add" size={14} color={colors.brand} />
+            <Text style={styles.addCardBtnText}>Ajouter un exercice</Text>
+          </Pressable>
+          <Pressable
+            testID={`ex-generate-emom-${index}`}
+            style={styles.addExBtn}
+            onPress={() => onGenerateEmom(circuitCards, exercise.sets)}
+          >
+            <Ionicons name="checkmark" size={14} color={colors.brand} />
+            <Text style={styles.addExText}>Générer {exercise.sets} exercices</Text>
+          </Pressable>
         </>
       )}
 
@@ -1202,6 +1703,17 @@ function MiniField({
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.surface },
   loading: { color: colors.onSurfaceTertiary, textAlign: "center", marginTop: 40 },
+  linkHint: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: colors.surfaceTertiary,
+    borderRadius: radius.sm,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    marginBottom: spacing.sm,
+  },
+  linkHintText: { flex: 1, color: colors.warning, fontSize: 11, fontWeight: "600" },
   importSummaryBanner: {
     flexDirection: "row",
     alignItems: "center",
@@ -1485,6 +1997,24 @@ const styles = StyleSheet.create({
   addExRow: {
     flexDirection: "row",
     gap: spacing.sm,
+  },
+  toursBuilderTitle: {
+    color: colors.onSurface,
+    fontWeight: "800",
+    fontSize: 15,
+    marginBottom: 4,
+  },
+  addCardBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    alignSelf: "flex-start",
+    paddingVertical: 6,
+  },
+  addCardBtnText: {
+    color: colors.brand,
+    fontWeight: "700",
+    fontSize: 12,
   },
   addSessBtn: {
     flexDirection: "row",

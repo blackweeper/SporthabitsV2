@@ -564,7 +564,14 @@ function ProgramHistoryPanel({
               {s.exercises.length > 0 && (
                 <View style={styles.sessionThumbRow}>
                   {s.exercises.slice(0, 3).map((ex, i) => (
-                    <ExerciseThumbnail key={i} name={ex.name} records={records} size={24} square />
+                    <ExerciseThumbnail
+                      key={i}
+                      name={ex.name}
+                      records={records}
+                      exerciseRecordId={ex.libraryExerciseId}
+                      size={24}
+                      square
+                    />
                   ))}
                 </View>
               )}
@@ -748,7 +755,14 @@ function SwipeableSessionRow({
         {s.exercises.length > 0 && (
           <View style={styles.sessionThumbRow}>
             {s.exercises.slice(0, 4).map((ex, i) => (
-              <ExerciseThumbnail key={i} name={ex.name} records={records} size={24} square />
+              <ExerciseThumbnail
+                key={i}
+                name={ex.name}
+                records={records}
+                exerciseRecordId={ex.libraryExerciseId}
+                size={24}
+                square
+              />
             ))}
           </View>
         )}
@@ -1179,6 +1193,7 @@ function WodRow({
             records={records}
             photoBase64={firstEx.photoBase64}
             iconKey={firstEx.iconKey}
+            exerciseRecordId={firstEx.exerciseRecordId}
             size={48}
           />
         )}
@@ -1249,6 +1264,7 @@ function SwipeablePlanRow({
             records={records}
             photoBase64={firstEx.photoBase64}
             iconKey={firstEx.iconKey}
+            exerciseRecordId={firstEx.exerciseRecordId}
             size={48}
           />
         )}

@@ -17,11 +17,17 @@ import { iconEmojiForExercise } from "@/src/data/exercise-icons";
 function CompositePanel({
   name,
   records,
-  isLast,
+  widthPct,
+  rowHeight,
+  showRightBorder,
+  showBottomBorder,
 }: {
   name: string;
   records: ExerciseRecord[];
-  isLast: boolean;
+  widthPct: number;
+  rowHeight: number;
+  showRightBorder: boolean;
+  showBottomBorder: boolean;
 }) {
   // Résolution sur le nom nettoyé (sans quantité/distance/charge — "250m
   // Rameur" -> "Rameur") : la quantité en tête ne matche jamais un nom de
@@ -34,7 +40,14 @@ function CompositePanel({
   const source = bundled ?? (networkUri ? { uri: networkUri } : null);
 
   return (
-    <View style={[styles.panel, !isLast && styles.panelDivider]}>
+    <View
+      style={[
+        styles.panel,
+        { width: `${widthPct}%`, height: rowHeight },
+        showRightBorder && styles.panelDividerRight,
+        showBottomBorder && styles.panelDividerBottom,
+      ]}
+    >
       {source ? (
         <Image source={source} style={StyleSheet.absoluteFillObject} resizeMode="cover" />
       ) : (
@@ -58,9 +71,12 @@ function CompositePanel({
  * Montage visuel d'une entrée d'exercice composite (AMRAP/EMOM/relais — voir
  * `parseCompositeExerciseName`) : une seule image, découpée en autant de
  * panneaux que de mouvements réels du circuit, chacun collé à son voisin
- * (pas de vignettes séparées) — remplace l'ancienne rangée de chips
- * indépendants par une vraie image composite unique. Purement visuel : ne
- * change rien au lancement de la séance.
+ * (pas de vignettes séparées). Grille avec wrap — 3 panneaux max côte à côte
+ * puis passage à la ligne suivante — pour rester lisible sur mobile même
+ * avec de nombreux segments (WOD à 5-6 mouvements) : au-delà de 3, un
+ * `flex:1` sans limite écrasait chaque panneau en bande verticale illisible.
+ * `height` désigne désormais la hauteur d'UNE ligne (le montage grandit
+ * naturellement avec le nombre de lignes), pas la hauteur totale figée.
  */
 export default function CompositeExerciseImage({
   items,
@@ -73,13 +89,28 @@ export default function CompositeExerciseImage({
   height?: number;
   showLabel?: boolean;
 }) {
+  const columns = Math.min(3, items.length) || 1;
+  const totalRows = Math.ceil(items.length / columns);
   return (
     <View style={styles.wrap}>
       {showLabel && <Text style={styles.label}>COMPOSÉ DE</Text>}
-      <View style={[styles.frame, { height }]}>
-        {items.map((item, i) => (
-          <CompositePanel key={`${item}-${i}`} name={item} records={records} isLast={i === items.length - 1} />
-        ))}
+      <View style={styles.frame}>
+        {items.map((item, i) => {
+          const rowIndex = Math.floor(i / columns);
+          const isRowEnd = (i + 1) % columns === 0 || i === items.length - 1;
+          const isLastRow = rowIndex === totalRows - 1;
+          return (
+            <CompositePanel
+              key={`${item}-${i}`}
+              name={item}
+              records={records}
+              widthPct={100 / columns}
+              rowHeight={height}
+              showRightBorder={!isRowEnd}
+              showBottomBorder={!isLastRow}
+            />
+          );
+        })}
       </View>
     </View>
   );
@@ -95,14 +126,16 @@ const styles = StyleSheet.create({
   },
   frame: {
     flexDirection: "row",
+    flexWrap: "wrap",
     borderRadius: radius.md,
     overflow: "hidden",
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.surfaceTertiary,
   },
-  panel: { flex: 1, position: "relative" },
-  panelDivider: { borderRightWidth: 1, borderRightColor: withAlpha("#000000", 30) },
+  panel: { position: "relative" },
+  panelDividerRight: { borderRightWidth: 1, borderRightColor: withAlpha("#000000", 30) },
+  panelDividerBottom: { borderBottomWidth: 1, borderBottomColor: withAlpha("#000000", 30) },
   panelFallback: { alignItems: "center", justifyContent: "center", backgroundColor: colors.brandTertiary },
   panelEmoji: { fontSize: 26 },
   panelGradient: { position: "absolute", left: 0, right: 0, bottom: 0, height: "55%" },

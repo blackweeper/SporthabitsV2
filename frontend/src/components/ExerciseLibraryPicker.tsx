@@ -76,7 +76,10 @@ export default function ExerciseLibraryPicker({
 }: {
   visible: boolean;
   onClose: () => void;
-  onPick: (name: string) => void;
+  /** `exerciseRecordId` additif — `null`/absent pour un exercice personnalisé
+   * ou la création rapide ; les appelants existants qui n'utilisent que
+   * `name` continuent de fonctionner sans changement. */
+  onPick: (name: string, exerciseRecordId?: string | null) => void;
 }) {
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState<LibTab>("all");
@@ -269,7 +272,7 @@ export default function ExerciseLibraryPicker({
                 // volontairement distincte du bouton dédié ci-dessous.
                 // L'ajout automatique par usage réel relève de l'Étape G
                 // (pas encore construite), pas de ce picker.
-                onPress={() => onPick(item.name)}
+                onPress={() => onPick(item.name, item.isCustom ? null : item.id)}
               >
                 <PickerRowImage item={item} color={color} />
                 <View style={{ flex: 1 }}>

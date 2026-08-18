@@ -798,7 +798,7 @@ export default function ExerciseDetailFiche() {
                         style={styles.similarCard}
                         onPress={() => router.push(`/exercise-detail/${encodeURIComponent(r.nameFr)}` as any)}
                       >
-                        <ExerciseThumbnail name={r.nameFr} records={allRecords} size={44} square />
+                        <ExerciseThumbnail name={r.nameFr} records={allRecords} exerciseRecordId={r.id} size={44} square />
                         <Text style={styles.similarCardText} numberOfLines={2}>
                           {r.nameFr}
                         </Text>

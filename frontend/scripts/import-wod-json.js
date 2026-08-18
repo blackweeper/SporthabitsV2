@@ -40,30 +40,30 @@ const CATALOG_MAP = {
   pull_up: 'wx_0652',
   strict_pull_up: 'sys_tractions_strictes',
   push_up: 'wx_0662',
-  hand_release_push_up: null,
+  hand_release_push_up: 'if_0102',
   air_squat: 'sys_air_squat',
   squat_jump: 'wx_0514',
   walking_lunge: 'wx_1460',
   alternating_lunge: 'wx_1460',
-  weighted_lunge: null,
+  weighted_lunge: 'if_0103',
   sandbag_lunge: 'sys_fente_avec_sac_de_sable_sandbag_lunge',
   sit_up: 'wx_0001',
   abmat_sit_up: 'wx_0001',
   burpee: 'wx_1160',
-  burpee_broad_jump: null,
-  bar_facing_burpee: null,
-  burpee_box_jump: null,
+  burpee_broad_jump: 'if_0104',
+  bar_facing_burpee: 'if_0105',
+  burpee_box_jump: 'if_0106',
   box_jump: 'sys_box_jump_box_jump_over',
   box_jump_over: 'sys_box_jump_box_jump_over',
   medball_box_step_over: 'sys_step_over_sur_boite_avec_medecine_ball',
-  lateral_box_step_over: null,
-  wall_walk: null,
+  lateral_box_step_over: 'if_0107',
+  wall_walk: 'if_0108',
   wall_sit: 'sys_wall_sit_chaise',
   mountain_climber: 'wx_0630',
-  toes_to_bar: null,
-  ring_muscle_up: null,
+  toes_to_bar: 'if_0109',
+  ring_muscle_up: 'if_0110',
   run: 'wx_0685',
-  swim: null,
+  swim: 'if_0111',
   rowing: 'sys_rameur',
   skierg: 'sys_skierg',
   air_bike: 'sys_assault_bike',
@@ -72,17 +72,17 @@ const CATALOG_MAP = {
   single_under: 'sys_single_under_corde_a_sauter_simple_passage',
   kettlebell_swing_russian: 'wx_0549',
   kettlebell_swing_american: 'wx_0549',
-  kettlebell_snatch: null,
+  kettlebell_snatch: 'if_0112',
   kettlebell_goblet_squat: 'wx_0534',
-  kettlebell_front_squat: null,
+  kettlebell_front_squat: 'if_0113',
   wall_ball: 'sys_wall_balls',
   dumbbell_snatch: 'sys_dumbbell_snatches_alternes',
-  dumbbell_row: null,
+  dumbbell_row: 'if_0114',
   push_press: 'sys_push_press_barre',
   back_squat: 'sys_squat_avec_barre',
-  squat_clean: null,
+  squat_clean: 'if_0116',
   farmers_carry: 'wx_2133',
-  sandbag_carry: null,
+  sandbag_carry: 'if_0115',
   sled_push: 'sys_sled_push_poussee_de_traineau',
   sled_pull: 'sys_sled_pull_tirage_de_traineau',
   rest: null,
@@ -126,6 +126,15 @@ const DISPLAY_NAME_OVERRIDE = {
   farmers_carry: "Farmer's Walk",
   sled_push: 'Sled push',
   sled_pull: 'Sled Pull',
+  // Nouveaux exercices if_0102-if_0116 (WOD import) : la valeur doit matcher
+  // EXACTEMENT (insensible à la casse) le nameFr ou un alias du record réel
+  // (voir scripts/output/wod-missing-exercises-template.json) — vérifié un
+  // par un contre exercise-library/versions/v3/exercises.json.
+  burpee_broad_jump: 'Burpee Broad Jumps',
+  lateral_box_step_over: 'Lateral Box Step-Overs',
+  ring_muscle_up: 'Ring Muscle-Ups',
+  kettlebell_snatch: 'KB Snatches',
+  dumbbell_row: 'Dumbbell Rows',
 };
 
 const SHORT_FR = {
@@ -189,9 +198,26 @@ function baseExercise(planId, name, mode, overrides) {
 function buildAmrap(planId, durationSec, items, prefix) {
   const mm = Math.round(durationSec / 60);
   const title = prefix || `AMRAP ${mm} min`;
+  const first = items[0];
+  // Bloc AMRAP à un seul mouvement (pas de circuit à afficher en composite) :
+  // le nom reste PUR (fr(cat)) pour que matchExerciseRecord résolve une
+  // vraie vignette — sans arrow-join, parseCompositeExerciseName ne
+  // traiterait de toute façon jamais ce cas comme composite. Le contexte
+  // (titre du bloc + quantité) part dans `notes`.
+  if (items.length === 1) {
+    return [
+      baseExercise(planId, fr(first.cat), 'amrap', {
+        sets: 1,
+        reps: String(first.qty),
+        duration_seconds: durationSec,
+        notes: `${title} · ${first.qty}`,
+        exerciseRecordId: recId(first.cat),
+        matchConfidence: recId(first.cat) ? 'exact' : 'unmatched',
+      }),
+    ];
+  }
   const parts = items.map((it) => label(it.cat, it.qty));
   const name = `${title} : ${parts.join(' → ')}`;
-  const first = items[0];
   return [
     baseExercise(planId, name, 'amrap', {
       sets: 1,

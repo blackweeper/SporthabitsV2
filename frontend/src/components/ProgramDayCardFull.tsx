@@ -159,6 +159,7 @@ export default function ProgramDayCardFull({
                       records={records}
                       photoBase64={ex.photoBase64}
                       iconKey={ex.iconKey}
+                      exerciseRecordId={ex.exerciseRecordId}
                       size={40}
                       square
                     />

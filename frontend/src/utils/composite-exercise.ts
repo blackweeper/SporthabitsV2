@@ -57,3 +57,22 @@ export function cleanCompositeItemLabel(item: string): string {
   s = s.replace(/^\d+[a-zA-Zàéèê]*\s+/, "").trim();
   return s;
 }
+
+/**
+ * Sépare la quantité en tête d'un segment composite ("5 Traction" → reps
+ * "5", nom "Traction") de son nom de mouvement — pour reconstruire des
+ * cartes d'édition (`CircuitCardListEditor`) où la quantité doit vivre dans
+ * son propre champ "Reps / consigne", jamais concaténée au nom affiché
+ * (sinon un lien bibliothèque écrase le nom entier et perd la quantité).
+ * Même regex que `cleanCompositeItemLabel`, mais la quantité capturée est
+ * conservée au lieu d'être jetée. Segment sans quantité en tête ("Squats
+ * sans poids") → reps vide, nom inchangé.
+ */
+export function splitCompositeItemQuantity(item: string): { reps: string; name: string } {
+  const trimmed = item.trim();
+  const match = trimmed.match(/^(\d+[a-zA-Zàéèê]*)\s+(.+)$/);
+  if (match) {
+    return { reps: match[1], name: match[2].trim() };
+  }
+  return { reps: "", name: trimmed };
+}

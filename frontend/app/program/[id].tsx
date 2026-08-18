@@ -599,6 +599,7 @@ function ProgramDayCard({
                       records={records}
                       photoBase64={ex.photoBase64}
                       iconKey={ex.iconKey}
+                      exerciseRecordId={ex.exerciseRecordId}
                       size={32}
                       square
                     />
