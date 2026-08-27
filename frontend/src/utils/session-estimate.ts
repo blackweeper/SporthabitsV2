@@ -92,6 +92,24 @@ export function plannedDateForDayIndex(
   return d;
 }
 
+/**
+ * Inverse de `plannedDateForDayIndex` : quel jour (1-based, peut dépasser les
+ * bornes du programme — à vérifier par l'appelant) tombe sur `dateStr`
+ * (YYYY-MM-DD). Interprété en minuit LOCAL, comme `plannedDateForDayIndex`
+ * dont c'est l'inverse — une incohérence connue avec le reste de l'app
+ * (séances/calendrier ancrés en UTC, voir le commentaire dans
+ * `WeekCalendarView.tsx`) peut décaler le résultat d'un jour tout près de
+ * minuit selon le fuseau ; limite acceptée, déjà présente ailleurs dans ce
+ * calcul de jour de programme.
+ */
+export function dayIndexForDate(startedAtISO: string, dateStr: string): number {
+  const start = new Date(startedAtISO);
+  start.setHours(0, 0, 0, 0);
+  const target = new Date(`${dateStr}T00:00:00`);
+  const days = Math.round((target.getTime() - start.getTime()) / 86400000);
+  return days + 1;
+}
+
 export function formatPlannedDate(d: Date): string {
   const today = new Date();
   today.setHours(0, 0, 0, 0);

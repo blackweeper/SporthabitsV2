@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { LogBox, StatusBar } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { DarkTheme, ThemeProvider as NavigationThemeProvider } from "@react-navigation/native";
 
 import { useIconFonts } from "@/src/hooks/use-icon-fonts";
 import { migrateFavoritesToUserData } from "@/src/utils/exercise-user-data-migration";
@@ -11,10 +12,30 @@ import { backfillPersonalLibrary } from "@/src/utils/exercise-library-backfill";
 import { seedCoreLibraryIfNeeded } from "@/src/utils/exercise-library-bootstrap";
 import { seedStarterProgramsIfNeeded } from "@/src/utils/program-bootstrap";
 import { seedWodLibraryIfNeeded } from "@/src/utils/wod-bootstrap";
+import { useHealthSync } from "@/src/hooks/useHealthSync";
+import { ThemeProvider } from "@/src/themes";
 
 LogBox.ignoreAllLogs(true);
 
 SplashScreen.preventAutoHideAsync();
+
+// `@react-navigation/bottom-tabs` enveloppe CHAQUE écran d'onglet dans son
+// propre `Background` (`@react-navigation/elements`), un `View` opaque
+// séparé qui peint `theme.colors.background` — une DEUXIÈME couche, imbriquée
+// À L'INTÉRIEUR de `<Tabs>` (donc à l'intérieur de `ThemedBackground`), en
+// plus de celle déjà couverte par `DarkTheme` au niveau du `<Stack>` racine.
+// Avec `DarkTheme` telle quelle (`colors.background: 'rgb(1, 1, 1)'`), cette
+// couche interne masque entièrement le dégradé partagé derrière l'écran
+// Dashboard (fond transparent) — seule la barre d'onglets (rendue en dehors
+// de `<Tabs>`) laissait voir le dégradé, d'où un écran presque entièrement
+// noir malgré un dégradé correctement dimensionné. Rendre ce fond de secours
+// transparent règle les deux couches à la fois : chaque écran NON migré
+// peint déjà son propre fond opaque (`colors.surface`) dans son propre
+// conteneur, donc rien ne change pour eux.
+const NAVIGATION_THEME = {
+  ...DarkTheme,
+  colors: { ...DarkTheme.colors, background: "transparent" },
+};
 
 // `presentation: "modal"` seul suffit sur iOS (transition native "glisser
 // depuis le bas" automatique), mais pas sur Android/web où l'écran hérite
@@ -29,6 +50,7 @@ const MODAL_SCREEN_OPTIONS = {
 
 export default function RootLayout() {
   const [loaded, error] = useIconFonts();
+  const { sync: syncHealthData } = useHealthSync();
 
   useEffect(() => {
     if (loaded || error) {
@@ -62,12 +84,38 @@ export default function RootLayout() {
       .catch((err) => console.warn("WOD library seed failed:", err));
   }, []);
 
+  // Import santé (Health Auto Export) — synchronisation silencieuse : une
+  // fois au lancement, puis toutes les 15 minutes tant que l'app reste
+  // ouverte (pas de vraie exécution en arrière-plan possible sur le web sans
+  // Service Worker, hors périmètre ici — ceci couvre "à l'ouverture" et
+  // "pendant que l'app est utilisée"). Aucun état de `useHealthSync` n'est
+  // lu ici : si l'URL/le token ne sont pas configurés, `sync()` échoue en
+  // interne avant toute requête réseau (voir useHealthSync.ts) — totalement
+  // silencieux, jamais de spinner ni d'erreur visible.
+  useEffect(() => {
+    syncHealthData();
+    const interval = setInterval(syncHealthData, 15 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [syncHealthData]);
+
   if (!loaded && !error) return null;
 
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#0E0E0E" }}>
+      <ThemeProvider>
       <SafeAreaProvider>
         <StatusBar barStyle="light-content" backgroundColor="#0E0E0E" />
+        {/* Sans thème de navigation explicite, `@react-navigation` peint le
+            fond de scène par défaut clair (`DefaultTheme`, rgb(242,242,242))
+            sous chaque écran — invisible tant que chaque écran peint son
+            propre fond opaque, mais exposé dès qu'un écran (Dashboard/
+            `/day-detail`) est rendu transparent pour laisser voir
+            `ThemedBackground`. `NAVIGATION_THEME` (voir plus haut) neutralise
+            ce fond de secours (transparent) à la fois au niveau du `<Stack>`
+            ici et au niveau de chaque écran d'onglet (`Background` interne de
+            `@react-navigation/bottom-tabs`) ; aucun changement pour les
+            écrans déjà opaques. */}
+        <NavigationThemeProvider value={NAVIGATION_THEME}>
         <Stack
           screenOptions={{
             headerShown: false,
@@ -96,12 +144,15 @@ export default function RootLayout() {
           <Stack.Screen name="exercise-library-settings" />
           <Stack.Screen name="exercise-library-update" />
           <Stack.Screen name="health-sync-settings" />
+          <Stack.Screen name="day-detail" options={MODAL_SCREEN_OPTIONS} />
           <Stack.Screen name="stats" options={MODAL_SCREEN_OPTIONS} />
           <Stack.Screen name="achievements" options={MODAL_SCREEN_OPTIONS} />
           <Stack.Screen name="goals" options={MODAL_SCREEN_OPTIONS} />
           <Stack.Screen name="photo-crop" options={MODAL_SCREEN_OPTIONS} />
         </Stack>
+        </NavigationThemeProvider>
       </SafeAreaProvider>
+      </ThemeProvider>
     </GestureHandlerRootView>
   );
 }

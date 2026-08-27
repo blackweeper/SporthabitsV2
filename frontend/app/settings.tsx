@@ -1,17 +1,34 @@
 import { useEffect, useState } from "react";
-import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { ActivityIndicator, Alert, Image, View, Text, StyleSheet, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, spacing } from "@/src/theme";
 import PressableScale from "@/src/components/ui/PressableScale";
 import Card from "@/src/components/ui/Card";
+import { useConfirmDialog } from "@/src/hooks/use-confirm-dialog";
 import {
   AppSettings,
   CalendarViewMode,
   getAppSettings,
   saveAppSettings,
 } from "@/src/utils/app-settings";
+import { THEME_LIST, useTheme } from "@/src/themes";
+import { ThemeId } from "@/src/utils/theme-settings";
+import {
+  getActiveWallpaperId,
+  getWallpaperImageUri,
+  getWallpaperList,
+  removeWallpaper,
+  setActiveWallpaperId,
+  WallpaperMeta,
+} from "@/src/utils/wallpaper-storage";
+import { pickAndAddWallpaper } from "@/src/utils/wallpaper-picker";
+
+// Même asset que le fond par défaut réellement affiché sur le Dashboard
+// (voir `ThemedBackground.tsx`) — la miniature montre donc fidèlement ce
+// que ce choix produit, pas une approximation.
+const DEFAULT_WALLPAPER_PREVIEW = require("@/assets/wallpapers/sunset-default.jpg");
 
 const CALENDAR_OPTIONS: {
   key: CalendarViewMode;
@@ -35,15 +52,76 @@ const CALENDAR_OPTIONS: {
 
 export default function SettingsScreen() {
   const router = useRouter();
+  const { themeId, setThemeId, refreshWallpaper } = useTheme();
+  const { confirm, ConfirmModal } = useConfirmDialog();
   const [settings, setSettings] = useState<AppSettings | null>(null);
+  const [wallpapers, setWallpapers] = useState<WallpaperMeta[]>([]);
+  const [activeWallpaperId, setActiveWallpaperIdState] = useState<string | null>(null);
+  const [thumbUris, setThumbUris] = useState<Record<string, string>>({});
+  const [addingWallpaper, setAddingWallpaper] = useState(false);
 
   useEffect(() => {
     (async () => setSettings(await getAppSettings()))();
   }, []);
 
+  useEffect(() => {
+    (async () => {
+      setWallpapers(await getWallpaperList());
+      setActiveWallpaperIdState(await getActiveWallpaperId());
+    })();
+  }, []);
+
+  // Ne recharge les images que quand la LISTE change (ajout/suppression),
+  // jamais à chaque render — évite de repayer le décodage base64 pour rien.
+  useEffect(() => {
+    (async () => {
+      const entries = await Promise.all(
+        wallpapers.map(async (w) => [w.id, await getWallpaperImageUri(w.id)] as const),
+      );
+      const validEntries = entries.filter(
+        (e): e is [string, string] => e[1] !== null,
+      );
+      setThumbUris(Object.fromEntries(validEntries));
+    })();
+  }, [wallpapers]);
+
   const setCalendarView = async (mode: CalendarViewMode) => {
     setSettings((s) => (s ? { ...s, calendarView: mode } : s));
     await saveAppSettings({ calendarView: mode });
+  };
+
+  const handleAddWallpaper = async () => {
+    setAddingWallpaper(true);
+    try {
+      const meta = await pickAndAddWallpaper();
+      if (meta) setWallpapers((list) => [...list, meta]);
+    } catch (err) {
+      Alert.alert("Import impossible", "Cette image n'a pas pu être ajoutée. Réessaie avec une autre.");
+    } finally {
+      setAddingWallpaper(false);
+    }
+  };
+
+  const handleSelectWallpaper = async (id: string | null) => {
+    await setActiveWallpaperId(id);
+    setActiveWallpaperIdState(id);
+    refreshWallpaper();
+  };
+
+  const handleRemoveWallpaper = async (id: string) => {
+    const ok = await confirm({
+      title: "Supprimer ce fond ?",
+      message: "Cette image sera définitivement supprimée.",
+      confirmLabel: "Supprimer",
+      destructive: true,
+    });
+    if (!ok) return;
+    await removeWallpaper(id);
+    setWallpapers((list) => list.filter((w) => w.id !== id));
+    if (activeWallpaperId === id) {
+      setActiveWallpaperIdState(null);
+      refreshWallpaper();
+    }
   };
 
   return (
@@ -86,7 +164,112 @@ export default function SettingsScreen() {
             </PressableScale>
           );
         })}
+
+        {/* Thème — Dashboard/`/day-detail`/barre d'onglets uniquement pour
+            l'instant (voir `src/themes/`) ; le reste de l'app (dont cet
+            écran Réglages lui-même) reste sur l'apparence Classique tant
+            qu'il n'est pas migré. */}
+        <Text style={[styles.sectionLabel, { marginTop: spacing.lg }]}>THÈME</Text>
+        <Text style={styles.sectionHint}>Apparence du Dashboard — change immédiatement</Text>
+        {THEME_LIST.map((t) => {
+          const active = themeId === t.id;
+          return (
+            <PressableScale
+              key={t.id}
+              testID={`settings-theme-${t.id}`}
+              onPress={() => setThemeId(t.id as ThemeId)}
+            >
+              <Card style={[styles.optionRow, active && styles.optionRowActive]}>
+                <View style={[styles.swatch, { backgroundColor: t.swatch }]} />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.optionLabel}>{t.label}</Text>
+                </View>
+                {active && <Ionicons name="checkmark-circle" size={20} color={colors.brand} />}
+              </Card>
+            </PressableScale>
+          );
+        })}
+
+        {/* Fond d'écran personnalisé — Sunset uniquement (Classique n'a pas
+            de dégradé, rien à personnaliser). L'image active est résolue
+            par `ThemeProvider`/`ThemedBackground`, pas ici — ce bloc ne fait
+            que piloter le stockage (`wallpaper-storage.ts`) et déclenche
+            `refreshWallpaper()` pour que le Dashboard reflète le choix
+            immédiatement. */}
+        {themeId === "sunset" && (
+          <>
+            <Text style={[styles.sectionLabel, { marginTop: spacing.lg }]}>FOND D&apos;ÉCRAN</Text>
+            <Text style={styles.sectionHint}>Personnalise le fond du Dashboard (thème Sunset)</Text>
+
+            <PressableScale
+              testID="wallpaper-add"
+              style={styles.addWallpaperRow}
+              onPress={handleAddWallpaper}
+              disabled={addingWallpaper}
+            >
+              {addingWallpaper ? (
+                <ActivityIndicator color={colors.brand} />
+              ) : (
+                <Ionicons name="add" size={18} color={colors.brand} />
+              )}
+              <Text style={styles.addWallpaperLabel}>
+                {addingWallpaper ? "Import en cours…" : "Ajouter un fond d'écran"}
+              </Text>
+            </PressableScale>
+
+            <View style={styles.wallpaperGrid}>
+              {/* Dégradé par défaut — toujours présent, permet de revenir en
+                  arrière sans supprimer les images déjà ajoutées. */}
+              <PressableScale
+                testID="wallpaper-default"
+                style={styles.wallpaperTile}
+                onPress={() => handleSelectWallpaper(null)}
+              >
+                <Image source={DEFAULT_WALLPAPER_PREVIEW} style={styles.wallpaperTileImage} />
+                {activeWallpaperId === null && (
+                  <View style={styles.wallpaperCheckBadge}>
+                    <Ionicons name="checkmark-circle" size={18} color={colors.brand} />
+                  </View>
+                )}
+                <Text style={styles.wallpaperTileLabel} numberOfLines={1}>
+                  Par défaut
+                </Text>
+              </PressableScale>
+
+              {wallpapers.map((w) => (
+                <View key={w.id} style={styles.wallpaperTile}>
+                  <PressableScale
+                    testID={`wallpaper-${w.id}`}
+                    onPress={() => handleSelectWallpaper(w.id)}
+                  >
+                    {thumbUris[w.id] ? (
+                      <Image source={{ uri: thumbUris[w.id] }} style={styles.wallpaperTileImage} />
+                    ) : (
+                      <View style={[styles.wallpaperTileImage, styles.wallpaperTileLoading]}>
+                        <ActivityIndicator color={colors.onSurfaceTertiary} size="small" />
+                      </View>
+                    )}
+                    {activeWallpaperId === w.id && (
+                      <View style={styles.wallpaperCheckBadge}>
+                        <Ionicons name="checkmark-circle" size={18} color={colors.brand} />
+                      </View>
+                    )}
+                  </PressableScale>
+                  <PressableScale
+                    testID={`wallpaper-${w.id}-delete`}
+                    style={styles.wallpaperDeleteBadge}
+                    onPress={() => handleRemoveWallpaper(w.id)}
+                    hitSlop={6}
+                  >
+                    <Ionicons name="trash" size={12} color="#fff" />
+                  </PressableScale>
+                </View>
+              ))}
+            </View>
+          </>
+        )}
       </ScrollView>
+      {ConfirmModal}
     </SafeAreaView>
   );
 }
@@ -127,6 +310,65 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   optionIconActive: { backgroundColor: colors.brand },
+  swatch: {
+    width: 28,
+    height: 28,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
   optionLabel: { color: colors.onSurface, fontWeight: "800", fontSize: 14 },
   optionHint: { color: colors.onSurfaceTertiary, fontSize: 11, marginTop: 2 },
+  addWallpaperRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    padding: spacing.sm,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.brand,
+    borderStyle: "dashed",
+  },
+  addWallpaperLabel: { color: colors.brand, fontSize: 12, fontWeight: "800" },
+  wallpaperGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.sm,
+    marginTop: spacing.xs,
+  },
+  wallpaperTile: { width: 84 },
+  wallpaperTileImage: {
+    width: 84,
+    height: 84,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  wallpaperTileLoading: { alignItems: "center", justifyContent: "center" },
+  wallpaperTileLabel: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 10,
+    fontWeight: "700",
+    textAlign: "center",
+    marginTop: 4,
+  },
+  wallpaperCheckBadge: {
+    position: "absolute",
+    top: 4,
+    right: 4,
+    backgroundColor: colors.surface,
+    borderRadius: 10,
+  },
+  wallpaperDeleteBadge: {
+    position: "absolute",
+    top: 4,
+    left: 4,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: "rgba(0,0,0,0.55)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
 });

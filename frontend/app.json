@@ -37,7 +37,13 @@
         }
       ],
       "expo-audio",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "IronFlow utilise ta position pour afficher la météo du jour à côté du calendrier."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

@@ -21,14 +21,14 @@ import {
   currentDayIndex,
   deletePlan,
   deleteSession,
-  findOrCreateProgramPlan,
   getActivePrograms,
   getPlans,
   getSessions,
   Plan,
-  uid,
   WorkoutSession,
 } from "@/src/utils/gym-storage";
+import { launchProgramDay } from "@/src/utils/program-launch";
+import { pickRandomWod } from "@/src/utils/wod-random";
 import { findProgram } from "@/src/utils/programs";
 import { Program, ProgramDay, ProgramSession } from "@/src/data/programs";
 import { MUSCLE_GROUPS } from "@/src/utils/muscle-groups";
@@ -134,26 +134,16 @@ export default function TrainingHub() {
   // agnostique du jour). Corrige aussi le bug de l'ancien `DayColumnsRow`
   // où chaque colonne menait systématiquement à la même page programme,
   // quel que soit le jour tapé.
-  const handlePressDay = async (
+  // Extrait dans `program-launch.ts` pour que le Dashboard réutilise
+  // exactement le même mécanisme de lancement, pas une réimplémentation.
+  const handlePressDay = (
     program: Program,
     active: ActiveProgram,
     dayIndex: number,
     day: ProgramDay,
     sessionIndex: number,
     session: ProgramSession,
-  ) => {
-    if (!session) return;
-    const isStretch = program.category === "stretch";
-    const plan = await findOrCreateProgramPlan(program.id, dayIndex, sessionIndex, () => ({
-      title: `${program.title} · J${dayIndex}${session.label ? " · " + session.label : ""}`,
-      type: isStretch ? "stretch" : "mixte",
-      category: isStretch ? "stretch" : "workout",
-      createdAt: new Date().toISOString(),
-      programSource: { programId: program.id, dayIndex, sessionIndex },
-      exercises: session.exercises.map((e) => ({ ...e, id: uid() })),
-    }));
-    router.push(`/workout/${plan.id}`);
-  };
+  ) => launchProgramDay(program, active, dayIndex, day, sessionIndex, session, router);
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
@@ -1027,9 +1017,8 @@ function WodLibraryView({
     });
 
   function launchRandom(desired: number | null) {
-    const pool = desired == null ? plans : plans.filter((p) => p.wodSource!.intensity === desired);
-    if (pool.length === 0) return;
-    const chosen = pool[Math.floor(Math.random() * pool.length)];
+    const chosen = pickRandomWod(plans, desired);
+    if (!chosen) return;
     setRandomSheetOpen(false);
     router.push(`/workout/${chosen.id}`);
   }

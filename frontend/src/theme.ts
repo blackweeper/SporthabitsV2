@@ -17,6 +17,10 @@ export const colors = {
   // regard distingue naturellement "à faire" (orange) de "déjà acquis /
   // en cours d'évolution" (violet), au lieu de tout peindre en orange.
   info: '#3B82F6',
+  // Coloration du calendrier quand cardio ET gym sont prévus le même jour
+  // (voir `calendar-day-schedule.ts`) — jaune, distinct du bleu cardio et de
+  // l'orange gym/`brand`, jamais réutilisé pour un autre sens ailleurs.
+  scheduleBoth: '#EAB308',
   progress: '#8B5CF6',
   progressSecondary: '#C4B5FD',
   progressTertiary: '#2E1F52',
