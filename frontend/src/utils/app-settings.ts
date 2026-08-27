@@ -4,12 +4,18 @@ export type CalendarViewMode = 'week' | 'month' | 'auto';
 
 export type AppSettings = {
   calendarView: CalendarViewMode;
+  /** URL de base du backend d'import santé (Health Auto Export), ex. "https://xxx.onrender.com". */
+  healthSyncBaseUrl: string | null;
+  /** Token partagé envoyé en "Authorization: Bearer <token>" vers ce même backend. */
+  healthSyncToken: string | null;
 };
 
 const SETTINGS_KEY = '@ironflow/settings';
 
 const DEFAULT_SETTINGS: AppSettings = {
   calendarView: 'week',
+  healthSyncBaseUrl: null,
+  healthSyncToken: null,
 };
 
 export async function getAppSettings(): Promise<AppSettings> {

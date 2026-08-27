@@ -237,6 +237,14 @@ export default function ProfileTab() {
           onPress={() => router.push("/exercise-library-settings" as any)}
           testID="row-exercise-library"
         />
+        <ListRow
+          icon="heart"
+          iconBg="#EF4444"
+          title="Import santé (Health Auto Export)"
+          subtitle="Fréquence cardiaque et séances Apple Health"
+          onPress={() => router.push("/health-sync-settings" as any)}
+          testID="row-health-sync"
+        />
 
         <View style={{ height: 40 }} />
       </ScrollView>

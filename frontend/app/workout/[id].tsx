@@ -48,6 +48,13 @@ import {
 
 type OverlayMode = null | "rest" | "work" | "amrap" | "for_time";
 
+/** Nombre de secondes avant un changement d'exercice/round à partir duquel
+ *  les petits bips de décompte démarrent — prévient qu'un changement
+ *  approche, quel que soit le mode ou l'écran (repos, travail, AMRAP, For
+ *  Time, EMOM, Tours). Seule constante à ajuster pour changer ce délai
+ *  partout dans l'application, y compris pour les futurs modes/programmes. */
+const COUNTDOWN_TICK_SECONDS = 6;
+
 export default function WorkoutScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
@@ -141,9 +148,10 @@ export default function WorkoutScreen() {
     if (!overlay) return;
     // Bips (jamais de voix) pour tout décompte, quel que soit le mode ou le
     // type d'overlay (repos/travail/amrap/for_time) — comportement identique
-    // partout, comme un vrai interval timer : pas de signal à 10s, juste le
-    // décompte final 3-2-1, puis le bip distinct de fin de round/set (voir
-    // `playRoundChime` dans `startSetTimer`/`onOverlayComplete`).
+    // partout, comme un vrai interval timer : petits bips discrets dès qu'il
+    // reste COUNTDOWN_TICK_SECONDS ou moins (prévient qu'un changement
+    // d'exercice approche), puis le bip distinct et plus marqué au changement
+    // effectif (voir `playRoundChime` dans `startSetTimer`/`onOverlayComplete`).
     timerRef.current = setInterval(() => {
       setOverlayRemaining((r) => {
         if (r <= 1) {
@@ -151,7 +159,7 @@ export default function WorkoutScreen() {
           return 0;
         }
         const next = r - 1;
-        if (next > 0 && next <= 3) playCountdownTick();
+        if (next > 0 && next <= COUNTDOWN_TICK_SECONDS) playCountdownTick();
         return next;
       });
     }, 1000);

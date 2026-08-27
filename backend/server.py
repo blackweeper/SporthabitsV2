@@ -1,19 +1,9 @@
 from fastapi import FastAPI, APIRouter
-from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
-import os
 import logging
-from pathlib import Path
 
-
-ROOT_DIR = Path(__file__).parent
-load_dotenv(ROOT_DIR / '.env')
-
-# MongoDB (kept for future extensions, not used for user data since local-only)
-mongo_url = os.environ.get('MONGO_URL', 'mongodb://localhost:27017')
-client = AsyncIOMotorClient(mongo_url)
-db = client[os.environ.get('DB_NAME', 'test_database')]
+from database import client
+from health_import import router as health_import_router, ensure_indexes
 
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
@@ -30,6 +20,7 @@ async def health():
     return {"status": "ok"}
 
 
+api_router.include_router(health_import_router)
 app.include_router(api_router)
 
 app.add_middleware(
@@ -45,6 +36,11 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+
+@app.on_event("startup")
+async def startup_indexes():
+    await ensure_indexes()
 
 
 @app.on_event("shutdown")

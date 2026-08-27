@@ -95,6 +95,7 @@ export default function RootLayout() {
           <Stack.Screen name="cardio-log/new" />
           <Stack.Screen name="exercise-library-settings" />
           <Stack.Screen name="exercise-library-update" />
+          <Stack.Screen name="health-sync-settings" />
           <Stack.Screen name="stats" options={MODAL_SCREEN_OPTIONS} />
           <Stack.Screen name="achievements" options={MODAL_SCREEN_OPTIONS} />
           <Stack.Screen name="goals" options={MODAL_SCREEN_OPTIONS} />

@@ -1,0 +1,272 @@
+import { useCallback, useState } from "react";
+import { View, Text, StyleSheet, ScrollView, Pressable, TextInput } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useFocusEffect, useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { colors, radius, spacing } from "@/src/theme";
+import { AppSettings, getAppSettings, saveAppSettings } from "@/src/utils/app-settings";
+import {
+  getHealthMetrics,
+  getHealthSyncState,
+  getHealthWorkouts,
+  HealthWorkoutEntry,
+} from "@/src/utils/health-data-storage";
+import { useHealthSync } from "@/src/hooks/useHealthSync";
+
+function formatDateTime(iso: string | null): string {
+  if (!iso) return "jamais";
+  return new Date(iso).toLocaleString("fr-FR", {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+export default function HealthSyncSettingsScreen() {
+  const router = useRouter();
+  const { phase, error, lastResult, sync } = useHealthSync();
+
+  const [baseUrl, setBaseUrl] = useState("");
+  const [token, setToken] = useState("");
+  const [lastSyncedAt, setLastSyncedAt] = useState<string | null>(null);
+  const [metricsCount, setMetricsCount] = useState(0);
+  const [latestHeartRate, setLatestHeartRate] = useState<number | null>(null);
+  const [recentWorkouts, setRecentWorkouts] = useState<HealthWorkoutEntry[]>([]);
+
+  const reload = useCallback(async () => {
+    const [settings, syncState, metrics, workouts] = await Promise.all([
+      getAppSettings(),
+      getHealthSyncState(),
+      getHealthMetrics(),
+      getHealthWorkouts(),
+    ]);
+    setBaseUrl(settings.healthSyncBaseUrl ?? "");
+    setToken(settings.healthSyncToken ?? "");
+    setLastSyncedAt(syncState.lastSyncedAt);
+    setMetricsCount(metrics.length);
+    const heartRateSamples = metrics.filter((m) => m.name === "heart_rate" && m.qty != null);
+    setLatestHeartRate(heartRateSamples.length > 0 ? heartRateSamples[heartRateSamples.length - 1].qty : null);
+    setRecentWorkouts(workouts.slice(-10).reverse());
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      reload();
+    }, [reload]),
+  );
+
+  const saveField = async (patch: Partial<AppSettings>) => {
+    await saveAppSettings(patch);
+  };
+
+  const onSync = async () => {
+    // Persister explicitement les champs avant de synchroniser : `onBlur`
+    // seul est trop fragile (un tap direct sur "Synchroniser" sans perte de
+    // focus préalable du champ ne le déclenche pas), et `reload()` juste
+    // après aurait sinon écrasé les champs à l'écran avec les anciens
+    // réglages (encore vides) lus depuis le stockage.
+    await saveAppSettings({
+      healthSyncBaseUrl: baseUrl.trim() || null,
+      healthSyncToken: token.trim() || null,
+    });
+    await sync();
+    await reload();
+  };
+
+  const webhookUrl = baseUrl.trim() ? `${baseUrl.trim().replace(/\/+$/, "")}/api/health-import` : "";
+
+  return (
+    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+      <View style={styles.header}>
+        <Pressable testID="close-health-sync-settings" onPress={() => router.back()} hitSlop={12}>
+          <Ionicons name="chevron-back" size={24} color={colors.onSurface} />
+        </Pressable>
+        <Text style={styles.title}>Import santé</Text>
+        <View style={{ width: 24 }} />
+      </View>
+
+      <ScrollView contentContainerStyle={styles.scroll}>
+        <Text style={styles.sectionLabel}>CONFIGURATION DU BACKEND</Text>
+
+        <View style={styles.fieldBlock}>
+          <Text style={styles.fieldLabel}>URL du backend</Text>
+          <TextInput
+            testID="health-sync-base-url"
+            style={styles.input}
+            value={baseUrl}
+            onChangeText={setBaseUrl}
+            onBlur={() => saveField({ healthSyncBaseUrl: baseUrl.trim() || null })}
+            placeholder="https://mon-service.onrender.com"
+            placeholderTextColor={colors.onSurfaceTertiary}
+            autoCapitalize="none"
+            autoCorrect={false}
+            keyboardType="url"
+          />
+        </View>
+
+        <View style={styles.fieldBlock}>
+          <Text style={styles.fieldLabel}>Token</Text>
+          <TextInput
+            testID="health-sync-token"
+            style={styles.input}
+            value={token}
+            onChangeText={setToken}
+            onBlur={() => saveField({ healthSyncToken: token.trim() || null })}
+            placeholder="Le HEALTH_IMPORT_TOKEN configuré sur le serveur"
+            placeholderTextColor={colors.onSurfaceTertiary}
+            autoCapitalize="none"
+            autoCorrect={false}
+            secureTextEntry
+          />
+        </View>
+
+        {!!webhookUrl && (
+          <View style={styles.webhookBlock}>
+            <Text style={styles.fieldLabel}>URL du webhook (à coller dans Health Auto Export)</Text>
+            <TextInput
+              testID="health-sync-webhook-url"
+              style={[styles.input, styles.webhookInput]}
+              value={webhookUrl}
+              editable={false}
+              multiline
+            />
+          </View>
+        )}
+
+        <Pressable
+          testID="health-sync-now"
+          style={[styles.ctaFull, (!baseUrl || !token) && styles.ctaFullDisabled]}
+          onPress={onSync}
+          disabled={!baseUrl || !token || phase === "syncing"}
+        >
+          <Ionicons name="sync" size={18} color="#fff" />
+          <Text style={styles.ctaFullText}>{phase === "syncing" ? "SYNCHRONISATION…" : "SYNCHRONISER MAINTENANT"}</Text>
+        </Pressable>
+
+        {phase === "error" && error && <Text style={styles.errorText}>{error}</Text>}
+        {phase === "done" && lastResult && (
+          <Text style={styles.successText}>
+            {lastResult.metricsAdded + lastResult.workoutsAdded === 0
+              ? "Déjà à jour, rien de nouveau."
+              : `${lastResult.metricsAdded} nouvelle(s) métrique(s), ${lastResult.workoutsAdded} nouvelle(s) séance(s).`}
+          </Text>
+        )}
+
+        <Text style={styles.lastSync}>Dernière synchronisation : {formatDateTime(lastSyncedAt)}</Text>
+
+        <Text style={styles.sectionLabel}>DONNÉES IMPORTÉES</Text>
+
+        <View style={styles.statusCard}>
+          <View style={styles.statRow}>
+            <Text style={styles.statLabel}>Fréquence cardiaque</Text>
+            <Text style={styles.statValue}>{latestHeartRate != null ? `${Math.round(latestHeartRate)} bpm` : "—"}</Text>
+          </View>
+          <View style={styles.statRow}>
+            <Text style={styles.statLabel}>Échantillons stockés</Text>
+            <Text style={styles.statValue}>{metricsCount}</Text>
+          </View>
+        </View>
+
+        {recentWorkouts.length > 0 && (
+          <View style={styles.workoutsCard}>
+            <Text style={styles.workoutsTitle}>Séances récentes</Text>
+            {recentWorkouts.map((w) => (
+              <View key={`${w.name}|${w.start}`} style={styles.workoutRow}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.workoutName} numberOfLines={1}>
+                    {w.name}
+                  </Text>
+                  <Text style={styles.workoutSub}>{formatDateTime(w.start)}</Text>
+                </View>
+                {w.energyKcal != null && <Text style={styles.workoutKcal}>{Math.round(w.energyKcal)} kcal</Text>}
+              </View>
+            ))}
+          </View>
+        )}
+
+        <View style={{ height: 40 }} />
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.surface },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    borderBottomColor: colors.border,
+    borderBottomWidth: 1,
+  },
+  title: { color: colors.onSurface, fontSize: 16, fontWeight: "700" },
+  scroll: { padding: spacing.lg, gap: spacing.md },
+  sectionLabel: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 10,
+    letterSpacing: 1.5,
+    fontWeight: "800",
+    marginTop: spacing.sm,
+  },
+  fieldBlock: { gap: 6 },
+  fieldLabel: { color: colors.onSurfaceSecondary, fontSize: 12, fontWeight: "600" },
+  input: {
+    backgroundColor: colors.surfaceSecondary,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md,
+    color: colors.onSurface,
+    fontSize: 13,
+  },
+  webhookBlock: { gap: 6 },
+  webhookInput: { color: colors.onSurfaceSecondary, fontSize: 12 },
+  ctaFull: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    backgroundColor: colors.brand,
+    padding: spacing.md,
+    borderRadius: radius.md,
+  },
+  ctaFullDisabled: { opacity: 0.5 },
+  ctaFullText: { color: "#fff", fontWeight: "800", letterSpacing: 1 },
+  errorText: { color: colors.error, fontSize: 12, textAlign: "center" },
+  successText: { color: colors.success, fontSize: 12, textAlign: "center" },
+  lastSync: { color: colors.onSurfaceTertiary, fontSize: 11, textAlign: "center" },
+  statusCard: {
+    backgroundColor: colors.surfaceSecondary,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md,
+    gap: spacing.sm,
+  },
+  statRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  statLabel: { color: colors.onSurfaceSecondary, fontSize: 13, fontWeight: "600" },
+  statValue: { color: colors.onSurface, fontSize: 15, fontWeight: "800" },
+  workoutsCard: {
+    backgroundColor: colors.surfaceSecondary,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md,
+    gap: 6,
+  },
+  workoutsTitle: { color: colors.onSurface, fontWeight: "700", fontSize: 13, marginBottom: 4 },
+  workoutRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 6,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  workoutName: { color: colors.onSurface, fontSize: 12, fontWeight: "600" },
+  workoutSub: { color: colors.onSurfaceTertiary, fontSize: 10, marginTop: 2 },
+  workoutKcal: { color: colors.onSurfaceSecondary, fontSize: 11, fontWeight: "700" },
+});
