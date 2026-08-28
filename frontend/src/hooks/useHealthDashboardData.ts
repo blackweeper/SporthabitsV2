@@ -3,9 +3,9 @@ import {
   getHealthSyncState,
   getImportedDistanceKmForDate,
   getImportedExerciseMinutesForDate,
-  getImportedSleepHoursForDate,
   getImportedStepsForDate,
   getLatestMetricSample,
+  getLatestSleepHours,
   getRecentDailyAverage,
   getRecentMetricAverage,
   localDateYYYYMMDD,
@@ -73,8 +73,12 @@ export function useHealthDashboardData() {
 
   const reload = useCallback(async () => {
     const today = localDateYYYYMMDD();
+    // Le sommeil "du jour" désigne la nuit précédente, souvent encore datée
+    // d'hier côté Health Auto Export (voir `getLatestSleepHours`) — résolu
+    // à part pour que la moyenne 7 jours exclue la bonne date de référence
+    // (celle de la nuit affichée, pas nécessairement "aujourd'hui").
+    const latestSleep = await getLatestSleepHours();
     const [
-      sleepHoursRaw,
       sleepAvg7d,
       hrvSample,
       hrvAvg7d,
@@ -89,8 +93,9 @@ export function useHealthDashboardData() {
       exerciseMinutes,
       syncState,
     ] = await Promise.all([
-      getImportedSleepHoursForDate(today),
-      getRecentDailyAverage(SLEEP_METRIC_NAMES, 7, today, "sum", unitsToHoursMultiplier),
+      latestSleep
+        ? getRecentDailyAverage(SLEEP_METRIC_NAMES, 7, latestSleep.dateYYYYMMDD, "sum", unitsToHoursMultiplier)
+        : Promise.resolve(null),
       getLatestMetricSample(HRV_METRIC_NAMES),
       getRecentMetricAverage(HRV_METRIC_NAMES, 7, today),
       getLatestMetricSample(RESTING_HR_METRIC_NAMES),
@@ -105,7 +110,7 @@ export function useHealthDashboardData() {
       getHealthSyncState(),
     ]);
 
-    const sleepHours = sleepHoursRaw > 0 ? sleepHoursRaw : null;
+    const sleepHours = latestSleep?.hours ?? null;
     const hrv = hrvSample?.qty ?? null;
     const restingHr = restingHrSample?.qty ?? null;
     const respiratoryRate = respSample?.qty ?? null;

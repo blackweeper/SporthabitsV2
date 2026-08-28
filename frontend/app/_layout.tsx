@@ -147,6 +147,7 @@ export default function RootLayout() {
           <Stack.Screen name="exercise-library-settings" />
           <Stack.Screen name="exercise-library-update" />
           <Stack.Screen name="health-sync-settings" />
+          <Stack.Screen name="health-metric/[key]" options={MODAL_SCREEN_OPTIONS} />
           <Stack.Screen name="day-detail" options={MODAL_SCREEN_OPTIONS} />
           <Stack.Screen name="stats" options={MODAL_SCREEN_OPTIONS} />
           <Stack.Screen name="achievements" options={MODAL_SCREEN_OPTIONS} />

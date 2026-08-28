@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { View, Text, Pressable, Image, StyleSheet, Dimensions } from "react-native";
+import { View, Text, Pressable, StyleSheet, Dimensions } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LineChart } from "react-native-gifted-charts";
 import Animated, { FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 import { motion, spacing, withAlpha } from "@/src/theme";
 import { useTheme } from "@/src/themes";
 import GlassCard from "@/src/components/ui/GlassCard";
+import PressableScale from "@/src/components/ui/PressableScale";
 import SwipeableRow from "@/src/components/SwipeableRow";
 import { deleteMeasurement, Measurement, UserProfile } from "@/src/utils/gym-storage";
 
@@ -58,12 +59,12 @@ function directionForStat(key: StatKey, primaryGoal: UserProfile["primaryGoal"])
   return "neutral";
 }
 
-// Poids/Poitrine/Taille/Hanches toujours visibles (les 4 mises en avant
-// demandées) ; le reste se replie derrière "Voir plus de mesures" — n'y
+// Poids/Poitrine/Taille/Hanches/Masse grasse toujours visibles (les 5
+// mises en avant demandées) ; le reste se replie derrière le chevron — n'y
 // apparaît de toute façon que si l'utilisateur a réellement suivi ce tour
 // de mensuration, jamais une ligne vide.
-const ALWAYS_VISIBLE_STATS: StatKey[] = ["weight_kg", "chest_cm", "waist_cm", "hips_cm"];
-const COLLAPSIBLE_STATS: StatKey[] = ["body_fat_pct", "imc", "arm_cm", "thigh_cm", "neck_cm", "forearm_cm", "calf_cm"];
+const ALWAYS_VISIBLE_STATS: StatKey[] = ["weight_kg", "chest_cm", "waist_cm", "hips_cm", "body_fat_pct"];
+const COLLAPSIBLE_STATS: StatKey[] = ["imc", "arm_cm", "thigh_cm", "neck_cm", "forearm_cm", "calf_cm"];
 
 type Point = { date: string; value: number };
 
@@ -127,10 +128,9 @@ function AnimatedChevron({ open, color }: { open: boolean; color: string }) {
   );
 }
 
-/** En-tête de section repliable générique (Comparaison photo / Historique /
- * Voir plus de mesures) — même langage visuel que les lignes de statistique
- * (icône teintée, libellé, chevron animé), sans valeur/tendance puisque ce
- * ne sont pas des métriques. */
+/** En-tête de section repliable générique (Historique) — même langage
+ * visuel que les lignes de statistique (icône teintée, libellé, chevron
+ * animé), sans valeur/tendance puisque ce n'est pas une métrique. */
 function DisclosureRow({
   icon,
   label,
@@ -152,6 +152,33 @@ function DisclosureRow({
       </View>
       <Text style={[styles.rowLabel, { color: theme.colors.onSurface, flex: 1 }]}>{label}</Text>
       <AnimatedChevron open={open} color={theme.colors.onSurfaceTertiary} />
+    </Pressable>
+  );
+}
+
+/** Ligne d'action qui navigue immédiatement (pas d'expansion) — chevron
+ * fixe pointant vers la droite plutôt que l'icône animée haut/bas de
+ * `DisclosureRow`/`StatRow`, pour distinguer visuellement "ceci ouvre un
+ * écran" de "ceci déplie du contenu ici". */
+function ActionRow({
+  icon,
+  label,
+  onPress,
+  testID,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  onPress: () => void;
+  testID?: string;
+}) {
+  const { theme } = useTheme();
+  return (
+    <Pressable testID={testID} onPress={onPress} style={styles.row}>
+      <View style={[styles.iconBadge, { backgroundColor: withAlpha(theme.colors.brand, 12) }]}>
+        <Ionicons name={icon} size={13} color={theme.colors.brand} />
+      </View>
+      <Text style={[styles.rowLabel, { color: theme.colors.onSurface, flex: 1 }]}>{label}</Text>
+      <Ionicons name="chevron-forward" size={14} color={theme.colors.onSurfaceTertiary} />
     </Pressable>
   );
 }
@@ -268,12 +295,16 @@ function StatRow({
  * de mosaïque de petites cartes) avec icône teintée/valeur/tendance, et le
  * graphique qui apparaît directement sous la ligne tapée.
  *
- * Affichage compact : seuls Poids/Poitrine/Taille/Hanches sont visibles en
- * permanence ; le reste (Masse grasse/IMC/Bras/Cuisses/Cou/Avant-bras/
- * Mollets) se déplie via "Voir plus de mesures". Comparaison photo et
- * historique sont eux aussi des lignes à déplier (accordéon), jamais
- * affichés en permanence — cohérent avec le principe "peu de surfaces,
- * beaucoup d'espace" déjà appliqué au reste de l'écran.
+ * Affichage compact : seuls Poids/Poitrine/Taille/Hanches/Masse grasse sont
+ * visibles en permanence. Un seul chevron (même mécanisme exact que le
+ * chevron replié du calendrier Dashboard, `WeekCalendarView` — icône nue
+ * chevron-down/chevron-up centrée, sans libellé) déplie TOUT le reste :
+ * les mesures secondaires (IMC/Bras/Cuisses/Cou/Avant-bras/Mollets) puis
+ * les 3 actions — Comparaison photo (navigue directement vers `/compare`),
+ * Historique (déplie la liste sur place, pas de destination dédiée),
+ * Ajouter une mesure (navigue vers `/measurement/new`). Rien de tout cela
+ * n'est affiché en permanence — cohérent avec "peu de surfaces, beaucoup
+ * d'espace" déjà appliqué au reste de l'écran.
  *
  * Tendance colorée (vert = va dans le bon sens, rouge = mauvais sens) via
  * `directionForStat` : Masse grasse/Tour de taille/Hanches sont toujours
@@ -302,8 +333,7 @@ export default function MeasurementsCard({
 }) {
   const { theme } = useTheme();
   const [openStat, setOpenStat] = useState<StatKey | null>(null);
-  const [statsExpanded, setStatsExpanded] = useState(false);
-  const [photoOpen, setPhotoOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
 
   const heightM = profile?.height_cm ? profile.height_cm / 100 : null;
@@ -318,11 +348,6 @@ export default function MeasurementsCard({
   const collapsibleRows = COLLAPSIBLE_STATS.map((key) => ({ key, series: seriesForStat(chronological, key, heightM) })).filter(
     (r) => r.series.length > 0,
   );
-
-  const withPhotos = measurements.filter((m) => m.photoBase64);
-  const hasComparison = withPhotos.length >= 2;
-  const latestPhoto = withPhotos[0] ?? null;
-  const firstPhoto = withPhotos[withPhotos.length - 1] ?? null;
 
   const historyList = measurements.slice(0, 20);
 
@@ -339,7 +364,7 @@ export default function MeasurementsCard({
         },
       ]}
     >
-      <Text style={[styles.eyebrow, { color: theme.colors.onSurfaceTertiary }]}>MESURATIONS</Text>
+      <Text style={[styles.eyebrow, { color: theme.colors.onSurface }]}>MESURATIONS</Text>
 
       {measurements.length === 0 ? (
         <View style={styles.empty}>
@@ -371,109 +396,81 @@ export default function MeasurementsCard({
                 />
               </View>
             ))}
-
-            {collapsibleRows.length > 0 && (
-              <>
-                <View style={{ borderTopColor: theme.colors.divider, borderTopWidth: StyleSheet.hairlineWidth }}>
-                  <DisclosureRow
-                    testID="measurements-toggle-more"
-                    icon={statsExpanded ? "remove-circle-outline" : "add-circle-outline"}
-                    label={statsExpanded ? "Voir moins de mesures" : `Voir plus de mesures (${collapsibleRows.length})`}
-                    open={statsExpanded}
-                    onToggle={() => setStatsExpanded((v) => !v)}
-                  />
-                </View>
-                {statsExpanded &&
-                  collapsibleRows.map((row) => (
-                    <View key={row.key} style={{ borderTopColor: theme.colors.divider, borderTopWidth: StyleSheet.hairlineWidth }}>
-                      <StatRow
-                        statKey={row.key}
-                        series={row.series}
-                        direction={directionForStat(row.key, profile?.primaryGoal)}
-                        open={openStat === row.key}
-                        onToggle={() => setOpenStat(openStat === row.key ? null : row.key)}
-                      />
-                    </View>
-                  ))}
-              </>
-            )}
           </View>
 
-          <View style={[styles.divider, { backgroundColor: theme.colors.divider }]} />
+          {/* Même mécanisme exact que le chevron replié du calendrier
+              Dashboard (`WeekCalendarView`) : un simple chevron centré, sans
+              libellé ni icône de badge. Déplié, il donne accès à la fois aux
+              mesures secondaires ET aux 3 actions (comparaison photo/
+              historique/ajouter une mesure) — un seul menu déroulant pour
+              "tout ce qui n'est pas dans les 5 données mises en avant". */}
+          <PressableScale testID="measurements-toggle-more" style={styles.chevronRow} onPress={() => setMoreOpen((v) => !v)} hitSlop={8}>
+            <Ionicons name={moreOpen ? "chevron-up" : "chevron-down"} size={16} color={theme.colors.onSurfaceTertiary} />
+          </PressableScale>
 
-          <DisclosureRow
-            testID="measurement-compare-toggle"
-            icon="images-outline"
-            label="Comparaison photo"
-            open={photoOpen}
-            onToggle={() => setPhotoOpen((v) => !v)}
-          />
-          {photoOpen &&
-            (hasComparison ? (
-              <Animated.View entering={FadeIn.duration(motion.fast)} exiting={FadeOut.duration(motion.fast)} style={styles.disclosureContent}>
-                <Pressable testID="measurement-compare" style={styles.photoRow} onPress={() => router.push("/compare")}>
-                  <Image source={{ uri: `data:image/jpeg;base64,${firstPhoto!.photoBase64}` }} style={[styles.photoThumb, { borderRadius: theme.radius.sm }]} />
-                  <Ionicons name="arrow-forward" size={14} color={theme.colors.onSurfaceTertiary} />
-                  <Image source={{ uri: `data:image/jpeg;base64,${latestPhoto!.photoBase64}` }} style={[styles.photoThumb, { borderRadius: theme.radius.sm }]} />
-                  <Text style={[styles.photoLink, { color: theme.colors.brand }]}>Voir la comparaison</Text>
-                  <Ionicons name="chevron-forward" size={13} color={theme.colors.brand} />
-                </Pressable>
-              </Animated.View>
-            ) : (
-              <Animated.View entering={FadeIn.duration(motion.fast)} exiting={FadeOut.duration(motion.fast)} style={styles.disclosureContent}>
-                <Pressable testID="measurement-add-photo" style={styles.photoPrompt} onPress={() => router.push("/measurement/new")}>
-                  <Ionicons name="camera-outline" size={16} color={theme.colors.onSurfaceTertiary} />
-                  <Text style={[styles.photoPromptText, { color: theme.colors.onSurfaceTertiary }]}>
-                    {withPhotos.length === 0 ? "Ajoute une photo pour visualiser ta transformation" : "Ajoute une 2ᵉ photo pour comparer"}
-                  </Text>
-                </Pressable>
-              </Animated.View>
-            ))}
-
-          <View style={[styles.divider, { backgroundColor: theme.colors.divider }]} />
-
-          <DisclosureRow
-            testID="measurement-history-toggle"
-            icon="time-outline"
-            label={`Historique (${measurements.length})`}
-            open={historyOpen}
-            onToggle={() => setHistoryOpen((v) => !v)}
-          />
-          {historyOpen && (
-            <Animated.View entering={FadeIn.duration(motion.fast)} exiting={FadeOut.duration(motion.fast)} style={styles.disclosureContent}>
-              {historyList.map((m) => (
-                <SwipeableRow
-                  key={m.id}
-                  testID={`measurement-history-${m.id}`}
-                  onDelete={async () => {
-                    await deleteMeasurement(m.id);
-                    onChanged();
-                  }}
-                  deleteConfirm={{
-                    title: "Supprimer cette mesure ?",
-                    message: `Mesure du ${formatDate(m.date)} — cette action est définitive.`,
-                    confirmLabel: "SUPPRIMER",
-                    destructive: true,
-                  }}
-                  onEdit={() => router.push(`/measurement/${m.id}`)}
-                >
-                  <Pressable testID={`measurement-history-row-${m.id}`} style={styles.historyRow} onPress={() => router.push(`/measurement/${m.id}`)}>
-                    <Text style={[styles.historyDate, { color: theme.colors.onSurfaceSecondary }]}>{formatDate(m.date)}</Text>
-                    <Text style={[styles.historyChips, { color: theme.colors.onSurfaceTertiary }]} numberOfLines={1}>
-                      {[m.weight_kg != null ? `${m.weight_kg} kg` : null, m.body_fat_pct != null ? `${m.body_fat_pct}% MG` : null]
-                        .filter(Boolean)
-                        .join(" · ") || "—"}
-                    </Text>
-                  </Pressable>
-                </SwipeableRow>
+          {moreOpen && (
+            <Animated.View entering={FadeIn.duration(motion.fast)} exiting={FadeOut.duration(motion.fast)}>
+              {collapsibleRows.map((row) => (
+                <View key={row.key} style={{ borderTopColor: theme.colors.divider, borderTopWidth: StyleSheet.hairlineWidth }}>
+                  <StatRow
+                    statKey={row.key}
+                    series={row.series}
+                    direction={directionForStat(row.key, profile?.primaryGoal)}
+                    open={openStat === row.key}
+                    onToggle={() => setOpenStat(openStat === row.key ? null : row.key)}
+                  />
+                </View>
               ))}
+
+              <View style={[styles.divider, { backgroundColor: theme.colors.divider }]} />
+
+              <ActionRow testID="measurement-compare" icon="images-outline" label="Comparaison photo" onPress={() => router.push("/compare")} />
+
+              <View style={{ borderTopColor: theme.colors.divider, borderTopWidth: StyleSheet.hairlineWidth }}>
+                <DisclosureRow
+                  testID="measurement-history-toggle"
+                  icon="time-outline"
+                  label={`Historique (${measurements.length})`}
+                  open={historyOpen}
+                  onToggle={() => setHistoryOpen((v) => !v)}
+                />
+                {historyOpen && (
+                  <Animated.View entering={FadeIn.duration(motion.fast)} exiting={FadeOut.duration(motion.fast)} style={styles.disclosureContent}>
+                    {historyList.map((m) => (
+                      <SwipeableRow
+                        key={m.id}
+                        testID={`measurement-history-${m.id}`}
+                        onDelete={async () => {
+                          await deleteMeasurement(m.id);
+                          onChanged();
+                        }}
+                        deleteConfirm={{
+                          title: "Supprimer cette mesure ?",
+                          message: `Mesure du ${formatDate(m.date)} — cette action est définitive.`,
+                          confirmLabel: "SUPPRIMER",
+                          destructive: true,
+                        }}
+                        onEdit={() => router.push(`/measurement/${m.id}`)}
+                      >
+                        <Pressable testID={`measurement-history-row-${m.id}`} style={styles.historyRow} onPress={() => router.push(`/measurement/${m.id}`)}>
+                          <Text style={[styles.historyDate, { color: theme.colors.onSurfaceSecondary }]}>{formatDate(m.date)}</Text>
+                          <Text style={[styles.historyChips, { color: theme.colors.onSurfaceTertiary }]} numberOfLines={1}>
+                            {[m.weight_kg != null ? `${m.weight_kg} kg` : null, m.body_fat_pct != null ? `${m.body_fat_pct}% MG` : null]
+                              .filter(Boolean)
+                              .join(" · ") || "—"}
+                          </Text>
+                        </Pressable>
+                      </SwipeableRow>
+                    ))}
+                  </Animated.View>
+                )}
+              </View>
+
+              <View style={{ borderTopColor: theme.colors.divider, borderTopWidth: StyleSheet.hairlineWidth }}>
+                <ActionRow testID="add-measurement-btn" icon="add-circle-outline" label="Ajouter une mesure" onPress={() => router.push("/measurement/new")} />
+              </View>
             </Animated.View>
           )}
-
-          <Pressable testID="add-measurement-btn" style={styles.addPill} onPress={() => router.push("/measurement/new")}>
-            <Ionicons name="add" size={15} color={theme.colors.brand} />
-            <Text style={[styles.addPillText, { color: theme.colors.brand }]}>Ajouter une mesure</Text>
-          </Pressable>
         </>
       )}
     </GlassCard>
@@ -481,10 +478,18 @@ export default function MeasurementsCard({
 }
 
 const styles = StyleSheet.create({
-  eyebrow: { fontSize: 11, fontWeight: "700", letterSpacing: 2, marginBottom: 16 },
+  // Titre de section — plus prononcé (taille/graisse/contraste) qu'un
+  // simple libellé discret, pour s'identifier en un coup d'œil (même
+  // traitement repris dans `HealthScoreCard`/`TodayActivityCard`/
+  // `HealthMetricGrid`).
+  eyebrow: { fontSize: 14, fontWeight: "800", letterSpacing: 1, marginBottom: 16 },
   card: { padding: 18 },
   lastUpdated: { fontSize: 11, marginBottom: 8 },
   row: { flexDirection: "row", alignItems: "center", paddingVertical: 14, gap: 11 },
+  // Même style exact que `WeekCalendarView.chevronRow` (chevron replié du
+  // calendrier Dashboard) — juste un padding vertical un peu plus généreux
+  // ici pour une cible de tap confortable entre deux lignes de données.
+  chevronRow: { alignItems: "center", paddingVertical: 10 },
   iconBadge: { width: 26, height: 26, borderRadius: 13, alignItems: "center", justifyContent: "center" },
   rowText: { flex: 1, gap: 2 },
   rowLabel: { fontSize: 13.5, fontWeight: "700" },
@@ -501,11 +506,6 @@ const styles = StyleSheet.create({
   hint: { fontSize: 11, fontStyle: "italic", paddingVertical: 10 },
   divider: { height: StyleSheet.hairlineWidth, marginVertical: 14 },
   disclosureContent: { paddingLeft: 37, paddingTop: 2, paddingBottom: 12 },
-  photoRow: { flexDirection: "row", alignItems: "center", gap: 10 },
-  photoThumb: { width: 40, height: 52 },
-  photoLink: { fontSize: 12.5, fontWeight: "700", marginLeft: 4 },
-  photoPrompt: { flexDirection: "row", alignItems: "center", gap: 8 },
-  photoPromptText: { fontSize: 12, fontStyle: "italic", flex: 1 },
   historyRow: { paddingVertical: 9, gap: 2 },
   historyDate: { fontSize: 12.5, fontWeight: "700" },
   historyChips: { fontSize: 11 },

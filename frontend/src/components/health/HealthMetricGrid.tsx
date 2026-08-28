@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
+import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, { FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 import { motion, solidColor, withAlpha } from "@/src/theme";
@@ -139,6 +140,7 @@ export default function HealthMetricGrid({
   spo2Avg7d: number | null;
 }) {
   const { theme } = useTheme();
+  const router = useRouter();
   const [selected, setSelected] = useState<HealthMetricKey | null>(null);
 
   const rows: MetricRow[] = [
@@ -169,6 +171,7 @@ export default function HealthMetricGrid({
 
   return (
     <View>
+      <Text style={[styles.eyebrow, { color: theme.colors.onSurface }]}>INDICATEURS</Text>
       {rows.map((row, i) => {
         const trend = row.value != null && row.baseline != null ? formatTrend(row.key, row.value, row.baseline, row.higherIsBetter) : null;
         const open = selected === row.key;
@@ -214,6 +217,14 @@ export default function HealthMetricGrid({
             {open && (
               <Animated.View entering={FadeIn.duration(motion.fast)} exiting={FadeOut.duration(motion.fast)}>
                 <HealthTrendChart color={row.color} loadSeries={loadSeriesFor(row.key)} />
+                <Pressable
+                  testID={`health-metric-detail-${row.key}`}
+                  onPress={() => router.push({ pathname: "/health-metric/[key]", params: { key: row.key } })}
+                  style={styles.detailLink}
+                >
+                  <Text style={[styles.detailLinkText, { color: theme.colors.brand }]}>Voir toutes les données</Text>
+                  <Ionicons name="chevron-forward" size={12} color={theme.colors.brand} />
+                </Pressable>
               </Animated.View>
             )}
           </View>
@@ -224,7 +235,10 @@ export default function HealthMetricGrid({
 }
 
 const styles = StyleSheet.create({
+  eyebrow: { fontSize: 14, fontWeight: "800", letterSpacing: 1, marginBottom: 6 },
   row: { flexDirection: "row", alignItems: "center", paddingVertical: 14, gap: 11 },
+  detailLink: { flexDirection: "row", alignItems: "center", gap: 3, paddingLeft: 37, paddingBottom: 14, marginTop: -4 },
+  detailLinkText: { fontSize: 11.5, fontWeight: "700" },
   iconBadge: { width: 26, height: 26, borderRadius: 13, alignItems: "center", justifyContent: "center" },
   rowText: { flex: 1, gap: 2 },
   rowLabel: { fontSize: 13.5, fontWeight: "700" },

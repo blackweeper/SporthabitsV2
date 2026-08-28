@@ -73,7 +73,7 @@ export default function TodayActivityCard({
 
   return (
     <View style={{ gap: 10 }}>
-      <Text style={[styles.title, { color: theme.colors.onSurfaceTertiary }]}>AUJOURD&apos;HUI</Text>
+      <Text style={[styles.title, { color: theme.colors.onSurface }]}>AUJOURD&apos;HUI</Text>
       <View style={styles.grid}>
         <Widget icon="footsteps" color={theme.colors.metricColors.steps} value={Math.round(steps).toLocaleString("fr-FR")} label="Pas" />
         <Widget icon="navigate" color={theme.colors.info} value={`${distanceKm.toFixed(1)} km`} label="Distance" />
@@ -86,7 +86,7 @@ export default function TodayActivityCard({
 }
 
 const styles = StyleSheet.create({
-  title: { fontSize: 11, fontWeight: "700", letterSpacing: 2 },
+  title: { fontSize: 14, fontWeight: "800", letterSpacing: 1 },
   grid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", rowGap: 10 },
   widget: { width: "48%", padding: 14, gap: 6, alignItems: "flex-start" },
   widgetValue: { fontSize: 19, fontWeight: "800" },

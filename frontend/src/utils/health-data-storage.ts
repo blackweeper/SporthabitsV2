@@ -297,6 +297,27 @@ export async function getImportedSleepHoursForDate(dateYYYYMMDD: string): Promis
   return total;
 }
 
+/** Le sommeil affiché comme "Sommeil" du jour désigne conceptuellement la
+ * nuit précédente, pas une plage calendaire — confirmé sur un vrai payload
+ * Health Auto Export réel : `sleep_analysis` arrive daté d'une simple date
+ * (pas d'horodatage), et ce champ correspond au soir du coucher, pas au
+ * réveil. Chercher uniquement "aujourd'hui" masque donc systématiquement la
+ * nuit qui vient de s'écouler (elle reste datée d'hier tant qu'une nouvelle
+ * nuit n'a pas commencé) — c'est le bug réel derrière "le widget Sommeil
+ * n'affiche jamais rien" : la donnée existe bien, juste sous la date
+ * d'hier. Vérifie donc aujourd'hui d'abord (au cas où une version future
+ * daterait au réveil), puis hier — jamais plus loin, pour ne jamais
+ * afficher un sommeil "vieux" comme s'il datait de cette nuit. */
+export async function getLatestSleepHours(): Promise<{ hours: number; dateYYYYMMDD: string } | null> {
+  const today = localDateYYYYMMDD();
+  const todayHours = await getImportedSleepHoursForDate(today);
+  if (todayHours > 0) return { hours: todayHours, dateYYYYMMDD: today };
+  const yesterday = localDateYYYYMMDD(new Date(Date.now() - 86400000));
+  const yesterdayHours = await getImportedSleepHoursForDate(yesterday);
+  if (yesterdayHours > 0) return { hours: yesterdayHours, dateYYYYMMDD: yesterday };
+  return null;
+}
+
 /** Échantillon le plus récent parmi `names` (ex. FC repos, VFC) — ces
  * métriques sont des valeurs ponctuelles (une par jour), pas à sommer. */
 export async function getLatestMetricSample(names: Set<string>): Promise<HealthMetricSample | null> {
@@ -307,6 +328,15 @@ export async function getLatestMetricSample(names: Set<string>): Promise<HealthM
     if (!latest || m.date > latest.date) latest = m;
   }
   return latest;
+}
+
+/** Tous les échantillons bruts d'une métrique, triés du plus récent au plus
+ * ancien — pour la vue détaillée d'un indicateur Santé ("toutes les
+ * données récupérées via l'import santé pour cette métrique"), au-delà de
+ * ce que le graphique d'évolution résume déjà par jour. */
+export async function getRawSamplesForMetric(names: Set<string>): Promise<HealthMetricSample[]> {
+  const metrics = await getHealthMetrics();
+  return metrics.filter((m) => names.has(normalizeMetricName(m.name))).sort((a, b) => (a.date < b.date ? 1 : -1));
 }
 
 function dateStrsInWindow(days: number, referenceDateYYYYMMDD: string): Set<string> {

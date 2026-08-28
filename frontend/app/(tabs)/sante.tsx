@@ -9,21 +9,21 @@ import { SUNSET_BAR_HEIGHT, SUNSET_BAR_MARGIN } from "@/src/utils/tab-bar-metric
 import GlassCard from "@/src/components/ui/GlassCard";
 import { getMeasurements, getProfile, Measurement, UserProfile } from "@/src/utils/gym-storage";
 import { useHealthDashboardData } from "@/src/hooks/useHealthDashboardData";
-import HealthScoreCard, { RecoverySummary } from "@/src/components/health/HealthScoreCard";
+import HealthScoreCard from "@/src/components/health/HealthScoreCard";
 import HealthMetricGrid from "@/src/components/health/HealthMetricGrid";
 import TodayActivityCard from "@/src/components/health/TodayActivityCard";
 import MeasurementsCard from "@/src/components/health/MeasurementsCard";
 
 /**
  * IRONFLOW HEALTH & RECOVERY CENTER — hub Santé, entre Bibliothèque et
- * Évolution dans la barre d'onglets. L'anneau de récupération (`HealthScoreCard`)
- * est un élément visuel autonome posé directement sur l'Aurora — pas dans
- * une carte — pour rester le point focal de l'écran ; le texte qualitatif
- * et les 5 indicateurs (`RecoverySummary`/`HealthMetricGrid`) vivent juste
- * en dessous dans UNE grande surface Glass. Ordre : Récupération → Aujourd'hui
- * → Mesurations. Fond global partagé (`ThemedBackground`, pas de fond
- * spécifique à cet écran), même patron de montage par écran que
- * Dashboard/`/day-detail`/Mon évolution.
+ * Évolution dans la barre d'onglets. `HealthScoreCard` (anneau + bande
+ * qualitative + conseil) est un bloc visuel autonome posé directement sur
+ * l'Aurora — jamais dans une carte — pour rester le point focal de l'écran.
+ * Le rectangle Glass juste en dessous ne porte lui QUE les 5 données
+ * vitales (`HealthMetricGrid`), aucun texte de recommandation. Ordre :
+ * Récupération → Aujourd'hui → Mesurations. Fond global partagé
+ * (`ThemedBackground`, pas de fond spécifique à cet écran), même patron de
+ * montage par écran que Dashboard/`/day-detail`/Mon évolution.
  */
 export default function SanteScreen() {
   const { theme } = useTheme();
@@ -73,9 +73,10 @@ export default function SanteScreen() {
           ]}
           showsVerticalScrollIndicator={false}
         >
-          {/* L'anneau reste un élément visuel autonome, posé directement sur
-              l'Aurora — pas dans la carte ci-dessous, qui ne porte plus que
-              le texte qualitatif et la liste d'indicateurs. */}
+          {/* L'anneau + son texte qualitatif (bande/conseil) restent un
+              élément visuel autonome, posé directement sur l'Aurora — le
+              rectangle ci-dessous ne porte plus AUCUN texte de
+              recommandation, uniquement les 5 données vitales. */}
           <HealthScoreCard recovery={health.recovery} />
 
           <GlassCard
@@ -90,8 +91,6 @@ export default function SanteScreen() {
               },
             ]}
           >
-            <RecoverySummary recovery={health.recovery} />
-            <View style={[styles.heroDivider, { backgroundColor: theme.colors.divider }]} />
             <HealthMetricGrid
               sleepHours={health.sleepHours}
               sleepAvg7d={health.sleepAvg7d}
@@ -127,5 +126,4 @@ const styles = StyleSheet.create({
   title: { fontSize: 28, fontWeight: "800" },
   scroll: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xl3, gap: spacing.lg },
   heroCard: { padding: 18 },
-  heroDivider: { height: StyleSheet.hairlineWidth, marginBottom: 2 },
 });

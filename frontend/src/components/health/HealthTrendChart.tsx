@@ -37,9 +37,14 @@ function shortDate(dateStr: string): string {
 export default function HealthTrendChart({
   color,
   loadSeries,
+  indent = true,
 }: {
   color: RingColor;
   loadSeries: (days: number) => Promise<DailyMetricPoint[]>;
+  /** Retrait gauche pour s'aligner sous le texte d'une ligne parente (voir
+   * `HealthMetricGrid`) — désactivé (`false`) pour un usage plein largeur,
+   * ex. la vue détaillée `/health-metric/[key]`. */
+  indent?: boolean;
 }) {
   const { theme } = useTheme();
   const [period, setPeriod] = useState<TrendPeriodKey>("week");
@@ -60,12 +65,12 @@ export default function HealthTrendChart({
     };
   }, [period, loadSeries]);
 
-  const chartW = Dimensions.get("window").width - spacing.lg * 2 - 78;
+  const chartW = Dimensions.get("window").width - spacing.lg * 2 - (indent ? 78 : 16);
   const lineColor = solidColor(color);
   const chartData = points.map((p) => ({ value: Math.round(p.value * 100) / 100, label: shortDate(p.date) }));
 
   return (
-    <View style={styles.wrap}>
+    <View style={[styles.wrap, !indent && { paddingLeft: 0 }]}>
       <View style={styles.periodRow}>
         {PERIODS.map((p) => {
           const active = p === period;

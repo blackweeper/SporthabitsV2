@@ -266,7 +266,13 @@ async def _paginated(collection, projection: Dict[str, int], since: Optional[str
     )
     has_more = len(docs) > capped_limit
     docs = docs[:capped_limit]
-    next_cursor = _encode_cursor(docs[-1]["ingested_at"], docs[-1]["_id"]) if has_more and docs else None
+    # Le curseur doit toujours avancer jusqu'au dernier document RENVOYÉ, que
+    # d'autres documents restent après ou non — le conditionner à `has_more`
+    # (bug corrigé ici) faisait que la dernière page d'une synchro ne faisait
+    # jamais avancer le curseur stocké côté app, qui re-redemandait donc
+    # indéfiniment cette même page à chaque synchro suivante (inoffensif
+    # grâce à la déduplication côté app, mais jamais résolu).
+    next_cursor = _encode_cursor(docs[-1]["ingested_at"], docs[-1]["_id"]) if docs else None
     for d in docs:
         d.pop("_id", None)
         d.pop("user_id", None)
