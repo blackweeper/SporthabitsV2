@@ -91,17 +91,26 @@ export default function TabsLayout() {
           // migrés (Entraînements/Bibliothèque/...) : chaque écran garde son
           // propre fond opaque (`colors.surface`) qui masque naturellement
           // le dégradé partagé, comme prévu.
-          // Le home indicator/la barre de gestes ne doit jamais recouvrir les
-          // onglets : sous Sunset, la pilule flottante remonte de l'inset bas
-          // en plus de sa marge habituelle ; sous Classique, la barre garde
-          // sa zone tactile de 72px inchangée et gagne l'inset en `paddingBottom`
-          // supplémentaire (les icônes restent centrées dans les 72px d'origine).
+          // Le home indicator ne doit jamais recouvrir les onglets — mais sans
+          // jamais transformer `insets.bottom` en espace vide sous l'app (bug
+          // constaté sur iPhone : bande noire sous l'app + barre pas vraiment
+          // au bord). Sous Sunset, la pilule flottante garde sa marge fixe
+          // (`SUNSET_BAR_MARGIN`, jamais `+ insets.bottom` — la pousser plus
+          // haut n'aide pas et agrandit la zone qui doit rester peinte par le
+          // fond de l'app, voir le fix `min-height:100dvh` dans
+          // `scripts/patch-web-build.js`). Sous Classique, la barre est en
+          // flux normal (pas de `position:absolute`, contrairement à Sunset)
+          // donc `insets.bottom` DOIT agrandir sa boîte (hauteur + padding)
+          // pour que son propre fond — qui remplit déjà toute sa boîte —
+          // s'étende correctement derrière le Home Indicator ; les icônes
+          // restent centrées dans les 72px d'origine grâce au `paddingTop`
+          // inchangé.
           tabBarStyle: isSunset
             ? {
                 position: "absolute",
                 left: SUNSET_BAR_MARGIN,
                 right: SUNSET_BAR_MARGIN,
-                bottom: SUNSET_BAR_MARGIN + insets.bottom,
+                bottom: SUNSET_BAR_MARGIN,
                 height: SUNSET_BAR_HEIGHT,
                 borderRadius: theme.radius.pill,
                 borderWidth: StyleSheet.hairlineWidth,
@@ -226,7 +235,9 @@ export default function TabsLayout() {
         pointerEvents="box-none"
         style={[
           styles.fabWrap,
-          { bottom: (isSunset ? SUNSET_BAR_MARGIN + SUNSET_BAR_HEIGHT + 14 : 82) + insets.bottom },
+          isSunset
+            ? { bottom: SUNSET_BAR_MARGIN + SUNSET_BAR_HEIGHT + 14 }
+            : { bottom: 82 + insets.bottom },
         ]}
       >
         <Pressable

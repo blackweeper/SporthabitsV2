@@ -41,7 +41,21 @@ const injected = `
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="IronFlow" />
   <meta name="mobile-web-app-capable" content="yes" />
-  <style>html, body { background-color: #0E0E0E; }</style>
+  <style>
+    html, body { background-color: #0E0E0E; }
+    /* Le reset #expo-reset (généré par Expo, avant ce bloc) fixe html/body/#root
+       à "height: 100%". Sous Safari iOS en mode standalone (PWA installée) +
+       viewport-fit=cover, "100%"/"100vh" peut rester plus court que la
+       hauteur réelle de l'écran (l'espace derrière le Home Indicator n'est
+       pas toujours inclus) — c'est la cause exacte de la bande noire sous
+       l'app : le fond de la page (body, correctement noir) reste visible
+       sous le contenu React, qui s'arrête trop tôt. "100dvh" (dynamic
+       viewport height) mesure la VRAIE surface visible, Home Indicator
+       inclus. Ajouté en "min-height" (jamais en remplacement de "height")
+       pour ne jamais RÉDUIRE la hauteur sur les navigateurs qui calculent
+       déjà "100%" correctement — seulement l'agrandir si besoin. */
+    html, body, #root { min-height: 100dvh; }
+  </style>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', function () {

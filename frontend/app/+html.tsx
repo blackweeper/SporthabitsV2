@@ -45,6 +45,12 @@ export default function Root({ children }: PropsWithChildren) {
           dangerouslySetInnerHTML={{
             __html: `
               html, body { background-color: #0E0E0E; }
+              /* Voir scripts/patch-web-build.js pour le détail : "100%" peut
+                 rester plus court que l'écran réel sous Safari iOS en mode
+                 standalone (PWA installée) + viewport-fit=cover — cause de la
+                 bande noire sous l'app. "min-height: 100dvh" mesure la vraie
+                 surface visible (Home Indicator inclus), additif seulement. */
+              html, body, #root { min-height: 100dvh; }
               body > div:first-child { position: fixed !important; top: 0; left: 0; right: 0; bottom: 0; }
               [role="tablist"] [role="tab"] * { overflow: visible !important; }
               [role="heading"], [role="heading"] * { overflow: visible !important; }
