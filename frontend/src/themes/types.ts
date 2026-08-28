@@ -15,7 +15,6 @@ export type MetricColorSet = {
   steps: RingColor;
   sleep: RingColor;
   training: RingColor;
-  score: RingColor;
 };
 
 /** Couleurs "sémantiques de données" — distinctes de l'accent `brand` du

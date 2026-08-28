@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { View, Text, StyleSheet, Pressable, Modal, Animated } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import Svg, { Circle } from "react-native-svg";
 import * as Haptics from "expo-haptics";
@@ -28,6 +29,7 @@ export default function HabitTimerModal({
   onCompleted: () => void;
 }) {
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
   const [timer, setTimer] = useState<ActiveHabitTimer | null>(null);
   const [elapsedMs, setElapsedMs] = useState(0);
   const [done, setDone] = useState(false);
@@ -145,7 +147,11 @@ export default function HabitTimerModal({
       <View style={styles.backdrop}>
         <GlassCard
           level="elevated"
-          style={[styles.sheet, theme.card.mode !== "glass" && { backgroundColor: theme.colors.surfaceSecondary }]}
+          style={[
+            styles.sheet,
+            theme.card.mode !== "glass" && { backgroundColor: theme.colors.surfaceSecondary },
+            { paddingBottom: 48 + insets.bottom },
+          ]}
         >
           {!done ? (
             <>

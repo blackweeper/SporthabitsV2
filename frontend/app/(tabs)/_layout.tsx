@@ -3,6 +3,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { View, Pressable, StyleSheet } from "react-native";
 import { useState } from "react";
 import { BlurView } from "expo-blur";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, { FadeIn } from "react-native-reanimated";
 import { coloredShadow, radius, spacing, withAlpha } from "@/src/theme";
 import { useTheme } from "@/src/themes";
@@ -63,6 +64,7 @@ export default function TabsLayout() {
   const router = useRouter();
   const [addOpen, setAddOpen] = useState(false);
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
   const isGlass = theme.card.mode === "glass";
   const isSunset = theme.id === "sunset";
 
@@ -89,12 +91,17 @@ export default function TabsLayout() {
           // migrés (Entraînements/Bibliothèque/...) : chaque écran garde son
           // propre fond opaque (`colors.surface`) qui masque naturellement
           // le dégradé partagé, comme prévu.
+          // Le home indicator/la barre de gestes ne doit jamais recouvrir les
+          // onglets : sous Sunset, la pilule flottante remonte de l'inset bas
+          // en plus de sa marge habituelle ; sous Classique, la barre garde
+          // sa zone tactile de 72px inchangée et gagne l'inset en `paddingBottom`
+          // supplémentaire (les icônes restent centrées dans les 72px d'origine).
           tabBarStyle: isSunset
             ? {
                 position: "absolute",
                 left: SUNSET_BAR_MARGIN,
                 right: SUNSET_BAR_MARGIN,
-                bottom: SUNSET_BAR_MARGIN,
+                bottom: SUNSET_BAR_MARGIN + insets.bottom,
                 height: SUNSET_BAR_HEIGHT,
                 borderRadius: theme.radius.pill,
                 borderWidth: StyleSheet.hairlineWidth,
@@ -109,8 +116,8 @@ export default function TabsLayout() {
                 backgroundColor: theme.card.mode === "glass" ? theme.card.tint : theme.colors.surfaceSecondary,
                 borderTopColor: isGlass ? theme.colors.borderStrong : theme.colors.border,
                 borderTopWidth: isGlass ? StyleSheet.hairlineWidth : 1,
-                height: 72,
-                paddingBottom: 10,
+                height: 72 + insets.bottom,
+                paddingBottom: 10 + insets.bottom,
                 paddingTop: 8,
               },
           // Fond flouté "liquid glass" de la barre — seulement sous Sunset ;
@@ -185,14 +192,10 @@ export default function TabsLayout() {
         <Tabs.Screen
           name="progression"
           options={{
-            title: "Mon évolution",
-            // Sous Sunset, le libellé natif de l'onglet lit `options.title`
-            // par défaut ("Mon évolution", trop long pour la pilule) — le
-            // raccourcir explicitement ici, cohérent avec le libellé déjà
-            // utilisé par la pilule Classique ci-dessous.
-            tabBarLabel: "Évolution",
+            title: "Performance",
+            tabBarLabel: "Performance",
             tabBarIcon: ({ color, focused }) => (
-              <TabIcon name="trending-up" label="Évolution" focused={focused} color={color} sunset={isSunset} />
+              <TabIcon name="trending-up" label="Performance" focused={focused} color={color} sunset={isSunset} />
             ),
             tabBarButtonTestID: "tab-progression",
           }}
@@ -221,7 +224,10 @@ export default function TabsLayout() {
           espacement égal entre les onglets restants). */}
       <View
         pointerEvents="box-none"
-        style={[styles.fabWrap, isSunset && { bottom: SUNSET_BAR_MARGIN + SUNSET_BAR_HEIGHT + 14 }]}
+        style={[
+          styles.fabWrap,
+          { bottom: (isSunset ? SUNSET_BAR_MARGIN + SUNSET_BAR_HEIGHT + 14 : 82) + insets.bottom },
+        ]}
       >
         <Pressable
           testID="tab-add"

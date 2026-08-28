@@ -11,24 +11,21 @@ import GlassCard from "@/src/components/ui/GlassCard";
 import MultiRingGauge from "@/src/components/ui/MultiRingGauge";
 import {
   DEFAULT_CALORIES_BURN_TARGET_KCAL,
+  DEFAULT_SLEEP_TARGET_HOURS,
   DEFAULT_STEPS_TARGET,
   DEFAULT_TRAINING_MINUTES_TARGET,
-  DailyJournalEntry,
-  Habit,
-  HabitLog,
   UserProfile,
   WellnessLog,
   WorkoutSession,
-  getDailyJournal,
-  getHabitLogs,
-  getHabits,
   getProfile,
   getSessions,
   getWellnessLogs,
   todayYYYYMMDD,
 } from "@/src/utils/gym-storage";
-import { getImportedStepsForDates } from "@/src/utils/health-data-storage";
-import { computeDailyIronflowScore } from "@/src/utils/scoring";
+import {
+  getImportedSleepHoursForDate,
+  getImportedStepsForDates,
+} from "@/src/utils/health-data-storage";
 import {
   last7DatesEndingAt,
   sumCaloriesBurnedForDate,
@@ -45,34 +42,31 @@ function formatDayLabel(dateStr: string): string {
   return WEEKDAY_LETTERS[(d.getUTCDay() + 6) % 7];
 }
 
+function formatSleepDuration(hours: number): string {
+  const h = Math.floor(hours);
+  const m = Math.round((hours - h) * 60);
+  return `${h}h${String(m).padStart(2, "0")}`;
+}
+
 export default function DayDetailScreen() {
   const router = useRouter();
   const { theme } = useTheme();
   const styles = useMemo(() => buildStyles(theme), [theme]);
   const [sessions, setSessions] = useState<WorkoutSession[]>([]);
-  const [habits, setHabits] = useState<Habit[]>([]);
-  const [logs, setLogs] = useState<HabitLog[]>([]);
   const [wellnessLogs, setWellnessLogs] = useState<WellnessLog[]>([]);
-  const [dailyJournal, setDailyJournal] = useState<DailyJournalEntry[]>([]);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [importedStepsByDate, setImportedStepsByDate] = useState<Record<string, number>>({});
+  const [importedSleepByDate, setImportedSleepByDate] = useState<Record<string, number>>({});
 
   const load = useCallback(async () => {
-    const [s, h, l, w, dj, p] = await Promise.all([
-      getSessions(),
-      getHabits(),
-      getHabitLogs(),
-      getWellnessLogs(),
-      getDailyJournal(),
-      getProfile(),
-    ]);
+    const [s, w, p] = await Promise.all([getSessions(), getWellnessLogs(), getProfile()]);
     setSessions(s);
-    setHabits(h);
-    setLogs(l);
     setWellnessLogs(w);
-    setDailyJournal(dj);
     setProfile(p);
-    setImportedStepsByDate(await getImportedStepsForDates(last7DatesEndingAt(todayYYYYMMDD())));
+    const dates = last7DatesEndingAt(todayYYYYMMDD());
+    setImportedStepsByDate(await getImportedStepsForDates(dates));
+    const sleepEntries = await Promise.all(dates.map((d) => getImportedSleepHoursForDate(d)));
+    setImportedSleepByDate(Object.fromEntries(dates.map((d, i) => [d, sleepEntries[i]])));
   }, []);
 
   useFocusEffect(
@@ -83,27 +77,27 @@ export default function DayDetailScreen() {
 
   const today = todayYYYYMMDD();
   const dates = last7DatesEndingAt(today);
-  const scoreProfile = profile ?? { weight_kg: null, height_cm: null, sex: null, age: null };
 
   const perDateMetrics = dates.map((dateStr) => {
     const caloriesBurned = sumCaloriesBurnedForDate(sessions, dateStr);
     const steps =
       (wellnessLogs.find((w) => w.date === dateStr)?.steps ?? 0) + (importedStepsByDate[dateStr] ?? 0);
     const trainingMinutes = sumTrainingMinutesForDate(sessions, dateStr);
-    const score = computeDailyIronflowScore(dateStr, sessions, habits, logs, wellnessLogs, dailyJournal, scoreProfile).score;
-    return { date: dateStr, caloriesBurned, steps, trainingMinutes, score };
+    const sleepHours = importedSleepByDate[dateStr] ?? 0;
+    return { date: dateStr, caloriesBurned, steps, trainingMinutes, sleepHours };
   });
   const todayMetrics = perDateMetrics[perDateMetrics.length - 1];
 
   const caloriesTarget = profile?.calories_burn_target_kcal || DEFAULT_CALORIES_BURN_TARGET_KCAL;
   const stepsTarget = profile?.steps_target || DEFAULT_STEPS_TARGET;
   const minutesTarget = profile?.training_minutes_target || DEFAULT_TRAINING_MINUTES_TARGET;
+  const sleepTarget = profile?.sleep_target_hours || DEFAULT_SLEEP_TARGET_HOURS;
 
   const ringPercents = [
     (todayMetrics.caloriesBurned / caloriesTarget) * 100,
     (todayMetrics.steps / stepsTarget) * 100,
     (todayMetrics.trainingMinutes / minutesTarget) * 100,
-    todayMetrics.score,
+    (todayMetrics.sleepHours / sleepTarget) * 100,
   ];
   const aggregate = computeDailyAggregateScore(ringPercents);
   const weekSummary = trainingsThisWeekSummary(sessions, today);
@@ -113,7 +107,16 @@ export default function DayDetailScreen() {
   // un dégradé par barre.
   const solid = (c: string | readonly [string, string]) => (Array.isArray(c) ? c[0] : (c as string));
 
-  const cards = [
+  const cards: {
+    key: string;
+    label: string;
+    unit: string;
+    color: string;
+    value: number;
+    target: number;
+    history: number[];
+    formatValue?: (n: number) => string;
+  }[] = [
     {
       key: "calories",
       label: "Calories brûlées",
@@ -142,13 +145,14 @@ export default function DayDetailScreen() {
       history: perDateMetrics.map((m) => m.trainingMinutes),
     },
     {
-      key: "score",
-      label: "Score IronFlow",
+      key: "sleep",
+      label: "Sommeil",
       unit: "",
-      color: solid(theme.colors.metricColors.score),
-      value: todayMetrics.score,
-      target: 100,
-      history: perDateMetrics.map((m) => m.score),
+      color: solid(theme.colors.metricColors.sleep),
+      value: todayMetrics.sleepHours,
+      target: sleepTarget,
+      history: perDateMetrics.map((m) => m.sleepHours),
+      formatValue: formatSleepDuration,
     },
   ];
 
@@ -183,16 +187,17 @@ export default function DayDetailScreen() {
                 { pct: ringPercents[0] / 100, color: theme.colors.metricColors.caloriesBurn },
                 { pct: ringPercents[1] / 100, color: theme.colors.metricColors.steps },
                 { pct: ringPercents[2] / 100, color: theme.colors.metricColors.training },
-                { pct: ringPercents[3] / 100, color: theme.colors.metricColors.score },
+                { pct: ringPercents[3] / 100, color: theme.colors.metricColors.sleep },
               ]}
             >
-              <Text style={[styles.aggregateValue, { color: theme.colors.onSurface }]}>{aggregate}</Text>
-              <Text style={[styles.aggregateLabel, { color: theme.colors.onSurfaceTertiary }]}>score du jour</Text>
+              <Text style={[styles.aggregateValue, { color: theme.colors.onSurface }]}>{aggregate}%</Text>
+              <Text style={[styles.aggregateLabel, { color: theme.colors.onSurfaceTertiary }]}>activité du jour</Text>
             </MultiRingGauge>
           </View>
 
           {cards.map((c) => {
-            const avg = Math.round(c.history.reduce((a, b) => a + b, 0) / c.history.length);
+            const rawAvg = c.history.reduce((a, b) => a + b, 0) / c.history.length;
+            const avg = c.formatValue ? rawAvg : Math.round(rawAvg);
             return (
               <GlassCard key={c.key} style={styles.card} testID={`day-detail-card-${c.key}`}>
                 <View style={styles.cardHead}>
@@ -200,13 +205,15 @@ export default function DayDetailScreen() {
                     {c.label.toUpperCase()}
                   </Text>
                   <Text style={[styles.cardValue, { color: c.color }]}>
-                    {Math.round(c.value)}
+                    {c.formatValue ? c.formatValue(c.value) : Math.round(c.value)}
                     {c.unit ? ` ${c.unit}` : ""}
-                    {c.target ? ` / ${Math.round(c.target)}${c.unit ? ` ${c.unit}` : ""}` : ""}
+                    {c.target
+                      ? ` / ${c.formatValue ? c.formatValue(c.target) : Math.round(c.target)}${c.unit ? ` ${c.unit}` : ""}`
+                      : ""}
                   </Text>
                 </View>
                 <Text style={[styles.cardAvg, { color: theme.colors.onSurfaceSecondary }]}>
-                  Moyenne 7 jours : {avg}
+                  Moyenne 7 jours : {c.formatValue ? c.formatValue(avg) : avg}
                   {c.unit ? ` ${c.unit}` : ""}
                 </Text>
                 <BarChart
@@ -242,11 +249,11 @@ export default function DayDetailScreen() {
 
           <Pressable
             testID="day-detail-progression-link"
-            onPress={() => router.push(progressionHref("overview") as any)}
+            onPress={() => router.push(progressionHref("exercises") as any)}
             style={styles.progressionLink}
           >
             <Text style={[styles.progressionLinkText, { color: theme.colors.onSurfaceTertiary }]}>
-              Voir Mon évolution complète
+              Voir Performance
             </Text>
             <Ionicons name="chevron-forward" size={14} color={theme.colors.onSurfaceTertiary} />
           </Pressable>

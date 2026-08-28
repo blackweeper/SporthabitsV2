@@ -1,11 +1,11 @@
 import { useCallback, useState } from "react";
 import { View, Text, ScrollView, StyleSheet } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 import { spacing } from "@/src/theme";
 import { useTheme } from "@/src/themes";
 import ThemedBackground from "@/src/themes/ThemedBackground";
-import { SUNSET_BAR_HEIGHT, SUNSET_BAR_MARGIN } from "@/src/utils/tab-bar-metrics";
+import { tabBarSafeBottomOffset } from "@/src/utils/tab-bar-metrics";
 import GlassCard from "@/src/components/ui/GlassCard";
 import { getMeasurements, getProfile, Measurement, UserProfile } from "@/src/utils/gym-storage";
 import { useHealthDashboardData } from "@/src/hooks/useHealthDashboardData";
@@ -28,6 +28,7 @@ import MeasurementsCard from "@/src/components/health/MeasurementsCard";
 export default function SanteScreen() {
   const { theme } = useTheme();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const health = useHealthDashboardData();
   const [measurements, setMeasurements] = useState<Measurement[]>([]);
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -69,7 +70,7 @@ export default function SanteScreen() {
             // arrivé à sa position maximale réelle (pas un vrai blocage du
             // scroll, mais perçu comme tel). Classique n'a pas ce problème
             // (barre non flottante, déjà prise en compte par la navigation).
-            theme.background.mode === "gradient" && { paddingBottom: SUNSET_BAR_MARGIN + SUNSET_BAR_HEIGHT + spacing.xl },
+            theme.background.mode === "gradient" && { paddingBottom: tabBarSafeBottomOffset(true, insets.bottom) + spacing.xl },
           ]}
           showsVerticalScrollIndicator={false}
         >

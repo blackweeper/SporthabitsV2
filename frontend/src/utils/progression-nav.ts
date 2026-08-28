@@ -1,15 +1,10 @@
-// Single source of truth for the Progression screen's sub-tabs, so any link
-// that should open directly on a given sub-tab (from the dashboard, the
-// profile menu, or any future screen) stays valid even if tabs are
-// renamed/added/removed later.
-export type ProgressionTab =
-  | "overview"
-  | "exercises"
-  | "records"
-  | "level"
-  | "habits"
-  | "goals"
-  | "journal";
+/** Onglets de Performance (anciennement "Évolution") — Score IronFlow/
+ * Habitudes/Objectifs/Journal ont été retirés de cet écran (voir la refonte
+ * "Performance" : le Score est supprimé de l'app, les Habitudes se gèrent
+ * depuis le Dashboard, le Journal/les Rappels ont migré vers Réglages,
+ * les Objectifs restent gérés depuis `/goals`). Records n'est plus un
+ * onglet séparé — intégré dans Exercices. */
+export type ProgressionTab = "exercises" | "level" | "defis";
 
 export function progressionHref(tab: ProgressionTab): string {
   return `/progression?tab=${tab}`;

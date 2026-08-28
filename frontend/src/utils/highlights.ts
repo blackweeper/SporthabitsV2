@@ -24,15 +24,10 @@ export function computeHighlights({
   prs,
   goals,
   streakDays,
-  scoreTrendPts,
 }: {
   prs: PersonalRecord[];
   goals: Goal[];
   streakDays: number;
-  /** Point difference of the daily score vs. 7 days ago (same convention as
-   * the day-over-day delta already shown elsewhere) — null when there isn't
-   * enough history yet to compare. */
-  scoreTrendPts: number | null;
 }): Highlight[] {
   const highlights: Highlight[] = [];
   const cutoff = Date.now() - SEVEN_DAYS_MS;
@@ -54,14 +49,6 @@ export function computeHighlights({
       key: 'streak',
       emoji: '🔥',
       title: `Série de ${streakDays} jour${streakDays > 1 ? 's' : ''}`,
-    });
-  }
-
-  if (scoreTrendPts != null && Math.abs(scoreTrendPts) >= 5) {
-    highlights.push({
-      key: 'trend',
-      emoji: scoreTrendPts > 0 ? '📈' : '📉',
-      title: `${scoreTrendPts > 0 ? '+' : ''}${Math.round(scoreTrendPts)}% cette semaine`,
     });
   }
 

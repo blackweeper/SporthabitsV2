@@ -41,8 +41,6 @@ export const classicTheme: Theme = {
       steps: "#10B981",
       sleep: "#8B5CF6",
       training: "#10B981",
-      // Jaune sur demande explicite (remplace `#FF3D00`).
-      score: "#FFC107",
     },
     // Alias vers les hex déjà existants ci-dessus — aucun nouveau ton
     // introduit pour Classique, juste un nom sémantique par catégorie de

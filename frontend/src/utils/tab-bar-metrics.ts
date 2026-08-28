@@ -9,3 +9,12 @@
 export const SUNSET_BAR_HEIGHT = 64;
 export const SUNSET_BAR_MARGIN = 14;
 export const CLASSIC_BAR_HEIGHT = 72;
+
+/** Espace total réellement occupé par la barre d'onglets depuis le bas de
+ * l'écran, home indicator inclus — à utiliser par tout élément qui doit se
+ * positionner juste au-dessus d'elle (FAB, mini-lecteur radio, padding de
+ * scroll) plutôt que de reconstituer l'arithmétique `SUNSET_BAR_MARGIN +
+ * SUNSET_BAR_HEIGHT`/`CLASSIC_BAR_HEIGHT` à la main sans l'inset bas. */
+export function tabBarSafeBottomOffset(isSunset: boolean, insetsBottom: number): number {
+  return (isSunset ? SUNSET_BAR_MARGIN + SUNSET_BAR_HEIGHT : CLASSIC_BAR_HEIGHT) + insetsBottom;
+}

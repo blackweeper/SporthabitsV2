@@ -190,14 +190,6 @@ export default function ProfileTab() {
 
         <Text style={[styles.sectionLabel, { color: theme.colors.onSurfaceTertiary }]}>PROGRESSION</Text>
         <ListRow
-          icon="trophy"
-          iconBg="#FFC107"
-          title="Succès"
-          subtitle="Badges & trophées"
-          onPress={() => router.push("/achievements")}
-          testID="row-achievements"
-        />
-        <ListRow
           icon="flag"
           iconBg={theme.colors.progressSecondary}
           title="Objectifs"

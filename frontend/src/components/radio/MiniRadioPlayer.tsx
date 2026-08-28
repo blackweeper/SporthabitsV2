@@ -4,7 +4,7 @@ import { useSegments } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { spacing, withAlpha } from "@/src/theme";
 import { useTheme } from "@/src/themes";
-import { CLASSIC_BAR_HEIGHT, SUNSET_BAR_HEIGHT, SUNSET_BAR_MARGIN } from "@/src/utils/tab-bar-metrics";
+import { tabBarSafeBottomOffset } from "@/src/utils/tab-bar-metrics";
 import GlassCard from "@/src/components/ui/GlassCard";
 import PressableScale from "@/src/components/ui/PressableScale";
 import { useRadioPlayer } from "@/src/hooks/useRadioPlayer";
@@ -29,9 +29,7 @@ export default function MiniRadioPlayer() {
   const inTabs = segments[0] === "(tabs)";
   const isSunset = theme.id === "sunset";
   const bottom = inTabs
-    ? isSunset
-      ? SUNSET_BAR_MARGIN + SUNSET_BAR_HEIGHT + spacing.sm
-      : CLASSIC_BAR_HEIGHT + spacing.xs
+    ? tabBarSafeBottomOffset(isSunset, insets.bottom) + (isSunset ? spacing.sm : spacing.xs)
     : insets.bottom + spacing.sm;
 
   const isPlaying = status === "playing";

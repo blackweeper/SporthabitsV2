@@ -1,4 +1,4 @@
-import { ReactNode, useState, useCallback, useEffect } from "react";
+import { ReactNode, useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -6,21 +6,13 @@ import {
   ScrollView,
   Pressable,
   Dimensions,
-  Image,
   Modal,
 } from "react-native";
 import { useConfirmDialog } from "@/src/hooks/use-confirm-dialog";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import Svg, { Circle } from "react-native-svg";
-import Animated, {
-  Easing,
-  FadeInDown,
-  useAnimatedProps,
-  useSharedValue,
-  withTiming,
-} from "react-native-reanimated";
+import Animated, { FadeInDown } from "react-native-reanimated";
 import { LineChart } from "react-native-gifted-charts";
 import { coloredShadow, motion, spacing, withAlpha } from "@/src/theme";
 import { useTheme } from "@/src/themes";
@@ -30,8 +22,6 @@ import Card from "@/src/components/ui/Card";
 import GlassCard from "@/src/components/ui/GlassCard";
 import PressableScale from "@/src/components/ui/PressableScale";
 import {
-  PERIOD_LABEL,
-  PeriodKey,
   EXERCISE_CATEGORY_COLOR,
   EXERCISE_CATEGORY_ICON,
   EXERCISE_CATEGORY_LABEL,
@@ -39,7 +29,6 @@ import {
   getOverrides,
   resolveCategory,
 } from "@/src/utils/exercise-category";
-import { EXERCISE_LIBRARY } from "@/src/data/exercise-library";
 import {
   BADGES,
   computeXPState,
@@ -47,73 +36,37 @@ import {
   xpForLevel,
 } from "@/src/utils/xp";
 import {
-  DailyJournalEntry,
-  PAIN_ZONE_LABEL,
-  deleteDailyJournalEntry,
-  deleteHabit,
   deleteMeasurement,
   deletePR,
-  deleteReminder,
-  getDailyJournal,
   getGoals,
   getHabits,
   getHabitLogs,
   getMeasurements,
   getPRs,
-  getProfile,
-  getReminders,
   getSessions,
-  getWellnessLogs,
   Goal,
-  GOAL_CATEGORY_ICON,
-  GOAL_CATEGORY_LABEL,
   Habit,
   HabitLog,
-  Measurement,
   PersonalRecord,
-  Reminder,
-  REMINDER_KIND_ICON,
-  REMINDER_KIND_LABEL,
-  todayYYYYMMDD,
-  UserProfile,
-  WellnessLog,
   WorkoutSession,
 } from "@/src/utils/gym-storage";
 import SwipeableRow from "@/src/components/SwipeableRow";
-import {
-  computeDailyIronflowScore,
-  DailyIronflowScore,
-  scoreQualitativeLabel,
-} from "@/src/utils/scoring";
 import { computeAdvancedStats } from "@/src/utils/stats";
 import { computeHighlights, Highlight } from "@/src/utils/highlights";
 import { listAllExercises } from "@/src/utils/exercise-detail";
+import { Achievement, computeAchievements } from "@/src/utils/achievements";
 import { ProgressionTab } from "@/src/utils/progression-nav";
 
 type Tab = ProgressionTab;
 
+/** Performance a exactement 3 sections — voir la refonte "Évolution →
+ * Performance" : Score IronFlow supprimé, Habitudes/Objectifs/Journal
+ * retirés (déjà gérables ailleurs), Records intégré dans Exercices plutôt
+ * que d'être un onglet séparé. */
 const TABS: { key: Tab; label: string; icon: any }[] = [
-  { key: "overview", label: "Score", icon: "speedometer" },
-  { key: "exercises", label: "Exercices", icon: "barbell" },
-  { key: "records", label: "Records", icon: "trophy" },
-  { key: "level", label: "Niveau", icon: "star" },
-  { key: "habits", label: "Habitudes", icon: "checkbox" },
-  { key: "goals", label: "Objectifs", icon: "flag" },
-  { key: "journal", label: "Journal", icon: "book" },
-];
-
-/** The 4 sub-tabs grouped visually under the "Performances sportives" section. */
-const PERFORMANCE_TABS: Tab[] = ["overview", "exercises", "records", "level"];
-
-/** 5 top-level sections shown to the user: Transformation physique,
- * Performances sportives (groups score/exercices/records/niveau),
- * Habitudes, Objectifs, Journal. Purely a display grouping — the
- * underlying `Tab` values (and progressionHref deep links) are unchanged. */
-const OUTER_GROUPS: { key: string; label: string; icon: any; tabs: Tab[] }[] = [
-  { key: "performance", label: "Performances", icon: "trophy", tabs: PERFORMANCE_TABS },
-  { key: "habits", label: "Habitudes", icon: "checkbox", tabs: ["habits"] },
-  { key: "goals", label: "Objectifs", icon: "flag", tabs: ["goals"] },
-  { key: "journal", label: "Journal", icon: "book", tabs: ["journal"] },
+  { key: "exercises", label: "EXERCICES", icon: "barbell" },
+  { key: "level", label: "NIVEAU", icon: "star" },
+  { key: "defis", label: "DÉFIS", icon: "trophy" },
 ];
 
 function isProgressionTab(v: unknown): v is Tab {
@@ -136,18 +89,13 @@ export default function ProgressionHub() {
   const router = useRouter();
   const { tab: tabParam } = useLocalSearchParams<{ tab?: string }>();
   const [tab, setTab] = useState<Tab>(
-    isProgressionTab(tabParam) ? tabParam : "overview",
+    isProgressionTab(tabParam) ? tabParam : "exercises",
   );
   const [sessions, setSessions] = useState<WorkoutSession[]>([]);
   const [prs, setPRs] = useState<PersonalRecord[]>([]);
-  const [measurements, setMeasurements] = useState<Measurement[]>([]);
   const [habits, setHabits] = useState<Habit[]>([]);
   const [logs, setLogs] = useState<HabitLog[]>([]);
-  const [reminders, setReminders] = useState<Reminder[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
-  const [wellness, setWellness] = useState<WellnessLog[]>([]);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [dailyJournal, setDailyJournal] = useState<DailyJournalEntry[]>([]);
 
   // Re-sync the active tab whenever we're pushed here with a `?tab=...`
   // param — this screen stays mounted across tab-bar switches, so a plain
@@ -159,28 +107,18 @@ export default function ProgressionHub() {
   );
 
   const reload = useCallback(async () => {
-    const [s, p, m, h, hl, r, g, w, pr, dj] = await Promise.all([
+    const [s, p, h, hl, g] = await Promise.all([
       getSessions(),
       getPRs(),
-      getMeasurements(),
       getHabits(),
       getHabitLogs(),
-      getReminders(),
       getGoals(),
-      getWellnessLogs(),
-      getProfile(),
-      getDailyJournal(),
     ]);
     setSessions(s);
     setPRs(p);
-    setMeasurements(m);
     setHabits(h);
     setLogs(hl);
-    setReminders(r);
     setGoals(g);
-    setWellness(w);
-    setProfile(pr);
-    setDailyJournal(dj);
   }, []);
 
   useFocusEffect(
@@ -189,40 +127,15 @@ export default function ProgressionHub() {
     }, [reload]),
   );
 
-  const scoreProfile = profile ?? {
-    weight_kg: null,
-    height_cm: null,
-    sex: null,
-    age: null,
-  };
-  const today = todayYYYYMMDD();
-  const score = computeDailyIronflowScore(
-    today,
-    sessions,
-    habits,
-    logs,
-    wellness,
-    dailyJournal,
-    scoreProfile,
-  );
-  const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10);
-  const score7dAgo = computeDailyIronflowScore(
-    sevenDaysAgo,
-    sessions,
-    habits,
-    logs,
-    wellness,
-    dailyJournal,
-    scoreProfile,
-  );
   const advancedStats = computeAdvancedStats(sessions);
+  // Le Score IronFlow (`scoring.ts`) a été supprimé de l'app — l'ancien
+  // signal "tendance du score sur 7 jours" n'a plus de sens et n'est pas
+  // remplacé (voir `highlights.ts`, qui n'accepte plus ce paramètre).
   const highlights = computeHighlights({
     prs,
     goals,
     streakDays: advancedStats.currentStreakDays,
-    scoreTrendPts: score.score - score7dAgo.score,
   });
-  const exercises = listAllExercises(sessions);
 
   return (
     <View style={{ flex: 1 }}>
@@ -235,7 +148,7 @@ export default function ProgressionHub() {
         edges={["top"]}
       >
       <View style={styles.header}>
-        <Text style={[styles.title, { color: theme.colors.onSurface }]}>Mon évolution</Text>
+        <Text style={[styles.title, { color: theme.colors.onSurface }]}>Performance</Text>
       </View>
 
       <View style={styles.segWrap}>
@@ -244,12 +157,12 @@ export default function ProgressionHub() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.segRow}
         >
-          {OUTER_GROUPS.map((g) => {
-            const active = g.tabs.includes(tab);
+          {TABS.map((t) => {
+            const active = tab === t.key;
             return (
               <Pressable
-                key={g.key}
-                testID={`prog-seg-${g.key}`}
+                key={t.key}
+                testID={`prog-seg-${t.key}`}
                 style={[
                   styles.segChip,
                   {
@@ -258,10 +171,10 @@ export default function ProgressionHub() {
                     borderColor: active ? theme.colors.brand : theme.colors.border,
                   },
                 ]}
-                onPress={() => setTab(active ? tab : g.tabs[0])}
+                onPress={() => setTab(t.key)}
               >
                 <Ionicons
-                  name={g.icon}
+                  name={t.icon}
                   size={13}
                   color={active ? theme.colors.onSurface : theme.colors.onSurfaceTertiary}
                 />
@@ -271,7 +184,7 @@ export default function ProgressionHub() {
                     { color: active ? theme.colors.onSurface : theme.colors.onSurfaceSecondary },
                   ]}
                 >
-                  {g.label}
+                  {t.label}
                 </Text>
               </Pressable>
             );
@@ -279,184 +192,97 @@ export default function ProgressionHub() {
         </ScrollView>
       </View>
 
-      {PERFORMANCE_TABS.includes(tab) && (
-        <View style={styles.segWrap}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.segRow}
-          >
-            {TABS.filter((t) => PERFORMANCE_TABS.includes(t.key)).map((t) => {
-              const active = tab === t.key;
-              return (
-                <Pressable
-                  key={t.key}
-                  testID={`prog-seg-inner-${t.key}`}
-                  style={[
-                    styles.subTab,
-                    {
-                      borderRadius: theme.radius.pill,
-                      backgroundColor: active ? theme.colors.brand : theme.colors.surfaceSecondary,
-                      borderColor: active ? theme.colors.brand : theme.colors.border,
-                    },
-                  ]}
-                  onPress={() => setTab(t.key)}
-                >
-                  <Ionicons
-                    name={t.icon}
-                    size={12}
-                    color={active ? theme.colors.onSurface : theme.colors.onSurfaceTertiary}
-                  />
-                  <Text
-                    style={[
-                      styles.subTabLabel,
-                      { color: active ? theme.colors.onSurface : theme.colors.onSurfaceTertiary },
-                    ]}
-                  >
-                    {t.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </ScrollView>
-        </View>
-      )}
-
       <ScrollView contentContainerStyle={styles.scroll}>
-        {tab === "overview" && (
-          <OverviewView
-            score={score}
-            highlights={highlights}
-            goals={goals}
-            sessions={sessions}
-            prs={prs}
-            measurements={measurements}
-            onOpenStats={() => router.push("/stats")}
-            onOpenGoals={() => router.push("/goals")}
-          />
-        )}
         {tab === "exercises" && (
-          <ExercisesView exercises={exercises} router={router} />
-        )}
-        {tab === "records" && (
-          <RecordsView prs={prs} router={router} onChanged={reload} />
+          <ExercisesView sessions={sessions} prs={prs} highlights={highlights} router={router} onChanged={reload} />
         )}
         {tab === "level" && (
           <LevelView sessions={sessions} habits={habits} habitLogs={logs} prs={prs} />
         )}
-        {tab === "habits" && (
-          <HabitsView
-            habits={habits}
-            reminders={reminders}
-            router={router}
-            onChanged={reload}
-          />
-        )}
-        {tab === "goals" && <GoalsView goals={goals} router={router} />}
-        {tab === "journal" && <JournalView router={router} onChanged={reload} />}
+        {tab === "defis" && <DefisView />}
       </ScrollView>
       </SafeAreaView>
     </View>
   );
 }
 
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
-
-/** Même traitement que le ScoreCircle du Dashboard (Phase 1) : violet,
- * remplissage animé — la même donnée affichée à deux endroits doit se
- * comporter et se colorer de façon identique. */
-function ScoreCircle({ score }: { score: number }) {
-  const { theme } = useTheme();
-  // Couleur de la métrique "Score IronFlow" elle-même (jaune) — plus
-  // `colors.progress` (violet générique, réservé au reste de l'UI de
-  // progression : niveau/XP, objectifs, succès). Un `RingColor` peut être
-  // un dégradé (Sunset) ; ce `<Circle>` plat n'en peint qu'un ton.
-  const scoreColor = Array.isArray(theme.colors.metricColors.score)
-    ? theme.colors.metricColors.score[0]
-    : theme.colors.metricColors.score;
-  const size = 140;
-  const strokeWidth = 12;
-  const r = (size - strokeWidth) / 2;
-  const c = 2 * Math.PI * r;
-  const progress = useSharedValue(0);
-
-  useEffect(() => {
-    progress.value = withTiming(Math.min(100, Math.max(0, score)) / 100, {
-      duration: 500,
-      easing: Easing.out(Easing.cubic),
-    });
-  }, [score, progress]);
-
-  const animatedProps = useAnimatedProps(() => ({
-    strokeDashoffset: c - progress.value * c,
-  }));
-
-  return (
-    <View
-      style={{
-        width: size,
-        height: size,
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      <Svg width={size} height={size}>
-        <Circle
-          cx={size / 2}
-          cy={size / 2}
-          r={r}
-          stroke={theme.colors.surfaceTertiary}
-          strokeWidth={strokeWidth}
-          fill="transparent"
-        />
-        <AnimatedCircle
-          cx={size / 2}
-          cy={size / 2}
-          r={r}
-          stroke={scoreColor}
-          strokeWidth={strokeWidth}
-          strokeLinecap="round"
-          fill="transparent"
-          strokeDasharray={c}
-          animatedProps={animatedProps}
-          transform={`rotate(-90 ${size / 2} ${size / 2})`}
-        />
-      </Svg>
-      <View style={{ position: "absolute", alignItems: "center" }}>
-        <Text style={[styles.scoreValueBig, { color: theme.colors.onSurface }]}>{score}</Text>
-        <Text style={[styles.scoreOn100, { color: theme.colors.onSurfaceTertiary }]}>/100</Text>
-      </View>
-    </View>
-  );
-}
-
-function OverviewView({
-  score,
-  highlights,
-  goals,
+/**
+ * EXERCICES — cœur du nouvel onglet Performance. Remplace les anciens
+ * onglets séparés "Exercices" (parcourait toute la bibliothèque) et
+ * "Records" : n'affiche désormais QUE les exercices réellement pratiqués
+ * (séance loguée) ou pour lesquels un record existe — jamais le catalogue
+ * complet. Chaque ligne dépliée réutilise tel quel le système de Records
+ * existant (graphique de progression, liste de PR avec swipe/menu,
+ * calculateurs adaptés au type de record) — rien n'est réécrit, juste
+ * réorganisé par exercice plutôt que d'être une section à part.
+ */
+function ExercisesView({
   sessions,
   prs,
-  measurements,
-  onOpenStats,
-  onOpenGoals,
+  highlights,
+  router,
+  onChanged,
 }: {
-  score: DailyIronflowScore;
-  highlights: Highlight[];
-  goals: Goal[];
   sessions: WorkoutSession[];
   prs: PersonalRecord[];
-  measurements: Measurement[];
-  onOpenStats: () => void;
-  onOpenGoals: () => void;
+  highlights: Highlight[];
+  router: any;
+  onChanged: () => void;
 }) {
   const { theme } = useTheme();
-  const activeGoals = goals.filter((g) => !g.achievedAt);
+  const [subTab, setSubTab] = useState<ExerciseCategory>("musculation");
+  const [overrides, setOverridesState] = useState<Record<string, ExerciseCategory>>({});
+  const [expanded, setExpanded] = useState<string | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      (async () => {
+        setOverridesState(await getOverrides());
+      })();
+    }, []),
+  );
+
+  const doneExercises = listAllExercises(sessions);
+  const prsByExercise: Record<string, { name: string; prs: PersonalRecord[] }> = {};
+  for (const pr of prs) {
+    const key = pr.exerciseName.toLowerCase().trim();
+    if (!prsByExercise[key]) prsByExercise[key] = { name: pr.exerciseName, prs: [] };
+    prsByExercise[key].prs.push(pr);
+  }
+
+  // Union pratiqué (séance loguée) OU record enregistré — jamais toute la
+  // bibliothèque (contrairement à l'ancien onglet Exercices).
+  type Row = { name: string; category: ExerciseCategory; count: number; prs: PersonalRecord[] };
+  const byKey = new Map<string, Row>();
+  for (const e of doneExercises) {
+    const key = e.name.toLowerCase().trim();
+    byKey.set(key, {
+      name: e.name,
+      category: resolveCategory(e.name, overrides),
+      count: e.count,
+      prs: prsByExercise[key]?.prs ?? [],
+    });
+  }
+  for (const key of Object.keys(prsByExercise)) {
+    if (byKey.has(key)) continue;
+    byKey.set(key, {
+      name: prsByExercise[key].name,
+      category: resolveCategory(prsByExercise[key].name, overrides),
+      count: 0,
+      prs: prsByExercise[key].prs,
+    });
+  }
+  const all = Array.from(byKey.values());
+  const filtered = all.filter((r) => r.category === subTab);
+  filtered.sort((a, b) => {
+    if ((b.count > 0 ? 1 : 0) - (a.count > 0 ? 1 : 0)) return b.count - a.count;
+    return a.name.localeCompare(b.name);
+  });
+
+  const CATS: ExerciseCategory[] = ["musculation", "cardio_machine", "mobility"];
+
   return (
-    <View style={{ gap: spacing.md }}>
-      {/* L'app doit raconter l'évolution, pas seulement l'afficher — une
-          rangée de moments marquants (record, série, tendance, objectif
-          atteint) avant même le score du jour. Masquée s'il n'y a rien à
-          célébrer, plutôt qu'une section vide. */}
+    <>
       {highlights.length > 0 && (
         <ScrollView
           horizontal
@@ -485,318 +311,21 @@ function OverviewView({
         </ScrollView>
       )}
 
-      <Card elevated style={styles.overviewCard}>
-        <Text style={[styles.overLabel, { color: theme.colors.onSurfaceTertiary }]}>IRONFLOW SCORE</Text>
-        <ScoreCircle score={score.score} />
-        <Text style={[styles.overQualitative, { color: theme.colors.onSurface }]}>
-          {scoreQualitativeLabel(score.score)}
+      {all.length > 0 && (
+        <Text style={[styles.exercisesSummary, { color: theme.colors.onSurfaceTertiary }]}>
+          {all.length} exercice{all.length > 1 ? "s" : ""} pratiqué{all.length > 1 ? "s" : ""}
         </Text>
-      </Card>
-
-      {/* Objectifs en cours */}
-      <View style={styles.sectionHeadRow}>
-        <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>Objectifs en cours</Text>
-        <Pressable
-          testID="open-goals-shortcut"
-          onPress={onOpenGoals}
-          hitSlop={8}
-        >
-          <Text style={[styles.linkText, { color: theme.colors.brand }]}>Gérer</Text>
-        </Pressable>
-      </View>
-      {activeGoals.length === 0 ? (
-        <PressableScale testID="empty-goals-hint" onPress={onOpenGoals}>
-          <Card style={styles.emptyGoalsCard}>
-            <Ionicons name="flag" size={18} color={theme.colors.progress} />
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.emptyGoalsTitle, { color: theme.colors.onSurface }]}>Aucun objectif actif</Text>
-              <Text style={[styles.emptyGoalsSub, { color: theme.colors.onSurfaceTertiary }]}>
-                Fixe-toi une cible : perte de poids, 20 tractions, 10 km…
-              </Text>
-            </View>
-            <Ionicons name="add-circle" size={20} color={theme.colors.brand} />
-          </Card>
-        </PressableScale>
-      ) : (
-        activeGoals.slice(0, 5).map((g) => (
-          <GoalMiniCard
-            key={g.id}
-            goal={g}
-            sessions={sessions}
-            prs={prs}
-            measurements={measurements}
-            onPress={onOpenGoals}
-          />
-        ))
-      )}
-
-      {/* Détail du score */}
-      <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>Détail du score</Text>
-      {score.breakdown.map((b) => {
-        const pct = Math.round((b.value / b.max) * 100);
-        return (
-          <Card key={b.key} style={styles.breakdownRowBox}>
-            <View style={styles.brHeadRow}>
-              <View style={[styles.brIconBox, { backgroundColor: theme.colors.brandTertiary }]}>
-                <Ionicons name={b.icon} size={12} color={theme.colors.brand} />
-              </View>
-              <Text style={[styles.brLabelBig, { color: theme.colors.onSurface }]}>{b.label}</Text>
-              <Text style={[styles.brValue, { color: theme.colors.onSurfaceTertiary }]}>
-                {b.value}/{b.max}
-              </Text>
-              <View style={[styles.brPctBadge, { backgroundColor: theme.colors.surfaceTertiary }]}>
-                <Text style={[styles.brPctText, { color: theme.colors.onSurface }]}>{pct}%</Text>
-              </View>
-            </View>
-            <View style={[styles.brBar, { backgroundColor: theme.colors.surfaceTertiary }]}>
-              <View style={[styles.brFill, { width: `${pct}%`, backgroundColor: theme.colors.brand }]} />
-            </View>
-            {b.hint ? <Text style={[styles.brHint, { color: theme.colors.onSurfaceTertiary }]}>{b.hint}</Text> : null}
-          </Card>
-        );
-      })}
-
-      {/* Résumé du jour — explains simply why the score moved */}
-      {(score.gains.length > 0 || score.losses.length > 0) && (
-        <>
-          <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>Résumé du jour</Text>
-          <View style={[styles.summaryBox, { backgroundColor: theme.colors.surfaceSecondary, borderRadius: theme.radius.md, borderColor: theme.colors.border }]}>
-            {score.gains.map((g) => (
-              <View key={g.label} style={styles.summaryRow}>
-                <Text style={[styles.summaryPoints, { color: theme.colors.success }]}>
-                  +{g.points}
-                </Text>
-                <Text style={[styles.summaryLabel, { color: theme.colors.onSurfaceSecondary }]}>{g.label}</Text>
-              </View>
-            ))}
-            {score.losses.map((l) => (
-              <View key={l.label} style={styles.summaryRow}>
-                <Text style={[styles.summaryPoints, { color: theme.colors.error }]}>
-                  {l.points}
-                </Text>
-                <Text style={[styles.summaryLabel, { color: theme.colors.onSurfaceSecondary }]}>{l.label}</Text>
-              </View>
-            ))}
-          </View>
-        </>
       )}
 
       <Pressable
-        testID="open-full-stats"
-        style={[styles.linkBtn, { borderRadius: theme.radius.md, borderColor: theme.colors.border }]}
-        onPress={onOpenStats}
+        testID="new-record-btn"
+        style={[styles.ctaFull, { borderRadius: theme.radius.md }, ctaGlassStyle(theme)]}
+        onPress={() => router.push("/pr/new")}
       >
-        <Ionicons name="stats-chart" size={14} color={theme.colors.brand} />
-        <Text style={[styles.linkBtnText, { color: theme.colors.brand }]}>
-          Voir toutes les statistiques avancées
-        </Text>
-        <Ionicons name="chevron-forward" size={14} color={theme.colors.brand} />
+        <Ionicons name="add-circle" size={18} color={ctaGlassColor(theme)} />
+        <Text style={[styles.ctaFullText, { color: ctaGlassColor(theme) }]}>NOUVEAU RECORD</Text>
       </Pressable>
-    </View>
-  );
-}
 
-function GoalMiniCard({
-  goal,
-  sessions,
-  prs,
-  measurements,
-  onPress,
-}: {
-  goal: Goal;
-  sessions: WorkoutSession[];
-  prs: PersonalRecord[];
-  measurements: Measurement[];
-  onPress: () => void;
-}) {
-  const { theme } = useTheme();
-  const current = computeGoalCurrent(goal, { sessions, prs, measurements });
-  const totalRange = goal.targetValue - goal.startValue;
-  let pct = 0;
-  if (Math.abs(totalRange) > 0.0001) {
-    pct = (current - goal.startValue) / totalRange;
-  }
-  pct = Math.max(0, Math.min(1, pct));
-  const done = pct >= 1;
-  return (
-    <PressableScale testID={`overview-goal-${goal.id}`} onPress={onPress}>
-      <Card style={styles.miniGoal}>
-        <View style={styles.miniGoalHead}>
-          <View style={[styles.miniGoalIcon, { backgroundColor: theme.colors.surfaceTertiary }]}>
-            <Ionicons
-              name={GOAL_CATEGORY_ICON[goal.category]}
-              size={14}
-              color={done ? theme.colors.success : theme.colors.progress}
-            />
-          </View>
-          <Text style={[styles.miniGoalTitle, { color: theme.colors.onSurface }]} numberOfLines={1}>
-            {goal.title || GOAL_CATEGORY_LABEL[goal.category]}
-          </Text>
-          <Text
-            style={[
-              styles.miniGoalPct,
-              // progressSecondary : progress échoue le contraste AA à cette
-              // taille sur surfaceSecondary (vérifié, 4.1:1 < 4.5:1).
-              { color: done ? theme.colors.success : theme.colors.progressSecondary },
-            ]}
-          >
-            {Math.round(pct * 100)}%
-          </Text>
-        </View>
-        <View style={[styles.brBar, { backgroundColor: theme.colors.surfaceTertiary }]}>
-          <View
-            style={[
-              styles.brFill,
-              {
-                width: `${pct * 100}%`,
-                backgroundColor: done ? theme.colors.success : theme.colors.progress,
-              },
-            ]}
-          />
-        </View>
-        <Text style={[styles.miniGoalMeta, { color: theme.colors.onSurfaceTertiary }]}>
-          {formatNum(current)} {goal.unit} · cible {formatNum(goal.targetValue)}{" "}
-          {goal.unit}
-        </Text>
-      </Card>
-    </PressableScale>
-  );
-}
-
-function formatNum(v: number): string {
-  if (Math.abs(v) >= 100) return v.toFixed(0);
-  return v.toFixed(1).replace(/\.0$/, "");
-}
-
-function computeGoalCurrent(
-  goal: Goal,
-  ctx: {
-    sessions: WorkoutSession[];
-    prs: PersonalRecord[];
-    measurements: Measurement[];
-  },
-): number {
-  switch (goal.category) {
-    case "sessions_count":
-      return ctx.sessions.length;
-    case "streak": {
-      const days = Array.from(
-        new Set(
-          ctx.sessions.map((s) =>
-            new Date(s.startedAt).toISOString().slice(0, 10),
-          ),
-        ),
-      ).sort();
-      if (days.length === 0) return 0;
-      let best = 1;
-      let cur = 1;
-      for (let i = 1; i < days.length; i++) {
-        const prev = new Date(days[i - 1]);
-        const nd = new Date(days[i]);
-        const diff = Math.round((nd.getTime() - prev.getTime()) / 86400000);
-        if (diff === 1) {
-          cur++;
-          if (cur > best) best = cur;
-        } else cur = 1;
-      }
-      return best;
-    }
-    case "weight_pr": {
-      const w = ctx.prs
-        .filter((p) => (p.type ?? "weight") === "weight")
-        .map((p) => p.weight_kg ?? 0);
-      return w.length ? Math.max(...w) : goal.startValue;
-    }
-    case "reps_pr": {
-      const r = ctx.prs
-        .filter((p) => (p.type ?? "weight") === "reps")
-        .map((p) => p.reps ?? 0);
-      return r.length ? Math.max(...r) : goal.startValue;
-    }
-    case "run_distance": {
-      const d = ctx.prs
-        .filter((p) => p.type === "run")
-        .map((p) => (p.distance_m ?? 0) / 1000);
-      return d.length ? Math.max(...d) : goal.startValue;
-    }
-    case "body_weight": {
-      const last = ctx.measurements.find((m) => m.weight_kg != null);
-      return last?.weight_kg ?? goal.startValue;
-    }
-    case "body_fat": {
-      const last = ctx.measurements.find((m) => m.body_fat_pct != null);
-      return last?.body_fat_pct ?? goal.startValue;
-    }
-    default:
-      return goal.startValue;
-  }
-}
-
-function ExercisesView({
-  exercises,
-  router,
-}: {
-  exercises: { name: string; count: number }[];
-  router: any;
-}) {
-  const { theme } = useTheme();
-  const [subTab, setSubTab] = useState<ExerciseCategory>("musculation");
-  const [overrides, setOverridesState] = useState<Record<string, ExerciseCategory>>({});
-
-  useFocusEffect(
-    useCallback(() => {
-      (async () => {
-        setOverridesState(await getOverrides());
-      })();
-    }, []),
-  );
-
-  // Merge library + user-done exercises, resolving each to a category
-  const merged: {
-    name: string;
-    category: ExerciseCategory;
-    count: number;
-    emoji?: string;
-    fromLibrary: boolean;
-  }[] = [];
-
-  const seenNames = new Set<string>();
-  for (const lib of EXERCISE_LIBRARY) {
-    const key = lib.name.toLowerCase().trim();
-    seenNames.add(key);
-    const done = exercises.find(
-      (e) => e.name.toLowerCase().trim() === key,
-    );
-    merged.push({
-      name: lib.name,
-      category: lib.category,
-      count: done?.count ?? 0,
-      emoji: lib.emoji,
-      fromLibrary: true,
-    });
-  }
-  for (const e of exercises) {
-    const key = e.name.toLowerCase().trim();
-    if (seenNames.has(key)) continue;
-    merged.push({
-      name: e.name,
-      category: resolveCategory(e.name, overrides),
-      count: e.count,
-      fromLibrary: false,
-    });
-  }
-
-  const filtered = merged.filter((m) => m.category === subTab);
-  // Sort: first user-active (count > 0), then library
-  filtered.sort((a, b) => {
-    if ((b.count > 0 ? 1 : 0) - (a.count > 0 ? 1 : 0)) return b.count - a.count;
-    return a.name.localeCompare(b.name);
-  });
-
-  const CATS: ExerciseCategory[] = ["musculation", "cardio_machine", "mobility"];
-
-  return (
-    <>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -841,195 +370,102 @@ function ExercisesView({
           <Ionicons name="barbell" size={40} color={theme.colors.brand} />
           <Text style={[styles.emptyTitle, { color: theme.colors.onSurface }]}>Rien pour l&apos;instant</Text>
           <Text style={[styles.emptySub, { color: theme.colors.onSurfaceTertiary }]}>
-            Aucun exercice dans cette catégorie.
+            Pratique un exercice de cette catégorie ou enregistre un record pour le voir apparaître ici.
           </Text>
         </View>
       ) : (
         filtered.map((e, i) => {
           const color = EXERCISE_CATEGORY_COLOR[e.category];
+          const isOpen = expanded === e.name;
+          const weightPRs = e.prs.filter((p) => (p.type ?? "weight") === "weight");
+          const bestWeight = weightPRs.slice().sort((a, b) => estimatedOneRM(b) - estimatedOneRM(a))[0];
+          const bestReps = e.prs
+            .filter((p) => p.type === "reps")
+            .slice()
+            .sort((a, b) => (b.reps ?? 0) - (a.reps ?? 0))[0];
+          const bestRun = e.prs
+            .filter((p) => p.type === "run" && (p.time_seconds ?? 0) > 0 && (p.distance_m ?? 0) > 0)
+            .slice()
+            .sort(
+              (a, b) =>
+                (a.time_seconds ?? 1e9) / (a.distance_m ?? 1) - (b.time_seconds ?? 1e9) / (b.distance_m ?? 1),
+            )[0];
+          const summary = bestWeight
+            ? `${bestWeight.weight_kg} kg × ${bestWeight.reps} · 1RM ${estimatedOneRM(bestWeight).toFixed(1)} kg`
+            : bestReps
+              ? `${bestReps.reps} reps · meilleure série`
+              : bestRun
+                ? `${((bestRun.distance_m ?? 0) / 1000).toFixed(1)} km · meilleure perf`
+                : e.count > 0
+                  ? `${e.count} séance${e.count > 1 ? "s" : ""}`
+                  : "Aucun record";
           return (
             <EnterItem key={e.name} index={i}>
-              <PressableScale
-                testID={`ex-detail-${e.name}`}
-                onPress={() =>
-                  router.push(`/exercise/${encodeURIComponent(e.name)}`)
-                }
-              >
-                <Card style={styles.exerciseCard}>
-                  <View
-                    style={[styles.exIconBox, { backgroundColor: withAlpha(color, 15) }]}
-                  >
-                    {e.emoji ? (
-                      <Text style={{ fontSize: 15 }}>{e.emoji}</Text>
-                    ) : (
-                      <Ionicons
-                        name={EXERCISE_CATEGORY_ICON[e.category]}
-                        size={16}
-                        color={color}
-                      />
-                    )}
+              <Card padding={0} style={styles.recordGroup}>
+                <Pressable
+                  testID={`ex-row-${e.name}`}
+                  onPress={() => setExpanded(isOpen ? null : e.name)}
+                  style={styles.recordHead}
+                >
+                  <View style={[styles.exIconBox, { backgroundColor: withAlpha(color, 15) }]}>
+                    <Ionicons name={EXERCISE_CATEGORY_ICON[e.category]} size={16} color={color} />
                   </View>
                   <View style={{ flex: 1 }}>
-                    <Text style={[styles.exName, { color: theme.colors.onSurface }]} numberOfLines={1}>
+                    <Text style={[styles.recordName, { color: theme.colors.onSurface }]} numberOfLines={1}>
                       {e.name}
                     </Text>
-                    <Text style={[styles.exMeta, { color: theme.colors.onSurfaceTertiary }]}>
-                      {e.count > 0
-                        ? `${e.count} séance${e.count > 1 ? "s" : ""}`
-                        : "Pas encore pratiqué"}
-                    </Text>
+                    <Text style={[styles.recordSub, { color: theme.colors.onSurfaceTertiary }]}>{summary}</Text>
                   </View>
                   <Ionicons
-                    name="chevron-forward"
+                    name={isOpen ? "chevron-up" : "chevron-down"}
                     size={16}
                     color={theme.colors.onSurfaceTertiary}
                   />
-                </Card>
-              </PressableScale>
-            </EnterItem>
-          );
-        })
-      )}
-    </>
-  );
-}
+                </Pressable>
 
-function RecordsView({
-  prs,
-  router,
-  onChanged,
-}: {
-  prs: PersonalRecord[];
-  router: any;
-  onChanged: () => void;
-}) {
-  const { theme } = useTheme();
-  const [expanded, setExpanded] = useState<string | null>(null);
-  // Group PRs by exercise name (lowercased)
-  const grouped: Record<string, { name: string; prs: PersonalRecord[] }> = {};
-  for (const pr of prs) {
-    const key = pr.exerciseName.toLowerCase().trim();
-    if (!grouped[key])
-      grouped[key] = { name: pr.exerciseName, prs: [] };
-    grouped[key].prs.push(pr);
-  }
-  const groups = Object.values(grouped).sort((a, b) =>
-    a.name.localeCompare(b.name),
-  );
-
-  return (
-    <>
-      <Pressable
-        testID="new-record-btn"
-        style={[styles.ctaFull, { borderRadius: theme.radius.md }, ctaGlassStyle(theme)]}
-        onPress={() => router.push("/pr/new")}
-      >
-        <Ionicons name="add-circle" size={18} color={ctaGlassColor(theme)} />
-        <Text style={[styles.ctaFullText, { color: ctaGlassColor(theme) }]}>NOUVEAU RECORD</Text>
-      </Pressable>
-
-      {groups.length === 0 ? (
-        <View style={styles.empty}>
-          <Ionicons name="trophy" size={40} color={theme.colors.brand} />
-          <Text style={[styles.emptyTitle, { color: theme.colors.onSurface }]}>Aucun record</Text>
-          <Text style={[styles.emptySub, { color: theme.colors.onSurfaceTertiary }]}>
-            Enregistre tes performances (1RM développé couché, 5 km, max tractions…) pour suivre tes progrès.
-          </Text>
-        </View>
-      ) : (
-        groups.map((g, gi) => {
-          // Get best PR per type for this exercise
-          const weightPRs = g.prs.filter((p) => (p.type ?? "weight") === "weight");
-          const bestWeight = weightPRs
-            .slice()
-            .sort((a, b) => estimatedOneRM(b) - estimatedOneRM(a))[0];
-          const isOpen = expanded === g.name;
-          return (
-            <EnterItem key={g.name} index={gi}>
-            <Card padding={0} style={styles.recordGroup}>
-              <Pressable
-                testID={`record-group-${g.name}`}
-                onPress={() => setExpanded(isOpen ? null : g.name)}
-                style={styles.recordHead}
-              >
-                <View style={[styles.recordIcon, { backgroundColor: theme.colors.brandTertiary }]}>
-                  <Ionicons name="trophy" size={16} color={theme.colors.brand} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.recordName, { color: theme.colors.onSurface }]} numberOfLines={1}>
-                    {g.name}
-                  </Text>
-                  <Text style={[styles.recordSub, { color: theme.colors.onSurfaceTertiary }]}>
-                    {g.prs.length} record{g.prs.length > 1 ? "s" : ""}
-                  </Text>
-                </View>
-                <Ionicons
-                  name={isOpen ? "chevron-up" : "chevron-down"}
-                  size={16}
-                  color={theme.colors.onSurfaceTertiary}
-                />
-              </Pressable>
-
-              {isOpen && (
-                <View style={styles.recordBody}>
-                  {/* Progression chart for this exercise */}
-                  <RecordProgressionChart prs={g.prs} />
-
-                  {g.prs
-                    .slice()
-                    .sort((a, b) => (b.date < a.date ? -1 : 1))
-                    .map((pr, pi) => (
-                      <RecordRow
-                        key={pr.id}
-                        pr={pr}
-                        onChanged={onChanged}
-                        accent={pi === 0 && g.prs.length > 1}
-                        badge={pi === 0 && g.prs.length > 1 ? "RÉCENT" : undefined}
-                      />
-                    ))}
-
-                  {bestWeight && (
-                    <OneRMCalculator
-                      pr={bestWeight}
-                      testID={`orm-calc-${g.name}`}
-                    />
-                  )}
-                  {(() => {
-                    const bestReps = g.prs
-                      .filter((p) => p.type === "reps")
-                      .slice()
-                      .sort((a, b) => (b.reps ?? 0) - (a.reps ?? 0))[0];
-                    return bestReps ? (
-                      <RepsCalculator
-                        pr={bestReps}
-                        testID={`reps-calc-${g.name}`}
-                      />
-                    ) : null;
-                  })()}
-                  {(() => {
-                    const bestRun = g.prs
-                      .filter(
-                        (p) =>
-                          p.type === "run" &&
-                          (p.time_seconds ?? 0) > 0 &&
-                          (p.distance_m ?? 0) > 0,
-                      )
-                      .slice()
-                      .sort(
-                        (a, b) =>
-                          (a.time_seconds ?? 1e9) / (a.distance_m ?? 1) -
-                          (b.time_seconds ?? 1e9) / (b.distance_m ?? 1),
-                      )[0];
-                    return bestRun ? (
-                      <CardioCalculator
-                        pr={bestRun}
-                        testID={`cardio-calc-${g.name}`}
-                      />
-                    ) : null;
-                  })()}
-                </View>
-              )}
-            </Card>
+                {isOpen && (
+                  <View style={styles.recordBody}>
+                    {e.prs.length >= 2 && <RecordProgressionChart prs={e.prs} />}
+                    {e.prs.length > 0 ? (
+                      e.prs
+                        .slice()
+                        .sort((a, b) => (b.date < a.date ? -1 : 1))
+                        .map((pr, pi) => (
+                          <RecordRow
+                            key={pr.id}
+                            pr={pr}
+                            onChanged={onChanged}
+                            accent={pi === 0 && e.prs.length > 1}
+                            badge={pi === 0 && e.prs.length > 1 ? "RÉCENT" : undefined}
+                          />
+                        ))
+                    ) : (
+                      <Text
+                        style={[
+                          styles.recordSub,
+                          { color: theme.colors.onSurfaceTertiary, paddingHorizontal: spacing.md, paddingBottom: spacing.sm },
+                        ]}
+                      >
+                        Aucun record enregistré pour cet exercice.
+                      </Text>
+                    )}
+                    {bestWeight && <OneRMCalculator pr={bestWeight} testID={`orm-calc-${e.name}`} />}
+                    {bestReps && <RepsCalculator pr={bestReps} testID={`reps-calc-${e.name}`} />}
+                    {bestRun && <CardioCalculator pr={bestRun} testID={`cardio-calc-${e.name}`} />}
+                    <Pressable
+                      testID={`ex-advanced-stats-${e.name}`}
+                      style={[styles.linkBtn, { borderRadius: theme.radius.md, borderColor: theme.colors.border }]}
+                      onPress={() => router.push(`/exercise/${encodeURIComponent(e.name)}`)}
+                    >
+                      <Ionicons name="stats-chart" size={14} color={theme.colors.brand} />
+                      <Text style={[styles.linkBtnText, { color: theme.colors.brand }]}>
+                        Voir les statistiques avancées
+                      </Text>
+                      <Ionicons name="chevron-forward" size={14} color={theme.colors.brand} />
+                    </Pressable>
+                  </View>
+                )}
+              </Card>
             </EnterItem>
           );
         })
@@ -1266,6 +702,11 @@ function prScalar(pr: PersonalRecord): { value: number; unit: string } {
   return { value: 0, unit: "" };
 }
 
+export function shortDate(iso: string) {
+  const d = new Date(iso);
+  return `${d.getDate()}/${d.getMonth() + 1}`;
+}
+
 function RecordProgressionChart({ prs }: { prs: PersonalRecord[] }) {
   const { theme } = useTheme();
   // Group by type and pick the dominant one (max count)
@@ -1446,6 +887,7 @@ function RecordRow({
 }) {
   const { theme } = useTheme();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [menuOpen, setMenuOpen] = useState(false);
   const { confirm, ConfirmModal } = useConfirmDialog();
   const type = pr.type ?? "weight";
@@ -1547,7 +989,13 @@ function RecordRow({
           <Pressable
             style={[
               styles.menuSheet,
-              { backgroundColor: theme.colors.surfaceSecondary, borderTopLeftRadius: theme.radius.lg, borderTopRightRadius: theme.radius.lg, borderColor: theme.colors.border },
+              {
+                backgroundColor: theme.colors.surfaceSecondary,
+                borderTopLeftRadius: theme.radius.lg,
+                borderTopRightRadius: theme.radius.lg,
+                borderColor: theme.colors.border,
+                paddingBottom: spacing.lg + insets.bottom,
+              },
             ]}
           >
             <View style={[styles.menuHandle, { backgroundColor: theme.colors.border }]} />
@@ -1756,796 +1204,189 @@ export function formatDateShort(iso: string) {
   });
 }
 
-export function TransformationView({
-  measurements,
-  router,
-  onChanged,
-}: {
-  measurements: Measurement[];
-  router: any;
-  onChanged: () => void;
-}) {
+const DEFI_CATEGORIES: { key: Achievement["category"] | "all"; label: string }[] = [
+  { key: "all", label: "Tous" },
+  { key: "debut", label: "Séances" },
+  { key: "volume", label: "Volume" },
+  { key: "cardio", label: "Cardio" },
+  { key: "streak", label: "Streak" },
+  { key: "discipline", label: "Discipline" },
+  { key: "record", label: "Records" },
+  { key: "special", label: "Spécial" },
+];
+
+/**
+ * DÉFIS — migration de l'ancien écran "Succès" (accessible depuis Profil),
+ * fonctionnalité et logique inchangées (`computeAchievements`, 29 succès) :
+ * seule la présentation change (vit maintenant en tant que sous-onglet de
+ * Performance plutôt qu'un écran modal séparé, donc plus de header/back
+ * propre à cet écran).
+ */
+function DefisView() {
   const { theme } = useTheme();
-  const withPhotos = measurements.filter((m) => m.photoBase64);
-  const hasComparison = withPhotos.length >= 2;
-  // measurements is sorted newest-first (getMeasurements) — same for the
-  // withPhotos subset, so [0] is the latest photo and the last one is the
-  // oldest, i.e. the true "avant" reference point.
-  const latestPhoto = withPhotos[0];
-  const firstPhoto = withPhotos[withPhotos.length - 1];
-  const weightDelta =
-    hasComparison && firstPhoto.weight_kg != null && latestPhoto.weight_kg != null
-      ? latestPhoto.weight_kg - firstPhoto.weight_kg
-      : null;
+  const [items, setItems] = useState<Achievement[]>([]);
+  const [cat, setCat] = useState<Achievement["category"] | "all">("all");
+  const isGlass = theme.card.mode === "glass";
 
-  return (
-    <>
-      {hasComparison ? (
-        <PressableScale testID="transformation-hero" onPress={() => router.push("/compare")}>
-          <Card style={styles.transformHero}>
-            <View style={styles.transformPhotoRow}>
-              <View style={styles.transformPhotoCol}>
-                <Image
-                  source={{ uri: `data:image/jpeg;base64,${firstPhoto.photoBase64}` }}
-                  style={[styles.transformPhoto, { borderRadius: theme.radius.md, backgroundColor: theme.colors.surfaceTertiary }]}
-                />
-                <Text style={[styles.transformPhotoLabel, { color: theme.colors.onSurfaceTertiary }]}>
-                  Avant · {formatDateShort(firstPhoto.date)}
-                </Text>
-              </View>
-              <Ionicons name="arrow-forward" size={18} color={theme.colors.brand} />
-              <View style={styles.transformPhotoCol}>
-                <Image
-                  source={{ uri: `data:image/jpeg;base64,${latestPhoto.photoBase64}` }}
-                  style={[styles.transformPhoto, { borderRadius: theme.radius.md, backgroundColor: theme.colors.surfaceTertiary }]}
-                />
-                <Text style={[styles.transformPhotoLabel, { color: theme.colors.onSurfaceTertiary }]}>
-                  Aujourd&apos;hui · {formatDateShort(latestPhoto.date)}
-                </Text>
-              </View>
-            </View>
-            {weightDelta != null && Math.abs(weightDelta) > 0.05 && (
-              <View style={styles.transformDeltaRow}>
-                <Ionicons
-                  name={weightDelta <= 0 ? "trending-down" : "trending-up"}
-                  size={14}
-                  color={theme.colors.progress}
-                />
-                <Text style={[styles.transformDeltaText, { color: theme.colors.progressSecondary }]}>
-                  {weightDelta > 0 ? "+" : ""}
-                  {weightDelta.toFixed(1)} kg depuis le début
-                </Text>
-              </View>
-            )}
-            <View style={[styles.transformCta, { borderTopColor: theme.colors.border }]}>
-              <Ionicons name="images" size={14} color={theme.colors.brand} />
-              <Text style={[styles.transformCtaText, { color: theme.colors.brand }]}>Voir la comparaison complète</Text>
-              <Ionicons name="chevron-forward" size={14} color={theme.colors.brand} />
-            </View>
-          </Card>
-        </PressableScale>
-      ) : (
-        <PressableScale
-          testID="transformation-empty-hero"
-          onPress={() => router.push("/measurement/new")}
-        >
-          <Card style={styles.transformEmptyHero}>
-            <Ionicons name="camera" size={32} color={theme.colors.brand} />
-            <Text style={[styles.transformEmptyTitle, { color: theme.colors.onSurface }]}>
-              {withPhotos.length === 0 ? "Commence ta transformation" : "Encore une photo pour comparer"}
-            </Text>
-            <Text style={[styles.transformEmptySub, { color: theme.colors.onSurfaceTertiary }]}>
-              {withPhotos.length === 0
-                ? "Ajoute une première photo pour visualiser ton évolution dans le temps."
-                : "Ajoute une 2ᵉ photo pour voir un avant/après."}
-            </Text>
-          </Card>
-        </PressableScale>
-      )}
-
-      <View style={styles.summaryGrid}>
-        <SummaryTile
-          icon="camera"
-          value={String(withPhotos.length)}
-          label="Photos"
-          onPress={() => hasComparison && router.push("/compare")}
-        />
-        <SummaryTile
-          icon="resize"
-          value={String(measurements.length)}
-          label="Mesures"
-          onPress={() => router.push("/measurement/new")}
-        />
-      </View>
-
-      <Pressable
-        testID="add-measurement-btn"
-        style={[styles.ctaFull, { borderRadius: theme.radius.md }, ctaGlassStyle(theme)]}
-        onPress={() => router.push("/measurement/new")}
-      >
-        <Ionicons name="add-circle" size={18} color={ctaGlassColor(theme)} />
-        <Text style={[styles.ctaFullText, { color: ctaGlassColor(theme) }]}>NOUVELLE MESURE</Text>
-      </Pressable>
-
-      {measurements.length === 0 ? (
-        <View style={styles.empty}>
-          <Ionicons name="body" size={40} color={theme.colors.brand} />
-          <Text style={[styles.emptyTitle, { color: theme.colors.onSurface }]}>Aucune mesure</Text>
-          <Text style={[styles.emptySub, { color: theme.colors.onSurfaceTertiary }]}>
-            Ajoute ta première mesure pour suivre ta transformation.
-          </Text>
-        </View>
-      ) : (
-        <>
-          <BodyStatsChart measurements={measurements} />
-          <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>Historique</Text>
-          {measurements.slice(0, 20).map((m) => (
-            <SwipeableRow
-              key={m.id}
-              testID={`m-item-${m.id}`}
-              onDelete={async () => {
-                await deleteMeasurement(m.id);
-                onChanged();
-              }}
-              deleteConfirm={{
-                title: "Supprimer cette mesure ?",
-                message: `Mesure du ${formatDate(m.date)} — cette action est définitive.`,
-                confirmLabel: "SUPPRIMER",
-                destructive: true,
-              }}
-              onEdit={() => router.push(`/measurement/${m.id}`)}
-            >
-              <PressableScale
-                testID={`m-item-${m.id}`}
-                onPress={() => router.push(`/measurement/${m.id}`)}
-              >
-                <Card style={styles.mCard}>
-                  <Text style={[styles.mDate, { color: theme.colors.brand }]}>{formatDate(m.date)}</Text>
-                  <View style={styles.mMetrics}>
-                    {m.weight_kg != null && (
-                      <MetricChip label={`${m.weight_kg} kg`} />
-                    )}
-                    {m.body_fat_pct != null && (
-                      <MetricChip label={`${m.body_fat_pct}% MG`} />
-                    )}
-                    {m.waist_cm != null && (
-                      <MetricChip label={`Taille ${m.waist_cm}`} />
-                    )}
-                  </View>
-                </Card>
-              </PressableScale>
-            </SwipeableRow>
-          ))}
-        </>
-      )}
-    </>
-  );
-}
-
-export function BodyStatsChart({ measurements }: { measurements: Measurement[] }) {
-  type StatKey =
-    | "weight_kg"
-    | "body_fat_pct"
-    | "waist_cm"
-    | "chest_cm"
-    | "hips_cm"
-    | "arm_cm"
-    | "thigh_cm"
-    | "neck_cm";
-
-  const STAT_META: Record<StatKey, { label: string; icon: any; unit: string }> = {
-    weight_kg: { label: "Poids", icon: "body", unit: "kg" },
-    body_fat_pct: { label: "Masse grasse", icon: "pulse", unit: "%" },
-    waist_cm: { label: "Taille", icon: "resize", unit: "cm" },
-    chest_cm: { label: "Poitrine", icon: "shirt", unit: "cm" },
-    hips_cm: { label: "Hanches", icon: "resize", unit: "cm" },
-    arm_cm: { label: "Bras", icon: "barbell", unit: "cm" },
-    thigh_cm: { label: "Cuisses", icon: "walk", unit: "cm" },
-    neck_cm: { label: "Cou", icon: "man", unit: "cm" },
-  };
-
-  const { theme } = useTheme();
-  const PERIODS: PeriodKey[] = ["7d", "30d", "6m", "1y", "all"];
-
-  // Detect which stats have at least 1 recorded value
-  const availableStats = (Object.keys(STAT_META) as StatKey[]).filter((k) =>
-    measurements.some((m) => (m as any)[k] != null),
+  useFocusEffect(
+    useCallback(() => {
+      (async () => {
+        const [sessions, prs, measurements] = await Promise.all([
+          getSessions(),
+          getPRs(),
+          getMeasurements(),
+        ]);
+        setItems(computeAchievements({ sessions, prs, measurements }));
+      })();
+    }, []),
   );
 
-  const [stat, setStat] = useState<StatKey>(
-    (availableStats[0] ?? "weight_kg") as StatKey,
-  );
-  const [period, setPeriod] = useState<PeriodKey>("6m");
+  const filtered = cat === "all" ? items : items.filter((i) => i.category === cat);
+  const unlocked = items.filter((i) => i.unlocked).length;
 
-  if (availableStats.length === 0) return null;
-  // Ensure current stat is available
-  const effectiveStat = availableStats.includes(stat) ? stat : availableStats[0];
-
-  const now = new Date();
-  let cutoff = new Date(0);
-  if (period === "7d") cutoff = new Date(now.getTime() - 7 * 86400000);
-  else if (period === "30d") cutoff = new Date(now.getTime() - 30 * 86400000);
-  else if (period === "6m") {
-    cutoff = new Date(now);
-    cutoff.setMonth(cutoff.getMonth() - 6);
-  } else if (period === "1y") {
-    cutoff = new Date(now);
-    cutoff.setFullYear(cutoff.getFullYear() - 1);
-  }
-
-  // Build sorted asc list of points for that stat in period
-  const points = measurements
-    .filter((m) => (m as any)[effectiveStat] != null)
-    .filter((m) => new Date(m.date) >= cutoff)
-    .sort((a, b) => (a.date < b.date ? -1 : 1))
-    .map((m) => ({
-      value: Number((m as any)[effectiveStat]),
-      label: shortDate(m.date),
-    }));
-
-  const chartW = Dimensions.get("window").width - spacing.lg * 2 - 32;
-  const meta = STAT_META[effectiveStat];
-  const first = points[0]?.value ?? 0;
-  const last = points[points.length - 1]?.value ?? 0;
-  const delta = last - first;
-
-  return (
-    <View style={{ gap: spacing.sm }}>
-      <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>Graphique de progression</Text>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.bodyChipRow}
-      >
-        {availableStats.map((s) => {
-          const active = s === effectiveStat;
-          const m = STAT_META[s];
-          return (
-            <Pressable
-              key={s}
-              testID={`body-stat-${s}`}
-              style={[
-                styles.bodyChip,
-                {
-                  backgroundColor: active ? theme.colors.brand : theme.colors.surfaceSecondary,
-                  borderColor: active ? theme.colors.brand : theme.colors.border,
-                },
-              ]}
-              onPress={() => setStat(s)}
-            >
-              <Ionicons
-                name={m.icon}
-                size={11}
-                color={active ? theme.colors.onSurface : theme.colors.onSurfaceTertiary}
-              />
-              <Text
-                style={[
-                  styles.bodyChipText,
-                  { color: active ? theme.colors.onSurface : theme.colors.onSurfaceSecondary },
-                ]}
-              >
-                {m.label}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </ScrollView>
-
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.bodyChipRow}
-      >
-        {PERIODS.map((p) => {
-          const active = p === period;
-          return (
-            <Pressable
-              key={p}
-              testID={`body-period-${p}`}
-              style={[
-                styles.bodyChipMini,
-                {
-                  backgroundColor: active ? theme.colors.brandTertiary : theme.colors.surfaceSecondary,
-                  borderColor: active ? theme.colors.brand : theme.colors.border,
-                },
-              ]}
-              onPress={() => setPeriod(p)}
-            >
-              <Text
-                style={[
-                  styles.bodyChipMiniText,
-                  { color: active ? theme.colors.brand : theme.colors.onSurfaceTertiary },
-                ]}
-              >
-                {PERIOD_LABEL[p]}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </ScrollView>
-
-      {points.length >= 2 ? (
-        <View
-          style={[
-            styles.chartWrap,
-            { backgroundColor: theme.colors.surfaceSecondary, borderRadius: theme.radius.md, borderColor: theme.colors.border },
-          ]}
-        >
-          <View style={styles.chartHeadRow}>
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.chartTitleBody, { color: theme.colors.onSurface }]}>
-                {meta.label} ({meta.unit})
-              </Text>
-              <Text style={[styles.chartDelta, { color: theme.colors.brand }]}>
-                {delta > 0 ? "+" : ""}
-                {delta.toFixed(1)} {meta.unit} sur la période
-              </Text>
-            </View>
-            <View style={[styles.chartCurrentBox, { backgroundColor: theme.colors.brandTertiary, borderRadius: theme.radius.sm }]}>
-              <Text style={[styles.chartCurrentVal, { color: theme.colors.brand }]}>{last}</Text>
-              <Text style={[styles.chartCurrentUnit, { color: theme.colors.brandSecondary }]}>{meta.unit}</Text>
-            </View>
-          </View>
-          <LineChart
-            data={points}
-            color={theme.colors.brand}
-            thickness={3}
-            areaChart
-            startFillColor={theme.colors.brand}
-            startOpacity={0.4}
-            endFillColor={theme.colors.brand}
-            endOpacity={0.05}
-            yAxisThickness={0}
-            xAxisThickness={0}
-            yAxisTextStyle={{ color: theme.colors.onSurfaceTertiary, fontSize: 10 }}
-            xAxisLabelTextStyle={{
-              color: theme.colors.onSurfaceTertiary,
-              fontSize: 9,
-            }}
-            hideRules
-            width={chartW}
-            isAnimated
-            curved
-            dataPointsColor={theme.colors.brand}
-            dataPointsRadius={3}
-          />
-        </View>
-      ) : (
-        <View style={[styles.hintBanner, { backgroundColor: theme.colors.brandTertiary, borderRadius: theme.radius.sm }]}>
-          <Ionicons name="information-circle" size={14} color={theme.colors.brand} />
-          <Text style={[styles.hintBannerText, { color: theme.colors.brandSecondary }]}>
-            Enregistre au moins 2 mesures de {meta.label.toLowerCase()} sur cette période.
-          </Text>
-        </View>
-      )}
-    </View>
-  );
-}
-
-export function shortDate(iso: string) {
-  const d = new Date(iso);
-  return `${d.getDate()}/${d.getMonth() + 1}`;
-}
-
-function HabitsView({
-  habits,
-  reminders,
-  router,
-  onChanged,
-}: {
-  habits: Habit[];
-  reminders: Reminder[];
-  router: any;
-  onChanged: () => void;
-}) {
-  const { theme } = useTheme();
-  const [sub, setSub] = useState<"habits" | "reminders">("habits");
   return (
     <>
       <View
         style={[
-          styles.subTabRow,
+          styles.defisSummary,
           { backgroundColor: theme.colors.surfaceSecondary, borderRadius: theme.radius.md, borderColor: theme.colors.border },
         ]}
       >
-        {[
-          { key: "habits", label: "Habitudes", icon: "checkbox" },
-          { key: "reminders", label: "Rappels", icon: "alarm" },
-        ].map((s) => {
-          const active = sub === s.key;
+        <View style={styles.defisSummaryLeft}>
+          <Text style={[styles.defisSummaryTitle, { color: theme.colors.onSurface }]}>Progression</Text>
+          <Text style={[styles.defisSummarySub, { color: theme.colors.onSurfaceTertiary }]}>
+            {unlocked}/{items.length} défis débloqués
+          </Text>
+        </View>
+        <View
+          style={[
+            styles.defisSummaryBadge,
+            { borderRadius: theme.radius.md, backgroundColor: isGlass ? withAlpha(theme.colors.brand, 20) : theme.colors.brand },
+          ]}
+        >
+          <Text style={styles.defisSummaryBadgeText}>
+            {Math.round((unlocked / Math.max(1, items.length)) * 100)}%
+          </Text>
+        </View>
+      </View>
+
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.defisCatRow}>
+        {DEFI_CATEGORIES.map((c) => {
+          const active = cat === c.key;
           return (
             <Pressable
-              key={s.key}
-              testID={`sub-${s.key}`}
+              key={c.key}
+              testID={`defi-cat-${c.key}`}
               style={[
-                styles.subTab,
+                styles.defisCatChip,
                 {
                   borderRadius: theme.radius.pill,
-                  backgroundColor: active ? theme.colors.brand : theme.colors.surfaceSecondary,
+                  backgroundColor: active ? (isGlass ? withAlpha(theme.colors.brand, 20) : theme.colors.brand) : theme.colors.surfaceSecondary,
                   borderColor: active ? theme.colors.brand : theme.colors.border,
                 },
               ]}
-              onPress={() => setSub(s.key as any)}
+              onPress={() => setCat(c.key)}
             >
-              <Ionicons
-                name={s.icon as any}
-                size={13}
-                color={active ? theme.colors.onSurface : theme.colors.onSurfaceTertiary}
-              />
               <Text
                 style={[
-                  styles.subTabLabel,
-                  { color: active ? theme.colors.onSurface : theme.colors.onSurfaceTertiary },
+                  styles.defisCatChipText,
+                  { color: active ? (isGlass ? theme.colors.brand : "#fff") : theme.colors.onSurfaceTertiary },
                 ]}
               >
-                {s.label}
+                {c.label}
               </Text>
             </Pressable>
           );
         })}
-      </View>
+      </ScrollView>
 
-      {sub === "habits" && (
-        <>
-          <Pressable
-            testID="add-habit-btn"
-            style={[styles.ctaFull, { borderRadius: theme.radius.md }, ctaGlassStyle(theme)]}
-            onPress={() => router.push("/habit/new")}
-          >
-            <Ionicons name="add-circle" size={18} color={ctaGlassColor(theme)} />
-            <Text style={[styles.ctaFullText, { color: ctaGlassColor(theme) }]}>AJOUTER UNE HABITUDE</Text>
-          </Pressable>
-          {habits.length === 0 ? (
-            <View style={styles.empty}>
-              <Ionicons name="checkbox" size={40} color={theme.colors.brand} />
-              <Text style={[styles.emptyTitle, { color: theme.colors.onSurface }]}>Aucune habitude</Text>
-              <Text style={[styles.emptySub, { color: theme.colors.onSurfaceTertiary }]}>
-                Ajoute des habitudes (eau, marche, sommeil…) pour renforcer ton score.
-              </Text>
-            </View>
-          ) : (
-            habits.map((h) => (
-              <SwipeableRow
-                key={h.id}
-                testID={`habit-${h.id}`}
-                onDelete={async () => {
-                  await deleteHabit(h.id);
-                  onChanged();
-                }}
-                deleteConfirm={{
-                  title: "Supprimer cette habitude ?",
-                  message: `"${h.title}" — cette action est définitive.`,
-                  confirmLabel: "SUPPRIMER",
-                  destructive: true,
-                }}
-                onEdit={() => router.push(`/habit/${h.id}`)}
-              >
-                <PressableScale
-                  testID={`habit-${h.id}`}
-                  onPress={() => router.push(`/habit/${h.id}`)}
-                >
-                  <Card style={styles.habitCard}>
-                    <View style={[styles.habitIcon, { backgroundColor: theme.colors.brandTertiary }]}>
-                      <Ionicons name="checkbox" size={16} color={theme.colors.brand} />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={[styles.habitTitle, { color: theme.colors.onSurface }]}>{h.title}</Text>
-                      <Text style={[styles.habitMeta, { color: theme.colors.onSurfaceTertiary }]}>
-                        Cible : {h.target ?? 1} {h.unit ?? ""}
-                      </Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={16} color={theme.colors.onSurfaceTertiary} />
-                  </Card>
-                </PressableScale>
-              </SwipeableRow>
-            ))
-          )}
-        </>
-      )}
-
-      {sub === "reminders" && (
-        <>
-          <Pressable
-            testID="add-reminder-btn"
-            style={[styles.ctaFull, { borderRadius: theme.radius.md }, ctaGlassStyle(theme)]}
-            onPress={() => router.push("/reminder/new")}
-          >
-            <Ionicons name="add-circle" size={18} color={ctaGlassColor(theme)} />
-            <Text style={[styles.ctaFullText, { color: ctaGlassColor(theme) }]}>AJOUTER UN RAPPEL</Text>
-          </Pressable>
-          <View style={[styles.hintBanner, { backgroundColor: theme.colors.brandTertiary, borderRadius: theme.radius.sm }]}>
-            <Ionicons name="information-circle" size={14} color={theme.colors.brand} />
-            <Text style={[styles.hintBannerText, { color: theme.colors.brandSecondary }]}>
-              Les rappels s&apos;activent après publication de l&apos;app avec les notifications push.
-            </Text>
-          </View>
-          {reminders.length === 0 ? (
-            <View style={styles.empty}>
-              <Ionicons name="alarm" size={40} color={theme.colors.brand} />
-              <Text style={[styles.emptyTitle, { color: theme.colors.onSurface }]}>Aucun rappel</Text>
-              <Text style={[styles.emptySub, { color: theme.colors.onSurfaceTertiary }]}>
-                Crée des rappels pour tes séances, ton hydratation, tes mesures…
-              </Text>
-            </View>
-          ) : (
-            reminders.map((r) => (
-              <SwipeableRow
-                key={r.id}
-                testID={`reminder-${r.id}`}
-                onDelete={async () => {
-                  await deleteReminder(r.id);
-                  onChanged();
-                }}
-                deleteConfirm={{
-                  title: "Supprimer ce rappel ?",
-                  message: `"${r.title || REMINDER_KIND_LABEL[r.kind]}" — cette action est définitive.`,
-                  confirmLabel: "SUPPRIMER",
-                  destructive: true,
-                }}
-                onEdit={() => router.push(`/reminder/${r.id}`)}
-              >
-                <PressableScale
-                  testID={`reminder-${r.id}`}
-                  onPress={() => router.push(`/reminder/${r.id}`)}
-                >
-                  <Card style={styles.habitCard}>
-                    <View style={[styles.habitIcon, { backgroundColor: theme.colors.brandTertiary }]}>
-                      <Ionicons
-                        name={REMINDER_KIND_ICON[r.kind]}
-                        size={16}
-                        color={theme.colors.brand}
-                      />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={[styles.habitTitle, { color: theme.colors.onSurface }]}>
-                        {r.title || REMINDER_KIND_LABEL[r.kind]}
-                      </Text>
-                      <Text style={[styles.habitMeta, { color: theme.colors.onSurfaceTertiary }]}>
-                        {r.time} · {formatDaysOfWeek(r.daysOfWeek)} ·{" "}
-                        {r.enabled ? "actif" : "désactivé"}
-                      </Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={16} color={theme.colors.onSurfaceTertiary} />
-                  </Card>
-                </PressableScale>
-              </SwipeableRow>
-            ))
-          )}
-        </>
-      )}
-
-    </>
-  );
-}
-
-function GoalsView({ goals, router }: { goals: Goal[]; router: any }) {
-  const { theme } = useTheme();
-  return (
-    <>
-      <Pressable
-        testID="open-goals-full"
-        style={[styles.ctaFull, { borderRadius: theme.radius.md }, ctaGlassStyle(theme)]}
-        onPress={() => router.push("/goals")}
-      >
-        <Ionicons name="flag" size={18} color={ctaGlassColor(theme)} />
-        <Text style={[styles.ctaFullText, { color: ctaGlassColor(theme) }]}>GÉRER LES OBJECTIFS</Text>
-      </Pressable>
-      {goals.length === 0 ? (
-        <View style={styles.empty}>
-          <Ionicons name="flag" size={40} color={theme.colors.progress} />
-          <Text style={[styles.emptyTitle, { color: theme.colors.onSurface }]}>Aucun objectif</Text>
-          <Text style={[styles.emptySub, { color: theme.colors.onSurfaceTertiary }]}>
-            Fixe-toi une cible : 20 tractions, 10 km, 12% de masse grasse…
-          </Text>
-        </View>
-      ) : (
-        goals.slice(0, 10).map((g) => (
-          <PressableScale
-            key={g.id}
-            testID={`goal-preview-${g.id}`}
-            onPress={() => router.push("/goals")}
-          >
-            <Card style={styles.habitCard}>
-              {/* Objectif = progression (comme "Objectifs" du profil), pas
-                  une action à faire — violet, pas l'orange des habitudes. */}
-              <View style={[styles.habitIcon, { backgroundColor: theme.colors.progressTertiary }]}>
-                <Ionicons name="flag" size={16} color={theme.colors.progress} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.habitTitle, { color: theme.colors.onSurface }]} numberOfLines={1}>
-                  {g.title || g.category}
-                </Text>
-                <Text style={[styles.habitMeta, { color: theme.colors.onSurfaceTertiary }]}>
-                  Cible : {g.targetValue} {g.unit}
-                </Text>
-              </View>
-              <Ionicons name="chevron-forward" size={16} color={theme.colors.onSurfaceTertiary} />
-            </Card>
-          </PressableScale>
-        ))
-      )}
-    </>
-  );
-}
-
-function formatDaysOfWeek(days: number[]): string {
-  if (days.length === 7) return "Tous les jours";
-  if (days.length === 0) return "—";
-  const names = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
-  return days.map((d) => names[d]).join(", ");
-}
-
-function JournalView({
-  router,
-  onChanged,
-}: {
-  router: any;
-  onChanged: () => void;
-}) {
-  const { theme } = useTheme();
-  const [entries, setEntries] = useState<DailyJournalEntry[]>([]);
-  const [loaded, setLoaded] = useState(false);
-
-  const reload = useCallback(async () => {
-    const list = await getDailyJournal();
-    setEntries(list.sort((a, b) => (a.date < b.date ? 1 : -1)));
-    setLoaded(true);
-  }, []);
-
-  useFocusEffect(
-    useCallback(() => {
-      reload();
-    }, [reload]),
-  );
-
-  return (
-    <>
-      <Pressable
-        testID="open-daily-journal"
-        style={[styles.ctaFull, { borderRadius: theme.radius.md }, ctaGlassStyle(theme)]}
-        onPress={() => router.push("/daily-journal")}
-      >
-        <Ionicons name="book" size={18} color={ctaGlassColor(theme)} />
-        <Text style={[styles.ctaFullText, { color: ctaGlassColor(theme) }]}>NOTE DU JOUR</Text>
-      </Pressable>
-
-      {loaded && entries.length === 0 ? (
-        <View style={styles.empty}>
-          <Ionicons name="calendar" size={40} color={theme.colors.brand} />
-          <Text style={[styles.emptyTitle, { color: theme.colors.onSurface }]}>Journal quotidien</Text>
-          <Text style={[styles.emptySub, { color: theme.colors.onSurfaceTertiary }]}>
-            Note ton énergie, ton stress, tes douleurs. Revois ton évolution jour après jour.
-          </Text>
-        </View>
-      ) : (
-        <>
-          <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>Historique</Text>
-          {entries.map((e) => (
-            <SwipeableRow
-              key={e.date}
-              testID={`journal-entry-${e.date}`}
-              onDelete={async () => {
-                await deleteDailyJournalEntry(e.date);
-                await reload();
-                onChanged();
-              }}
-              deleteConfirm={{
-                title: "Supprimer cette entrée ?",
-                message: `Journal du ${formatJournalDate(e.date)} — cette action est définitive.`,
-                confirmLabel: "SUPPRIMER",
-                destructive: true,
-              }}
+      <View style={styles.defisGrid}>
+        {filtered.map((a, i) => (
+          <EnterItem key={a.id} index={i}>
+            <View
+              testID={`defi-${a.id}`}
+              style={[
+                styles.defisCard,
+                { borderRadius: theme.radius.md, backgroundColor: theme.colors.surfaceSecondary, borderColor: theme.colors.border },
+                a.unlocked && { borderColor: theme.colors.success, backgroundColor: withAlpha(theme.colors.success, 12) },
+              ]}
             >
-              <PressableScale
-                testID={`journal-entry-${e.date}`}
-                onPress={() => router.push("/daily-journal")}
+              <Text style={[styles.defisEmoji, !a.unlocked && { opacity: 0.35 }]}>{a.emoji}</Text>
+              <Text
+                style={[styles.defisCardTitle, { color: a.unlocked ? theme.colors.onSurface : theme.colors.onSurfaceTertiary }]}
+                numberOfLines={2}
               >
-                <Card style={styles.journalEntryCard}>
-                  <View style={styles.pastHead}>
-                    <Text style={[styles.pastDate, { color: theme.colors.onSurface }]}>
-                      {formatJournalDate(e.date)}
-                    </Text>
-                    <View style={styles.pastRatings}>
-                      {e.energy != null && <MiniBadge label="⚡" value={e.energy} />}
-                      {e.mood != null && <MiniBadge label="🙂" value={e.mood} />}
-                      {e.stress != null && <MiniBadge label="⚠️" value={e.stress} />}
-                    </View>
-                  </View>
-                  {e.sleep_hours != null && (
-                    <Text style={[styles.journalEntryMeta, { color: theme.colors.onSurfaceSecondary }]}>
-                      😴 {e.sleep_hours.toFixed(1)}h de sommeil
-                    </Text>
-                  )}
-                  {e.pain_zones && e.pain_zones.length > 0 ? (
-                    <Text
-                      style={[styles.journalEntryMeta, { color: theme.colors.onSurfaceSecondary }]}
-                      numberOfLines={2}
-                    >
-                      🩹{" "}
-                      {e.pain_zones
-                        .map((z) => `${PAIN_ZONE_LABEL[z.zone]} ${z.intensity}/10`)
-                        .join(" · ")}
-                    </Text>
-                  ) : null}
-                  {e.notes ? (
-                    <Text style={[styles.pastNotes, { color: theme.colors.onSurfaceSecondary }]} numberOfLines={3}>
-                      {e.notes}
-                    </Text>
-                  ) : null}
-                </Card>
-              </PressableScale>
-            </SwipeableRow>
-          ))}
-        </>
-      )}
+                {a.title}
+              </Text>
+              <Text style={[styles.defisCardDesc, { color: theme.colors.onSurfaceTertiary }]} numberOfLines={2}>
+                {a.description}
+              </Text>
+              <View style={[styles.defisProgressTrack, { backgroundColor: theme.colors.surfaceTertiary }]}>
+                <View
+                  style={[
+                    styles.defisProgressFill,
+                    {
+                      width: `${Math.min(100, (a.progress / a.target) * 100)}%`,
+                      backgroundColor: a.unlocked ? theme.colors.success : theme.colors.brand,
+                    },
+                  ]}
+                />
+              </View>
+              <Text style={[styles.defisProgressLabel, { color: theme.colors.onSurfaceTertiary }]}>
+                {a.progressLabel}
+              </Text>
+              {a.unlocked && (
+                <View style={[styles.defisUnlockedTag, { backgroundColor: theme.colors.success }]}>
+                  <Ionicons name="checkmark" size={10} color="#fff" />
+                  <Text style={styles.defisUnlockedTagText}>DÉBLOQUÉ</Text>
+                </View>
+              )}
+            </View>
+          </EnterItem>
+        ))}
+      </View>
     </>
   );
-}
-
-function formatJournalDate(iso: string) {
-  const d = new Date(iso);
-  return d.toLocaleDateString("fr-FR", {
-    weekday: "long",
-    day: "2-digit",
-    month: "long",
-  });
-}
-
-export function SummaryTile({
-  icon,
-  value,
-  label,
-  onPress,
-}: {
-  icon: any;
-  value: string;
-  label: string;
-  onPress?: () => void;
-}) {
-  const { theme } = useTheme();
-  return (
-    <Pressable
-      style={[styles.sumTile, { backgroundColor: theme.colors.surfaceSecondary, borderRadius: theme.radius.md, borderColor: theme.colors.border }]}
-      onPress={onPress}
-    >
-      <Ionicons name={icon} size={16} color={theme.colors.brand} />
-      <Text style={[styles.sumValue, { color: theme.colors.onSurface }]}>{value}</Text>
-      <Text style={[styles.sumLabel, { color: theme.colors.onSurfaceTertiary }]}>{label}</Text>
-    </Pressable>
-  );
-}
-
-export function MetricChip({ label }: { label: string }) {
-  const { theme } = useTheme();
-  return (
-    <View style={[styles.metricChip, { backgroundColor: theme.colors.surfaceTertiary }]}>
-      <Text style={[styles.metricChipText, { color: theme.colors.onSurface }]}>{label}</Text>
-    </View>
-  );
-}
-
-function MiniBadge({ label, value }: { label: string; value: number }) {
-  const { theme } = useTheme();
-  return (
-    <View style={[styles.miniJournalBadge, { backgroundColor: theme.colors.surfaceTertiary }]}>
-      <Text style={[styles.miniJournalBadgeText, { color: theme.colors.onSurface }]}>
-        {label} {value}
-      </Text>
-    </View>
-  );
-}
-
-export function formatDate(iso: string) {
-  const d = new Date(iso);
-  return d.toLocaleDateString("fr-FR", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  });
 }
 
 export const styles = StyleSheet.create({
   container: { flex: 1 },
+  exercisesSummary: { fontSize: 12.5, fontWeight: "700", marginBottom: -4 },
+  defisSummary: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    padding: spacing.md,
+    borderWidth: 1,
+  },
+  defisSummaryLeft: { flex: 1 },
+  defisSummaryTitle: { fontSize: 15, fontWeight: "800" },
+  defisSummarySub: { fontSize: 12, marginTop: 2 },
+  defisSummaryBadge: { paddingHorizontal: 14, paddingVertical: 8 },
+  defisSummaryBadgeText: { color: "#fff", fontWeight: "800", fontSize: 15 },
+  defisCatRow: { gap: 6, paddingBottom: spacing.sm },
+  defisCatChip: { paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1 },
+  defisCatChipText: { fontSize: 11, fontWeight: "700" },
+  defisGrid: { flexDirection: "row", flexWrap: "wrap", gap: spacing.md },
+  defisCard: { width: "48%", borderWidth: 1, padding: spacing.md, gap: 6, position: "relative" },
+  defisEmoji: { fontSize: 32 },
+  defisCardTitle: { fontWeight: "800", fontSize: 13 },
+  defisCardDesc: { fontSize: 11, lineHeight: 14, minHeight: 28 },
+  defisProgressTrack: { height: 4, borderRadius: 2, overflow: "hidden", marginTop: 4 },
+  defisProgressFill: { height: "100%" },
+  defisProgressLabel: { fontSize: 10, fontWeight: "600" },
+  defisUnlockedTag: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 2,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  defisUnlockedTagText: { color: "#fff", fontSize: 8, fontWeight: "800", letterSpacing: 0.4 },
   header: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,

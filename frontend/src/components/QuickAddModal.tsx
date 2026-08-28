@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet, Modal, Pressable, Platform } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { spacing } from "@/src/theme";
 import { useTheme } from "@/src/themes";
@@ -106,6 +107,7 @@ export default function QuickAddModal({
   onPick: (path: string) => void;
 }) {
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
   const items = buildItems(theme.colors.brand);
   return (
     <Modal
@@ -118,7 +120,11 @@ export default function QuickAddModal({
         <Pressable style={{ flex: 1 }} onPress={onClose} />
         <GlassCard
           level="elevated"
-          style={[styles.sheet, theme.card.mode !== "glass" && { backgroundColor: theme.colors.surfaceSecondary }]}
+          style={[
+            styles.sheet,
+            theme.card.mode !== "glass" && { backgroundColor: theme.colors.surfaceSecondary },
+            { paddingBottom: 24 + insets.bottom },
+          ]}
         >
           <View style={[styles.handle, { backgroundColor: theme.colors.border }]} />
           <Text style={[styles.title, { color: theme.colors.onSurface }]}>Actions rapides</Text>

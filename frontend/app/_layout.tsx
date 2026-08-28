@@ -139,7 +139,9 @@ export default function RootLayout() {
           <Stack.Screen name="custom-program/[id]" />
           <Stack.Screen name="habit/[id]" />
           <Stack.Screen name="daily-journal" options={MODAL_SCREEN_OPTIONS} />
+          <Stack.Screen name="journal-history" options={MODAL_SCREEN_OPTIONS} />
           <Stack.Screen name="journal/[id]" options={MODAL_SCREEN_OPTIONS} />
+          <Stack.Screen name="reminders-list" options={MODAL_SCREEN_OPTIONS} />
           <Stack.Screen name="exercise/[name]" />
           <Stack.Screen name="exercise/index" />
           <Stack.Screen name="exercise-detail/[name]" options={MODAL_SCREEN_OPTIONS} />
@@ -150,7 +152,6 @@ export default function RootLayout() {
           <Stack.Screen name="health-metric/[key]" options={MODAL_SCREEN_OPTIONS} />
           <Stack.Screen name="day-detail" options={MODAL_SCREEN_OPTIONS} />
           <Stack.Screen name="stats" options={MODAL_SCREEN_OPTIONS} />
-          <Stack.Screen name="achievements" options={MODAL_SCREEN_OPTIONS} />
           <Stack.Screen name="goals" options={MODAL_SCREEN_OPTIONS} />
           <Stack.Screen name="photo-crop" options={MODAL_SCREEN_OPTIONS} />
           <Stack.Screen name="radio" options={MODAL_SCREEN_OPTIONS} />

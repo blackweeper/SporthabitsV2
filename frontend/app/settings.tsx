@@ -197,6 +197,35 @@ export default function SettingsScreen() {
           );
         })}
 
+        <Text style={[styles.sectionLabel, { marginTop: spacing.lg }]}>JOURNAL</Text>
+        <Text style={styles.sectionHint}>
+          Anciennement dans Performance — déplacé ici, données et fonctionnalités inchangées
+        </Text>
+        <PressableScale testID="settings-journal" onPress={() => router.push("/journal-history" as any)}>
+          <Card style={styles.optionRow}>
+            <View style={styles.optionIcon}>
+              <Ionicons name="book" size={18} color={theme.colors.onSurfaceTertiary} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.optionLabel}>Journal</Text>
+              <Text style={styles.optionHint}>Note du jour et historique</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={theme.colors.onSurfaceTertiary} />
+          </Card>
+        </PressableScale>
+        <PressableScale testID="settings-reminders" onPress={() => router.push("/reminders-list" as any)}>
+          <Card style={styles.optionRow}>
+            <View style={styles.optionIcon}>
+              <Ionicons name="alarm" size={18} color={theme.colors.onSurfaceTertiary} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.optionLabel}>Rappels</Text>
+              <Text style={styles.optionHint}>Séances, hydratation, mesures…</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={theme.colors.onSurfaceTertiary} />
+          </Card>
+        </PressableScale>
+
         <Text style={[styles.sectionLabel, { marginTop: spacing.lg }]}>RADIO</Text>
         <Text style={styles.sectionHint}>Choisis les stations affichées dans le menu radio</Text>
         <PressableScale testID="settings-radio-stations" onPress={() => router.push("/radio-stations-settings" as any)}>

@@ -83,9 +83,6 @@ export const sunsetTheme: Theme = {
       // Vert partout pour le temps d'entraînement (cohérence demandée avec
       // Classique, qui utilise déjà #10B981) — distinct du bleu des Pas.
       training: ["#6EE7A8", "#30D158"],
-      // Anneau Score IronFlow — jaune sur demande explicite (remplace le
-      // dégradé bleu→violet précédent).
-      score: ["#FFE066", "#FFC107"],
     },
     // Couleurs de DONNÉES (graphiques/badges par catégorie) — jamais la
     // couleur principale d'un écran générique, voir le commentaire sur

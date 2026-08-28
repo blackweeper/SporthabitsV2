@@ -1,9 +1,10 @@
 /**
- * Score central du widget à 4 anneaux du Dashboard — moyenne simple des 4
- * pourcentages de remplissage (calories brûlées / pas / temps d'entraînement
- * / Score IronFlow). Volontairement indépendant de `computeDailyIronflowScore`
- * (`scoring.ts`), déjà utilisé ailleurs dans l'app (ex. Progression) : ce
- * nouveau nombre n'a pas vocation à remplacer ou influencer ce score existant.
+ * Pourcentage central du widget à 4 anneaux du Dashboard/`day-detail` —
+ * moyenne simple des 4 pourcentages de remplissage (calories brûlées / pas /
+ * temps d'entraînement / sommeil). Le Score IronFlow (ancien 4e anneau,
+ * `scoring.ts`) a été supprimé de l'app ; ce nombre n'a jamais été ce
+ * score — juste une moyenne de complétion des anneaux, indépendante par
+ * construction.
  */
 export function computeDailyAggregateScore(ringPercents: number[]): number {
   if (ringPercents.length === 0) return 0;

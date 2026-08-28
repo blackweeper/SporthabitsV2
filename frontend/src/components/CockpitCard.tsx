@@ -4,6 +4,7 @@ import { useRouter } from "expo-router";
 import { spacing, shadow } from "@/src/theme";
 import { useTheme } from "@/src/themes";
 import { XPState } from "@/src/utils/xp";
+import { progressionHref } from "@/src/utils/progression-nav";
 import AnimatedNumber from "@/src/components/ui/AnimatedNumber";
 import PressableScale from "@/src/components/ui/PressableScale";
 import GlassCard from "@/src/components/ui/GlassCard";
@@ -97,7 +98,7 @@ export default function CockpitCard({
           style={styles.cockpitStat}
           onPress={(e) => {
             e.stopPropagation?.();
-            router.push("/achievements");
+            router.push(progressionHref("defis") as any);
           }}
         >
           <Ionicons name="ribbon-outline" size={14} color={theme.colors.onSurfaceTertiary} />

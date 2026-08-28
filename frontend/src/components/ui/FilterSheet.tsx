@@ -1,4 +1,5 @@
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { spacing } from "@/src/theme";
 import { useTheme } from "@/src/themes";
@@ -24,6 +25,7 @@ export default function FilterSheet({
   children: React.ReactNode;
 }) {
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <View style={styles.backdrop}>
@@ -39,7 +41,10 @@ export default function FilterSheet({
               <Ionicons name="close" size={22} color={theme.colors.onSurfaceTertiary} />
             </Pressable>
           </View>
-          <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            contentContainerStyle={[styles.content, { paddingBottom: spacing.md + insets.bottom }]}
+            showsVerticalScrollIndicator={false}
+          >
             {children}
           </ScrollView>
         </GlassCard>

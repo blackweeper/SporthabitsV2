@@ -22,7 +22,6 @@ import {
   CALENDAR_EVENT_KIND_EMOJI,
   CALENDAR_EVENT_KIND_LABEL,
   currentDayIndex,
-  DailyJournalEntry,
   DEFAULT_CALORIES_BURN_TARGET_KCAL,
   DEFAULT_CALORIES_TARGET_KCAL,
   DEFAULT_SLEEP_TARGET_HOURS,
@@ -34,7 +33,6 @@ import {
   deleteHabit,
   getActivePrograms,
   getCalendarEvents,
-  getDailyJournal,
   getHabits,
   getHabitLogs,
   getMealPresets,
@@ -59,10 +57,8 @@ import {
 } from "@/src/utils/gym-storage";
 import { findProgram } from "@/src/utils/programs";
 import { Program } from "@/src/data/programs";
-import { computeDailyIronflowScore, scoreQualitativeLabel } from "@/src/utils/scoring";
 import { computeAdvancedStats } from "@/src/utils/stats";
 import { motivationMessage } from "@/src/data/motivation";
-import { progressionHref } from "@/src/utils/progression-nav";
 import HabitTimerModal from "@/src/components/HabitTimerModal";
 import CalendarView, { DayEventDot } from "@/src/components/CalendarView";
 import WeekCalendarView from "@/src/components/WeekCalendarView";
@@ -81,8 +77,11 @@ import {
 import {
   getImportedSleepHoursForDate,
   getImportedStepsForDate,
+  getRecentDailyAverage,
   localDateYYYYMMDD,
+  SLEEP_METRIC_NAMES,
   subscribeHealthDataChanged,
+  unitsToHoursMultiplier,
 } from "@/src/utils/health-data-storage";
 import MultiRingGauge, { innerContentDiameter } from "@/src/components/ui/MultiRingGauge";
 import HabitProgressRow from "@/src/components/dashboard/HabitProgressRow";
@@ -112,6 +111,13 @@ function formatCompactNumber(n: number): string {
  * premier ton du dégradé (même convention que `day-detail.tsx`). */
 function solidRingColor(c: string | readonly [string, string]): string {
   return Array.isArray(c) ? c[0] : (c as string);
+}
+/** "7h42" — même format que `HealthMetricGrid.tsx` (Santé), dupliqué ici
+ * volontairement (fichier isolé, pas de dépendance croisée Dashboard→Santé). */
+function formatSleepDuration(hours: number): string {
+  const h = Math.floor(hours);
+  const m = Math.round((hours - h) * 60);
+  return `${h}h${String(m).padStart(2, "0")}`;
 }
 
 // These habit kinds are already covered by the built-in Eau / Calories / Pas
@@ -144,8 +150,8 @@ export default function TodayScreen() {
   const [wellnessLogs, setWellnessLogs] = useState<WellnessLog[]>([]);
   const [importedStepsToday, setImportedStepsToday] = useState(0);
   const [importedSleepHoursToday, setImportedSleepHoursToday] = useState(0);
+  const [sleepAvg7d, setSleepAvg7d] = useState<number | null>(null);
   const [motivation, setMotivation] = useState("");
-  const [dailyJournal, setDailyJournal] = useState<DailyJournalEntry[]>([]);
   const [prs, setPRs] = useState<PersonalRecord[]>([]);
   const [timerHabit, setTimerHabit] = useState<Habit | null>(null);
   const [calendarEvents, setCalendarEvents] = useState<CalendarEvent[]>([]);
@@ -183,7 +189,7 @@ export default function TodayScreen() {
     setWellnessLogs(await getWellnessLogs());
     setImportedStepsToday(await getImportedStepsForDate(localDateYYYYMMDD()));
     setImportedSleepHoursToday(await getImportedSleepHoursForDate(localDateYYYYMMDD()));
-    setDailyJournal(await getDailyJournal());
+    setSleepAvg7d(await getRecentDailyAverage(SLEEP_METRIC_NAMES, 7, localDateYYYYMMDD(), "sum", unitsToHoursMultiplier));
     setCalendarEvents(await getCalendarEvents());
     setReminders(await getReminders());
     setDismissedReminders(await getDismissedReminderKeys());
@@ -232,53 +238,36 @@ export default function TodayScreen() {
   }, []);
 
   const today = todayYYYYMMDD();
-  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
   const wellness = wellnessLogs.find((w) => w.date === today) ?? null;
-  const scoreProfile = profile ?? {
-    weight_kg: null,
-    height_cm: null,
-    sex: null,
-    age: null,
-  };
-  const todayScore = computeDailyIronflowScore(
-    today,
-    sessions,
-    habits,
-    logs,
-    wellnessLogs,
-    dailyJournal,
-    scoreProfile,
+  // Le Score IronFlow (calcul à 6 piliers, `scoring.ts`) a été supprimé de
+  // toute l'app — cette date de séance suffit pour tout ce qui en dépendait
+  // ici (statut du CTA, ton du message de motivation).
+  const workoutDoneToday = sessions.some(
+    (s) => new Date(s.startedAt).toISOString().slice(0, 10) === today,
   );
-  const yesterdayScore = computeDailyIronflowScore(
-    yesterday,
-    sessions,
-    habits,
-    logs,
-    wellnessLogs,
-    dailyJournal,
-    scoreProfile,
-  );
-  const scoreDelta = todayScore.score - yesterdayScore.score;
   const stats = computeAdvancedStats(sessions);
 
   // Widget héros à 4 anneaux — calories brûlées/pas/temps d'entraînement du
   // jour (calculés localement, pas via `computeAdvancedStats` qui est
-  // all-time) + le Score IronFlow existant en 4e anneau. Le score central
-  // est une moyenne simple, volontairement indépendante de
-  // `computeDailyIronflowScore` (voir `daily-aggregate-score.ts`).
+  // all-time) + le Sommeil en 4e anneau (remplace l'ancien Score IronFlow :
+  // donnée réelle, jamais un score). Le pourcentage central reste une
+  // moyenne simple des 4 anneaux, volontairement indépendante de tout
+  // concept de score (voir `daily-aggregate-score.ts`).
   const caloriesBurnedToday = sumCaloriesBurnedForDate(sessions, today);
   const trainingMinutesToday = sumTrainingMinutesForDate(sessions, today);
   const stepsToday = (wellness?.steps ?? 0) + importedStepsToday;
   const caloriesBurnTarget = profile?.calories_burn_target_kcal || DEFAULT_CALORIES_BURN_TARGET_KCAL;
   const trainingMinutesTarget = profile?.training_minutes_target || DEFAULT_TRAINING_MINUTES_TARGET;
   const stepsTargetForRing = profile?.steps_target || DEFAULT_STEPS_TARGET;
+  const sleepTargetForRing = profile?.sleep_target_hours || DEFAULT_SLEEP_TARGET_HOURS;
   const heroRingPercents = [
     (caloriesBurnedToday / caloriesBurnTarget) * 100,
     (stepsToday / stepsTargetForRing) * 100,
     (trainingMinutesToday / trainingMinutesTarget) * 100,
-    todayScore.score,
+    (importedSleepHoursToday / sleepTargetForRing) * 100,
   ];
   const heroAggregateScore = computeDailyAggregateScore(heroRingPercents);
+  const sleepDeltaMinutes = sleepAvg7d != null ? Math.round((importedSleepHoursToday - sleepAvg7d) * 60) : 0;
 
   const primary = actives[0];
   const dayIndex = primary
@@ -304,13 +293,13 @@ export default function TodayScreen() {
   const shortSleepToday = importedSleepHoursToday > 0 && importedSleepHoursToday < 6;
   useEffect(() => {
     motivationMessage({
-      workoutDoneToday: todayScore.workoutDone,
+      workoutDoneToday,
       streakDays: stats.currentStreakDays,
-      score: todayScore.score,
+      dayCompletionPct: heroAggregateScore,
       shortSleep: shortSleepToday,
     }).then(setMotivation);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [today, todayScore.workoutDone, todayScore.score, stats.currentStreakDays, shortSleepToday]);
+  }, [today, workoutDoneToday, heroAggregateScore, stats.currentStreakDays, shortSleepToday]);
 
   // Semaine par défaut (préférence explicite) — la vue mois reste un choix
   // manuel via les réglages, plus de bascule automatique selon la largeur
@@ -869,14 +858,15 @@ export default function TodayScreen() {
                       trackColor: withAlpha(solidRingColor(theme.colors.metricColors.training), 18),
                     },
                     {
-                      pct: todayScore.score / 100,
-                      color: theme.colors.metricColors.score,
-                      trackColor: withAlpha(solidRingColor(theme.colors.metricColors.score), 18),
+                      pct: heroRingPercents[3] / 100,
+                      color: theme.colors.metricColors.sleep,
+                      trackColor: withAlpha(solidRingColor(theme.colors.metricColors.sleep), 18),
                     },
                   ]}
                 >
                   <StatHero
-                    value={todayScore.score}
+                    value={heroAggregateScore}
+                    unit="%"
                     size="lg"
                     color={theme.colors.onSurface}
                     fitDiameter={innerContentDiameter(148, 10, 4, 4)}
@@ -930,11 +920,11 @@ export default function TodayScreen() {
                   onPress={() => router.push("/day-detail" as any)}
                 />
                 <StatBadge
-                  testID="widget-score"
-                  icon="stats-chart"
-                  color={solidRingColor(theme.colors.metricColors.score)}
-                  value={`${Math.round(todayScore.score)}%`}
-                  label="Score"
+                  testID="widget-sleep"
+                  icon="moon"
+                  color={solidRingColor(theme.colors.metricColors.sleep)}
+                  value={formatSleepDuration(importedSleepHoursToday)}
+                  label="Sommeil"
                   onPress={() => router.push("/day-detail" as any)}
                 />
               </View>
@@ -974,7 +964,7 @@ export default function TodayScreen() {
                       { pct: heroRingPercents[0] / 100, color: theme.colors.metricColors.caloriesBurn },
                       { pct: heroRingPercents[1] / 100, color: theme.colors.metricColors.steps },
                       { pct: heroRingPercents[2] / 100, color: theme.colors.metricColors.training },
-                      { pct: heroRingPercents[3] / 100, color: theme.colors.metricColors.score },
+                      { pct: heroRingPercents[3] / 100, color: theme.colors.metricColors.sleep },
                     ]}
                   >
                     <StatHero
@@ -985,28 +975,27 @@ export default function TodayScreen() {
                     />
                   </MultiRingGauge>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.scoreLabel}>IRONFLOW SCORE</Text>
+                  <Text style={styles.scoreLabel}>SOMMEIL</Text>
                   <AnimatedNumber
-                    value={todayScore.score}
-                    formatter={(n) => `${Math.round(n)}%`}
+                    value={importedSleepHoursToday}
+                    formatter={(n) => formatSleepDuration(n)}
                     style={styles.scoreValue}
                   />
-                  <Text style={styles.scoreHint}>{scoreQualitativeLabel(todayScore.score)}</Text>
-                  {scoreDelta !== 0 && (
+                  {sleepDeltaMinutes !== 0 && (
                     <View style={styles.scoreDeltaRow}>
                       <Ionicons
-                        name={scoreDelta > 0 ? "arrow-up" : "arrow-down"}
+                        name={sleepDeltaMinutes > 0 ? "arrow-up" : "arrow-down"}
                         size={12}
-                        color={scoreDelta > 0 ? theme.colors.success : theme.colors.error}
+                        color={sleepDeltaMinutes > 0 ? theme.colors.success : theme.colors.error}
                       />
                       <Text
                         style={[
                           styles.scoreDeltaText,
-                          { color: scoreDelta > 0 ? theme.colors.success : theme.colors.error },
+                          { color: sleepDeltaMinutes > 0 ? theme.colors.success : theme.colors.error },
                         ]}
                       >
-                        {scoreDelta > 0 ? "+" : ""}
-                        {scoreDelta}% par rapport à hier
+                        {sleepDeltaMinutes > 0 ? "+" : ""}
+                        {sleepDeltaMinutes} min vs moyenne
                       </Text>
                     </View>
                   )}
@@ -1024,7 +1013,7 @@ export default function TodayScreen() {
                 testID="start-session"
                 style={[
                   styles.mainCta,
-                  !todayScore.workoutDone &&
+                  !workoutDoneToday &&
                     !isRestDay &&
                     (theme.card.mode === "glass"
                       ? [
@@ -1036,14 +1025,14 @@ export default function TodayScreen() {
                           coloredShadow(theme.colors.brand, { offsetY: 0, opacity: 0.3, radius: 10, elevation: 3 }),
                         ]
                       : { backgroundColor: theme.colors.brand }),
-                  todayScore.workoutDone && styles.mainCtaDone,
-                  !todayScore.workoutDone && isRestDay && styles.mainCtaRest,
+                  workoutDoneToday && styles.mainCtaDone,
+                  !workoutDoneToday && isRestDay && styles.mainCtaRest,
                 ]}
-                onPress={() => router.push(todayScore.workoutDone ? "/training" : "/plans")}
+                onPress={() => router.push(workoutDoneToday ? "/training" : "/plans")}
               >
                 <Ionicons
                   name={
-                    todayScore.workoutDone
+                    workoutDoneToday
                       ? "checkmark-circle"
                       : isRestDay
                         ? "moon"
@@ -1051,7 +1040,7 @@ export default function TodayScreen() {
                   }
                   size={20}
                   color={
-                    todayScore.workoutDone
+                    workoutDoneToday
                       ? theme.colors.success
                       : isRestDay
                         ? theme.colors.progressSecondary
@@ -1063,12 +1052,12 @@ export default function TodayScreen() {
                 <Text
                   style={[
                     styles.mainCtaText,
-                    todayScore.workoutDone && styles.mainCtaTextDone,
-                    !todayScore.workoutDone && isRestDay && styles.mainCtaTextRest,
+                    workoutDoneToday && styles.mainCtaTextDone,
+                    !workoutDoneToday && isRestDay && styles.mainCtaTextRest,
                   ]}
                   numberOfLines={1}
                 >
-                  {todayScore.workoutDone
+                  {workoutDoneToday
                     ? "SÉANCE TERMINÉE"
                     : isRestDay
                       ? "JOUR DE REPOS"
@@ -1090,13 +1079,6 @@ export default function TodayScreen() {
                 héros ci-dessus, plus besoin d'une ligne dédiée ici. */}
             <View style={styles.widgetsHead}>
               <Text style={styles.sectionTitle}>Aujourd&apos;hui</Text>
-              <Pressable
-                testID="manage-habits"
-                hitSlop={8}
-                onPress={() => router.push(progressionHref("habits") as any)}
-              >
-                <Text style={styles.widgetsMoreLink}>Gérer</Text>
-              </Pressable>
             </View>
             {/* Anneaux permanents : Calories (apport)/Pas/Sommeil — l'Eau et les
                 habitudes personnalisées vivent désormais dans la liste compacte

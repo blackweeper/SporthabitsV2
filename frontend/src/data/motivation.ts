@@ -140,8 +140,13 @@ const POOLS: Record<MotivationContext, string[]> = {
 export type MotivationSignals = {
   workoutDoneToday: boolean;
   streakDays: number;
-  /** Today's overall score, 0-100. */
-  score: number;
+  /** Pourcentage de complétion des anneaux du jour (calories brûlées/pas/
+   * entraînement/sommeil, moyenne simple — voir `daily-aggregate-score.ts`),
+   * 0-100. Remplace l'ancien "score IronFlow" retiré de l'app : ce n'est pas
+   * un score, juste une lecture de la progression déjà affichée dans le
+   * héros du Dashboard, réutilisée ici pour le seul cas "journée presque
+   * parfaite". */
+  dayCompletionPct: number;
   /** Nuit de sommeil courte détectée (import santé) — privilégie un ton
    * récupération plutôt que performance. Absent/`false` = signal ignoré. */
   shortSleep?: boolean;
@@ -151,7 +156,7 @@ function pickContext(signals: MotivationSignals): MotivationContext {
   if (signals.shortSleep && !signals.workoutDoneToday) return "recovery";
   if (signals.workoutDoneToday) return "sessionDone";
   if (signals.streakDays >= 3) return "streak";
-  if (signals.score >= 85 && signals.score < 100) return "goalClose";
+  if (signals.dayCompletionPct >= 85 && signals.dayCompletionPct < 100) return "goalClose";
   if (new Date().getHours() < 12) return "morning";
   return "default";
 }
