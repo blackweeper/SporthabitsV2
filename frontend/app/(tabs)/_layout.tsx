@@ -7,15 +7,12 @@ import Animated, { FadeIn } from "react-native-reanimated";
 import { coloredShadow, radius, spacing, withAlpha } from "@/src/theme";
 import { useTheme } from "@/src/themes";
 import QuickAddModal from "@/src/components/QuickAddModal";
+import { SUNSET_BAR_HEIGHT, SUNSET_BAR_MARGIN } from "@/src/utils/tab-bar-metrics";
 
 // Taille d'icône explicite et cohérente (au lieu de la taille par défaut
 // transmise sans intention) — s'accorde avec la pilule d'onglet actif
 // ci-dessous.
 const TAB_ICON_SIZE = 20;
-// Hauteur/marges de la barre flottante Sunset — utilisées à la fois par
-// `tabBarStyle` et par `fabWrap` pour que le FAB reste toujours au-dessus.
-const SUNSET_BAR_HEIGHT = 64;
-const SUNSET_BAR_MARGIN = 14;
 
 /** Icône seule sous Sunset — le libellé y est rendu par le mécanisme natif
  * de react-navigation (`tabBarShowLabel:true` dans `screenOptions`), PAS ici.
@@ -165,6 +162,36 @@ export default function TabsLayout() {
             tabBarButtonTestID: "tab-training",
           }}
         />
+        {/* Bouton "+" central de la barre — remplace l'ancien FAB flottant
+            séparé. `tabBarButton` intercepte totalement l'appui (n'appelle
+            jamais la navigation par défaut vers `/add`) et ouvre
+            `QuickAddModal`, exactement le comportement du FAB précédent. */}
+        <Tabs.Screen
+          name="add"
+          options={{
+            tabBarButtonTestID: "tab-add",
+            tabBarButton: () => (
+              <Pressable
+                testID="tab-add"
+                onPress={() => setAddOpen(true)}
+                style={styles.fabTabWrap}
+              >
+                <View
+                  style={[
+                    styles.fabCircle,
+                    {
+                      backgroundColor: theme.colors.brand,
+                      borderColor: theme.card.mode === "glass" ? theme.card.tint : theme.colors.surfaceSecondary,
+                      ...coloredShadow(theme.colors.brand, { opacity: 0.5, radius: 8, elevation: 6 }),
+                    },
+                  ]}
+                >
+                  <Ionicons name="add" size={26} color="#fff" />
+                </View>
+              </Pressable>
+            ),
+          }}
+        />
         <Tabs.Screen
           name="library"
           options={{
@@ -190,47 +217,16 @@ export default function TabsLayout() {
             tabBarButtonTestID: "tab-progression",
           }}
         />
-        <Tabs.Screen
-          name="profile-tab"
-          options={{
-            title: "Profil",
-            tabBarIcon: ({ color, focused }) => (
-              <TabIcon name="person" label="Profil" focused={focused} color={color} sunset={isSunset} />
-            ),
-            tabBarButtonTestID: "tab-profile",
-          }}
-        />
+        {/* Profil retiré de la barre — doublonnait avec la roue de réglages
+            en haut du Dashboard, qui mène au même endroit. La route reste
+            navigable (router.push), juste plus listée comme onglet. */}
+        <Tabs.Screen name="profile-tab" options={{ href: null }} />
         {/* Hidden routes (kept for backward compat / deep links) */}
         <Tabs.Screen name="program" options={{ href: null }} />
         <Tabs.Screen name="plans" options={{ href: null }} />
         <Tabs.Screen name="stretching" options={{ href: null }} />
         <Tabs.Screen name="history" options={{ href: null }} />
       </Tabs>
-
-      {/* Global "Actions rapides" button — floats above the tab bar on every
-          tab, no longer a tab-bar slot itself. */}
-      <View
-        pointerEvents="box-none"
-        style={[
-          styles.fabWrap,
-          isSunset && { bottom: SUNSET_BAR_MARGIN + SUNSET_BAR_HEIGHT + 14 },
-        ]}
-      >
-        <Pressable
-          testID="tab-add"
-          style={[
-            styles.fab,
-            {
-              backgroundColor: theme.colors.brand,
-              borderColor: theme.card.mode === "glass" ? theme.card.tint : theme.colors.surfaceSecondary,
-              ...coloredShadow(theme.colors.brand, { opacity: 0.5, radius: 8, elevation: 6 }),
-            },
-          ]}
-          onPress={() => setAddOpen(true)}
-        >
-          <Ionicons name="add" size={30} color="#fff" />
-        </Pressable>
-      </View>
 
       <QuickAddModal
         visible={addOpen}
@@ -256,22 +252,20 @@ const styles = StyleSheet.create({
   },
   pillLabel: { fontSize: 11, fontWeight: "800" },
   sunsetLabel: { fontSize: 9.5, fontWeight: "700" },
-  fabWrap: {
-    // Sits clear above the 72px-tall tab bar so it never overlaps a tab's
-    // touch target (the Bibliothèque tab now occupies the center slot).
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 82,
-    alignItems: "center",
-    zIndex: 20,
-  },
-  fab: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+  // Slot central "+" — occupe exactement l'espace d'un onglet ordinaire dans
+  // la barre (reste dans ses bornes, pas de `position:"absolute"` qui le
+  // ferait déborder/clip par le `overflow:"hidden"` de la barre Sunset).
+  fabTabWrap: {
+    flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 3,
+  },
+  fabCircle: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
   },
 });

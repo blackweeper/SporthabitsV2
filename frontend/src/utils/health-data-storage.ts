@@ -86,11 +86,36 @@ export async function getHealthWorkouts(): Promise<HealthWorkoutEntry[]> {
   return readJsonArray<HealthWorkoutEntry>(WORKOUTS_KEY);
 }
 
+/** Date locale (fuseau de l'appareil), au format YYYY-MM-DD. Contrairement à
+ * `todayYYYYMMDD()` (`gym-storage.ts`, basé sur `toISOString()` donc en UTC),
+ * nécessaire ici car Health Auto Export horodate ses échantillons en heure
+ * locale de l'iPhone — comparer un échantillon "aujourd'hui" local à une
+ * clé "aujourd'hui" en UTC décale la journée pendant les quelques heures qui
+ * suivent minuit local pour tout fuseau à l'est de Greenwich (l'essentiel de
+ * l'Europe), ce qui peut faire apparaître le widget comme "bloqué". */
+export function localDateYYYYMMDD(date: Date = new Date()): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+/** Normalise un nom de métrique pour la comparaison : insensible à la casse,
+ * aux séparateurs (`_`/espace/aucun) et au préfixe brut HealthKit
+ * (`HKQuantityTypeIdentifier...`) que certaines versions/exports peuvent
+ * laisser passer — Health Auto Export n'a jamais garanti une seule
+ * convention de nommage exacte, un match tolérant évite un widget à 0 pour
+ * une simple différence de format plutôt qu'une vraie absence de donnée. */
+function normalizeMetricName(name: string): string {
+  const stripped = name.toLowerCase().replace(/[^a-z0-9]/g, "");
+  return stripped.replace(/^hk(quantity|category)typeidentifier/, "");
+}
+
 // Nom de métrique envoyé par Health Auto Export pour le nombre de pas
-// (identifiant HealthKit `step_count`, en snake_case dans son export JSON).
-// `"steps"` toléré en alias défensif si une version de l'app envoie un nom
-// légèrement différent — mieux vaut un match tolérant qu'un widget à 0.
-const STEP_METRIC_NAMES = new Set(["step_count", "steps"]);
+// (identifiant HealthKit `step_count`). Alias défensifs tolérés (casse/
+// séparateurs déjà gérés par `normalizeMetricName`, donc listés ici sans
+// underscore) au cas où une version enverrait un nom légèrement différent.
+const STEP_METRIC_NAMES = new Set(["stepcount", "steps"]);
 
 /** Somme des échantillons de pas importés dont la date (locale, pas UTC —
  * Health Auto Export envoie des dates sans fuseau) commence par `dateYYYYMMDD`.
@@ -100,7 +125,7 @@ export async function getImportedStepsForDate(dateYYYYMMDD: string): Promise<num
   const metrics = await getHealthMetrics();
   let total = 0;
   for (const m of metrics) {
-    if (!STEP_METRIC_NAMES.has(m.name.toLowerCase())) continue;
+    if (!STEP_METRIC_NAMES.has(normalizeMetricName(m.name))) continue;
     if (!m.date.startsWith(dateYYYYMMDD)) continue;
     total += m.qty ?? 0;
   }
@@ -115,7 +140,7 @@ export async function getImportedStepsForDates(dates: string[]): Promise<Record<
   const result: Record<string, number> = {};
   for (const d of dates) result[d] = 0;
   for (const m of metrics) {
-    if (!STEP_METRIC_NAMES.has(m.name.toLowerCase())) continue;
+    if (!STEP_METRIC_NAMES.has(normalizeMetricName(m.name))) continue;
     const dateStr = m.date.slice(0, 10);
     if (dateStr in result) result[dateStr] += m.qty ?? 0;
   }
@@ -127,9 +152,10 @@ export async function getImportedStepsForDates(dates: string[]): Promise<Record<
 // contre un vrai payload Health Auto Export. Construits de façon tolérante :
 // jamais d'exception, un état "pas encore de données" propre si absents ou
 // si le vrai nom diffère — à ajuster une fois de vraies données reçues.
-const SLEEP_METRIC_NAMES = new Set(["sleep_analysis", "sleep_hours", "sleep"]);
-const RESTING_HR_METRIC_NAMES = new Set(["resting_heart_rate"]);
-const HRV_METRIC_NAMES = new Set(["heart_rate_variability", "heart_rate_variability_sdnn", "hrv"]);
+const SLEEP_METRIC_NAMES = new Set(["sleepanalysis", "sleephours", "sleep", "timeasleep", "sleepdata"]);
+const RESTING_HR_METRIC_NAMES = new Set(["restingheartrate", "restingheartrateaverage"]);
+const HRV_METRIC_NAMES = new Set(["heartratevariability", "heartratevariabilitysdnn", "hrv"]);
+const HEART_RATE_METRIC_NAMES = new Set(["heartrate", "heartrateaverage"]);
 
 function unitsToHoursMultiplier(units: string | null): number {
   if (!units) return 1; // suppose déjà en heures si l'unité est absente
@@ -147,7 +173,7 @@ export async function getImportedSleepHoursForDate(dateYYYYMMDD: string): Promis
   const metrics = await getHealthMetrics();
   let total = 0;
   for (const m of metrics) {
-    if (!SLEEP_METRIC_NAMES.has(m.name.toLowerCase())) continue;
+    if (!SLEEP_METRIC_NAMES.has(normalizeMetricName(m.name))) continue;
     if (!m.date.startsWith(dateYYYYMMDD)) continue;
     total += (m.qty ?? 0) * unitsToHoursMultiplier(m.units);
   }
@@ -160,7 +186,7 @@ export async function getLatestMetricSample(names: Set<string>): Promise<HealthM
   const metrics = await getHealthMetrics();
   let latest: HealthMetricSample | null = null;
   for (const m of metrics) {
-    if (!names.has(m.name.toLowerCase())) continue;
+    if (!names.has(normalizeMetricName(m.name))) continue;
     if (!latest || m.date > latest.date) latest = m;
   }
   return latest;
@@ -187,7 +213,7 @@ export async function getRecentMetricAverage(
   const metrics = await getHealthMetrics();
   const values: number[] = [];
   for (const m of metrics) {
-    if (!names.has(m.name.toLowerCase())) continue;
+    if (!names.has(normalizeMetricName(m.name))) continue;
     if (m.qty == null) continue;
     if (windowDates.has(m.date.slice(0, 10))) values.push(m.qty);
   }
@@ -195,7 +221,7 @@ export async function getRecentMetricAverage(
   return values.reduce((s, v) => s + v, 0) / values.length;
 }
 
-export { SLEEP_METRIC_NAMES, RESTING_HR_METRIC_NAMES, HRV_METRIC_NAMES };
+export { SLEEP_METRIC_NAMES, RESTING_HR_METRIC_NAMES, HRV_METRIC_NAMES, HEART_RATE_METRIC_NAMES, normalizeMetricName };
 
 /** Fusionne de nouveaux échantillons, dédupliqués par (name, date) — le serveur
  * dédoublonne déjà, ceci est une défense en profondeur bon marché côté app. */

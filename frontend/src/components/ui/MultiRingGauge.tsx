@@ -26,6 +26,16 @@ function isGradient(color: RingColor): color is [string, string] {
   return Array.isArray(color);
 }
 
+/** Diameter of the clear circular area inside the innermost ring — the space
+ * available to whatever is centered via `children`. Mirrors the exact radius
+ * formula used below (`r = cx - strokeWidth/2 - i*(strokeWidth+gap)`) so it
+ * never drifts out of sync with the actual rendered geometry. */
+export function innerContentDiameter(size: number, strokeWidth: number, gap: number, ringsCount: number): number {
+  const cx = size / 2;
+  const innerRadius = cx - strokeWidth / 2 - (ringsCount - 1) * (strokeWidth + gap);
+  return 2 * innerRadius - strokeWidth;
+}
+
 /**
  * Un anneau animé — extrait de `RingChip.tsx` (même technique de base :
  * `useSharedValue`/`useAnimatedProps` sur `strokeDashoffset`), en

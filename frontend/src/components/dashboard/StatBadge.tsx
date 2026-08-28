@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from "react-native";
+import { StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { withAlpha } from "@/src/theme";
 import { useTheme } from "@/src/themes";
@@ -18,6 +18,7 @@ export default function StatBadge({
   value,
   label,
   onPress,
+  style,
 }: {
   testID?: string;
   icon: keyof typeof Ionicons.glyphMap;
@@ -25,10 +26,11 @@ export default function StatBadge({
   value: string;
   label: string;
   onPress?: () => void;
+  style?: StyleProp<ViewStyle>;
 }) {
   const { theme } = useTheme();
   return (
-    <PressableScale testID={testID} style={styles.wrap} onPress={onPress} disabled={!onPress}>
+    <PressableScale testID={testID} style={[styles.wrap, style]} onPress={onPress} disabled={!onPress}>
       <View style={[styles.badge, { backgroundColor: withAlpha(color, 22) }]}>
         <Ionicons name={icon} size={20} color={color} />
       </View>

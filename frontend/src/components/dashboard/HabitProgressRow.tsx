@@ -81,7 +81,7 @@ export default function HabitProgressRow({
           <View style={[styles.fill, { width: `${pct * 100}%`, backgroundColor: color }]} />
         </View>
       </View>
-      {!done && onQuickAdd && (
+      {!done && onQuickAdd ? (
         <PressableScale
           testID={testID ? `${testID}-quickadd` : undefined}
           style={[styles.quickAddBtn, { backgroundColor: color }]}
@@ -90,6 +90,12 @@ export default function HabitProgressRow({
         >
           <Ionicons name={quickAddIcon} size={14} color="#fff" />
         </PressableScale>
+      ) : (
+        // Reserves the same 24x24 slot even when there's no quick-add action
+        // (a completed habit, or a row that doesn't have one) — without this,
+        // rows lose their right-edge alignment with sibling rows that DO show
+        // the button, which reads as a layout bug ("missing +/overflowing").
+        <View style={styles.quickAddBtn} />
       )}
     </PressableScale>
   );

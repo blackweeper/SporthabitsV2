@@ -12,6 +12,8 @@ import {
   getHealthSyncState,
   getHealthWorkouts,
   HealthWorkoutEntry,
+  HEART_RATE_METRIC_NAMES,
+  normalizeMetricName,
 } from "@/src/utils/health-data-storage";
 import { useHealthSync } from "@/src/hooks/useHealthSync";
 
@@ -49,7 +51,9 @@ export default function HealthSyncSettingsScreen() {
     setToken(settings.healthSyncToken ?? "");
     setLastSyncedAt(syncState.lastSyncedAt);
     setMetricsCount(metrics.length);
-    const heartRateSamples = metrics.filter((m) => m.name === "heart_rate" && m.qty != null);
+    const heartRateSamples = metrics.filter(
+      (m) => HEART_RATE_METRIC_NAMES.has(normalizeMetricName(m.name)) && m.qty != null,
+    );
     setLatestHeartRate(heartRateSamples.length > 0 ? heartRateSamples[heartRateSamples.length - 1].qty : null);
     setRecentWorkouts(workouts.slice(-10).reverse());
   }, []);

@@ -35,15 +35,14 @@ export const classicTheme: Theme = {
     // Même valeur que l'actuel `colors.surfaceTertiary` codé en dur dans
     // `MultiRingGauge.tsx` — rendu byte-identique à avant.
     ringTrack: "#242424",
-    // Mêmes couleurs que les valeurs codées en dur actuelles du Dashboard
-    // (`"#F97316"` Calories, `"#10B981"` Pas, `colors.progress` Sommeil) —
-    // migrer ces call sites vers ce set ne change donc rien visuellement.
     metricColors: {
-      caloriesBurn: "#F97316",
+      // Orange assombri sur demande explicite (remplace `#F97316`).
+      caloriesBurn: "#B45309",
       steps: "#10B981",
       sleep: "#8B5CF6",
       training: "#10B981",
-      score: "#FF3D00",
+      // Jaune sur demande explicite (remplace `#FF3D00`).
+      score: "#FFC107",
     },
     // Alias vers les hex déjà existants ci-dessus — aucun nouveau ton
     // introduit pour Classique, juste un nom sémantique par catégorie de

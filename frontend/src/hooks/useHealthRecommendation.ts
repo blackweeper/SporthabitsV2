@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
-import { todayYYYYMMDD } from "@/src/utils/gym-storage";
 import {
   getImportedSleepHoursForDate,
   getLatestMetricSample,
   getRecentMetricAverage,
   HRV_METRIC_NAMES,
+  localDateYYYYMMDD,
   RESTING_HR_METRIC_NAMES,
   subscribeHealthDataChanged,
 } from "@/src/utils/health-data-storage";
@@ -24,7 +24,7 @@ export function useHealthRecommendation(): HealthRecommendation | null | undefin
   const [rec, setRec] = useState<HealthRecommendation | null | undefined>(undefined);
 
   const reload = useCallback(async () => {
-    const today = todayYYYYMMDD();
+    const today = localDateYYYYMMDD();
     const [sleepHours, restingHrSample, hrvSample, restingHrAvg, hrvAvg] = await Promise.all([
       getImportedSleepHoursForDate(today),
       getLatestMetricSample(RESTING_HR_METRIC_NAMES),

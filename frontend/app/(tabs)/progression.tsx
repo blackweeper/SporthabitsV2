@@ -376,6 +376,13 @@ const AnimatedCircle = Animated.createAnimatedComponent(Circle);
  * comporter et se colorer de façon identique. */
 function ScoreCircle({ score }: { score: number }) {
   const { theme } = useTheme();
+  // Couleur de la métrique "Score IronFlow" elle-même (jaune) — plus
+  // `colors.progress` (violet générique, réservé au reste de l'UI de
+  // progression : niveau/XP, objectifs, succès). Un `RingColor` peut être
+  // un dégradé (Sunset) ; ce `<Circle>` plat n'en peint qu'un ton.
+  const scoreColor = Array.isArray(theme.colors.metricColors.score)
+    ? theme.colors.metricColors.score[0]
+    : theme.colors.metricColors.score;
   const size = 140;
   const strokeWidth = 12;
   const r = (size - strokeWidth) / 2;
@@ -415,7 +422,7 @@ function ScoreCircle({ score }: { score: number }) {
           cx={size / 2}
           cy={size / 2}
           r={r}
-          stroke={theme.colors.progress}
+          stroke={scoreColor}
           strokeWidth={strokeWidth}
           strokeLinecap="round"
           fill="transparent"

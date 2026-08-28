@@ -81,9 +81,10 @@ import {
 import {
   getImportedSleepHoursForDate,
   getImportedStepsForDate,
+  localDateYYYYMMDD,
   subscribeHealthDataChanged,
 } from "@/src/utils/health-data-storage";
-import MultiRingGauge from "@/src/components/ui/MultiRingGauge";
+import MultiRingGauge, { innerContentDiameter } from "@/src/components/ui/MultiRingGauge";
 import HabitProgressRow from "@/src/components/dashboard/HabitProgressRow";
 import WeatherChip from "@/src/components/dashboard/WeatherChip";
 import { useWeather } from "@/src/hooks/useWeather";
@@ -105,12 +106,6 @@ type ActiveWithProgram = { active: ActiveProgram; program: Program };
 const numberFmt = new Intl.NumberFormat("fr-FR");
 function formatCompactNumber(n: number): string {
   return numberFmt.format(Math.round(n));
-}
-function formatSleepHoursShort(hours: number): string {
-  if (!hours) return "0h";
-  const h = Math.floor(hours);
-  const m = Math.round((hours - h) * 60);
-  return m > 0 ? `${h}h${m.toString().padStart(2, "0")}` : `${h}h`;
 }
 /** Un `RingColor` peut être un dégradé (Sunset) — les badges plats
  * (`StatBadge`) ne peuvent peindre qu'une couleur unique, on prend le
@@ -186,8 +181,8 @@ export default function TodayScreen() {
     }
     setActives(resolved);
     setWellnessLogs(await getWellnessLogs());
-    setImportedStepsToday(await getImportedStepsForDate(todayYYYYMMDD()));
-    setImportedSleepHoursToday(await getImportedSleepHoursForDate(todayYYYYMMDD()));
+    setImportedStepsToday(await getImportedStepsForDate(localDateYYYYMMDD()));
+    setImportedSleepHoursToday(await getImportedSleepHoursForDate(localDateYYYYMMDD()));
     setDailyJournal(await getDailyJournal());
     setCalendarEvents(await getCalendarEvents());
     setReminders(await getReminders());
@@ -550,6 +545,22 @@ export default function TodayScreen() {
   // juste après ce fragment.
   const habitRows = (
     <>
+      {theme.id === "sunset" ? (
+        <Animated.View entering={FadeInDown.delay(80).duration(motion.base)}>
+          <HabitProgressRow
+            testID="widget-calories-nutrition"
+            icon="nutrition"
+            color={solidRingColor(theme.colors.metricColors.caloriesBurn)}
+            label="Calories ingérées"
+            value={wellness?.calories_kcal ?? 0}
+            target={profile?.calories_target_kcal || DEFAULT_CALORIES_TARGET_KCAL}
+            unit="kcal"
+            onPress={() => setQuantityModal({ which: "calories", mode: "set" })}
+            onQuickAdd={() => setQuantityModal({ which: "calories", mode: "add" })}
+            bare={theme.id === "sunset"}
+          />
+        </Animated.View>
+      ) : null}
       <Animated.View entering={FadeInDown.delay(90).duration(motion.base)}>
         <HabitProgressRow
           testID="widget-water"
@@ -669,13 +680,18 @@ export default function TodayScreen() {
                 {greeting}{name ? `, ${name}` : ""}
               </Text>
             </PressableScale>
-            <Pressable
-              testID="sunset-header-settings"
-              hitSlop={10}
-              onPress={() => router.push("/profile-tab" as any)}
-            >
-              <Ionicons name="settings-outline" size={22} color={theme.colors.onSurface} />
-            </Pressable>
+            <View style={styles.sunsetHeaderActions}>
+              <Pressable testID="header-radio" hitSlop={10} onPress={() => router.push("/radio" as any)}>
+                <Ionicons name="radio-outline" size={22} color={theme.colors.onSurface} />
+              </Pressable>
+              <Pressable
+                testID="sunset-header-settings"
+                hitSlop={10}
+                onPress={() => router.push("/profile-tab" as any)}
+              >
+                <Ionicons name="settings-outline" size={22} color={theme.colors.onSurface} />
+              </Pressable>
+            </View>
           </View>
         ) : (
           <View style={styles.calHeaderRow}>
@@ -690,28 +706,33 @@ export default function TodayScreen() {
           </View>
         )}
 
-        {/* Légende des couleurs du calendrier — au-dessus de la grille de
-            jours, une seule ligne compacte, sans cadre (Sunset uniquement ;
-            Classique n'a jamais eu cette légende). */}
+        {/* Météo + légende des couleurs du calendrier — fusionnées en une
+            seule ligne compacte, sans cadre, flottant sur le fond comme le
+            reste du calendrier (Sunset uniquement ; Classique n'a jamais eu
+            cette ligne — sa météo reste affichée dans l'en-tête du
+            calendrier, voir `headerRight` passé à `WeekCalendarView`). */}
         {theme.id === "sunset" && effectiveCalendarView === "week" && (
           <View style={styles.calendarLegendRow}>
-            <View style={styles.calendarLegendItem}>
-              <View style={[styles.calendarLegendDot, { backgroundColor: theme.colors.brand }]} />
-              <Text style={[styles.calendarLegendLabel, { color: theme.colors.onSurfaceTertiary }]} numberOfLines={1}>
-                Musculation
-              </Text>
-            </View>
-            <View style={styles.calendarLegendItem}>
-              <View style={[styles.calendarLegendDot, { backgroundColor: theme.colors.info }]} />
-              <Text style={[styles.calendarLegendLabel, { color: theme.colors.onSurfaceTertiary }]} numberOfLines={1}>
-                Cardio
-              </Text>
-            </View>
-            <View style={styles.calendarLegendItem}>
-              <View style={[styles.calendarLegendDot, { backgroundColor: theme.colors.scheduleBoth }]} />
-              <Text style={[styles.calendarLegendLabel, { color: theme.colors.onSurfaceTertiary }]} numberOfLines={1}>
-                Les deux
-              </Text>
+            {weather && <WeatherChip data={weather} />}
+            <View style={styles.calendarLegendGroup}>
+              <View style={styles.calendarLegendItem}>
+                <View style={[styles.calendarLegendDot, { backgroundColor: theme.colors.brand }]} />
+                <Text style={[styles.calendarLegendLabel, { color: theme.colors.onSurfaceTertiary }]} numberOfLines={1}>
+                  Musculation
+                </Text>
+              </View>
+              <View style={styles.calendarLegendItem}>
+                <View style={[styles.calendarLegendDot, { backgroundColor: theme.colors.info }]} />
+                <Text style={[styles.calendarLegendLabel, { color: theme.colors.onSurfaceTertiary }]} numberOfLines={1}>
+                  Cardio
+                </Text>
+              </View>
+              <View style={styles.calendarLegendItem}>
+                <View style={[styles.calendarLegendDot, { backgroundColor: theme.colors.scheduleBoth }]} />
+                <Text style={[styles.calendarLegendLabel, { color: theme.colors.onSurfaceTertiary }]} numberOfLines={1}>
+                  Les deux
+                </Text>
+              </View>
             </View>
           </View>
         )}
@@ -743,6 +764,16 @@ export default function TodayScreen() {
         {/* Header — bloc IRONFLOW/salutation/date/badge programme (Classique
             uniquement ; sous Sunset, redondant avec le nouveau header en
             tête d'écran, entièrement retiré). */}
+        {theme.id !== "sunset" && (
+          <View style={styles.classicHeaderActions}>
+            <Pressable testID="header-radio" hitSlop={10} onPress={() => router.push("/radio" as any)}>
+              <Ionicons name="radio-outline" size={20} color={theme.colors.onSurfaceSecondary} />
+            </Pressable>
+            <Pressable testID="header-settings" hitSlop={10} onPress={() => router.push("/profile-tab" as any)}>
+              <Ionicons name="settings-outline" size={20} color={theme.colors.onSurfaceSecondary} />
+            </Pressable>
+          </View>
+        )}
         {theme.id !== "sunset" && (
           <View style={styles.header}>
             <View style={{ flex: 1 }}>
@@ -822,13 +853,34 @@ export default function TodayScreen() {
                   gap={4}
                   ringFill={theme.ringFill}
                   rings={[
-                    { pct: heroRingPercents[0] / 100, color: theme.colors.metricColors.caloriesBurn },
-                    { pct: heroRingPercents[1] / 100, color: theme.colors.metricColors.steps },
-                    { pct: heroRingPercents[2] / 100, color: theme.colors.metricColors.training },
-                    { pct: todayScore.score / 100, color: theme.colors.metricColors.score },
+                    {
+                      pct: heroRingPercents[0] / 100,
+                      color: theme.colors.metricColors.caloriesBurn,
+                      trackColor: withAlpha(solidRingColor(theme.colors.metricColors.caloriesBurn), 18),
+                    },
+                    {
+                      pct: heroRingPercents[1] / 100,
+                      color: theme.colors.metricColors.steps,
+                      trackColor: withAlpha(solidRingColor(theme.colors.metricColors.steps), 18),
+                    },
+                    {
+                      pct: heroRingPercents[2] / 100,
+                      color: theme.colors.metricColors.training,
+                      trackColor: withAlpha(solidRingColor(theme.colors.metricColors.training), 18),
+                    },
+                    {
+                      pct: todayScore.score / 100,
+                      color: theme.colors.metricColors.score,
+                      trackColor: withAlpha(solidRingColor(theme.colors.metricColors.score), 18),
+                    },
                   ]}
                 >
-                  <StatHero value={todayScore.score} size="lg" color={theme.colors.onSurface} />
+                  <StatHero
+                    value={todayScore.score}
+                    size="lg"
+                    color={theme.colors.onSurface}
+                    fitDiameter={innerContentDiameter(148, 10, 4, 4)}
+                  />
                 </MultiRingGauge>
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.sunsetMotivation, { color: theme.colors.onSurface }]} numberOfLines={2}>
@@ -845,14 +897,21 @@ export default function TodayScreen() {
                 </View>
               </PressableScale>
 
-              <View style={styles.sunsetStatsRow}>
+              {/* Ligne unique des 4 métriques détaillées derrière les anneaux
+                  (calories brûlées/pas/entraînement/score, même ordre et
+                  mêmes couleurs que les 4 anneaux ci-dessus). Chaque
+                  `StatBadge` garde son `flex:1` par défaut (pas de largeur en
+                  pourcentage combinée à `flex:0` — ce mélange calcule un
+                  `flex-basis:0%` sur web qui ignore la largeur explicite et
+                  effondre chaque cellule à 0px, le bug rapporté). */}
+              <View style={styles.sunsetStatsGrid}>
                 <StatBadge
                   testID="widget-calories"
-                  icon="nutrition"
+                  icon="flame"
                   color={solidRingColor(theme.colors.metricColors.caloriesBurn)}
-                  value={formatCompactNumber(wellness?.calories_kcal ?? 0)}
+                  value={formatCompactNumber(caloriesBurnedToday)}
                   label="Calories"
-                  onPress={() => setQuantityModal({ which: "calories", mode: "set" })}
+                  onPress={() => router.push("/day-detail" as any)}
                 />
                 <StatBadge
                   testID="widget-steps"
@@ -863,19 +922,19 @@ export default function TodayScreen() {
                   onPress={() => setQuantityModal({ which: "steps", mode: "set" })}
                 />
                 <StatBadge
-                  testID="widget-sleep"
-                  icon="moon"
-                  color={solidRingColor(theme.colors.metricColors.sleep)}
-                  value={formatSleepHoursShort(importedSleepHoursToday)}
-                  label="Sommeil"
-                  onPress={() => router.push("/health-sync-settings" as any)}
-                />
-                <StatBadge
                   testID="widget-training-minutes"
                   icon="barbell"
                   color={solidRingColor(theme.colors.metricColors.training)}
                   value={`${Math.round(trainingMinutesToday)} min`}
                   label="Entraînement"
+                  onPress={() => router.push("/day-detail" as any)}
+                />
+                <StatBadge
+                  testID="widget-score"
+                  icon="stats-chart"
+                  color={solidRingColor(theme.colors.metricColors.score)}
+                  value={`${Math.round(todayScore.score)}%`}
+                  label="Score"
                   onPress={() => router.push("/day-detail" as any)}
                 />
               </View>
@@ -918,7 +977,12 @@ export default function TodayScreen() {
                       { pct: heroRingPercents[3] / 100, color: theme.colors.metricColors.score },
                     ]}
                   >
-                    <StatHero value={heroAggregateScore} unit="%" size="lg" />
+                    <StatHero
+                      value={heroAggregateScore}
+                      unit="%"
+                      size="lg"
+                      fitDiameter={innerContentDiameter(156, 10, 4, 4)}
+                    />
                   </MultiRingGauge>
                 <View style={{ flex: 1 }}>
                   <Text style={styles.scoreLabel}>IRONFLOW SCORE</Text>
@@ -1260,7 +1324,7 @@ export default function TodayScreen() {
           quantityModal?.which === "water"
             ? theme.colors.info
             : quantityModal?.which === "calories"
-            ? "#F97316"
+            ? solidRingColor(theme.colors.metricColors.caloriesBurn)
             : "#10B981"
         }
         // Les raccourcis existent toujours à l'identique (mêmes handlers) —
@@ -1294,7 +1358,7 @@ export default function TodayScreen() {
                 testID="widget-calories-custom"
                 emoji="✏️"
                 label="Personnalisé"
-                color="#F97316"
+                color={solidRingColor(theme.colors.metricColors.caloriesBurn)}
                 onPress={() => setQuantityModal({ which: "calories", mode: "add" })}
               />
             </ActionsScroll>
@@ -1439,6 +1503,11 @@ function buildStyles(theme: Theme) {
   header: {
     flexDirection: "row",
     alignItems: "flex-start",
+  },
+  classicHeaderActions: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: spacing.md,
   },
   brand: {
     color: colors.brand,
@@ -1806,10 +1875,17 @@ function buildStyles(theme: Theme) {
   // --- Sunset uniquement (voir conditionnels `theme.id === "sunset"`) ---
   calendarLegendRow: {
     flexDirection: "row",
-    flexWrap: "nowrap",
-    justifyContent: "center",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
     alignItems: "center",
     gap: spacing.sm,
+    paddingHorizontal: 4,
+  },
+  calendarLegendGroup: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    flexShrink: 1,
   },
   calendarLegendItem: { flexDirection: "row", alignItems: "center", gap: 4, flexShrink: 1 },
   calendarLegendDot: { width: 7, height: 7, borderRadius: 3.5 },
@@ -1820,6 +1896,7 @@ function buildStyles(theme: Theme) {
     justifyContent: "space-between",
   },
   sunsetHeaderLeft: { flexDirection: "row", alignItems: "center", gap: spacing.sm, flex: 1 },
+  sunsetHeaderActions: { flexDirection: "row", alignItems: "center", gap: spacing.md },
   sunsetAvatarCircle: {
     width: 34,
     height: 34,
@@ -1850,7 +1927,7 @@ function buildStyles(theme: Theme) {
     lineHeight: 17,
     marginTop: 6,
   },
-  sunsetStatsRow: {
+  sunsetStatsGrid: {
     flexDirection: "row",
     justifyContent: "space-between",
   },

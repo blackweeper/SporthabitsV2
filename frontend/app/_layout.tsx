@@ -14,6 +14,8 @@ import { seedStarterProgramsIfNeeded } from "@/src/utils/program-bootstrap";
 import { seedWodLibraryIfNeeded } from "@/src/utils/wod-bootstrap";
 import { useHealthSync } from "@/src/hooks/useHealthSync";
 import { ThemeProvider } from "@/src/themes";
+import { RadioPlayerProvider } from "@/src/hooks/useRadioPlayer";
+import MiniRadioPlayer from "@/src/components/radio/MiniRadioPlayer";
 
 LogBox.ignoreAllLogs(true);
 
@@ -103,6 +105,7 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#0E0E0E" }}>
       <ThemeProvider>
+      <RadioPlayerProvider>
       <SafeAreaProvider>
         <StatusBar barStyle="light-content" backgroundColor="#0E0E0E" />
         {/* Sans thème de navigation explicite, `@react-navigation` peint le
@@ -149,9 +152,13 @@ export default function RootLayout() {
           <Stack.Screen name="achievements" options={MODAL_SCREEN_OPTIONS} />
           <Stack.Screen name="goals" options={MODAL_SCREEN_OPTIONS} />
           <Stack.Screen name="photo-crop" options={MODAL_SCREEN_OPTIONS} />
+          <Stack.Screen name="radio" options={MODAL_SCREEN_OPTIONS} />
+          <Stack.Screen name="radio-stations-settings" options={MODAL_SCREEN_OPTIONS} />
         </Stack>
+        <MiniRadioPlayer />
         </NavigationThemeProvider>
       </SafeAreaProvider>
+      </RadioPlayerProvider>
       </ThemeProvider>
     </GestureHandlerRootView>
   );

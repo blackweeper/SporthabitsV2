@@ -74,15 +74,18 @@ export const sunsetTheme: Theme = {
     ringTrack: "rgba(255,255,255,0.20)",
     metricColors: {
       // Calories reste orange (seule survivance légitime de l'orange, sur
-      // demande explicite : "donnée", jamais "identité").
-      caloriesBurn: ["#FFB347", "#FF9F43"],
+      // demande explicite : "donnée", jamais "identité") — teinte assombrie
+      // sur demande explicite (orange plus profond/sombre que le pastel
+      // précédent).
+      caloriesBurn: ["#E8790C", "#B45309"],
       steps: ["#8CC8FF", "#247BFF"],
       sleep: ["#C4B5FD", "#8B5CFF"],
-      training: ["#8CC8FF", "#4DA3FF"],
-      // Anneau Score IronFlow — l'élément visuel le plus visible de tout le
-      // Dashboard : c'était le dernier grand aplat orange restant, devient
-      // le dégradé Glacier→Aurora (bleu → violet) signature du thème.
-      score: ["#4DA3FF", "#8B5CFF"],
+      // Vert partout pour le temps d'entraînement (cohérence demandée avec
+      // Classique, qui utilise déjà #10B981) — distinct du bleu des Pas.
+      training: ["#6EE7A8", "#30D158"],
+      // Anneau Score IronFlow — jaune sur demande explicite (remplace le
+      // dégradé bleu→violet précédent).
+      score: ["#FFE066", "#FFC107"],
     },
     // Couleurs de DONNÉES (graphiques/badges par catégorie) — jamais la
     // couleur principale d'un écran générique, voir le commentaire sur

@@ -22,6 +22,7 @@ export default function StatHero({
   align = "center",
   testID,
   style,
+  fitDiameter,
 }: {
   value: number;
   unit?: string;
@@ -31,9 +32,39 @@ export default function StatHero({
   align?: "center" | "flex-start";
   testID?: string;
   style?: StyleProp<ViewStyle>;
+  /** When set, sizes the number purely from the available circular diameter
+   * (e.g. the inner content circle of a ring gauge, see
+   * `innerContentDiameter` in `MultiRingGauge.tsx`) instead of the `size`
+   * preset. Geometry-driven, so it fits correctly regardless of digit count
+   * — including 1-2 digits, which the `size` preset alone cannot guarantee
+   * inside a small fixed-diameter circle. */
+  fitDiameter?: number;
 }) {
   const { theme } = useTheme();
   const { num, unit: unitSize } = SIZES[size];
+  const text = formatter ? formatter(value) : String(Math.round(value));
+  const digitCount = text.replace(/[^0-9]/g, "").length || 1;
+  let adjustedNum: number;
+  let adjustedUnitSize: number;
+  if (fitDiameter) {
+    // Character-width estimate for bold digits (~0.62em advance) bounds the
+    // font by available width; when a unit caption renders below, only half
+    // the diameter's height budget is given to the number so both lines fit
+    // without touching the ring's inner edge.
+    const safeWidth = fitDiameter * 0.78;
+    const safeHeight = unit ? fitDiameter * 0.5 : fitDiameter * 0.72;
+    const widthBound = safeWidth / (text.length * 0.62);
+    const heightBound = safeHeight / 1.05;
+    adjustedNum = Math.max(10, Math.floor(Math.min(widthBound, heightBound)));
+    adjustedUnitSize = Math.max(8, Math.round(adjustedNum * 0.42));
+  } else {
+    // Shrinks the number as its digit count grows so it never overflows a
+    // fixed-size container — only kicks in at 3+ digits, so every existing
+    // 1-2 digit usage without `fitDiameter` renders unchanged.
+    const scale = digitCount <= 2 ? 1 : digitCount === 3 ? 0.55 : 0.42;
+    adjustedNum = Math.round(num * scale);
+    adjustedUnitSize = unitSize;
+  }
   return (
     <View style={[{ alignItems: align }, style]} testID={testID}>
       <AnimatedNumber
@@ -41,16 +72,16 @@ export default function StatHero({
         formatter={formatter}
         style={{
           color: color ?? theme.colors.onSurface,
-          fontSize: num,
+          fontSize: adjustedNum,
           fontWeight: "800",
-          lineHeight: num * 1.05,
+          lineHeight: adjustedNum * 1.05,
         }}
       />
       {unit ? (
         <Text
           style={{
             color: theme.colors.onSurfaceTertiary,
-            fontSize: unitSize,
+            fontSize: adjustedUnitSize,
             fontWeight: "700",
             letterSpacing: 0.6,
             marginTop: 2,
