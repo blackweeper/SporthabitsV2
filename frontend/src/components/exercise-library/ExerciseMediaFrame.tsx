@@ -55,6 +55,13 @@ export default function ExerciseMediaFrame({
       style={[
         styles.frame,
         { height, borderRadius: theme.radius.lg, backgroundColor: theme.colors.surfaceTertiary },
+        // Les photos d'exercice sont toutes sur fond blanc — quand
+        // `resizeMode="contain"` laisse des bandes de remplissage
+        // (letterboxing) autour d'une image qui ne couvre pas tout le
+        // cadre, ces bandes doivent être blanches (comme la photo elle-même)
+        // plutôt que la surface sombre du thème, sinon des liserés sombres
+        // tranchent visiblement avec le fond blanc de la photo.
+        source ? { backgroundColor: "#FFFFFF" } : null,
         !source && fallbackTint ? { backgroundColor: withAlpha(fallbackTint, 15) } : null,
       ]}
       onLayout={onLayout}

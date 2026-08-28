@@ -147,22 +147,139 @@ export async function getImportedStepsForDates(dates: string[]): Promise<Record<
   return result;
 }
 
-// Sommeil / FC repos / VFC — noms HealthKit devinés (convention snake_case
-// déjà confirmée pour `step_count`/`heart_rate`), mais **non vérifiés**
-// contre un vrai payload Health Auto Export. Construits de façon tolérante :
-// jamais d'exception, un état "pas encore de données" propre si absents ou
-// si le vrai nom diffère — à ajuster une fois de vraies données reçues.
+// Sommeil / FC repos / VFC — noms confirmés contre un vrai payload Health
+// Auto Export (`sleep_analysis`, `resting_heart_rate`, `heart_rate_variability`,
+// un échantillon/jour chacun) inspecté en direct lors de la construction de
+// l'écran Santé. Construits de façon tolérante malgré tout : jamais
+// d'exception, un état "pas encore de données" propre si absents.
 const SLEEP_METRIC_NAMES = new Set(["sleepanalysis", "sleephours", "sleep", "timeasleep", "sleepdata"]);
 const RESTING_HR_METRIC_NAMES = new Set(["restingheartrate", "restingheartrateaverage"]);
 const HRV_METRIC_NAMES = new Set(["heartratevariability", "heartratevariabilitysdnn", "hrv"]);
 const HEART_RATE_METRIC_NAMES = new Set(["heartrate", "heartrateaverage"]);
+// Respiration / SpO2 / distance / temps d'exercice — noms confirmés contre
+// un vrai payload Health Auto Export réel (`respiratory_rate`,
+// `oxygen_saturation`, `distance_walking_running`, `apple_exercise_time`,
+// un échantillon/jour chacun) inspecté en direct lors de la construction de
+// l'écran Santé. Alias supplémentaires conservés en défense en profondeur
+// (autres conventions de nommage possibles selon la version), même patron
+// tolérant que sommeil/FC repos/VFC ci-dessus. NB : Health Auto Export
+// envoie aussi `walking_running_distance` (segments intra-journaliers) en
+// plus de `distance_walking_running` (total quotidien déjà agrégé) — ce
+// dernier seul est utilisé ici pour ne jamais compter la distance en double.
+const RESPIRATORY_RATE_METRIC_NAMES = new Set(["respiratoryrate"]);
+const SPO2_METRIC_NAMES = new Set(["oxygensaturation", "bloodoxygen", "spo2"]);
+const DISTANCE_METRIC_NAMES = new Set(["distancewalkingrunning", "distance", "walkingrunningdistance"]);
+const EXERCISE_TIME_METRIC_NAMES = new Set(["appleexercisetime", "exercisetime", "exerciseminutes"]);
 
-function unitsToHoursMultiplier(units: string | null): number {
+export function unitsToHoursMultiplier(units: string | null): number {
   if (!units) return 1; // suppose déjà en heures si l'unité est absente
   const u = units.toLowerCase();
   if (u.includes("min")) return 1 / 60;
   if (u.includes("sec")) return 1 / 3600;
   return 1; // "hr"/"hour"/inconnu → suppose déjà en heures
+}
+
+function unitsToKmMultiplier(units: string | null): number {
+  if (!units) return 1; // suppose déjà en km si l'unité est absente
+  const u = units.toLowerCase();
+  if (u.includes("mi")) return 1.60934;
+  if (u === "m" || u.includes("meter") || u.includes("metre")) return 0.001;
+  return 1; // "km"/inconnu → suppose déjà en km
+}
+
+function unitsToMinutesMultiplier(units: string | null): number {
+  if (!units) return 1; // suppose déjà en minutes si l'unité est absente
+  const u = units.toLowerCase();
+  if (u.includes("sec")) return 1 / 60;
+  if (u.includes("hr") || u.includes("hour")) return 60;
+  return 1; // "min"/inconnu → suppose déjà en minutes
+}
+
+/** Même patron que `getImportedStepsForDate`/`getImportedSleepHoursForDate`
+ * pour la distance parcourue du jour (km). */
+export async function getImportedDistanceKmForDate(dateYYYYMMDD: string): Promise<number> {
+  const metrics = await getHealthMetrics();
+  let total = 0;
+  for (const m of metrics) {
+    if (!DISTANCE_METRIC_NAMES.has(normalizeMetricName(m.name))) continue;
+    if (!m.date.startsWith(dateYYYYMMDD)) continue;
+    total += (m.qty ?? 0) * unitsToKmMultiplier(m.units);
+  }
+  return total;
+}
+
+/** Même patron pour les minutes d'exercice du jour. */
+export async function getImportedExerciseMinutesForDate(dateYYYYMMDD: string): Promise<number> {
+  const metrics = await getHealthMetrics();
+  let total = 0;
+  for (const m of metrics) {
+    if (!EXERCISE_TIME_METRIC_NAMES.has(normalizeMetricName(m.name))) continue;
+    if (!m.date.startsWith(dateYYYYMMDD)) continue;
+    total += (m.qty ?? 0) * unitsToMinutesMultiplier(m.units);
+  }
+  return total;
+}
+
+export type DailyMetricPoint = { date: string; value: number };
+
+/** Série journalière d'une métrique sur `days` jours se terminant à
+ * `referenceDateYYYYMMDD` (inclus par défaut, voir `includeReferenceDate`) —
+ * généralisation de l'agrégation par jour déjà utilisée pour les pas/le
+ * sommeil, réutilisée pour les graphiques d'évolution Santé (Sommeil/VFC/
+ * FC repos/Respiration/SpO2). `aggregation:"sum"` pour une métrique répartie
+ * en plusieurs échantillons/jour à additionner (sommeil), `"avg"` pour une
+ * métrique ponctuelle (VFC/FC repos/Respiration/SpO2, ~1 échantillon/jour —
+ * moyenne au cas où Health Auto Export en enverrait plusieurs). */
+export async function getDailyMetricSeries(
+  names: Set<string>,
+  days: number,
+  referenceDateYYYYMMDD: string,
+  aggregation: "avg" | "sum" = "avg",
+  unitsConvert?: (units: string | null) => number,
+  includeReferenceDate: boolean = true,
+): Promise<DailyMetricPoint[]> {
+  const metrics = await getHealthMetrics();
+  const ref = new Date(`${referenceDateYYYYMMDD}T00:00:00Z`).getTime();
+  const minTime = ref - (days - 1) * 86400000;
+  const byDate = new Map<string, number[]>();
+  for (const m of metrics) {
+    if (!names.has(normalizeMetricName(m.name))) continue;
+    if (m.qty == null) continue;
+    const dateStr = m.date.slice(0, 10);
+    const t = new Date(`${dateStr}T00:00:00Z`).getTime();
+    if (t < minTime || t > ref) continue;
+    if (!includeReferenceDate && t === ref) continue;
+    const mult = unitsConvert ? unitsConvert(m.units) : 1;
+    const arr = byDate.get(dateStr) ?? [];
+    arr.push((m.qty ?? 0) * mult);
+    byDate.set(dateStr, arr);
+  }
+  const result: DailyMetricPoint[] = [];
+  for (const [date, values] of byDate.entries()) {
+    const value =
+      aggregation === "sum"
+        ? values.reduce((s, v) => s + v, 0)
+        : values.reduce((s, v) => s + v, 0) / values.length;
+    result.push({ date, value });
+  }
+  return result.sort((a, b) => a.date.localeCompare(b.date));
+}
+
+/** Moyenne des totaux journaliers de `names` sur les `days` jours PRÉCÉDANT
+ * `referenceDateYYYYMMDD` (celui-ci exclu) — variante de
+ * `getRecentMetricAverage` qui agrège d'abord par jour avant de moyenner,
+ * nécessaire pour le sommeil (plusieurs segments/nuit : moyenner les
+ * échantillons bruts sous-estimerait le total nocturne). */
+export async function getRecentDailyAverage(
+  names: Set<string>,
+  days: number,
+  referenceDateYYYYMMDD: string,
+  aggregation: "avg" | "sum" = "avg",
+  unitsConvert?: (units: string | null) => number,
+): Promise<number | null> {
+  const series = await getDailyMetricSeries(names, days, referenceDateYYYYMMDD, aggregation, unitsConvert, false);
+  if (series.length === 0) return null;
+  return series.reduce((s, p) => s + p.value, 0) / series.length;
 }
 
 /** Somme des échantillons de sommeil dont la date commence par `dateYYYYMMDD`
@@ -221,7 +338,17 @@ export async function getRecentMetricAverage(
   return values.reduce((s, v) => s + v, 0) / values.length;
 }
 
-export { SLEEP_METRIC_NAMES, RESTING_HR_METRIC_NAMES, HRV_METRIC_NAMES, HEART_RATE_METRIC_NAMES, normalizeMetricName };
+export {
+  SLEEP_METRIC_NAMES,
+  RESTING_HR_METRIC_NAMES,
+  HRV_METRIC_NAMES,
+  HEART_RATE_METRIC_NAMES,
+  RESPIRATORY_RATE_METRIC_NAMES,
+  SPO2_METRIC_NAMES,
+  DISTANCE_METRIC_NAMES,
+  EXERCISE_TIME_METRIC_NAMES,
+  normalizeMetricName,
+};
 
 /** Fusionne de nouveaux échantillons, dédupliqués par (name, date) — le serveur
  * dédoublonne déjà, ceci est une défense en profondeur bon marché côté app. */

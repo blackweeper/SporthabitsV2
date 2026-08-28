@@ -97,7 +97,6 @@ const TABS: { key: Tab; label: string; icon: any }[] = [
   { key: "exercises", label: "Exercices", icon: "barbell" },
   { key: "records", label: "Records", icon: "trophy" },
   { key: "level", label: "Niveau", icon: "star" },
-  { key: "transformation", label: "Corps", icon: "body" },
   { key: "habits", label: "Habitudes", icon: "checkbox" },
   { key: "goals", label: "Objectifs", icon: "flag" },
   { key: "journal", label: "Journal", icon: "book" },
@@ -111,7 +110,6 @@ const PERFORMANCE_TABS: Tab[] = ["overview", "exercises", "records", "level"];
  * Habitudes, Objectifs, Journal. Purely a display grouping — the
  * underlying `Tab` values (and progressionHref deep links) are unchanged. */
 const OUTER_GROUPS: { key: string; label: string; icon: any; tabs: Tab[] }[] = [
-  { key: "transformation", label: "Corps", icon: "body", tabs: ["transformation"] },
   { key: "performance", label: "Performances", icon: "trophy", tabs: PERFORMANCE_TABS },
   { key: "habits", label: "Habitudes", icon: "checkbox", tabs: ["habits"] },
   { key: "goals", label: "Objectifs", icon: "flag", tabs: ["goals"] },
@@ -345,13 +343,6 @@ export default function ProgressionHub() {
         )}
         {tab === "level" && (
           <LevelView sessions={sessions} habits={habits} habitLogs={logs} prs={prs} />
-        )}
-        {tab === "transformation" && (
-          <TransformationView
-            measurements={measurements}
-            router={router}
-            onChanged={reload}
-          />
         )}
         {tab === "habits" && (
           <HabitsView
@@ -1384,7 +1375,7 @@ function RecordProgressionChart({ prs }: { prs: PersonalRecord[] }) {
  * orange plein (§7 du brief Liquid Glass : "le Sunset comme lumière, pas
  * comme fond de bouton"). Sous Classique, rendu inchangé (pavé `brand` plein,
  * texte/icône blancs). */
-function ctaGlassStyle(theme: Theme) {
+export function ctaGlassStyle(theme: Theme) {
   if (theme.card.mode !== "glass") {
     return { backgroundColor: theme.colors.brand };
   }
@@ -1397,7 +1388,7 @@ function ctaGlassStyle(theme: Theme) {
     coloredShadow(theme.colors.brand, { offsetY: 0, opacity: 0.3, radius: 10, elevation: 3 }),
   ];
 }
-function ctaGlassColor(theme: Theme) {
+export function ctaGlassColor(theme: Theme) {
   return theme.card.mode === "glass" ? theme.colors.brand : "#fff";
 }
 
@@ -1758,14 +1749,14 @@ function CardioCalculator({
   );
 }
 
-function formatDateShort(iso: string) {
+export function formatDateShort(iso: string) {
   return new Date(iso).toLocaleDateString("fr-FR", {
     day: "2-digit",
     month: "short",
   });
 }
 
-function TransformationView({
+export function TransformationView({
   measurements,
   router,
   onChanged,
@@ -1931,7 +1922,7 @@ function TransformationView({
   );
 }
 
-function BodyStatsChart({ measurements }: { measurements: Measurement[] }) {
+export function BodyStatsChart({ measurements }: { measurements: Measurement[] }) {
   type StatKey =
     | "weight_kg"
     | "body_fat_pct"
@@ -2131,7 +2122,7 @@ function BodyStatsChart({ measurements }: { measurements: Measurement[] }) {
   );
 }
 
-function shortDate(iso: string) {
+export function shortDate(iso: string) {
   const d = new Date(iso);
   return `${d.getDate()}/${d.getMonth() + 1}`;
 }
@@ -2500,7 +2491,7 @@ function formatJournalDate(iso: string) {
   });
 }
 
-function SummaryTile({
+export function SummaryTile({
   icon,
   value,
   label,
@@ -2524,7 +2515,7 @@ function SummaryTile({
   );
 }
 
-function MetricChip({ label }: { label: string }) {
+export function MetricChip({ label }: { label: string }) {
   const { theme } = useTheme();
   return (
     <View style={[styles.metricChip, { backgroundColor: theme.colors.surfaceTertiary }]}>
@@ -2544,7 +2535,7 @@ function MiniBadge({ label, value }: { label: string; value: number }) {
   );
 }
 
-function formatDate(iso: string) {
+export function formatDate(iso: string) {
   const d = new Date(iso);
   return d.toLocaleDateString("fr-FR", {
     day: "2-digit",
@@ -2553,7 +2544,7 @@ function formatDate(iso: string) {
   });
 }
 
-const styles = StyleSheet.create({
+export const styles = StyleSheet.create({
   container: { flex: 1 },
   header: {
     paddingHorizontal: spacing.lg,

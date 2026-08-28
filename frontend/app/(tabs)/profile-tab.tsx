@@ -22,7 +22,6 @@ import {
   getSessions,
   UserProfile,
 } from "@/src/utils/gym-storage";
-import { progressionHref } from "@/src/utils/progression-nav";
 import { getLibraryMeta } from "@/src/utils/exercise-records";
 import { computeXPState, XPState } from "@/src/utils/xp";
 import { computeAdvancedStats } from "@/src/utils/stats";
@@ -177,7 +176,7 @@ export default function ProfileTab() {
           iconBg="#4FC3F7"
           title="Mesures"
           subtitle="Poids, taille, tour de bras, masse grasse…"
-          onPress={() => router.push(progressionHref("transformation") as any)}
+          onPress={() => router.push("/sante" as any)}
           testID="row-measurements"
         />
         <ListRow

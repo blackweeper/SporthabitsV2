@@ -102,6 +102,15 @@ export function withAlpha(color: string, pct: number): string {
   return `${color}${alphaHex}`;
 }
 
+/** Réduit une `RingColor` (`string | [string,string]`, voir `themes/types.ts`)
+ * à une seule couleur solide — pour tout consommateur qui ne peut pas rendre
+ * un dégradé (icône, texte, `withAlpha`). Prend le 2e stop d'un dégradé
+ * (la teinte la plus saturée, cohérent avec `solidRingColor` déjà dupliqué
+ * localement dans `index.tsx` avant l'introduction de ce helper partagé). */
+export function solidColor(color: string | readonly [string, string]): string {
+  return Array.isArray(color) ? color[1] : (color as string);
+}
+
 export const motion = {
   fast: 150,
   base: 220,

@@ -7,7 +7,6 @@ export type ProgressionTab =
   | "exercises"
   | "records"
   | "level"
-  | "transformation"
   | "habits"
   | "goals"
   | "journal";

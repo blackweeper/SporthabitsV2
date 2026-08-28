@@ -162,36 +162,6 @@ export default function TabsLayout() {
             tabBarButtonTestID: "tab-training",
           }}
         />
-        {/* Bouton "+" central de la barre — remplace l'ancien FAB flottant
-            séparé. `tabBarButton` intercepte totalement l'appui (n'appelle
-            jamais la navigation par défaut vers `/add`) et ouvre
-            `QuickAddModal`, exactement le comportement du FAB précédent. */}
-        <Tabs.Screen
-          name="add"
-          options={{
-            tabBarButtonTestID: "tab-add",
-            tabBarButton: () => (
-              <Pressable
-                testID="tab-add"
-                onPress={() => setAddOpen(true)}
-                style={styles.fabTabWrap}
-              >
-                <View
-                  style={[
-                    styles.fabCircle,
-                    {
-                      backgroundColor: theme.colors.brand,
-                      borderColor: theme.card.mode === "glass" ? theme.card.tint : theme.colors.surfaceSecondary,
-                      ...coloredShadow(theme.colors.brand, { opacity: 0.5, radius: 8, elevation: 6 }),
-                    },
-                  ]}
-                >
-                  <Ionicons name="add" size={26} color="#fff" />
-                </View>
-              </Pressable>
-            ),
-          }}
-        />
         <Tabs.Screen
           name="library"
           options={{
@@ -200,6 +170,16 @@ export default function TabsLayout() {
               <TabIcon name="library" label="Bibliothèque" focused={focused} color={color} sunset={isSunset} />
             ),
             tabBarButtonTestID: "tab-library",
+          }}
+        />
+        <Tabs.Screen
+          name="sante"
+          options={{
+            title: "Santé",
+            tabBarIcon: ({ color, focused }) => (
+              <TabIcon name="heart" label="Santé" focused={focused} color={color} sunset={isSunset} />
+            ),
+            tabBarButtonTestID: "tab-sante",
           }}
         />
         <Tabs.Screen
@@ -222,11 +202,42 @@ export default function TabsLayout() {
             navigable (router.push), juste plus listée comme onglet. */}
         <Tabs.Screen name="profile-tab" options={{ href: null }} />
         {/* Hidden routes (kept for backward compat / deep links) */}
+        {/* `add.tsx` est un simple repli (`<Redirect>`) pour une navigation
+            programmatique vers `/add` — jamais un vrai onglet, le "+" est
+            maintenant le FAB flottant ci-dessous. Sans `href:null`,
+            expo-router l'aurait quand même auto-enregistré comme 6e onglet
+            visible (tout fichier de `(tabs)/` devient un onglet par défaut,
+            que `<Tabs.Screen>` le configure explicitement ou non). */}
+        <Tabs.Screen name="add" options={{ href: null }} />
         <Tabs.Screen name="program" options={{ href: null }} />
         <Tabs.Screen name="plans" options={{ href: null }} />
         <Tabs.Screen name="stretching" options={{ href: null }} />
         <Tabs.Screen name="history" options={{ href: null }} />
       </Tabs>
+
+      {/* Bouton "Actions rapides" — flotte au-dessus de la barre d'onglets
+          sur chaque onglet, plutôt que d'occuper un slot au milieu de la
+          barre (revert explicite : l'utilisateur veut retrouver un
+          espacement égal entre les onglets restants). */}
+      <View
+        pointerEvents="box-none"
+        style={[styles.fabWrap, isSunset && { bottom: SUNSET_BAR_MARGIN + SUNSET_BAR_HEIGHT + 14 }]}
+      >
+        <Pressable
+          testID="tab-add"
+          style={[
+            styles.fab,
+            {
+              backgroundColor: theme.colors.brand,
+              borderColor: theme.card.mode === "glass" ? theme.card.tint : theme.colors.surfaceSecondary,
+              ...coloredShadow(theme.colors.brand, { opacity: 0.5, radius: 8, elevation: 6 }),
+            },
+          ]}
+          onPress={() => setAddOpen(true)}
+        >
+          <Ionicons name="add" size={30} color="#fff" />
+        </Pressable>
+      </View>
 
       <QuickAddModal
         visible={addOpen}
@@ -252,20 +263,23 @@ const styles = StyleSheet.create({
   },
   pillLabel: { fontSize: 11, fontWeight: "800" },
   sunsetLabel: { fontSize: 9.5, fontWeight: "700" },
-  // Slot central "+" — occupe exactement l'espace d'un onglet ordinaire dans
-  // la barre (reste dans ses bornes, pas de `position:"absolute"` qui le
-  // ferait déborder/clip par le `overflow:"hidden"` de la barre Sunset).
-  fabTabWrap: {
-    flex: 1,
+  fabWrap: {
+    // Reste au-dessus de la barre (72px de haut sous Classique — offset
+    // Sunset appliqué séparément, voir l'appel ci-dessus) sans jamais
+    // recouvrir un onglet.
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 82,
     alignItems: "center",
-    justifyContent: "center",
+    zIndex: 20,
   },
-  fabCircle: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+  fab: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 2,
+    borderWidth: 3,
   },
 });

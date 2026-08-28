@@ -69,7 +69,6 @@ export default function ExerciseCard({
           styles.artwork,
           {
             borderRadius: theme.radius.md,
-            borderColor: withAlpha(color, 33),
             backgroundColor: withAlpha(color, 10),
           },
         ]}
@@ -148,7 +147,6 @@ export default function ExerciseCard({
               { borderRadius: theme.radius.pill, backgroundColor: theme.colors.surfaceTertiary },
             ]}
           >
-            <Text style={styles.metaChipEmoji}>{primaryMuscle.emoji}</Text>
             <Text style={[styles.metaChipText, { color: theme.colors.onSurfaceTertiary }]} numberOfLines={1}>
               {primaryMuscle.label}
             </Text>
@@ -178,7 +176,6 @@ const styles = StyleSheet.create({
   artwork: {
     width: "100%",
     aspectRatio: 1,
-    borderWidth: 1.5,
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
@@ -245,7 +242,6 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     flexShrink: 1,
   },
-  metaChipEmoji: { fontSize: 9 },
   metaChipText: {
     fontSize: 8.5,
     fontWeight: "700",
