@@ -12,7 +12,8 @@ import { RADIO_STATIONS } from "@/src/data/radio-stations";
 import { getEnabledStationUuids, toggleStationEnabled } from "@/src/utils/radio-preferences";
 
 /**
- * Écran de gestion du catalogue radio (~30 stations, `radio-stations.ts`) —
+ * Écran de gestion du catalogue radio (tag `workout` de radio-browser.info,
+ * trié par popularité — `radio-stations.ts`) —
  * une case à cocher par station, persistée via `radio-preferences.ts`.
  * Seules les stations cochées ici apparaissent ensuite dans `/radio`.
  */

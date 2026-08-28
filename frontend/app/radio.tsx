@@ -24,7 +24,8 @@ import { useRadioPlayer } from "@/src/hooks/useRadioPlayer";
 /**
  * Écran "Radio" — liste des stations cochées par l'utilisateur (voir
  * `radio-stations-settings.tsx`/`radio-preferences.ts`), jamais l'annuaire
- * radio-browser.info brut ni le catalogue complet (~30, `radio-stations.ts`).
+ * radio-browser.info brut ni le catalogue complet (`radio-stations.ts`, tag
+ * `workout` trié par popularité).
  * Le statut en ligne est rafraîchi une fois au focus via l'API (best-effort,
  * la lecture elle-même ne dépend jamais de ce rafraîchissement). La lecture/
  * le volume vivent dans `useRadioPlayer` (Provider global, racine de l'app)
@@ -94,7 +95,7 @@ export default function RadioScreen() {
           </Pressable>
         </View>
         <Text style={[styles.subtitle, { color: theme.colors.onSurfaceTertiary }]}>
-          Musique motivante pour t'entraîner — sport, électro, dance
+          Stations "workout" triées par popularité — pour t'entraîner en musique
         </Text>
 
         {enabledUuids && stations.length === 0 ? (

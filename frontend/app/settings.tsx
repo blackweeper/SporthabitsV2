@@ -6,6 +6,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { spacing } from "@/src/theme";
 import { Theme } from "@/src/themes";
 import ThemedBackground from "@/src/themes/ThemedBackground";
+import AuroraBackground from "@/src/components/backgrounds/AuroraBackground";
 import PressableScale from "@/src/components/ui/PressableScale";
 import Card from "@/src/components/ui/Card";
 import { useConfirmDialog } from "@/src/hooks/use-confirm-dialog";
@@ -26,11 +27,6 @@ import {
   WallpaperMeta,
 } from "@/src/utils/wallpaper-storage";
 import { pickAndAddWallpaper } from "@/src/utils/wallpaper-picker";
-
-// Même asset que le fond par défaut réellement affiché sur le Dashboard
-// (voir `ThemedBackground.tsx`) — la miniature montre donc fidèlement ce
-// que ce choix produit, pas une approximation.
-const DEFAULT_WALLPAPER_PREVIEW = require("@/assets/wallpapers/sunset-default.jpg");
 
 const CALENDAR_OPTIONS: {
   key: CalendarViewMode;
@@ -210,7 +206,7 @@ export default function SettingsScreen() {
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.optionLabel}>Stations radio</Text>
-              <Text style={styles.optionHint}>Environ 30 stations disponibles, sélection libre</Text>
+              <Text style={styles.optionHint}>Stations "workout" triées par popularité, sélection libre</Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color={theme.colors.onSurfaceTertiary} />
           </Card>
@@ -251,14 +247,16 @@ export default function SettingsScreen() {
                 style={styles.wallpaperTile}
                 onPress={() => handleSelectWallpaper(null)}
               >
-                <Image source={DEFAULT_WALLPAPER_PREVIEW} style={styles.wallpaperTileImage} />
+                <View style={[styles.wallpaperTileImage, { overflow: "hidden" }]}>
+                  <AuroraBackground />
+                </View>
                 {activeWallpaperId === null && (
                   <View style={styles.wallpaperCheckBadge}>
                     <Ionicons name="checkmark-circle" size={18} color={theme.colors.brand} />
                   </View>
                 )}
                 <Text style={styles.wallpaperTileLabel} numberOfLines={1}>
-                  Par défaut
+                  IronFlow Aurora
                 </Text>
               </PressableScale>
 

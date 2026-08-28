@@ -1,5 +1,6 @@
 import { Image, StyleSheet } from "react-native";
 import { useTheme } from "./ThemeProvider";
+import AuroraBackground from "@/src/components/backgrounds/AuroraBackground";
 
 /**
  * Fond plein écran piloté par le thème actif — un calque `absoluteFill`
@@ -29,21 +30,17 @@ import { useTheme } from "./ThemeProvider";
  *
  * Fond d'écran (Sunset) : l'image personnalisée choisie dans Réglages >
  * Apparence (`wallpaperUri`, déjà résolue par `ThemeProvider`) si elle
- * existe, sinon l'image par défaut du thème — embarquée dans l'app
- * (`require`, aucun réseau, toujours disponible dès le premier lancement).
+ * existe, sinon "IronFlow Aurora" (`AuroraBackground`, généré en code —
+ * remplace l'ancienne image statique par défaut).
  */
-const DEFAULT_WALLPAPER = require("@/assets/wallpapers/sunset-default.jpg");
-
 export default function ThemedBackground() {
   const { theme, wallpaperUri } = useTheme();
 
   if (theme.background.mode !== "gradient") return null;
 
-  return (
-    <Image
-      source={wallpaperUri ? { uri: wallpaperUri } : DEFAULT_WALLPAPER}
-      style={StyleSheet.absoluteFillObject}
-      resizeMode="cover"
-    />
-  );
+  if (wallpaperUri) {
+    return <Image source={{ uri: wallpaperUri }} style={StyleSheet.absoluteFillObject} resizeMode="cover" />;
+  }
+
+  return <AuroraBackground />;
 }

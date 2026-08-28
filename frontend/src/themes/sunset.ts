@@ -106,8 +106,8 @@ export const sunsetTheme: Theme = {
   spacing: { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xl2: 32, xl3: 48 },
   // `mode:"gradient"` reste le signal utilisé ailleurs (ex. transparence du
   // `SafeAreaView` des écrans migrés) pour "ce thème a un fond non-plat" —
-  // `ThemedBackground` affiche en réalité l'image embarquée
-  // (`assets/wallpapers/sunset-default.jpg`) ou le fond choisi par
+  // `ThemedBackground` affiche en réalité "IronFlow Aurora"
+  // (`AuroraBackground`, généré en code) ou le fond choisi par
   // l'utilisateur, jamais ce dégradé directement : ces couleurs ne sont plus
   // lues nulle part pour peindre l'écran, gardées ici à titre de repli
   // théorique documenté (mise à jour vers une teinte froide cohérente avec
