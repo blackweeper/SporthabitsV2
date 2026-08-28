@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -13,7 +13,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing } from "@/src/theme";
+import { spacing, withAlpha } from "@/src/theme";
+import { Theme, useTheme } from "@/src/themes";
+import ThemedBackground from "@/src/themes/ThemedBackground";
 import {
   Exercise,
   ExerciseMode,
@@ -81,6 +83,8 @@ function composeCircuitFromCards(
 }
 
 export default function PlanDetailScreen() {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const isNew = id === "new";
@@ -374,21 +378,32 @@ export default function PlanDetailScreen() {
 
   if (loading || !plan) {
     return (
-      <SafeAreaView style={styles.container}>
-        <Text style={styles.loading}>Chargement…</Text>
-      </SafeAreaView>
+      <View style={{ flex: 1 }}>
+        <ThemedBackground />
+        <SafeAreaView style={[styles.container, theme.background.mode === "gradient" && { backgroundColor: "transparent" }]}>
+          <Text style={styles.loading}>Chargement…</Text>
+        </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+    <View style={{ flex: 1 }}>
+      <ThemedBackground />
+      <SafeAreaView
+        style={[
+          styles.container,
+          theme.background.mode === "gradient" ? { backgroundColor: "transparent" } : { backgroundColor: theme.colors.surface },
+        ]}
+        edges={["top", "bottom"]}
+      >
       <View style={styles.header}>
         <Pressable
           testID="back-plan"
           onPress={() => router.back()}
           hitSlop={12}
         >
-          <Ionicons name="chevron-back" size={24} color={colors.onSurface} />
+          <Ionicons name="chevron-back" size={24} color={theme.colors.onSurface} />
         </Pressable>
         <Text style={styles.headerTitle}>
           {isNew ? "Nouveau plan" : "Modifier le plan"}
@@ -402,7 +417,7 @@ export default function PlanDetailScreen() {
             pressed && { opacity: 0.75 },
           ]}
         >
-          <Ionicons name="checkmark" size={14} color="#fff" />
+          <Ionicons name="checkmark" size={14} color={theme.card.mode === "glass" ? theme.colors.brand : "#fff"} />
           <Text style={styles.saveBtnText}>SAUVEGARDER</Text>
         </Pressable>
       </View>
@@ -423,7 +438,7 @@ export default function PlanDetailScreen() {
             value={plan.title}
             onChangeText={(t) => update({ title: t })}
             placeholder="Ex: Push Day, HIIT 20 min…"
-            placeholderTextColor={colors.onSurfaceTertiary}
+            placeholderTextColor={theme.colors.onSurfaceTertiary}
           />
 
           <Text style={styles.label}>Type</Text>
@@ -458,7 +473,7 @@ export default function PlanDetailScreen() {
                 style={styles.addBtnGhost}
                 onPress={() => setToursBuilderOpen((v) => !v)}
               >
-                <Ionicons name="repeat" size={14} color={colors.brand} />
+                <Ionicons name="repeat" size={14} color={theme.colors.brand} />
                 <Text style={styles.addBtnGhostText}>TOURS</Text>
               </Pressable>
               <Pressable
@@ -466,7 +481,7 @@ export default function PlanDetailScreen() {
                 style={styles.addBtnGhost}
                 onPress={() => setLibraryTarget({ kind: "add" })}
               >
-                <Ionicons name="library" size={14} color={colors.brand} />
+                <Ionicons name="library" size={14} color={theme.colors.brand} />
                 <Text style={styles.addBtnGhostText}>BIBLIOTHÈQUE</Text>
               </Pressable>
               <Pressable
@@ -474,7 +489,7 @@ export default function PlanDetailScreen() {
                 style={styles.addBtn}
                 onPress={() => addExercise()}
               >
-                <Ionicons name="add" size={16} color="#fff" />
+                <Ionicons name="add" size={16} color={theme.card.mode === "glass" ? theme.colors.brand : "#fff"} />
                 <Text style={styles.addBtnText}>AJOUTER</Text>
               </Pressable>
             </View>
@@ -497,7 +512,7 @@ export default function PlanDetailScreen() {
                 style={styles.addCardBtn}
                 onPress={() => setToursCards((prev) => [...prev, newCircuitCard()])}
               >
-                <Ionicons name="add" size={14} color={colors.brand} />
+                <Ionicons name="add" size={14} color={theme.colors.brand} />
                 <Text style={styles.addCardBtnText}>Ajouter un exercice</Text>
               </Pressable>
               <View style={styles.fieldRow}>
@@ -514,7 +529,7 @@ export default function PlanDetailScreen() {
                 style={styles.addBtn}
                 onPress={() => addToursBlock(toursCards, toursRounds, toursRestSeconds)}
               >
-                <Ionicons name="checkmark" size={16} color="#fff" />
+                <Ionicons name="checkmark" size={16} color={theme.card.mode === "glass" ? theme.colors.brand : "#fff"} />
                 <Text style={styles.addBtnText}>
                   GÉNÉRER {toursRounds * toursCards.filter((c) => c.name.trim()).length || ""} EXERCICES
                 </Text>
@@ -550,7 +565,7 @@ export default function PlanDetailScreen() {
                   <Ionicons
                     name="close-circle"
                     size={20}
-                    color={colors.onSurfaceTertiary}
+                    color={theme.colors.onSurfaceTertiary}
                   />
                 </Pressable>
               </View>
@@ -583,7 +598,7 @@ export default function PlanDetailScreen() {
                   }}
                   onFocus={() => setFocusedNameExerciseId(ex.id)}
                   placeholder="Nom de l'exercice"
-                  placeholderTextColor={colors.onSurfaceTertiary}
+                  placeholderTextColor={theme.colors.onSurfaceTertiary}
                 />
               </View>
 
@@ -593,11 +608,11 @@ export default function PlanDetailScreen() {
                   style={styles.linkHint}
                   onPress={() => setLinkingExerciseId(ex.id)}
                 >
-                  <Ionicons name="link-outline" size={12} color={colors.warning} />
+                  <Ionicons name="link-outline" size={12} color={theme.colors.warning} />
                   <Text style={styles.linkHintText}>
                     Pas encore illustré — lier à la bibliothèque
                   </Text>
-                  <Ionicons name="chevron-forward" size={12} color={colors.warning} />
+                  <Ionicons name="chevron-forward" size={12} color={theme.colors.warning} />
                 </Pressable>
               )}
               {showSuggestions && (
@@ -652,7 +667,7 @@ export default function PlanDetailScreen() {
                       <Text
                         style={[
                           styles.modeChipLabel,
-                          active && { color: "#fff" },
+                          active && { color: theme.card.mode === "glass" ? theme.colors.brand : "#fff" },
                         ]}
                       >
                         {m.label}
@@ -759,7 +774,7 @@ export default function PlanDetailScreen() {
                     style={styles.addCardBtn}
                     onPress={() => applyCircuitCards(ex, [...getCircuitCards(ex), newCircuitCard()])}
                   >
-                    <Ionicons name="add" size={14} color={colors.brand} />
+                    <Ionicons name="add" size={14} color={theme.colors.brand} />
                     <Text style={styles.addCardBtnText}>Ajouter un exercice</Text>
                   </Pressable>
                 </>
@@ -790,7 +805,7 @@ export default function PlanDetailScreen() {
                       setCircuitCards((prev) => ({ ...prev, [ex.id]: [...getCircuitCards(ex), newCircuitCard()] }))
                     }
                   >
-                    <Ionicons name="add" size={14} color={colors.brand} />
+                    <Ionicons name="add" size={14} color={theme.colors.brand} />
                     <Text style={styles.addCardBtnText}>Ajouter un exercice</Text>
                   </Pressable>
                   <Pressable
@@ -798,7 +813,7 @@ export default function PlanDetailScreen() {
                     style={styles.addBtn}
                     onPress={() => applyEmomBlock(ex, getCircuitCards(ex), ex.sets)}
                   >
-                    <Ionicons name="checkmark" size={16} color="#fff" />
+                    <Ionicons name="checkmark" size={16} color={theme.card.mode === "glass" ? theme.colors.brand : "#fff"} />
                     <Text style={styles.addBtnText}>GÉNÉRER {ex.sets} EXERCICES</Text>
                   </Pressable>
                 </>
@@ -831,7 +846,7 @@ export default function PlanDetailScreen() {
                     style={styles.addCardBtn}
                     onPress={() => applyCircuitCards(ex, [...getCircuitCards(ex), newCircuitCard()])}
                   >
-                    <Ionicons name="add" size={14} color={colors.brand} />
+                    <Ionicons name="add" size={14} color={theme.colors.brand} />
                     <Text style={styles.addCardBtnText}>Ajouter un exercice</Text>
                   </Pressable>
                 </>
@@ -917,7 +932,8 @@ export default function PlanDetailScreen() {
           }}
         />
       )}
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
@@ -930,6 +946,8 @@ function FieldNum({
   value: number;
   onChange: (v: number) => void;
 }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   return (
     <View style={{ flex: 1 }}>
       <Text style={styles.miniLabel}>{label}</Text>
@@ -954,6 +972,8 @@ function FieldText({
   onChange: (v: string) => void;
   placeholder?: string;
 }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   return (
     <View style={{ flex: 1 }}>
       <Text style={styles.miniLabel}>{label}</Text>
@@ -962,13 +982,16 @@ function FieldText({
         value={value}
         onChangeText={onChange}
         placeholder={placeholder}
-        placeholderTextColor={colors.onSurfaceTertiary}
+        placeholderTextColor={theme.colors.onSurfaceTertiary}
       />
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+function buildStyles(theme: Theme) {
+  const { colors, radius } = theme;
+  const isGlass = theme.card.mode === "glass";
+  return StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.surface },
   loading: { color: colors.onSurfaceTertiary, textAlign: "center", marginTop: 40 },
   header: {
@@ -982,17 +1005,29 @@ const styles = StyleSheet.create({
   },
   headerTitle: { color: colors.onSurface, fontSize: 16, fontWeight: "700" },
   saveText: { color: colors.brand, fontWeight: "800", letterSpacing: 0.8 },
-  saveBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    backgroundColor: colors.brand,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: radius.pill,
-  },
+  saveBtn: isGlass
+    ? {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 4,
+        backgroundColor: withAlpha(colors.brand, 18),
+        borderWidth: 1,
+        borderColor: withAlpha(colors.brand, 50),
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        borderRadius: radius.pill,
+      }
+    : {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 4,
+        backgroundColor: colors.brand,
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        borderRadius: radius.pill,
+      },
   saveBtnText: {
-    color: "#fff",
+    color: isGlass ? colors.brand : "#fff",
     fontWeight: "800",
     letterSpacing: 0.6,
     fontSize: 11,
@@ -1046,17 +1081,16 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  typeChipActive: {
-    backgroundColor: colors.brand,
-    borderColor: colors.brand,
-  },
+  typeChipActive: isGlass
+    ? { backgroundColor: withAlpha(colors.brand, 20), borderColor: withAlpha(colors.brand, 50) }
+    : { backgroundColor: colors.brand, borderColor: colors.brand },
   typeChipText: {
     color: colors.onSurfaceTertiary,
     fontWeight: "700",
     fontSize: 11,
     letterSpacing: 0.6,
   },
-  typeChipTextActive: { color: "#fff" },
+  typeChipTextActive: { color: isGlass ? colors.brand : "#fff" },
   sectionHead: {
     flexDirection: "row",
     alignItems: "center",
@@ -1064,16 +1098,28 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
     marginBottom: spacing.sm,
   },
-  addBtn: {
-    backgroundColor: colors.brand,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: radius.sm,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  addBtnText: { color: "#fff", fontWeight: "800", fontSize: 11, letterSpacing: 0.5 },
+  addBtn: isGlass
+    ? {
+        backgroundColor: withAlpha(colors.brand, 18),
+        borderWidth: 1,
+        borderColor: withAlpha(colors.brand, 50),
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: radius.sm,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 4,
+      }
+    : {
+        backgroundColor: colors.brand,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: radius.sm,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 4,
+      },
+  addBtnText: { color: isGlass ? colors.brand : "#fff", fontWeight: "800", fontSize: 11, letterSpacing: 0.5 },
   addBtnRow: { flexDirection: "row", gap: 8 },
   addBtnGhost: {
     borderWidth: 1,
@@ -1168,7 +1214,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: 4,
   },
-  modeChipActive: { backgroundColor: colors.brand },
+  modeChipActive: isGlass ? { backgroundColor: withAlpha(colors.brand, 25) } : { backgroundColor: colors.brand },
   modeChipLabel: {
     color: colors.onSurfaceTertiary,
     fontWeight: "800",
@@ -1182,4 +1228,5 @@ const styles = StyleSheet.create({
     marginTop: 2,
     marginBottom: 4,
   },
-});
+  });
+}

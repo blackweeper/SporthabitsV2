@@ -22,8 +22,12 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { LineChart } from "react-native-gifted-charts";
-import { colors, motion, radius, spacing, withAlpha } from "@/src/theme";
+import { coloredShadow, motion, spacing, withAlpha } from "@/src/theme";
+import { useTheme } from "@/src/themes";
+import { Theme } from "@/src/themes/types";
+import ThemedBackground from "@/src/themes/ThemedBackground";
 import Card from "@/src/components/ui/Card";
+import GlassCard from "@/src/components/ui/GlassCard";
 import PressableScale from "@/src/components/ui/PressableScale";
 import {
   PERIOD_LABEL,
@@ -130,6 +134,7 @@ function EnterItem({ index, children }: { index: number; children: ReactNode }) 
 }
 
 export default function ProgressionHub() {
+  const { theme } = useTheme();
   const router = useRouter();
   const { tab: tabParam } = useLocalSearchParams<{ tab?: string }>();
   const [tab, setTab] = useState<Tab>(
@@ -222,9 +227,17 @@ export default function ProgressionHub() {
   const exercises = listAllExercises(sessions);
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <View style={{ flex: 1 }}>
+      <ThemedBackground />
+      <SafeAreaView
+        style={[
+          styles.container,
+          theme.background.mode === "gradient" ? { backgroundColor: "transparent" } : { backgroundColor: theme.colors.surface },
+        ]}
+        edges={["top"]}
+      >
       <View style={styles.header}>
-        <Text style={styles.title}>Mon évolution</Text>
+        <Text style={[styles.title, { color: theme.colors.onSurface }]}>Mon évolution</Text>
       </View>
 
       <View style={styles.segWrap}>
@@ -239,15 +252,27 @@ export default function ProgressionHub() {
               <Pressable
                 key={g.key}
                 testID={`prog-seg-${g.key}`}
-                style={[styles.segChip, active && styles.segChipActive]}
+                style={[
+                  styles.segChip,
+                  {
+                    borderRadius: theme.radius.pill,
+                    backgroundColor: active ? theme.colors.brand : theme.colors.surfaceSecondary,
+                    borderColor: active ? theme.colors.brand : theme.colors.border,
+                  },
+                ]}
                 onPress={() => setTab(active ? tab : g.tabs[0])}
               >
                 <Ionicons
                   name={g.icon}
                   size={13}
-                  color={active ? colors.onSurface : colors.onSurfaceTertiary}
+                  color={active ? theme.colors.onSurface : theme.colors.onSurfaceTertiary}
                 />
-                <Text style={[styles.segLabel, active && { color: colors.onSurface }]}>
+                <Text
+                  style={[
+                    styles.segLabel,
+                    { color: active ? theme.colors.onSurface : theme.colors.onSurfaceSecondary },
+                  ]}
+                >
                   {g.label}
                 </Text>
               </Pressable>
@@ -269,15 +294,27 @@ export default function ProgressionHub() {
                 <Pressable
                   key={t.key}
                   testID={`prog-seg-inner-${t.key}`}
-                  style={[styles.subTab, active && styles.subTabActive]}
+                  style={[
+                    styles.subTab,
+                    {
+                      borderRadius: theme.radius.pill,
+                      backgroundColor: active ? theme.colors.brand : theme.colors.surfaceSecondary,
+                      borderColor: active ? theme.colors.brand : theme.colors.border,
+                    },
+                  ]}
                   onPress={() => setTab(t.key)}
                 >
                   <Ionicons
                     name={t.icon}
                     size={12}
-                    color={active ? colors.onSurface : colors.onSurfaceTertiary}
+                    color={active ? theme.colors.onSurface : theme.colors.onSurfaceTertiary}
                   />
-                  <Text style={[styles.subTabLabel, active && { color: colors.onSurface }]}>
+                  <Text
+                    style={[
+                      styles.subTabLabel,
+                      { color: active ? theme.colors.onSurface : theme.colors.onSurfaceTertiary },
+                    ]}
+                  >
                     {t.label}
                   </Text>
                 </Pressable>
@@ -327,7 +364,8 @@ export default function ProgressionHub() {
         {tab === "goals" && <GoalsView goals={goals} router={router} />}
         {tab === "journal" && <JournalView router={router} onChanged={reload} />}
       </ScrollView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
@@ -337,6 +375,7 @@ const AnimatedCircle = Animated.createAnimatedComponent(Circle);
  * remplissage animé — la même donnée affichée à deux endroits doit se
  * comporter et se colorer de façon identique. */
 function ScoreCircle({ score }: { score: number }) {
+  const { theme } = useTheme();
   const size = 140;
   const strokeWidth = 12;
   const r = (size - strokeWidth) / 2;
@@ -368,7 +407,7 @@ function ScoreCircle({ score }: { score: number }) {
           cx={size / 2}
           cy={size / 2}
           r={r}
-          stroke={colors.surfaceTertiary}
+          stroke={theme.colors.surfaceTertiary}
           strokeWidth={strokeWidth}
           fill="transparent"
         />
@@ -376,7 +415,7 @@ function ScoreCircle({ score }: { score: number }) {
           cx={size / 2}
           cy={size / 2}
           r={r}
-          stroke={colors.progress}
+          stroke={theme.colors.progress}
           strokeWidth={strokeWidth}
           strokeLinecap="round"
           fill="transparent"
@@ -386,8 +425,8 @@ function ScoreCircle({ score }: { score: number }) {
         />
       </Svg>
       <View style={{ position: "absolute", alignItems: "center" }}>
-        <Text style={styles.scoreValueBig}>{score}</Text>
-        <Text style={styles.scoreOn100}>/100</Text>
+        <Text style={[styles.scoreValueBig, { color: theme.colors.onSurface }]}>{score}</Text>
+        <Text style={[styles.scoreOn100, { color: theme.colors.onSurfaceTertiary }]}>/100</Text>
       </View>
     </View>
   );
@@ -412,6 +451,7 @@ function OverviewView({
   onOpenStats: () => void;
   onOpenGoals: () => void;
 }) {
+  const { theme } = useTheme();
   const activeGoals = goals.filter((g) => !g.achievedAt);
   return (
     <View style={{ gap: spacing.md }}>
@@ -426,13 +466,19 @@ function OverviewView({
           contentContainerStyle={styles.highlightsRow}
         >
           {highlights.map((h) => (
-            <View key={h.key} style={styles.highlightCard}>
+            <View
+              key={h.key}
+              style={[
+                styles.highlightCard,
+                { backgroundColor: theme.colors.progressTertiary, borderRadius: theme.radius.md, borderColor: theme.colors.progress },
+              ]}
+            >
               <Text style={styles.highlightEmoji}>{h.emoji}</Text>
-              <Text style={styles.highlightTitle} numberOfLines={1}>
+              <Text style={[styles.highlightTitle, { color: theme.colors.onSurface }]} numberOfLines={1}>
                 {h.title}
               </Text>
               {h.subtitle && (
-                <Text style={styles.highlightSubtitle} numberOfLines={1}>
+                <Text style={[styles.highlightSubtitle, { color: theme.colors.onSurfaceTertiary }]} numberOfLines={1}>
                   {h.subtitle}
                 </Text>
               )}
@@ -442,33 +488,35 @@ function OverviewView({
       )}
 
       <Card elevated style={styles.overviewCard}>
-        <Text style={styles.overLabel}>IRONFLOW SCORE</Text>
+        <Text style={[styles.overLabel, { color: theme.colors.onSurfaceTertiary }]}>IRONFLOW SCORE</Text>
         <ScoreCircle score={score.score} />
-        <Text style={styles.overQualitative}>{scoreQualitativeLabel(score.score)}</Text>
+        <Text style={[styles.overQualitative, { color: theme.colors.onSurface }]}>
+          {scoreQualitativeLabel(score.score)}
+        </Text>
       </Card>
 
       {/* Objectifs en cours */}
       <View style={styles.sectionHeadRow}>
-        <Text style={styles.sectionTitle}>Objectifs en cours</Text>
+        <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>Objectifs en cours</Text>
         <Pressable
           testID="open-goals-shortcut"
           onPress={onOpenGoals}
           hitSlop={8}
         >
-          <Text style={styles.linkText}>Gérer</Text>
+          <Text style={[styles.linkText, { color: theme.colors.brand }]}>Gérer</Text>
         </Pressable>
       </View>
       {activeGoals.length === 0 ? (
         <PressableScale testID="empty-goals-hint" onPress={onOpenGoals}>
           <Card style={styles.emptyGoalsCard}>
-            <Ionicons name="flag" size={18} color={colors.progress} />
+            <Ionicons name="flag" size={18} color={theme.colors.progress} />
             <View style={{ flex: 1 }}>
-              <Text style={styles.emptyGoalsTitle}>Aucun objectif actif</Text>
-              <Text style={styles.emptyGoalsSub}>
+              <Text style={[styles.emptyGoalsTitle, { color: theme.colors.onSurface }]}>Aucun objectif actif</Text>
+              <Text style={[styles.emptyGoalsSub, { color: theme.colors.onSurfaceTertiary }]}>
                 Fixe-toi une cible : perte de poids, 20 tractions, 10 km…
               </Text>
             </View>
-            <Ionicons name="add-circle" size={20} color={colors.brand} />
+            <Ionicons name="add-circle" size={20} color={theme.colors.brand} />
           </Card>
         </PressableScale>
       ) : (
@@ -485,27 +533,27 @@ function OverviewView({
       )}
 
       {/* Détail du score */}
-      <Text style={styles.sectionTitle}>Détail du score</Text>
+      <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>Détail du score</Text>
       {score.breakdown.map((b) => {
         const pct = Math.round((b.value / b.max) * 100);
         return (
           <Card key={b.key} style={styles.breakdownRowBox}>
             <View style={styles.brHeadRow}>
-              <View style={styles.brIconBox}>
-                <Ionicons name={b.icon} size={12} color={colors.brand} />
+              <View style={[styles.brIconBox, { backgroundColor: theme.colors.brandTertiary }]}>
+                <Ionicons name={b.icon} size={12} color={theme.colors.brand} />
               </View>
-              <Text style={styles.brLabelBig}>{b.label}</Text>
-              <Text style={styles.brValue}>
+              <Text style={[styles.brLabelBig, { color: theme.colors.onSurface }]}>{b.label}</Text>
+              <Text style={[styles.brValue, { color: theme.colors.onSurfaceTertiary }]}>
                 {b.value}/{b.max}
               </Text>
-              <View style={styles.brPctBadge}>
-                <Text style={styles.brPctText}>{pct}%</Text>
+              <View style={[styles.brPctBadge, { backgroundColor: theme.colors.surfaceTertiary }]}>
+                <Text style={[styles.brPctText, { color: theme.colors.onSurface }]}>{pct}%</Text>
               </View>
             </View>
-            <View style={styles.brBar}>
-              <View style={[styles.brFill, { width: `${pct}%` }]} />
+            <View style={[styles.brBar, { backgroundColor: theme.colors.surfaceTertiary }]}>
+              <View style={[styles.brFill, { width: `${pct}%`, backgroundColor: theme.colors.brand }]} />
             </View>
-            {b.hint ? <Text style={styles.brHint}>{b.hint}</Text> : null}
+            {b.hint ? <Text style={[styles.brHint, { color: theme.colors.onSurfaceTertiary }]}>{b.hint}</Text> : null}
           </Card>
         );
       })}
@@ -513,22 +561,22 @@ function OverviewView({
       {/* Résumé du jour — explains simply why the score moved */}
       {(score.gains.length > 0 || score.losses.length > 0) && (
         <>
-          <Text style={styles.sectionTitle}>Résumé du jour</Text>
-          <View style={styles.summaryBox}>
+          <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>Résumé du jour</Text>
+          <View style={[styles.summaryBox, { backgroundColor: theme.colors.surfaceSecondary, borderRadius: theme.radius.md, borderColor: theme.colors.border }]}>
             {score.gains.map((g) => (
               <View key={g.label} style={styles.summaryRow}>
-                <Text style={[styles.summaryPoints, { color: colors.success }]}>
+                <Text style={[styles.summaryPoints, { color: theme.colors.success }]}>
                   +{g.points}
                 </Text>
-                <Text style={styles.summaryLabel}>{g.label}</Text>
+                <Text style={[styles.summaryLabel, { color: theme.colors.onSurfaceSecondary }]}>{g.label}</Text>
               </View>
             ))}
             {score.losses.map((l) => (
               <View key={l.label} style={styles.summaryRow}>
-                <Text style={[styles.summaryPoints, { color: colors.error }]}>
+                <Text style={[styles.summaryPoints, { color: theme.colors.error }]}>
                   {l.points}
                 </Text>
-                <Text style={styles.summaryLabel}>{l.label}</Text>
+                <Text style={[styles.summaryLabel, { color: theme.colors.onSurfaceSecondary }]}>{l.label}</Text>
               </View>
             ))}
           </View>
@@ -537,14 +585,14 @@ function OverviewView({
 
       <Pressable
         testID="open-full-stats"
-        style={styles.linkBtn}
+        style={[styles.linkBtn, { borderRadius: theme.radius.md, borderColor: theme.colors.border }]}
         onPress={onOpenStats}
       >
-        <Ionicons name="stats-chart" size={14} color={colors.brand} />
-        <Text style={styles.linkBtnText}>
+        <Ionicons name="stats-chart" size={14} color={theme.colors.brand} />
+        <Text style={[styles.linkBtnText, { color: theme.colors.brand }]}>
           Voir toutes les statistiques avancées
         </Text>
-        <Ionicons name="chevron-forward" size={14} color={colors.brand} />
+        <Ionicons name="chevron-forward" size={14} color={theme.colors.brand} />
       </Pressable>
     </View>
   );
@@ -563,6 +611,7 @@ function GoalMiniCard({
   measurements: Measurement[];
   onPress: () => void;
 }) {
+  const { theme } = useTheme();
   const current = computeGoalCurrent(goal, { sessions, prs, measurements });
   const totalRange = goal.targetValue - goal.startValue;
   let pct = 0;
@@ -575,14 +624,14 @@ function GoalMiniCard({
     <PressableScale testID={`overview-goal-${goal.id}`} onPress={onPress}>
       <Card style={styles.miniGoal}>
         <View style={styles.miniGoalHead}>
-          <View style={styles.miniGoalIcon}>
+          <View style={[styles.miniGoalIcon, { backgroundColor: theme.colors.surfaceTertiary }]}>
             <Ionicons
               name={GOAL_CATEGORY_ICON[goal.category]}
               size={14}
-              color={done ? colors.success : colors.progress}
+              color={done ? theme.colors.success : theme.colors.progress}
             />
           </View>
-          <Text style={styles.miniGoalTitle} numberOfLines={1}>
+          <Text style={[styles.miniGoalTitle, { color: theme.colors.onSurface }]} numberOfLines={1}>
             {goal.title || GOAL_CATEGORY_LABEL[goal.category]}
           </Text>
           <Text
@@ -590,24 +639,24 @@ function GoalMiniCard({
               styles.miniGoalPct,
               // progressSecondary : progress échoue le contraste AA à cette
               // taille sur surfaceSecondary (vérifié, 4.1:1 < 4.5:1).
-              { color: done ? colors.success : colors.progressSecondary },
+              { color: done ? theme.colors.success : theme.colors.progressSecondary },
             ]}
           >
             {Math.round(pct * 100)}%
           </Text>
         </View>
-        <View style={styles.brBar}>
+        <View style={[styles.brBar, { backgroundColor: theme.colors.surfaceTertiary }]}>
           <View
             style={[
               styles.brFill,
               {
                 width: `${pct * 100}%`,
-                backgroundColor: done ? colors.success : colors.progress,
+                backgroundColor: done ? theme.colors.success : theme.colors.progress,
               },
             ]}
           />
         </View>
-        <Text style={styles.miniGoalMeta}>
+        <Text style={[styles.miniGoalMeta, { color: theme.colors.onSurfaceTertiary }]}>
           {formatNum(current)} {goal.unit} · cible {formatNum(goal.targetValue)}{" "}
           {goal.unit}
         </Text>
@@ -692,6 +741,7 @@ function ExercisesView({
   exercises: { name: string; count: number }[];
   router: any;
 }) {
+  const { theme } = useTheme();
   const [subTab, setSubTab] = useState<ExerciseCategory>("musculation");
   const [overrides, setOverridesState] = useState<Record<string, ExerciseCategory>>({});
 
@@ -763,19 +813,22 @@ function ExercisesView({
               testID={`ex-cat-${c}`}
               style={[
                 styles.exSubtab,
-                active && { backgroundColor: withAlpha(color, 15), borderColor: color },
+                {
+                  backgroundColor: active ? withAlpha(color, 15) : theme.colors.surfaceSecondary,
+                  borderColor: active ? color : theme.colors.border,
+                },
               ]}
               onPress={() => setSubTab(c)}
             >
               <Ionicons
                 name={EXERCISE_CATEGORY_ICON[c]}
                 size={12}
-                color={active ? color : colors.onSurfaceTertiary}
+                color={active ? color : theme.colors.onSurfaceTertiary}
               />
               <Text
                 style={[
                   styles.exSubtabText,
-                  active && { color },
+                  { color: active ? color : theme.colors.onSurfaceSecondary },
                 ]}
               >
                 {EXERCISE_CATEGORY_LABEL[c]}
@@ -787,9 +840,11 @@ function ExercisesView({
 
       {filtered.length === 0 ? (
         <View style={styles.empty}>
-          <Ionicons name="barbell" size={40} color={colors.brand} />
-          <Text style={styles.emptyTitle}>Rien pour l&apos;instant</Text>
-          <Text style={styles.emptySub}>Aucun exercice dans cette catégorie.</Text>
+          <Ionicons name="barbell" size={40} color={theme.colors.brand} />
+          <Text style={[styles.emptyTitle, { color: theme.colors.onSurface }]}>Rien pour l&apos;instant</Text>
+          <Text style={[styles.emptySub, { color: theme.colors.onSurfaceTertiary }]}>
+            Aucun exercice dans cette catégorie.
+          </Text>
         </View>
       ) : (
         filtered.map((e, i) => {
@@ -817,10 +872,10 @@ function ExercisesView({
                     )}
                   </View>
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.exName} numberOfLines={1}>
+                    <Text style={[styles.exName, { color: theme.colors.onSurface }]} numberOfLines={1}>
                       {e.name}
                     </Text>
-                    <Text style={styles.exMeta}>
+                    <Text style={[styles.exMeta, { color: theme.colors.onSurfaceTertiary }]}>
                       {e.count > 0
                         ? `${e.count} séance${e.count > 1 ? "s" : ""}`
                         : "Pas encore pratiqué"}
@@ -829,7 +884,7 @@ function ExercisesView({
                   <Ionicons
                     name="chevron-forward"
                     size={16}
-                    color={colors.onSurfaceTertiary}
+                    color={theme.colors.onSurfaceTertiary}
                   />
                 </Card>
               </PressableScale>
@@ -850,6 +905,7 @@ function RecordsView({
   router: any;
   onChanged: () => void;
 }) {
+  const { theme } = useTheme();
   const [expanded, setExpanded] = useState<string | null>(null);
   // Group PRs by exercise name (lowercased)
   const grouped: Record<string, { name: string; prs: PersonalRecord[] }> = {};
@@ -867,18 +923,18 @@ function RecordsView({
     <>
       <Pressable
         testID="new-record-btn"
-        style={styles.ctaFull}
+        style={[styles.ctaFull, { borderRadius: theme.radius.md }, ctaGlassStyle(theme)]}
         onPress={() => router.push("/pr/new")}
       >
-        <Ionicons name="add-circle" size={18} color={colors.onSurface} />
-        <Text style={styles.ctaFullText}>NOUVEAU RECORD</Text>
+        <Ionicons name="add-circle" size={18} color={ctaGlassColor(theme)} />
+        <Text style={[styles.ctaFullText, { color: ctaGlassColor(theme) }]}>NOUVEAU RECORD</Text>
       </Pressable>
 
       {groups.length === 0 ? (
         <View style={styles.empty}>
-          <Ionicons name="trophy" size={40} color={colors.brand} />
-          <Text style={styles.emptyTitle}>Aucun record</Text>
-          <Text style={styles.emptySub}>
+          <Ionicons name="trophy" size={40} color={theme.colors.brand} />
+          <Text style={[styles.emptyTitle, { color: theme.colors.onSurface }]}>Aucun record</Text>
+          <Text style={[styles.emptySub, { color: theme.colors.onSurfaceTertiary }]}>
             Enregistre tes performances (1RM développé couché, 5 km, max tractions…) pour suivre tes progrès.
           </Text>
         </View>
@@ -898,21 +954,21 @@ function RecordsView({
                 onPress={() => setExpanded(isOpen ? null : g.name)}
                 style={styles.recordHead}
               >
-                <View style={styles.recordIcon}>
-                  <Ionicons name="trophy" size={16} color={colors.brand} />
+                <View style={[styles.recordIcon, { backgroundColor: theme.colors.brandTertiary }]}>
+                  <Ionicons name="trophy" size={16} color={theme.colors.brand} />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.recordName} numberOfLines={1}>
+                  <Text style={[styles.recordName, { color: theme.colors.onSurface }]} numberOfLines={1}>
                     {g.name}
                   </Text>
-                  <Text style={styles.recordSub}>
+                  <Text style={[styles.recordSub, { color: theme.colors.onSurfaceTertiary }]}>
                     {g.prs.length} record{g.prs.length > 1 ? "s" : ""}
                   </Text>
                 </View>
                 <Ionicons
                   name={isOpen ? "chevron-up" : "chevron-down"}
                   size={16}
-                  color={colors.onSurfaceTertiary}
+                  color={theme.colors.onSurfaceTertiary}
                 />
               </Pressable>
 
@@ -924,8 +980,14 @@ function RecordsView({
                   {g.prs
                     .slice()
                     .sort((a, b) => (b.date < a.date ? -1 : 1))
-                    .map((pr) => (
-                      <RecordRow key={pr.id} pr={pr} onChanged={onChanged} />
+                    .map((pr, pi) => (
+                      <RecordRow
+                        key={pr.id}
+                        pr={pr}
+                        onChanged={onChanged}
+                        accent={pi === 0 && g.prs.length > 1}
+                        badge={pi === 0 && g.prs.length > 1 ? "RÉCENT" : undefined}
+                      />
                     ))}
 
                   {bestWeight && (
@@ -989,6 +1051,7 @@ function LevelView({
   habitLogs: HabitLog[];
   prs: PersonalRecord[];
 }) {
+  const { theme } = useTheme();
   const xp = computeXPState({ sessions, habits, habitLogs, prs });
   const totalXPForMax = xpForLevel(MAX_LEVEL);
   const overallPct = Math.min(1, xp.xp / totalXPForMax);
@@ -1016,24 +1079,24 @@ function LevelView({
       {/* Hero — Card elevated (même traitement que le module héros du
           Dashboard) : jusqu'ici un View brut sans ombre malgré le
           commentaire plus bas prétendant une parité visuelle. */}
-      <Card elevated style={styles.levelHero}>
+      <Card elevated style={[styles.levelHero, { borderRadius: theme.radius.md, backgroundColor: theme.colors.progress }]}>
         <View style={styles.levelHeroLeft}>
-          <View style={styles.levelBigBadge}>
-            <Text style={styles.levelBigNum}>{xp.level}</Text>
-            <Text style={styles.levelBigLbl}>NIVEAU</Text>
+          <View style={[styles.levelBigBadge, { backgroundColor: theme.colors.onSurface }]}>
+            <Text style={[styles.levelBigNum, { color: theme.colors.progress }]}>{xp.level}</Text>
+            <Text style={[styles.levelBigLbl, { color: theme.colors.progress }]}>NIVEAU</Text>
           </View>
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={styles.levelXPLabel}>XP TOTAL</Text>
-          <Text style={styles.levelXPValue}>
+          <Text style={[styles.levelXPLabel, { color: theme.colors.onSurface }]}>XP TOTAL</Text>
+          <Text style={[styles.levelXPValue, { color: theme.colors.onSurface }]}>
             {xp.xp}
           </Text>
           {isMax ? (
-            <Text style={styles.levelHint}>
+            <Text style={[styles.levelHint, { color: theme.colors.onSurface }]}>
               🏆 Niveau maximum atteint !
             </Text>
           ) : (
-            <Text style={styles.levelHint}>
+            <Text style={[styles.levelHint, { color: theme.colors.onSurface }]}>
               {xp.xpToNext} XP → N{xp.level + 1}
             </Text>
           )}
@@ -1044,23 +1107,23 @@ function LevelView({
       {!isMax && (
         <View style={styles.levelProgressBox}>
           <View style={styles.levelProgressHead}>
-            <Text style={styles.levelProgressText}>
+            <Text style={[styles.levelProgressText, { color: theme.colors.onSurface }]}>
               N{xp.level}
-              <Text style={{ color: colors.onSurfaceTertiary }}> ({currentThreshold})</Text>
+              <Text style={{ color: theme.colors.onSurfaceTertiary }}> ({currentThreshold})</Text>
             </Text>
-            <Text style={styles.levelProgressPct}>
+            <Text style={[styles.levelProgressPct, { color: theme.colors.progress }]}>
               {Math.round(xp.progress * 100)}%
             </Text>
-            <Text style={styles.levelProgressText}>
+            <Text style={[styles.levelProgressText, { color: theme.colors.onSurface }]}>
               N{xp.level + 1}
-              <Text style={{ color: colors.onSurfaceTertiary }}> ({nextThreshold})</Text>
+              <Text style={{ color: theme.colors.onSurfaceTertiary }}> ({nextThreshold})</Text>
             </Text>
           </View>
-          <View style={styles.levelBigBar}>
+          <View style={[styles.levelBigBar, { backgroundColor: theme.colors.surfaceTertiary }]}>
             <View
               style={[
                 styles.levelBigFill,
-                { width: `${xp.progress * 100}%` },
+                { width: `${xp.progress * 100}%`, backgroundColor: theme.colors.progress },
               ]}
             />
           </View>
@@ -1068,30 +1131,35 @@ function LevelView({
       )}
 
       {/* Overall progress toward MAX_LEVEL */}
-      <Card style={styles.overallCard}>
+      <Card
+        style={[
+          styles.overallCard,
+          { backgroundColor: theme.colors.progressTertiary, borderColor: withAlpha(theme.colors.progress, 31.5) },
+        ]}
+      >
         <View style={styles.overallHead}>
-          <Ionicons name="trophy" size={14} color={colors.progress} />
-          <Text style={styles.overallLabel}>PROGRESSION GLOBALE</Text>
-          <Text style={styles.overallPct}>
+          <Ionicons name="trophy" size={14} color={theme.colors.progress} />
+          <Text style={[styles.overallLabel, { color: theme.colors.onSurfaceTertiary }]}>PROGRESSION GLOBALE</Text>
+          <Text style={[styles.overallPct, { color: theme.colors.onSurface }]}>
             {Math.round(overallPct * 100)}%
           </Text>
         </View>
-        <View style={styles.overallBar}>
+        <View style={[styles.overallBar, { backgroundColor: theme.colors.surfaceTertiary }]}>
           <View
             style={[
               styles.overallFill,
-              { width: `${overallPct * 100}%` },
+              { width: `${overallPct * 100}%`, backgroundColor: theme.colors.progress },
             ]}
           />
         </View>
-        <Text style={styles.overallHint}>
+        <Text style={[styles.overallHint, { color: theme.colors.onSurfaceTertiary }]}>
           Niveau {xp.level} / {MAX_LEVEL} · {xp.xp} XP / {totalXPForMax} XP
         </Text>
       </Card>
 
       {/* XP sources */}
       <Card style={styles.sourcesCard}>
-        <Text style={styles.sourcesTitle}>Comment gagner de l&apos;XP</Text>
+        <Text style={[styles.sourcesTitle, { color: theme.colors.onSurface }]}>Comment gagner de l&apos;XP</Text>
         <SourceRow icon="barbell" label="Séance terminée" xp="+50" />
         <SourceRow icon="trophy" label="Nouveau record" xp="+100" />
         <SourceRow icon="checkbox" label="Habitude complétée du jour" xp="+10" />
@@ -1101,7 +1169,7 @@ function LevelView({
       {/* Upcoming levels */}
       {upcoming.length > 0 && (
         <>
-          <Text style={styles.sectionTitle}>Prochains niveaux</Text>
+          <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>Prochains niveaux</Text>
           {upcoming.map((u) => (
             <Card
               key={u.level}
@@ -1111,15 +1179,15 @@ function LevelView({
               ]}
               testID={`upcoming-${u.level}`}
             >
-              <View style={styles.upBadge}>
-                <Text style={styles.upBadgeNum}>{u.level}</Text>
+              <View style={[styles.upBadge, { backgroundColor: theme.colors.surfaceTertiary }]}>
+                <Text style={[styles.upBadgeNum, { color: theme.colors.onSurface }]}>{u.level}</Text>
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.upTitle}>
+                <Text style={[styles.upTitle, { color: theme.colors.onSurface }]}>
                   Niveau {u.level}
                   {u.badge ? ` · ${u.badge.emoji} ${u.badge.title}` : ""}
                 </Text>
-                <Text style={styles.upSub}>
+                <Text style={[styles.upSub, { color: theme.colors.onSurfaceTertiary }]}>
                   {u.xpTotal} XP total · +{u.xpDelta} XP à gagner
                 </Text>
               </View>
@@ -1141,21 +1209,21 @@ function LevelView({
       {/* Unlocked badges */}
       {xp.unlockedBadges.length > 0 && (
         <>
-          <Text style={styles.sectionTitle}>Badges débloqués</Text>
+          <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>Badges débloqués</Text>
           <View style={styles.badgesGrid}>
             {xp.unlockedBadges.map((b) => (
               <View
                 key={b.level}
                 style={[
                   styles.bigBadgeItem,
-                  { borderColor: b.color, backgroundColor: withAlpha(b.color, 12.5) },
+                  { borderRadius: theme.radius.md, borderColor: b.color, backgroundColor: withAlpha(b.color, 12.5) },
                 ]}
               >
                 <Text style={{ fontSize: 26 }}>{b.emoji}</Text>
-                <Text style={styles.bigBadgeTitle} numberOfLines={1}>
+                <Text style={[styles.bigBadgeTitle, { color: theme.colors.onSurface }]} numberOfLines={1}>
                   {b.title}
                 </Text>
-                <Text style={styles.bigBadgeLvl}>N{b.level}</Text>
+                <Text style={[styles.bigBadgeLvl, { color: theme.colors.onSurfaceTertiary }]}>N{b.level}</Text>
               </View>
             ))}
           </View>
@@ -1166,13 +1234,14 @@ function LevelView({
 }
 
 function SourceRow({ icon, label, xp }: { icon: any; label: string; xp: string }) {
+  const { theme } = useTheme();
   return (
     <View style={styles.sourceRow}>
-      <View style={styles.sourceIcon}>
-        <Ionicons name={icon} size={13} color={colors.brand} />
+      <View style={[styles.sourceIcon, { backgroundColor: theme.colors.brandTertiary }]}>
+        <Ionicons name={icon} size={13} color={theme.colors.brand} />
       </View>
-      <Text style={styles.sourceLabel}>{label}</Text>
-      <Text style={styles.sourceXP}>{xp}</Text>
+      <Text style={[styles.sourceLabel, { color: theme.colors.onSurface }]}>{label}</Text>
+      <Text style={[styles.sourceXP, { color: theme.colors.brand }]}>{xp}</Text>
     </View>
   );
 }
@@ -1200,6 +1269,7 @@ function prScalar(pr: PersonalRecord): { value: number; unit: string } {
 }
 
 function RecordProgressionChart({ prs }: { prs: PersonalRecord[] }) {
+  const { theme } = useTheme();
   // Group by type and pick the dominant one (max count)
   const byType: Record<string, PersonalRecord[]> = {};
   for (const pr of prs) {
@@ -1216,9 +1286,9 @@ function RecordProgressionChart({ prs }: { prs: PersonalRecord[] }) {
     .sort((a, b) => (a.date < b.date ? -1 : 1));
   if (list.length < 2) {
     return (
-      <View style={styles.chartHintMini}>
-        <Ionicons name="analytics" size={12} color={colors.brand} />
-        <Text style={styles.chartHintText}>
+      <View style={[styles.chartHintMini, { backgroundColor: theme.colors.brandTertiary }]}>
+        <Ionicons name="analytics" size={12} color={theme.colors.brand} />
+        <Text style={[styles.chartHintText, { color: theme.colors.brandSecondary }]}>
           Ajoute un 2ᵉ record pour voir la progression.
         </Text>
       </View>
@@ -1236,11 +1306,16 @@ function RecordProgressionChart({ prs }: { prs: PersonalRecord[] }) {
   const chartW = Dimensions.get("window").width - spacing.lg * 2 - 48;
 
   return (
-    <View style={styles.recordChartWrap}>
+    <View
+      style={[
+        styles.recordChartWrap,
+        { backgroundColor: theme.colors.surface, borderRadius: theme.radius.md, borderColor: theme.colors.border },
+      ]}
+    >
       <View style={styles.recordChartHead}>
         <View style={{ flex: 1 }}>
-          <Text style={styles.recordChartLabel}>PROGRESSION</Text>
-          <Text style={styles.recordChartValue}>
+          <Text style={[styles.recordChartLabel, { color: theme.colors.data.performance }]}>PROGRESSION</Text>
+          <Text style={[styles.recordChartValue, { color: theme.colors.onSurface }]}>
             {first.toFixed(1)} → {last.toFixed(1)} {unit}
           </Text>
         </View>
@@ -1249,19 +1324,19 @@ function RecordProgressionChart({ prs }: { prs: PersonalRecord[] }) {
             styles.deltaPill,
             {
               backgroundColor:
-                delta >= 0 ? withAlpha(colors.success, 19) : withAlpha(colors.error, 19),
+                delta >= 0 ? withAlpha(theme.colors.success, 19) : withAlpha(theme.colors.error, 19),
             },
           ]}
         >
           <Ionicons
             name={delta >= 0 ? "trending-up" : "trending-down"}
             size={12}
-            color={delta >= 0 ? colors.success : colors.error}
+            color={delta >= 0 ? theme.colors.success : theme.colors.error}
           />
           <Text
             style={[
               styles.deltaText,
-              { color: delta >= 0 ? colors.success : colors.error },
+              { color: delta >= 0 ? theme.colors.success : theme.colors.error },
             ]}
           >
             {delta >= 0 ? "+" : ""}
@@ -1271,18 +1346,18 @@ function RecordProgressionChart({ prs }: { prs: PersonalRecord[] }) {
       </View>
       <LineChart
         data={points}
-        color={colors.brand}
+        color={theme.colors.data.performance}
         thickness={3}
         areaChart
-        startFillColor={colors.brand}
+        startFillColor={theme.colors.data.performance}
         startOpacity={0.35}
-        endFillColor={colors.brand}
+        endFillColor={theme.colors.data.performance}
         endOpacity={0.05}
         yAxisThickness={0}
         xAxisThickness={0}
-        yAxisTextStyle={{ color: colors.onSurfaceTertiary, fontSize: 9 }}
+        yAxisTextStyle={{ color: theme.colors.onSurfaceTertiary, fontSize: 9 }}
         xAxisLabelTextStyle={{
-          color: colors.onSurfaceTertiary,
+          color: theme.colors.onSurfaceTertiary,
           fontSize: 8,
         }}
         hideRules
@@ -1290,20 +1365,88 @@ function RecordProgressionChart({ prs }: { prs: PersonalRecord[] }) {
         height={110}
         isAnimated
         curved
-        dataPointsColor={colors.brand}
+        dataPointsColor={theme.colors.data.performance}
         dataPointsRadius={3}
       />
     </View>
   );
 }
 
+/** CTA plein-largeur (6 sites d'appel dans ce fichier) — sous Sunset, "Active
+ * Glass" (fond Sunset translucide + bordure + lueur douce) plutôt qu'un pavé
+ * orange plein (§7 du brief Liquid Glass : "le Sunset comme lumière, pas
+ * comme fond de bouton"). Sous Classique, rendu inchangé (pavé `brand` plein,
+ * texte/icône blancs). */
+function ctaGlassStyle(theme: Theme) {
+  if (theme.card.mode !== "glass") {
+    return { backgroundColor: theme.colors.brand };
+  }
+  return [
+    {
+      backgroundColor: withAlpha(theme.colors.brand, 18),
+      borderWidth: 1,
+      borderColor: withAlpha(theme.colors.brand, 50),
+    },
+    coloredShadow(theme.colors.brand, { offsetY: 0, opacity: 0.3, radius: 10, elevation: 3 }),
+  ];
+}
+function ctaGlassColor(theme: Theme) {
+  return theme.card.mode === "glass" ? theme.colors.brand : "#fff";
+}
+
+/** Chip de pourcentage des calculateurs 1RM/reps/allure — même logique
+ * "Active Glass" pour l'état sélectionné. */
+function pctChipStyle(theme: Theme, active: boolean) {
+  if (!active) {
+    return { backgroundColor: theme.colors.surface, borderColor: theme.colors.border };
+  }
+  if (theme.card.mode !== "glass") {
+    return { backgroundColor: theme.colors.brand, borderColor: theme.colors.brand };
+  }
+  return [
+    { backgroundColor: withAlpha(theme.colors.brand, 20), borderColor: withAlpha(theme.colors.brand, 50) },
+    coloredShadow(theme.colors.brand, { offsetY: 0, opacity: 0.28, radius: 6, elevation: 2 }),
+  ];
+}
+function pctChipTextColor(theme: Theme, active: boolean) {
+  if (!active) return theme.colors.onSurfaceSecondary;
+  return theme.card.mode === "glass" ? theme.colors.brand : theme.colors.onSurface;
+}
+
+/** Bandeau résultat des calculateurs — même traitement "Active Glass" que les
+ * chips ci-dessus, jamais un pavé orange plein sous Sunset. */
+function calcResultStyle(theme: Theme) {
+  if (theme.card.mode !== "glass") {
+    return { backgroundColor: theme.colors.brand };
+  }
+  return [
+    {
+      backgroundColor: withAlpha(theme.colors.brand, 16),
+      borderWidth: 1,
+      borderColor: withAlpha(theme.colors.brand, 45),
+    },
+    coloredShadow(theme.colors.brand, { offsetY: 0, opacity: 0.25, radius: 10, elevation: 3 }),
+  ];
+}
+function calcResultTextColor(theme: Theme) {
+  return theme.card.mode === "glass" ? theme.colors.brand : "#fff";
+}
+
 function RecordRow({
   pr,
   onChanged,
+  accent,
+  badge,
 }: {
   pr: PersonalRecord;
   onChanged: () => void;
+  /** Record le plus significatif d'un groupe (le plus récent) — bordure +
+   * lueur Sunset douces (§8.3 du brief : "MEILLEUR RECORD" ressort, les
+   * autres restent neutres). */
+  accent?: boolean;
+  badge?: string;
 }) {
+  const { theme } = useTheme();
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const { confirm, ConfirmModal } = useConfirmDialog();
@@ -1345,12 +1488,45 @@ function RecordRow({
       onEdit={() => router.push(`/pr/${pr.id}` as any)}
     >
       <PressableScale testID={`record-row-${pr.id}-body`} onPress={() => router.push(`/pr/${pr.id}` as any)}>
-        <View style={styles.recordRow}>
+        <GlassCard
+          level="subtle"
+          accent={accent ? theme.colors.brand : undefined}
+          style={[
+            styles.recordRow,
+            { borderRadius: theme.radius.sm },
+            !accent && { backgroundColor: theme.colors.surface, borderColor: theme.colors.border },
+          ]}
+        >
           <View style={{ flex: 1 }}>
-            <Text style={styles.recordRowMain}>{main}</Text>
-            {sub ? <Text style={styles.recordRowSub}>{sub}</Text> : null}
+            <View style={styles.recordRowMainRow}>
+              <Text style={[styles.recordRowMain, { color: theme.colors.onSurface }]}>{main}</Text>
+              {accent && badge ? (
+                <View
+                  style={[
+                    styles.recordBadge,
+                    {
+                      borderRadius: theme.radius.pill,
+                      backgroundColor:
+                        theme.card.mode === "glass" ? withAlpha(theme.colors.brand, 22) : theme.colors.brand,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.recordBadgeText,
+                      { color: theme.card.mode === "glass" ? theme.colors.brand : "#fff" },
+                    ]}
+                  >
+                    {badge}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
+            {sub ? <Text style={[styles.recordRowSub, { color: theme.colors.onSurfaceTertiary }]}>{sub}</Text> : null}
           </View>
-          <Text style={styles.recordRowDate}>{formatDateShort(pr.date)}</Text>
+          <Text style={[styles.recordRowDate, { color: theme.colors.onSurfaceTertiary }]}>
+            {formatDateShort(pr.date)}
+          </Text>
           <PressableScale
             testID={`record-row-${pr.id}-menu`}
             hitSlop={10}
@@ -1360,9 +1536,9 @@ function RecordRow({
               setMenuOpen(true);
             }}
           >
-            <Ionicons name="ellipsis-vertical" size={16} color={colors.onSurfaceTertiary} />
+            <Ionicons name="ellipsis-vertical" size={16} color={theme.colors.onSurfaceTertiary} />
           </PressableScale>
-        </View>
+        </GlassCard>
       </PressableScale>
 
       {/* Menu "⋯" — même actions que le swipe (Modifier/Supprimer), mais
@@ -1370,8 +1546,13 @@ function RecordRow({
           peu découvrable en usage réel. */}
       <Modal visible={menuOpen} transparent animationType="slide" onRequestClose={() => setMenuOpen(false)}>
         <Pressable style={styles.menuBackdrop} onPress={() => setMenuOpen(false)}>
-          <Pressable style={styles.menuSheet}>
-            <View style={styles.menuHandle} />
+          <Pressable
+            style={[
+              styles.menuSheet,
+              { backgroundColor: theme.colors.surfaceSecondary, borderTopLeftRadius: theme.radius.lg, borderTopRightRadius: theme.radius.lg, borderColor: theme.colors.border },
+            ]}
+          >
+            <View style={[styles.menuHandle, { backgroundColor: theme.colors.border }]} />
             <PressableScale
               testID={`record-row-${pr.id}-menu-edit`}
               style={styles.menuRow}
@@ -1380,8 +1561,8 @@ function RecordRow({
                 router.push(`/pr/${pr.id}` as any);
               }}
             >
-              <Ionicons name="pencil" size={18} color={colors.onSurface} />
-              <Text style={styles.menuRowText}>Modifier</Text>
+              <Ionicons name="pencil" size={18} color={theme.colors.onSurface} />
+              <Text style={[styles.menuRowText, { color: theme.colors.onSurface }]}>Modifier</Text>
             </PressableScale>
             <PressableScale
               testID={`record-row-${pr.id}-menu-delete`}
@@ -1399,8 +1580,8 @@ function RecordRow({
                 onChanged();
               }}
             >
-              <Ionicons name="trash" size={18} color={colors.error} />
-              <Text style={[styles.menuRowText, { color: colors.error }]}>Supprimer</Text>
+              <Ionicons name="trash" size={18} color={theme.colors.error} />
+              <Text style={[styles.menuRowText, { color: theme.colors.error }]}>Supprimer</Text>
             </PressableScale>
           </Pressable>
         </Pressable>
@@ -1417,19 +1598,20 @@ function OneRMCalculator({
   pr: PersonalRecord;
   testID?: string;
 }) {
+  const { theme } = useTheme();
   const [pct, setPct] = useState(70);
   const oneRM = estimatedOneRM(pr);
   const load = (oneRM * pct) / 100;
   // Round to nearest 2.5 kg
   const roundedLoad = Math.round(load / 2.5) * 2.5;
   return (
-    <Card style={styles.calcCard} testID={testID}>
+    <Card style={[styles.calcCard, { backgroundColor: theme.colors.brandTertiary }]} testID={testID}>
       <View style={styles.calcHead}>
-        <Ionicons name="calculator" size={14} color={colors.brand} />
-        <Text style={styles.calcTitle}>Calculateur % de 1RM</Text>
+        <Ionicons name="calculator" size={14} color={theme.colors.brand} />
+        <Text style={[styles.calcTitle, { color: theme.colors.brand }]}>Calculateur % de 1RM</Text>
       </View>
-      <Text style={styles.calcSub}>
-        1RM estimé : <Text style={styles.calcAccent}>{oneRM.toFixed(1)} kg</Text>
+      <Text style={[styles.calcSub, { color: theme.colors.onSurfaceSecondary }]}>
+        1RM estimé : <Text style={[styles.calcAccent, { color: theme.colors.onSurface }]}>{oneRM.toFixed(1)} kg</Text>
       </Text>
       <View style={styles.calcRow}>
         {[50, 60, 70, 80, 90, 95].map((p) => {
@@ -1438,27 +1620,19 @@ function OneRMCalculator({
             <Pressable
               key={p}
               testID={`${testID}-pct-${p}`}
-              style={[
-                styles.pctChip,
-                active && { backgroundColor: colors.brand, borderColor: colors.brand },
-              ]}
+              style={[styles.pctChip, pctChipStyle(theme, active)]}
               onPress={() => setPct(p)}
             >
-              <Text
-                style={[
-                  styles.pctChipText,
-                  active && { color: colors.onSurface },
-                ]}
-              >
+              <Text style={[styles.pctChipText, { color: pctChipTextColor(theme, active) }]}>
                 {p}%
               </Text>
             </Pressable>
           );
         })}
       </View>
-      <View style={styles.calcResult}>
-        <Text style={styles.calcResultVal}>{roundedLoad.toFixed(1)} kg</Text>
-        <Text style={styles.calcResultHint}>à {pct}% de 1RM</Text>
+      <View style={[styles.calcResult, { borderRadius: theme.radius.md }, calcResultStyle(theme)]}>
+        <Text style={[styles.calcResultVal, { color: calcResultTextColor(theme) }]}>{roundedLoad.toFixed(1)} kg</Text>
+        <Text style={[styles.calcResultHint, { color: calcResultTextColor(theme) }]}>à {pct}% de 1RM</Text>
       </View>
     </Card>
   );
@@ -1471,17 +1645,18 @@ function RepsCalculator({
   pr: PersonalRecord;
   testID?: string;
 }) {
+  const { theme } = useTheme();
   const [pct, setPct] = useState(70);
   const maxReps = pr.reps ?? 0;
   const target = Math.round((maxReps * pct) / 100);
   return (
-    <Card style={styles.calcCard} testID={testID}>
+    <Card style={[styles.calcCard, { backgroundColor: theme.colors.brandTertiary }]} testID={testID}>
       <View style={styles.calcHead}>
-        <Ionicons name="repeat" size={14} color={colors.brand} />
-        <Text style={styles.calcTitle}>Calculateur % du record reps</Text>
+        <Ionicons name="repeat" size={14} color={theme.colors.brand} />
+        <Text style={[styles.calcTitle, { color: theme.colors.brand }]}>Calculateur % du record reps</Text>
       </View>
-      <Text style={styles.calcSub}>
-        Max reps : <Text style={styles.calcAccent}>{maxReps} reps</Text>
+      <Text style={[styles.calcSub, { color: theme.colors.onSurfaceSecondary }]}>
+        Max reps : <Text style={[styles.calcAccent, { color: theme.colors.onSurface }]}>{maxReps} reps</Text>
       </Text>
       <View style={styles.calcRow}>
         {[50, 60, 70, 80, 90, 95].map((p) => {
@@ -1490,24 +1665,19 @@ function RepsCalculator({
             <Pressable
               key={p}
               testID={`${testID}-pct-${p}`}
-              style={[
-                styles.pctChip,
-                active && { backgroundColor: colors.brand, borderColor: colors.brand },
-              ]}
+              style={[styles.pctChip, pctChipStyle(theme, active)]}
               onPress={() => setPct(p)}
             >
-              <Text
-                style={[styles.pctChipText, active && { color: colors.onSurface }]}
-              >
+              <Text style={[styles.pctChipText, { color: pctChipTextColor(theme, active) }]}>
                 {p}%
               </Text>
             </Pressable>
           );
         })}
       </View>
-      <View style={styles.calcResult}>
-        <Text style={styles.calcResultVal}>{target} reps</Text>
-        <Text style={styles.calcResultHint}>à {pct}% du max</Text>
+      <View style={[styles.calcResult, { borderRadius: theme.radius.md }, calcResultStyle(theme)]}>
+        <Text style={[styles.calcResultVal, { color: calcResultTextColor(theme) }]}>{target} reps</Text>
+        <Text style={[styles.calcResultHint, { color: calcResultTextColor(theme) }]}>à {pct}% du max</Text>
       </View>
     </Card>
   );
@@ -1520,6 +1690,7 @@ function CardioCalculator({
   pr: PersonalRecord;
   testID?: string;
 }) {
+  const { theme } = useTheme();
   // At X% intensity, an athlete typically runs slower (=> higher pace/time)
   // Pace scale: target_pace = ref_pace * 100 / pct
   const [pct, setPct] = useState(80);
@@ -1541,14 +1712,14 @@ function CardioCalculator({
     !s || !isFinite(s) ? "—" : `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}/km`;
 
   return (
-    <Card style={styles.calcCard} testID={testID}>
+    <Card style={[styles.calcCard, { backgroundColor: theme.colors.brandTertiary }]} testID={testID}>
       <View style={styles.calcHead}>
-        <Ionicons name="speedometer" size={14} color={colors.brand} />
-        <Text style={styles.calcTitle}>Calculateur % du record cardio</Text>
+        <Ionicons name="speedometer" size={14} color={theme.colors.brand} />
+        <Text style={[styles.calcTitle, { color: theme.colors.brand }]}>Calculateur % du record cardio</Text>
       </View>
-      <Text style={styles.calcSub}>
+      <Text style={[styles.calcSub, { color: theme.colors.onSurfaceSecondary }]}>
         Record :{" "}
-        <Text style={styles.calcAccent}>
+        <Text style={[styles.calcAccent, { color: theme.colors.onSurface }]}>
           {(distanceM / 1000).toFixed(1)} km en {formatSec(timeS)} (
           {formatPace(refPace)})
         </Text>
@@ -1560,24 +1731,19 @@ function CardioCalculator({
             <Pressable
               key={p}
               testID={`${testID}-pct-${p}`}
-              style={[
-                styles.pctChip,
-                active && { backgroundColor: colors.brand, borderColor: colors.brand },
-              ]}
+              style={[styles.pctChip, pctChipStyle(theme, active)]}
               onPress={() => setPct(p)}
             >
-              <Text
-                style={[styles.pctChipText, active && { color: colors.onSurface }]}
-              >
+              <Text style={[styles.pctChipText, { color: pctChipTextColor(theme, active) }]}>
                 {p}%
               </Text>
             </Pressable>
           );
         })}
       </View>
-      <View style={styles.calcResult}>
-        <Text style={styles.calcResultVal}>{formatPace(targetPace)}</Text>
-        <Text style={styles.calcResultHint}>
+      <View style={[styles.calcResult, { borderRadius: theme.radius.md }, calcResultStyle(theme)]}>
+        <Text style={[styles.calcResultVal, { color: calcResultTextColor(theme) }]}>{formatPace(targetPace)}</Text>
+        <Text style={[styles.calcResultHint, { color: calcResultTextColor(theme) }]}>
           ≈ {formatSec(targetTime)} pour {(distanceM / 1000).toFixed(1)} km à {pct}%
         </Text>
       </View>
@@ -1601,6 +1767,7 @@ function TransformationView({
   router: any;
   onChanged: () => void;
 }) {
+  const { theme } = useTheme();
   const withPhotos = measurements.filter((m) => m.photoBase64);
   const hasComparison = withPhotos.length >= 2;
   // measurements is sorted newest-first (getMeasurements) — same for the
@@ -1622,17 +1789,21 @@ function TransformationView({
               <View style={styles.transformPhotoCol}>
                 <Image
                   source={{ uri: `data:image/jpeg;base64,${firstPhoto.photoBase64}` }}
-                  style={styles.transformPhoto}
+                  style={[styles.transformPhoto, { borderRadius: theme.radius.md, backgroundColor: theme.colors.surfaceTertiary }]}
                 />
-                <Text style={styles.transformPhotoLabel}>Avant · {formatDateShort(firstPhoto.date)}</Text>
+                <Text style={[styles.transformPhotoLabel, { color: theme.colors.onSurfaceTertiary }]}>
+                  Avant · {formatDateShort(firstPhoto.date)}
+                </Text>
               </View>
-              <Ionicons name="arrow-forward" size={18} color={colors.brand} />
+              <Ionicons name="arrow-forward" size={18} color={theme.colors.brand} />
               <View style={styles.transformPhotoCol}>
                 <Image
                   source={{ uri: `data:image/jpeg;base64,${latestPhoto.photoBase64}` }}
-                  style={styles.transformPhoto}
+                  style={[styles.transformPhoto, { borderRadius: theme.radius.md, backgroundColor: theme.colors.surfaceTertiary }]}
                 />
-                <Text style={styles.transformPhotoLabel}>Aujourd&apos;hui · {formatDateShort(latestPhoto.date)}</Text>
+                <Text style={[styles.transformPhotoLabel, { color: theme.colors.onSurfaceTertiary }]}>
+                  Aujourd&apos;hui · {formatDateShort(latestPhoto.date)}
+                </Text>
               </View>
             </View>
             {weightDelta != null && Math.abs(weightDelta) > 0.05 && (
@@ -1640,18 +1811,18 @@ function TransformationView({
                 <Ionicons
                   name={weightDelta <= 0 ? "trending-down" : "trending-up"}
                   size={14}
-                  color={colors.progress}
+                  color={theme.colors.progress}
                 />
-                <Text style={styles.transformDeltaText}>
+                <Text style={[styles.transformDeltaText, { color: theme.colors.progressSecondary }]}>
                   {weightDelta > 0 ? "+" : ""}
                   {weightDelta.toFixed(1)} kg depuis le début
                 </Text>
               </View>
             )}
-            <View style={styles.transformCta}>
-              <Ionicons name="images" size={14} color={colors.brand} />
-              <Text style={styles.transformCtaText}>Voir la comparaison complète</Text>
-              <Ionicons name="chevron-forward" size={14} color={colors.brand} />
+            <View style={[styles.transformCta, { borderTopColor: theme.colors.border }]}>
+              <Ionicons name="images" size={14} color={theme.colors.brand} />
+              <Text style={[styles.transformCtaText, { color: theme.colors.brand }]}>Voir la comparaison complète</Text>
+              <Ionicons name="chevron-forward" size={14} color={theme.colors.brand} />
             </View>
           </Card>
         </PressableScale>
@@ -1661,11 +1832,11 @@ function TransformationView({
           onPress={() => router.push("/measurement/new")}
         >
           <Card style={styles.transformEmptyHero}>
-            <Ionicons name="camera" size={32} color={colors.brand} />
-            <Text style={styles.transformEmptyTitle}>
+            <Ionicons name="camera" size={32} color={theme.colors.brand} />
+            <Text style={[styles.transformEmptyTitle, { color: theme.colors.onSurface }]}>
               {withPhotos.length === 0 ? "Commence ta transformation" : "Encore une photo pour comparer"}
             </Text>
-            <Text style={styles.transformEmptySub}>
+            <Text style={[styles.transformEmptySub, { color: theme.colors.onSurfaceTertiary }]}>
               {withPhotos.length === 0
                 ? "Ajoute une première photo pour visualiser ton évolution dans le temps."
                 : "Ajoute une 2ᵉ photo pour voir un avant/après."}
@@ -1691,25 +1862,25 @@ function TransformationView({
 
       <Pressable
         testID="add-measurement-btn"
-        style={styles.ctaFull}
+        style={[styles.ctaFull, { borderRadius: theme.radius.md }, ctaGlassStyle(theme)]}
         onPress={() => router.push("/measurement/new")}
       >
-        <Ionicons name="add-circle" size={18} color={colors.onSurface} />
-        <Text style={styles.ctaFullText}>NOUVELLE MESURE</Text>
+        <Ionicons name="add-circle" size={18} color={ctaGlassColor(theme)} />
+        <Text style={[styles.ctaFullText, { color: ctaGlassColor(theme) }]}>NOUVELLE MESURE</Text>
       </Pressable>
 
       {measurements.length === 0 ? (
         <View style={styles.empty}>
-          <Ionicons name="body" size={40} color={colors.brand} />
-          <Text style={styles.emptyTitle}>Aucune mesure</Text>
-          <Text style={styles.emptySub}>
+          <Ionicons name="body" size={40} color={theme.colors.brand} />
+          <Text style={[styles.emptyTitle, { color: theme.colors.onSurface }]}>Aucune mesure</Text>
+          <Text style={[styles.emptySub, { color: theme.colors.onSurfaceTertiary }]}>
             Ajoute ta première mesure pour suivre ta transformation.
           </Text>
         </View>
       ) : (
         <>
           <BodyStatsChart measurements={measurements} />
-          <Text style={styles.sectionTitle}>Historique</Text>
+          <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>Historique</Text>
           {measurements.slice(0, 20).map((m) => (
             <SwipeableRow
               key={m.id}
@@ -1731,7 +1902,7 @@ function TransformationView({
                 onPress={() => router.push(`/measurement/${m.id}`)}
               >
                 <Card style={styles.mCard}>
-                  <Text style={styles.mDate}>{formatDate(m.date)}</Text>
+                  <Text style={[styles.mDate, { color: theme.colors.brand }]}>{formatDate(m.date)}</Text>
                   <View style={styles.mMetrics}>
                     {m.weight_kg != null && (
                       <MetricChip label={`${m.weight_kg} kg`} />
@@ -1775,6 +1946,7 @@ function BodyStatsChart({ measurements }: { measurements: Measurement[] }) {
     neck_cm: { label: "Cou", icon: "man", unit: "cm" },
   };
 
+  const { theme } = useTheme();
   const PERIODS: PeriodKey[] = ["7d", "30d", "6m", "1y", "all"];
 
   // Detect which stats have at least 1 recorded value
@@ -1821,7 +1993,7 @@ function BodyStatsChart({ measurements }: { measurements: Measurement[] }) {
 
   return (
     <View style={{ gap: spacing.sm }}>
-      <Text style={styles.sectionTitle}>Graphique de progression</Text>
+      <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>Graphique de progression</Text>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -1834,18 +2006,24 @@ function BodyStatsChart({ measurements }: { measurements: Measurement[] }) {
             <Pressable
               key={s}
               testID={`body-stat-${s}`}
-              style={[styles.bodyChip, active && styles.bodyChipActive]}
+              style={[
+                styles.bodyChip,
+                {
+                  backgroundColor: active ? theme.colors.brand : theme.colors.surfaceSecondary,
+                  borderColor: active ? theme.colors.brand : theme.colors.border,
+                },
+              ]}
               onPress={() => setStat(s)}
             >
               <Ionicons
                 name={m.icon}
                 size={11}
-                color={active ? colors.onSurface : colors.onSurfaceTertiary}
+                color={active ? theme.colors.onSurface : theme.colors.onSurfaceTertiary}
               />
               <Text
                 style={[
                   styles.bodyChipText,
-                  active && { color: colors.onSurface },
+                  { color: active ? theme.colors.onSurface : theme.colors.onSurfaceSecondary },
                 ]}
               >
                 {m.label}
@@ -1866,13 +2044,19 @@ function BodyStatsChart({ measurements }: { measurements: Measurement[] }) {
             <Pressable
               key={p}
               testID={`body-period-${p}`}
-              style={[styles.bodyChipMini, active && styles.bodyChipMiniActive]}
+              style={[
+                styles.bodyChipMini,
+                {
+                  backgroundColor: active ? theme.colors.brandTertiary : theme.colors.surfaceSecondary,
+                  borderColor: active ? theme.colors.brand : theme.colors.border,
+                },
+              ]}
               onPress={() => setPeriod(p)}
             >
               <Text
                 style={[
                   styles.bodyChipMiniText,
-                  active && { color: colors.brand },
+                  { color: active ? theme.colors.brand : theme.colors.onSurfaceTertiary },
                 ]}
               >
                 {PERIOD_LABEL[p]}
@@ -1883,50 +2067,55 @@ function BodyStatsChart({ measurements }: { measurements: Measurement[] }) {
       </ScrollView>
 
       {points.length >= 2 ? (
-        <View style={styles.chartWrap}>
+        <View
+          style={[
+            styles.chartWrap,
+            { backgroundColor: theme.colors.surfaceSecondary, borderRadius: theme.radius.md, borderColor: theme.colors.border },
+          ]}
+        >
           <View style={styles.chartHeadRow}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.chartTitleBody}>
+              <Text style={[styles.chartTitleBody, { color: theme.colors.onSurface }]}>
                 {meta.label} ({meta.unit})
               </Text>
-              <Text style={styles.chartDelta}>
+              <Text style={[styles.chartDelta, { color: theme.colors.brand }]}>
                 {delta > 0 ? "+" : ""}
                 {delta.toFixed(1)} {meta.unit} sur la période
               </Text>
             </View>
-            <View style={styles.chartCurrentBox}>
-              <Text style={styles.chartCurrentVal}>{last}</Text>
-              <Text style={styles.chartCurrentUnit}>{meta.unit}</Text>
+            <View style={[styles.chartCurrentBox, { backgroundColor: theme.colors.brandTertiary, borderRadius: theme.radius.sm }]}>
+              <Text style={[styles.chartCurrentVal, { color: theme.colors.brand }]}>{last}</Text>
+              <Text style={[styles.chartCurrentUnit, { color: theme.colors.brandSecondary }]}>{meta.unit}</Text>
             </View>
           </View>
           <LineChart
             data={points}
-            color={colors.brand}
+            color={theme.colors.brand}
             thickness={3}
             areaChart
-            startFillColor={colors.brand}
+            startFillColor={theme.colors.brand}
             startOpacity={0.4}
-            endFillColor={colors.brand}
+            endFillColor={theme.colors.brand}
             endOpacity={0.05}
             yAxisThickness={0}
             xAxisThickness={0}
-            yAxisTextStyle={{ color: colors.onSurfaceTertiary, fontSize: 10 }}
+            yAxisTextStyle={{ color: theme.colors.onSurfaceTertiary, fontSize: 10 }}
             xAxisLabelTextStyle={{
-              color: colors.onSurfaceTertiary,
+              color: theme.colors.onSurfaceTertiary,
               fontSize: 9,
             }}
             hideRules
             width={chartW}
             isAnimated
             curved
-            dataPointsColor={colors.brand}
+            dataPointsColor={theme.colors.brand}
             dataPointsRadius={3}
           />
         </View>
       ) : (
-        <View style={styles.hintBanner}>
-          <Ionicons name="information-circle" size={14} color={colors.brand} />
-          <Text style={styles.hintBannerText}>
+        <View style={[styles.hintBanner, { backgroundColor: theme.colors.brandTertiary, borderRadius: theme.radius.sm }]}>
+          <Ionicons name="information-circle" size={14} color={theme.colors.brand} />
+          <Text style={[styles.hintBannerText, { color: theme.colors.brandSecondary }]}>
             Enregistre au moins 2 mesures de {meta.label.toLowerCase()} sur cette période.
           </Text>
         </View>
@@ -1951,10 +2140,16 @@ function HabitsView({
   router: any;
   onChanged: () => void;
 }) {
+  const { theme } = useTheme();
   const [sub, setSub] = useState<"habits" | "reminders">("habits");
   return (
     <>
-      <View style={styles.subTabRow}>
+      <View
+        style={[
+          styles.subTabRow,
+          { backgroundColor: theme.colors.surfaceSecondary, borderRadius: theme.radius.md, borderColor: theme.colors.border },
+        ]}
+      >
         {[
           { key: "habits", label: "Habitudes", icon: "checkbox" },
           { key: "reminders", label: "Rappels", icon: "alarm" },
@@ -1964,18 +2159,25 @@ function HabitsView({
             <Pressable
               key={s.key}
               testID={`sub-${s.key}`}
-              style={[styles.subTab, active && styles.subTabActive]}
+              style={[
+                styles.subTab,
+                {
+                  borderRadius: theme.radius.pill,
+                  backgroundColor: active ? theme.colors.brand : theme.colors.surfaceSecondary,
+                  borderColor: active ? theme.colors.brand : theme.colors.border,
+                },
+              ]}
               onPress={() => setSub(s.key as any)}
             >
               <Ionicons
                 name={s.icon as any}
                 size={13}
-                color={active ? colors.onSurface : colors.onSurfaceTertiary}
+                color={active ? theme.colors.onSurface : theme.colors.onSurfaceTertiary}
               />
               <Text
                 style={[
                   styles.subTabLabel,
-                  active && { color: colors.onSurface },
+                  { color: active ? theme.colors.onSurface : theme.colors.onSurfaceTertiary },
                 ]}
               >
                 {s.label}
@@ -1989,17 +2191,17 @@ function HabitsView({
         <>
           <Pressable
             testID="add-habit-btn"
-            style={styles.ctaFull}
+            style={[styles.ctaFull, { borderRadius: theme.radius.md }, ctaGlassStyle(theme)]}
             onPress={() => router.push("/habit/new")}
           >
-            <Ionicons name="add-circle" size={18} color={colors.onSurface} />
-            <Text style={styles.ctaFullText}>AJOUTER UNE HABITUDE</Text>
+            <Ionicons name="add-circle" size={18} color={ctaGlassColor(theme)} />
+            <Text style={[styles.ctaFullText, { color: ctaGlassColor(theme) }]}>AJOUTER UNE HABITUDE</Text>
           </Pressable>
           {habits.length === 0 ? (
             <View style={styles.empty}>
-              <Ionicons name="checkbox" size={40} color={colors.brand} />
-              <Text style={styles.emptyTitle}>Aucune habitude</Text>
-              <Text style={styles.emptySub}>
+              <Ionicons name="checkbox" size={40} color={theme.colors.brand} />
+              <Text style={[styles.emptyTitle, { color: theme.colors.onSurface }]}>Aucune habitude</Text>
+              <Text style={[styles.emptySub, { color: theme.colors.onSurfaceTertiary }]}>
                 Ajoute des habitudes (eau, marche, sommeil…) pour renforcer ton score.
               </Text>
             </View>
@@ -2025,16 +2227,16 @@ function HabitsView({
                   onPress={() => router.push(`/habit/${h.id}`)}
                 >
                   <Card style={styles.habitCard}>
-                    <View style={[styles.habitIcon, { backgroundColor: colors.brandTertiary }]}>
-                      <Ionicons name="checkbox" size={16} color={colors.brand} />
+                    <View style={[styles.habitIcon, { backgroundColor: theme.colors.brandTertiary }]}>
+                      <Ionicons name="checkbox" size={16} color={theme.colors.brand} />
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={styles.habitTitle}>{h.title}</Text>
-                      <Text style={styles.habitMeta}>
+                      <Text style={[styles.habitTitle, { color: theme.colors.onSurface }]}>{h.title}</Text>
+                      <Text style={[styles.habitMeta, { color: theme.colors.onSurfaceTertiary }]}>
                         Cible : {h.target ?? 1} {h.unit ?? ""}
                       </Text>
                     </View>
-                    <Ionicons name="chevron-forward" size={16} color={colors.onSurfaceTertiary} />
+                    <Ionicons name="chevron-forward" size={16} color={theme.colors.onSurfaceTertiary} />
                   </Card>
                 </PressableScale>
               </SwipeableRow>
@@ -2047,23 +2249,23 @@ function HabitsView({
         <>
           <Pressable
             testID="add-reminder-btn"
-            style={styles.ctaFull}
+            style={[styles.ctaFull, { borderRadius: theme.radius.md }, ctaGlassStyle(theme)]}
             onPress={() => router.push("/reminder/new")}
           >
-            <Ionicons name="add-circle" size={18} color={colors.onSurface} />
-            <Text style={styles.ctaFullText}>AJOUTER UN RAPPEL</Text>
+            <Ionicons name="add-circle" size={18} color={ctaGlassColor(theme)} />
+            <Text style={[styles.ctaFullText, { color: ctaGlassColor(theme) }]}>AJOUTER UN RAPPEL</Text>
           </Pressable>
-          <View style={styles.hintBanner}>
-            <Ionicons name="information-circle" size={14} color={colors.brand} />
-            <Text style={styles.hintBannerText}>
+          <View style={[styles.hintBanner, { backgroundColor: theme.colors.brandTertiary, borderRadius: theme.radius.sm }]}>
+            <Ionicons name="information-circle" size={14} color={theme.colors.brand} />
+            <Text style={[styles.hintBannerText, { color: theme.colors.brandSecondary }]}>
               Les rappels s&apos;activent après publication de l&apos;app avec les notifications push.
             </Text>
           </View>
           {reminders.length === 0 ? (
             <View style={styles.empty}>
-              <Ionicons name="alarm" size={40} color={colors.brand} />
-              <Text style={styles.emptyTitle}>Aucun rappel</Text>
-              <Text style={styles.emptySub}>
+              <Ionicons name="alarm" size={40} color={theme.colors.brand} />
+              <Text style={[styles.emptyTitle, { color: theme.colors.onSurface }]}>Aucun rappel</Text>
+              <Text style={[styles.emptySub, { color: theme.colors.onSurfaceTertiary }]}>
                 Crée des rappels pour tes séances, ton hydratation, tes mesures…
               </Text>
             </View>
@@ -2089,21 +2291,23 @@ function HabitsView({
                   onPress={() => router.push(`/reminder/${r.id}`)}
                 >
                   <Card style={styles.habitCard}>
-                    <View style={[styles.habitIcon, { backgroundColor: colors.brandTertiary }]}>
+                    <View style={[styles.habitIcon, { backgroundColor: theme.colors.brandTertiary }]}>
                       <Ionicons
                         name={REMINDER_KIND_ICON[r.kind]}
                         size={16}
-                        color={colors.brand}
+                        color={theme.colors.brand}
                       />
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={styles.habitTitle}>{r.title || REMINDER_KIND_LABEL[r.kind]}</Text>
-                      <Text style={styles.habitMeta}>
+                      <Text style={[styles.habitTitle, { color: theme.colors.onSurface }]}>
+                        {r.title || REMINDER_KIND_LABEL[r.kind]}
+                      </Text>
+                      <Text style={[styles.habitMeta, { color: theme.colors.onSurfaceTertiary }]}>
                         {r.time} · {formatDaysOfWeek(r.daysOfWeek)} ·{" "}
                         {r.enabled ? "actif" : "désactivé"}
                       </Text>
                     </View>
-                    <Ionicons name="chevron-forward" size={16} color={colors.onSurfaceTertiary} />
+                    <Ionicons name="chevron-forward" size={16} color={theme.colors.onSurfaceTertiary} />
                   </Card>
                 </PressableScale>
               </SwipeableRow>
@@ -2117,21 +2321,22 @@ function HabitsView({
 }
 
 function GoalsView({ goals, router }: { goals: Goal[]; router: any }) {
+  const { theme } = useTheme();
   return (
     <>
       <Pressable
         testID="open-goals-full"
-        style={styles.ctaFull}
+        style={[styles.ctaFull, { borderRadius: theme.radius.md }, ctaGlassStyle(theme)]}
         onPress={() => router.push("/goals")}
       >
-        <Ionicons name="flag" size={18} color={colors.onSurface} />
-        <Text style={styles.ctaFullText}>GÉRER LES OBJECTIFS</Text>
+        <Ionicons name="flag" size={18} color={ctaGlassColor(theme)} />
+        <Text style={[styles.ctaFullText, { color: ctaGlassColor(theme) }]}>GÉRER LES OBJECTIFS</Text>
       </Pressable>
       {goals.length === 0 ? (
         <View style={styles.empty}>
-          <Ionicons name="flag" size={40} color={colors.progress} />
-          <Text style={styles.emptyTitle}>Aucun objectif</Text>
-          <Text style={styles.emptySub}>
+          <Ionicons name="flag" size={40} color={theme.colors.progress} />
+          <Text style={[styles.emptyTitle, { color: theme.colors.onSurface }]}>Aucun objectif</Text>
+          <Text style={[styles.emptySub, { color: theme.colors.onSurfaceTertiary }]}>
             Fixe-toi une cible : 20 tractions, 10 km, 12% de masse grasse…
           </Text>
         </View>
@@ -2145,18 +2350,18 @@ function GoalsView({ goals, router }: { goals: Goal[]; router: any }) {
             <Card style={styles.habitCard}>
               {/* Objectif = progression (comme "Objectifs" du profil), pas
                   une action à faire — violet, pas l'orange des habitudes. */}
-              <View style={[styles.habitIcon, { backgroundColor: colors.progressTertiary }]}>
-                <Ionicons name="flag" size={16} color={colors.progress} />
+              <View style={[styles.habitIcon, { backgroundColor: theme.colors.progressTertiary }]}>
+                <Ionicons name="flag" size={16} color={theme.colors.progress} />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.habitTitle} numberOfLines={1}>
+                <Text style={[styles.habitTitle, { color: theme.colors.onSurface }]} numberOfLines={1}>
                   {g.title || g.category}
                 </Text>
-                <Text style={styles.habitMeta}>
+                <Text style={[styles.habitMeta, { color: theme.colors.onSurfaceTertiary }]}>
                   Cible : {g.targetValue} {g.unit}
                 </Text>
               </View>
-              <Ionicons name="chevron-forward" size={16} color={colors.onSurfaceTertiary} />
+              <Ionicons name="chevron-forward" size={16} color={theme.colors.onSurfaceTertiary} />
             </Card>
           </PressableScale>
         ))
@@ -2179,6 +2384,7 @@ function JournalView({
   router: any;
   onChanged: () => void;
 }) {
+  const { theme } = useTheme();
   const [entries, setEntries] = useState<DailyJournalEntry[]>([]);
   const [loaded, setLoaded] = useState(false);
 
@@ -2198,24 +2404,24 @@ function JournalView({
     <>
       <Pressable
         testID="open-daily-journal"
-        style={styles.ctaFull}
+        style={[styles.ctaFull, { borderRadius: theme.radius.md }, ctaGlassStyle(theme)]}
         onPress={() => router.push("/daily-journal")}
       >
-        <Ionicons name="book" size={18} color={colors.onSurface} />
-        <Text style={styles.ctaFullText}>NOTE DU JOUR</Text>
+        <Ionicons name="book" size={18} color={ctaGlassColor(theme)} />
+        <Text style={[styles.ctaFullText, { color: ctaGlassColor(theme) }]}>NOTE DU JOUR</Text>
       </Pressable>
 
       {loaded && entries.length === 0 ? (
         <View style={styles.empty}>
-          <Ionicons name="calendar" size={40} color={colors.brand} />
-          <Text style={styles.emptyTitle}>Journal quotidien</Text>
-          <Text style={styles.emptySub}>
+          <Ionicons name="calendar" size={40} color={theme.colors.brand} />
+          <Text style={[styles.emptyTitle, { color: theme.colors.onSurface }]}>Journal quotidien</Text>
+          <Text style={[styles.emptySub, { color: theme.colors.onSurfaceTertiary }]}>
             Note ton énergie, ton stress, tes douleurs. Revois ton évolution jour après jour.
           </Text>
         </View>
       ) : (
         <>
-          <Text style={styles.sectionTitle}>Historique</Text>
+          <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>Historique</Text>
           {entries.map((e) => (
             <SwipeableRow
               key={e.date}
@@ -2238,7 +2444,9 @@ function JournalView({
               >
                 <Card style={styles.journalEntryCard}>
                   <View style={styles.pastHead}>
-                    <Text style={styles.pastDate}>{formatJournalDate(e.date)}</Text>
+                    <Text style={[styles.pastDate, { color: theme.colors.onSurface }]}>
+                      {formatJournalDate(e.date)}
+                    </Text>
                     <View style={styles.pastRatings}>
                       {e.energy != null && <MiniBadge label="⚡" value={e.energy} />}
                       {e.mood != null && <MiniBadge label="🙂" value={e.mood} />}
@@ -2246,12 +2454,15 @@ function JournalView({
                     </View>
                   </View>
                   {e.sleep_hours != null && (
-                    <Text style={styles.journalEntryMeta}>
+                    <Text style={[styles.journalEntryMeta, { color: theme.colors.onSurfaceSecondary }]}>
                       😴 {e.sleep_hours.toFixed(1)}h de sommeil
                     </Text>
                   )}
                   {e.pain_zones && e.pain_zones.length > 0 ? (
-                    <Text style={styles.journalEntryMeta} numberOfLines={2}>
+                    <Text
+                      style={[styles.journalEntryMeta, { color: theme.colors.onSurfaceSecondary }]}
+                      numberOfLines={2}
+                    >
                       🩹{" "}
                       {e.pain_zones
                         .map((z) => `${PAIN_ZONE_LABEL[z.zone]} ${z.intensity}/10`)
@@ -2259,7 +2470,7 @@ function JournalView({
                     </Text>
                   ) : null}
                   {e.notes ? (
-                    <Text style={styles.pastNotes} numberOfLines={3}>
+                    <Text style={[styles.pastNotes, { color: theme.colors.onSurfaceSecondary }]} numberOfLines={3}>
                       {e.notes}
                     </Text>
                   ) : null}
@@ -2293,27 +2504,33 @@ function SummaryTile({
   label: string;
   onPress?: () => void;
 }) {
+  const { theme } = useTheme();
   return (
-    <Pressable style={styles.sumTile} onPress={onPress}>
-      <Ionicons name={icon} size={16} color={colors.brand} />
-      <Text style={styles.sumValue}>{value}</Text>
-      <Text style={styles.sumLabel}>{label}</Text>
+    <Pressable
+      style={[styles.sumTile, { backgroundColor: theme.colors.surfaceSecondary, borderRadius: theme.radius.md, borderColor: theme.colors.border }]}
+      onPress={onPress}
+    >
+      <Ionicons name={icon} size={16} color={theme.colors.brand} />
+      <Text style={[styles.sumValue, { color: theme.colors.onSurface }]}>{value}</Text>
+      <Text style={[styles.sumLabel, { color: theme.colors.onSurfaceTertiary }]}>{label}</Text>
     </Pressable>
   );
 }
 
 function MetricChip({ label }: { label: string }) {
+  const { theme } = useTheme();
   return (
-    <View style={styles.metricChip}>
-      <Text style={styles.metricChipText}>{label}</Text>
+    <View style={[styles.metricChip, { backgroundColor: theme.colors.surfaceTertiary }]}>
+      <Text style={[styles.metricChipText, { color: theme.colors.onSurface }]}>{label}</Text>
     </View>
   );
 }
 
 function MiniBadge({ label, value }: { label: string; value: number }) {
+  const { theme } = useTheme();
   return (
-    <View style={styles.miniJournalBadge}>
-      <Text style={styles.miniJournalBadgeText}>
+    <View style={[styles.miniJournalBadge, { backgroundColor: theme.colors.surfaceTertiary }]}>
+      <Text style={[styles.miniJournalBadgeText, { color: theme.colors.onSurface }]}>
         {label} {value}
       </Text>
     </View>
@@ -2330,13 +2547,13 @@ function formatDate(iso: string) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surface },
+  container: { flex: 1 },
   header: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
     paddingBottom: spacing.sm,
   },
-  title: { color: colors.onSurface, fontSize: 26, fontWeight: "800" },
+  title: { fontSize: 26, fontWeight: "800" },
   segWrap: { maxHeight: 48 },
   segRow: {
     paddingHorizontal: spacing.lg,
@@ -2350,14 +2567,9 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: radius.pill,
-    backgroundColor: colors.surfaceSecondary,
     borderWidth: 1,
-    borderColor: colors.border,
   },
-  segChipActive: { backgroundColor: colors.brand, borderColor: colors.brand },
   segLabel: {
-    color: colors.onSurfaceSecondary,
     fontSize: 12,
     fontWeight: "700",
   },
@@ -2369,26 +2581,21 @@ const styles = StyleSheet.create({
   highlightsRow: { gap: spacing.sm, paddingRight: spacing.md },
   highlightCard: {
     width: 132,
-    backgroundColor: colors.progressTertiary,
-    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: colors.progress,
     padding: spacing.sm,
     gap: 2,
   },
   highlightEmoji: { fontSize: 22 },
   highlightTitle: {
-    color: colors.onSurface,
     fontWeight: "800",
     fontSize: 12.5,
     marginTop: 2,
   },
-  highlightSubtitle: { color: colors.progressSecondary, fontSize: 11, fontWeight: "600" },
+  highlightSubtitle: { fontSize: 11, fontWeight: "600" },
   overviewCard: { padding: spacing.lg, alignItems: "center", gap: spacing.md },
   // Même traitement que le Score du Dashboard (Phase 1) : le libellé reste
   // discret (gris), la mention qualitative ("Peut mieux faire"...) en violet.
   overLabel: {
-    color: colors.onSurfaceTertiary,
     fontSize: 11,
     letterSpacing: 2.5,
     fontWeight: "800",
@@ -2396,25 +2603,20 @@ const styles = StyleSheet.create({
   // progressSecondary : à cette taille, progress tombe sous le seuil AA
   // (4.1:1, vérifié) sur surfaceSecondary — progressSecondary passe à 9.4:1.
   overQualitative: {
-    color: colors.progressSecondary,
     fontSize: 14,
     fontWeight: "800",
   },
   summaryBox: {
-    backgroundColor: colors.surfaceSecondary,
-    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: colors.border,
     padding: spacing.md,
     gap: 8,
   },
   summaryRow: { flexDirection: "row", alignItems: "center", gap: 10 },
   summaryPoints: { fontWeight: "800", fontSize: 13, minWidth: 34 },
-  summaryLabel: { color: colors.onSurfaceSecondary, fontSize: 12, flex: 1 },
-  scoreValueBig: { color: colors.onSurface, fontSize: 42, fontWeight: "800" },
-  scoreOn100: { color: colors.onSurfaceTertiary, fontSize: 12, fontWeight: "600" },
+  summaryLabel: { fontSize: 12, flex: 1 },
+  scoreValueBig: { fontSize: 42, fontWeight: "800" },
+  scoreOn100: { fontSize: 12, fontWeight: "600" },
   sectionTitle: {
-    color: colors.onSurface,
     fontSize: 14,
     fontWeight: "800",
     letterSpacing: 0.5,
@@ -2436,19 +2638,16 @@ const styles = StyleSheet.create({
     width: 22,
     height: 22,
     borderRadius: 6,
-    backgroundColor: colors.brandTertiary,
     alignItems: "center",
     justifyContent: "center",
   },
-  brLabel: { width: 110, color: colors.onSurfaceSecondary, fontSize: 12 },
+  brLabel: { width: 110, fontSize: 12 },
   brLabelBig: {
     flex: 1,
-    color: colors.onSurface,
     fontSize: 13,
     fontWeight: "700",
   },
   brHint: {
-    color: colors.onSurfaceTertiary,
     fontSize: 11,
     marginTop: 2,
   },
@@ -2459,7 +2658,6 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
   linkText: {
-    color: colors.brand,
     fontWeight: "800",
     fontSize: 12,
     letterSpacing: 0.5,
@@ -2471,12 +2669,10 @@ const styles = StyleSheet.create({
     borderStyle: "dashed",
   },
   emptyGoalsTitle: {
-    color: colors.onSurface,
     fontWeight: "800",
     fontSize: 13,
   },
   emptyGoalsSub: {
-    color: colors.onSurfaceTertiary,
     fontSize: 11,
     marginTop: 2,
   },
@@ -2486,52 +2682,43 @@ const styles = StyleSheet.create({
     width: 26,
     height: 26,
     borderRadius: 8,
-    backgroundColor: colors.brandTertiary,
     alignItems: "center",
     justifyContent: "center",
   },
   miniGoalTitle: {
     flex: 1,
-    color: colors.onSurface,
     fontWeight: "800",
     fontSize: 13,
   },
   miniGoalPct: {
-    color: colors.brand,
     fontWeight: "800",
     fontSize: 13,
   },
   miniGoalMeta: {
-    color: colors.onSurfaceTertiary,
     fontSize: 11,
     fontWeight: "600",
   },
   brBar: {
     flex: 1,
     height: 8,
-    backgroundColor: colors.surfaceTertiary,
     borderRadius: 4,
     overflow: "hidden",
   },
-  brFill: { height: "100%", backgroundColor: colors.brand },
+  brFill: { height: "100%" },
   brValue: {
-    color: colors.onSurface,
     fontSize: 12,
     fontWeight: "800",
     width: 50,
     textAlign: "right",
   },
   brPctBadge: {
-    backgroundColor: colors.brand,
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: radius.pill,
     marginLeft: 6,
     minWidth: 46,
     alignItems: "center",
   },
   brPctText: {
-    color: colors.onSurface,
     fontWeight: "800",
     fontSize: 11,
     letterSpacing: 0.3,
@@ -2541,15 +2728,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.sm,
     padding: spacing.md,
-    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: colors.border,
     borderStyle: "dashed",
     marginTop: spacing.md,
   },
   linkBtnText: {
     flex: 1,
-    color: colors.brand,
     fontWeight: "700",
     fontSize: 13,
   },
@@ -2558,17 +2742,15 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: colors.brandTertiary,
     alignItems: "center",
     justifyContent: "center",
   },
   exName: {
-    color: colors.onSurface,
     fontWeight: "800",
     fontSize: 14,
     textTransform: "capitalize",
   },
-  exMeta: { color: colors.onSurfaceTertiary, fontSize: 11, marginTop: 2 },
+  exMeta: { fontSize: 11, marginTop: 2 },
   exSubtabs: {
     gap: 6,
     paddingVertical: 4,
@@ -2580,13 +2762,9 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingHorizontal: 12,
     paddingVertical: 7,
-    borderRadius: radius.pill,
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surfaceSecondary,
   },
   exSubtabText: {
-    color: colors.onSurfaceTertiary,
     fontSize: 11,
     fontWeight: "800",
     letterSpacing: 0.4,
@@ -2602,11 +2780,8 @@ const styles = StyleSheet.create({
   transformPhoto: {
     width: "100%",
     aspectRatio: 3 / 4,
-    borderRadius: radius.md,
-    backgroundColor: colors.surfaceTertiary,
   },
   transformPhotoLabel: {
-    color: colors.onSurfaceTertiary,
     fontSize: 11,
     fontWeight: "700",
   },
@@ -2616,7 +2791,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 6,
   },
-  transformDeltaText: { color: colors.progressSecondary, fontSize: 13, fontWeight: "800" },
+  transformDeltaText: { fontSize: 13, fontWeight: "800" },
   transformCta: {
     flexDirection: "row",
     alignItems: "center",
@@ -2624,13 +2799,11 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     paddingTop: spacing.sm,
     borderTopWidth: 1,
-    borderTopColor: colors.border,
   },
-  transformCtaText: { color: colors.brand, fontWeight: "800", fontSize: 13 },
+  transformCtaText: { fontWeight: "800", fontSize: 13 },
   transformEmptyHero: { alignItems: "center", gap: spacing.sm, paddingVertical: spacing.lg },
-  transformEmptyTitle: { color: colors.onSurface, fontSize: 16, fontWeight: "800" },
+  transformEmptyTitle: { fontSize: 16, fontWeight: "800" },
   transformEmptySub: {
-    color: colors.onSurfaceTertiary,
     textAlign: "center",
     fontSize: 12,
     lineHeight: 17,
@@ -2638,33 +2811,26 @@ const styles = StyleSheet.create({
   summaryGrid: { flexDirection: "row", gap: 8 },
   sumTile: {
     flex: 1,
-    backgroundColor: colors.surfaceSecondary,
     padding: spacing.md,
-    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: colors.border,
     gap: 4,
   },
   sumValue: {
-    color: colors.onSurface,
     fontSize: 22,
     fontWeight: "800",
     marginTop: 6,
   },
-  sumLabel: { color: colors.onSurfaceTertiary, fontSize: 11, fontWeight: "600" },
+  sumLabel: { fontSize: 11, fontWeight: "600" },
   ctaFull: {
-    backgroundColor: colors.brand,
     padding: 14,
-    borderRadius: radius.md,
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
     gap: 8,
   },
-  ctaFullText: { color: colors.onSurface, fontWeight: "800", letterSpacing: 1 },
+  ctaFullText: { fontWeight: "800", letterSpacing: 1 },
   mCard: { gap: 4 },
   mDate: {
-    color: colors.brand,
     fontSize: 11,
     letterSpacing: 0.5,
     fontWeight: "800",
@@ -2672,15 +2838,13 @@ const styles = StyleSheet.create({
   },
   mMetrics: { flexDirection: "row", gap: 6, flexWrap: "wrap" },
   metricChip: {
-    backgroundColor: colors.surfaceTertiary,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
   },
-  metricChipText: { color: colors.onSurface, fontSize: 11, fontWeight: "700" },
+  metricChipText: { fontSize: 11, fontWeight: "700" },
   journalEntryCard: { gap: 6 },
   journalEntryMeta: {
-    color: colors.onSurfaceSecondary,
     fontSize: 12,
   },
   pastHead: {
@@ -2689,21 +2853,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   pastDate: {
-    color: colors.onSurface,
     fontWeight: "700",
     fontSize: 12,
     textTransform: "capitalize",
   },
   pastRatings: { flexDirection: "row", gap: 4 },
-  pastNotes: { color: colors.onSurfaceSecondary, fontSize: 12, lineHeight: 16 },
+  pastNotes: { fontSize: 12, lineHeight: 16 },
   miniJournalBadge: {
-    backgroundColor: colors.surfaceTertiary,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
   },
   miniJournalBadgeText: {
-    color: colors.onSurface,
     fontSize: 10,
     fontWeight: "700",
   },
@@ -2718,24 +2879,20 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 10,
-    backgroundColor: colors.brandTertiary,
     alignItems: "center",
     justifyContent: "center",
   },
   recordName: {
-    color: colors.onSurface,
     fontWeight: "800",
     fontSize: 14,
     textTransform: "capitalize",
   },
   recordSub: {
-    color: colors.onSurfaceTertiary,
     fontSize: 11,
     marginTop: 2,
   },
   recordBody: {
     borderTopWidth: 1,
-    borderTopColor: colors.border,
     padding: spacing.md,
     gap: spacing.sm,
   },
@@ -2744,23 +2901,31 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.sm,
     padding: spacing.sm,
-    backgroundColor: colors.surface,
-    borderRadius: radius.sm,
     borderWidth: 1,
-    borderColor: colors.border,
+  },
+  recordRowMainRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
   },
   recordRowMain: {
-    color: colors.onSurface,
     fontWeight: "800",
     fontSize: 14,
   },
+  recordBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  recordBadgeText: {
+    fontSize: 9,
+    fontWeight: "800",
+    letterSpacing: 0.3,
+  },
   recordRowSub: {
-    color: colors.onSurfaceTertiary,
     fontSize: 11,
     marginTop: 2,
   },
   recordRowDate: {
-    color: colors.onSurfaceTertiary,
     fontSize: 11,
     fontWeight: "700",
   },
@@ -2771,11 +2936,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   menuSheet: {
-    backgroundColor: colors.surfaceSecondary,
-    borderTopLeftRadius: radius.lg,
-    borderTopRightRadius: radius.lg,
     borderWidth: 1,
-    borderColor: colors.border,
     padding: spacing.lg,
     gap: spacing.xs,
   },
@@ -2783,7 +2944,6 @@ const styles = StyleSheet.create({
     width: 48,
     height: 5,
     borderRadius: 3,
-    backgroundColor: colors.border,
     alignSelf: "center",
     marginBottom: spacing.md,
   },
@@ -2793,11 +2953,10 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     paddingVertical: spacing.md,
   },
-  menuRowText: { color: colors.onSurface, fontSize: 15, fontWeight: "700" },
+  menuRowText: { fontSize: 15, fontWeight: "700" },
   // Pas de bordure d'origine (contrairement au Card partagé) — override
   // borderWidth:0 pour ne pas en faire apparaître une silencieusement.
   calcCard: {
-    backgroundColor: colors.brandTertiary,
     borderWidth: 0,
     gap: 8,
     marginTop: 4,
@@ -2808,17 +2967,14 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   calcTitle: {
-    color: colors.brand,
     fontWeight: "800",
     fontSize: 12,
     letterSpacing: 0.5,
   },
   calcSub: {
-    color: colors.onSurfaceSecondary,
     fontSize: 11,
   },
   calcAccent: {
-    color: colors.onSurface,
     fontWeight: "800",
   },
   calcRow: {
@@ -2830,42 +2986,31 @@ const styles = StyleSheet.create({
   pctChip: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: radius.pill,
-    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: colors.border,
   },
   pctChipText: {
-    color: colors.onSurfaceSecondary,
     fontWeight: "800",
     fontSize: 11,
   },
   calcResult: {
     alignItems: "center",
     padding: spacing.md,
-    borderRadius: radius.md,
-    backgroundColor: colors.brand,
     marginTop: 4,
   },
   calcResultVal: {
-    color: colors.onSurface,
     fontWeight: "800",
     fontSize: 26,
   },
   calcResultHint: {
-    color: colors.onSurface,
     opacity: 0.9,
     fontSize: 11,
     fontWeight: "700",
     marginTop: 2,
   },
   recordChartWrap: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
     padding: spacing.md,
     gap: spacing.sm,
     borderWidth: 1,
-    borderColor: colors.border,
   },
   recordChartHead: {
     flexDirection: "row",
@@ -2873,13 +3018,11 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   recordChartLabel: {
-    color: colors.brand,
     fontSize: 10,
     fontWeight: "800",
     letterSpacing: 0.6,
   },
   recordChartValue: {
-    color: colors.onSurface,
     fontSize: 14,
     fontWeight: "800",
     marginTop: 2,
@@ -2890,7 +3033,7 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingHorizontal: 10,
     paddingVertical: 5,
-    borderRadius: radius.pill,
+    borderRadius: 999,
   },
   deltaText: {
     fontWeight: "800",
@@ -2901,11 +3044,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 6,
     padding: 10,
-    borderRadius: radius.sm,
-    backgroundColor: colors.brandTertiary,
+    borderRadius: 6,
   },
   chartHintText: {
-    color: colors.brandSecondary,
     fontSize: 11,
     fontWeight: "700",
     flex: 1,
@@ -2917,8 +3058,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.md,
     padding: spacing.lg,
-    backgroundColor: colors.progress,
-    borderRadius: radius.md,
   },
   levelHeroLeft: {
     alignItems: "center",
@@ -2927,44 +3066,36 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: colors.onSurface,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 4,
     borderColor: "#ffffff40",
   },
-  levelBigNum: { color: colors.progress, fontSize: 32, fontWeight: "800" },
+  levelBigNum: { fontSize: 32, fontWeight: "800" },
   levelBigLbl: {
-    color: colors.progress,
     fontSize: 9,
     fontWeight: "800",
     letterSpacing: 0.8,
   },
   levelXPLabel: {
-    color: colors.onSurface,
     fontSize: 10,
     fontWeight: "800",
     letterSpacing: 0.8,
     opacity: 0.9,
   },
   levelXPValue: {
-    color: colors.onSurface,
     fontSize: 32,
     fontWeight: "800",
     marginTop: 4,
   },
   levelHint: {
-    color: colors.onSurface,
     fontSize: 12,
     opacity: 0.9,
     marginTop: 2,
     fontWeight: "700",
   },
   levelProgressBox: {
-    backgroundColor: colors.surfaceSecondary,
-    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: colors.border,
     padding: spacing.md,
     gap: 8,
   },
@@ -2974,31 +3105,25 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   levelProgressText: {
-    color: colors.onSurface,
     fontSize: 12,
     fontWeight: "800",
   },
   levelProgressPct: {
-    color: colors.progressSecondary,
     fontSize: 15,
     fontWeight: "800",
   },
   levelBigBar: {
     height: 10,
-    backgroundColor: colors.surfaceTertiary,
     borderRadius: 5,
     overflow: "hidden",
   },
   levelBigFill: {
     height: "100%",
     borderRadius: 5,
-    backgroundColor: colors.progress,
   },
   // Fond/bordure violets propres à cette carte (délibérément différents du
   // Card partagé par défaut) — d'où les overrides malgré le composant Card.
   overallCard: {
-    backgroundColor: colors.progressTertiary,
-    borderColor: withAlpha(colors.progress, 31.5),
     gap: 8,
   },
   overallHead: {
@@ -3011,35 +3136,29 @@ const styles = StyleSheet.create({
   // taille. progressSecondary passe à 7.9:1.
   overallLabel: {
     flex: 1,
-    color: colors.progressSecondary,
     fontSize: 11,
     fontWeight: "800",
     letterSpacing: 0.6,
   },
   overallPct: {
-    color: colors.progressSecondary,
     fontSize: 15,
     fontWeight: "800",
   },
   overallBar: {
     height: 6,
-    backgroundColor: colors.surface,
     borderRadius: 3,
     overflow: "hidden",
   },
   overallFill: {
     height: "100%",
     borderRadius: 3,
-    backgroundColor: colors.progress,
   },
   overallHint: {
-    color: colors.progressSecondary,
     fontSize: 11,
     fontWeight: "700",
   },
   sourcesCard: { gap: 8 },
   sourcesTitle: {
-    color: colors.onSurface,
     fontSize: 13,
     fontWeight: "800",
     letterSpacing: 0.3,
@@ -3055,18 +3174,15 @@ const styles = StyleSheet.create({
     width: 26,
     height: 26,
     borderRadius: 8,
-    backgroundColor: colors.brandTertiary,
     alignItems: "center",
     justifyContent: "center",
   },
   sourceLabel: {
     flex: 1,
-    color: colors.onSurface,
     fontSize: 12,
     fontWeight: "700",
   },
   sourceXP: {
-    color: colors.brand,
     fontSize: 13,
     fontWeight: "800",
     letterSpacing: 0.5,
@@ -3076,24 +3192,19 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: colors.surfaceTertiary,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: colors.border,
   },
   upBadgeNum: {
-    color: colors.onSurface,
     fontSize: 12,
     fontWeight: "800",
   },
   upTitle: {
-    color: colors.onSurface,
     fontSize: 13,
     fontWeight: "800",
   },
   upSub: {
-    color: colors.onSurfaceTertiary,
     fontSize: 11,
     marginTop: 2,
     fontWeight: "600",
@@ -3115,20 +3226,17 @@ const styles = StyleSheet.create({
   bigBadgeItem: {
     width: "48%",
     padding: spacing.md,
-    borderRadius: radius.md,
     borderWidth: 1,
     alignItems: "center",
     gap: 4,
   },
   bigBadgeTitle: {
-    color: colors.onSurface,
     fontSize: 12,
     fontWeight: "800",
     marginTop: 4,
     textAlign: "center",
   },
   bigBadgeLvl: {
-    color: colors.onSurfaceTertiary,
     fontSize: 11,
     fontWeight: "700",
   },
@@ -3138,9 +3246,8 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     marginTop: spacing.md,
   },
-  emptyTitle: { color: colors.onSurface, fontSize: 18, fontWeight: "800" },
+  emptyTitle: { fontSize: 18, fontWeight: "800" },
   emptySub: {
-    color: colors.onSurfaceTertiary,
     textAlign: "center",
     lineHeight: 20,
   },
@@ -3152,16 +3259,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  habitTitle: { color: colors.onSurface, fontWeight: "800", fontSize: 14 },
-  habitMeta: { color: colors.onSurfaceTertiary, fontSize: 11, marginTop: 2 },
+  habitTitle: { fontWeight: "800", fontSize: 14 },
+  habitMeta: { fontSize: 11, marginTop: 2 },
   subTabRow: {
     flexDirection: "row",
     gap: 6,
     padding: 4,
-    backgroundColor: colors.surfaceSecondary,
-    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: colors.border,
   },
   // `flex: 1` n'a pas de sens à l'intérieur d'un ScrollView horizontal (pas
   // de largeur bornée à répartir) — c'était la cause du "certaines options
@@ -3174,14 +3278,9 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: radius.pill,
-    backgroundColor: colors.surfaceSecondary,
     borderWidth: 1,
-    borderColor: colors.border,
   },
-  subTabActive: { backgroundColor: colors.brand, borderColor: colors.brand },
   subTabLabel: {
-    color: colors.onSurfaceTertiary,
     fontSize: 12,
     fontWeight: "700",
   },
@@ -3189,13 +3288,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-    backgroundColor: colors.brandTertiary,
     padding: 10,
-    borderRadius: radius.sm,
   },
   hintBannerText: {
     flex: 1,
-    color: colors.brandSecondary,
     fontSize: 11,
     lineHeight: 15,
   },
@@ -3206,43 +3302,24 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingHorizontal: 10,
     paddingVertical: 6,
-    borderRadius: radius.pill,
-    backgroundColor: colors.surfaceSecondary,
     borderWidth: 1,
-    borderColor: colors.border,
-  },
-  bodyChipActive: {
-    backgroundColor: colors.brand,
-    borderColor: colors.brand,
   },
   bodyChipText: {
-    color: colors.onSurfaceSecondary,
     fontWeight: "700",
     fontSize: 11,
   },
   bodyChipMini: {
     paddingHorizontal: 10,
     paddingVertical: 5,
-    borderRadius: radius.sm,
-    backgroundColor: colors.surfaceSecondary,
     borderWidth: 1,
-    borderColor: colors.border,
-  },
-  bodyChipMiniActive: {
-    backgroundColor: colors.brandTertiary,
-    borderColor: colors.brand,
   },
   bodyChipMiniText: {
-    color: colors.onSurfaceTertiary,
     fontSize: 10,
     fontWeight: "800",
     letterSpacing: 0.4,
   },
   chartWrap: {
-    backgroundColor: colors.surfaceSecondary,
-    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: colors.border,
     padding: spacing.lg,
     gap: spacing.md,
   },
@@ -3252,30 +3329,24 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   chartTitleBody: {
-    color: colors.onSurface,
     fontSize: 14,
     fontWeight: "800",
   },
   chartDelta: {
-    color: colors.brand,
     fontSize: 11,
     fontWeight: "700",
     marginTop: 2,
   },
   chartCurrentBox: {
-    backgroundColor: colors.brandTertiary,
-    borderRadius: radius.sm,
     paddingHorizontal: 12,
     paddingVertical: 6,
     alignItems: "center",
   },
   chartCurrentVal: {
-    color: colors.brand,
     fontSize: 20,
     fontWeight: "800",
   },
   chartCurrentUnit: {
-    color: colors.brandSecondary,
     fontSize: 10,
     fontWeight: "700",
   },

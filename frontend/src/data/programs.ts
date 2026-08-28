@@ -77,13 +77,16 @@ export const LEVEL_LABEL: Record<ProgramLevel, string> = {
 };
 
 export const COVER_EMOJIS = ['💪', '🔥', '🏋️', '⚡', '🏃', '🎯', '🥊', '🚴', '🧘'];
+// Glacier Aurora : palette rééquilibrée vers les teintes froides (Glacier
+// Blue/Electric Blue/Cyan/Violet dominent), l'orange n'y reste qu'à titre
+// d'option parmi d'autres — plus la seule famille de couleurs disponible.
 export const COVER_COLORS = [
-  '#FF3D00',
-  '#FF6B00',
-  '#E53935',
-  '#FF9800',
-  '#00E676',
-  '#00B0FF',
-  '#7C4DFF',
-  '#FFC400',
+  '#4DA3FF',
+  '#247BFF',
+  '#35D6E8',
+  '#8B5CFF',
+  '#A78BFA',
+  '#30D158',
+  '#FF9F43',
+  '#FF453A',
 ];

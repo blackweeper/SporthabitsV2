@@ -45,10 +45,31 @@ export const classicTheme: Theme = {
       training: "#10B981",
       score: "#FF3D00",
     },
+    // Alias vers les hex déjà existants ci-dessus — aucun nouveau ton
+    // introduit pour Classique, juste un nom sémantique par catégorie de
+    // donnée pour que les graphiques puissent s'y référer sans dépendre de
+    // `brand`/`progress` directement.
+    data: {
+      strength: "#FF3D00",
+      cardio: "#3B82F6",
+      performance: "#8B5CF6",
+      success: "#00E676",
+      energy: "#FFC400",
+      achievement: "#FF7A4D",
+      danger: "#FF1744",
+    },
   },
   radius: { sm: 6, md: 12, lg: 20, pill: 999 },
   spacing: { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xl2: 32, xl3: 48 },
   background: { mode: "flat" },
   card: { mode: "flat" },
+  // Jamais lu (GlassCard/GlassChip court-circuitent sur `card.mode==="flat"`
+  // avant d'atteindre `glass`) — présent uniquement pour satisfaire le type
+  // `Theme`. Valeurs sans effet, donc sans risque si jamais lues par erreur.
+  glass: {
+    subtle: { tint: "#1A1A1A", blurIntensity: 0 },
+    card: { tint: "#1A1A1A", blurIntensity: 0 },
+    elevated: { tint: "#242424", blurIntensity: 0 },
+  },
   ringFill: { type: "timing", duration: 500 },
 };

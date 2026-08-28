@@ -1,9 +1,11 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { View, Text, StyleSheet, ScrollView, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing } from "@/src/theme";
+import { spacing, withAlpha } from "@/src/theme";
+import { Theme, useTheme } from "@/src/themes";
+import ThemedBackground from "@/src/themes/ThemedBackground";
 import { useLibraryUpdate, UpdateStep } from "@/src/hooks/useLibraryUpdate";
 
 const STEPS: UpdateStep[] = ["downloading", "validating", "merging", "finalizing"];
@@ -17,6 +19,8 @@ const STEP_LABEL: Record<UpdateStep, string> = {
 };
 
 export default function ExerciseLibraryUpdateScreen() {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   const router = useRouter();
   const { phase, progress, report, error, runUpdate, cancel, reset } = useLibraryUpdate();
   const started = useRef(false);
@@ -52,7 +56,15 @@ export default function ExerciseLibraryUpdateScreen() {
   const inProgress = phase !== "done" && phase !== "error" && phase !== "idle";
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+    <View style={{ flex: 1 }}>
+      <ThemedBackground />
+      <SafeAreaView
+        style={[
+          styles.container,
+          theme.background.mode === "gradient" ? { backgroundColor: "transparent" } : { backgroundColor: theme.colors.surface },
+        ]}
+        edges={["top", "bottom"]}
+      >
       <View style={styles.header}>
         <Text style={styles.title}>
           {phase === "done"
@@ -85,7 +97,7 @@ export default function ExerciseLibraryUpdateScreen() {
 
         {phase === "error" && (
           <View style={styles.errorBox}>
-            <Ionicons name="alert-circle" size={32} color={colors.error} />
+            <Ionicons name="alert-circle" size={32} color={theme.colors.error} />
             <Text style={styles.errorTitle}>La mise à jour a échoué</Text>
             <Text style={styles.errorMessage}>{error}</Text>
             <Text style={styles.errorHint}>
@@ -93,7 +105,7 @@ export default function ExerciseLibraryUpdateScreen() {
             </Text>
             <View style={styles.errorActions}>
               <Pressable testID="retry-library-update" style={styles.ctaFull} onPress={onRetry}>
-                <Ionicons name="refresh" size={16} color="#fff" />
+                <Ionicons name="refresh" size={16} color={theme.card.mode === "glass" ? theme.colors.brand : "#fff"} />
                 <Text style={styles.ctaFullText}>RÉESSAYER</Text>
               </Pressable>
               <Pressable
@@ -110,7 +122,7 @@ export default function ExerciseLibraryUpdateScreen() {
         {phase === "done" && report && (
           <>
             <View style={styles.successBox}>
-              <Ionicons name="checkmark-circle" size={40} color={colors.success} />
+              <Ionicons name="checkmark-circle" size={40} color={theme.colors.success} />
               <Text style={styles.successTitle}>Bibliothèque mise à jour</Text>
             </View>
 
@@ -157,21 +169,27 @@ export default function ExerciseLibraryUpdateScreen() {
 
         <View style={{ height: 40 }} />
       </ScrollView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
 function KpiBox({ icon, value, label }: { icon: any; value: number; label: string }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   return (
     <View style={styles.kpiBox}>
-      <Ionicons name={icon} size={14} color={colors.brand} />
+      <Ionicons name={icon} size={14} color={theme.colors.brand} />
       <Text style={styles.kpiVal}>{value}</Text>
       <Text style={styles.kpiLabel}>{label}</Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+function buildStyles(theme: Theme) {
+  const { colors, radius } = theme;
+  const isGlass = theme.card.mode === "glass";
+  return StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.surface },
   header: {
     paddingHorizontal: spacing.lg,
@@ -239,12 +257,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    backgroundColor: colors.brand,
+    backgroundColor: isGlass ? withAlpha(colors.brand, 18) : colors.brand,
     padding: spacing.md,
     borderRadius: radius.md,
     flex: 1,
   },
-  ctaFullText: { color: "#fff", fontWeight: "800", letterSpacing: 1 },
+  ctaFullText: { color: isGlass ? colors.brand : "#fff", fontWeight: "800", letterSpacing: 1 },
   backBtn: {
     padding: spacing.md,
     borderRadius: radius.md,
@@ -255,4 +273,5 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   backBtnText: { color: colors.onSurfaceSecondary, fontWeight: "800", letterSpacing: 1 },
-});
+  });
+}

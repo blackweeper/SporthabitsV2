@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -12,11 +12,15 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing } from "@/src/theme";
+import { spacing } from "@/src/theme";
+import { Theme, useTheme } from "@/src/themes";
+import ThemedBackground from "@/src/themes/ThemedBackground";
 import SwipeableRow from "@/src/components/SwipeableRow";
 import { getMealPresets, saveMealPresets, MealPreset, uid } from "@/src/utils/gym-storage";
 
 export default function MealPresetsScreen() {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   const router = useRouter();
   const [presets, setPresets] = useState<MealPreset[] | null>(null);
 
@@ -28,9 +32,12 @@ export default function MealPresetsScreen() {
 
   if (!presets) {
     return (
-      <SafeAreaView style={styles.container}>
-        <Text style={styles.loading}>Chargement…</Text>
-      </SafeAreaView>
+      <View style={{ flex: 1 }}>
+        <ThemedBackground />
+        <SafeAreaView style={[styles.container, theme.background.mode === "gradient" && { backgroundColor: "transparent" }]}>
+          <Text style={styles.loading}>Chargement…</Text>
+        </SafeAreaView>
+      </View>
     );
   }
 
@@ -52,10 +59,18 @@ export default function MealPresetsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+    <View style={{ flex: 1 }}>
+      <ThemedBackground />
+      <SafeAreaView
+        style={[
+          styles.container,
+          theme.background.mode === "gradient" ? { backgroundColor: "transparent" } : { backgroundColor: theme.colors.surface },
+        ]}
+        edges={["top", "bottom"]}
+      >
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} hitSlop={12}>
-          <Ionicons name="chevron-back" size={24} color={colors.onSurface} />
+          <Ionicons name="chevron-back" size={24} color={theme.colors.onSurface} />
         </Pressable>
         <Text style={styles.title}>Raccourcis repas</Text>
         <Pressable onPress={save} hitSlop={12} testID="save-meal-presets">
@@ -69,7 +84,7 @@ export default function MealPresetsScreen() {
       >
         <ScrollView contentContainerStyle={styles.scroll}>
           <View style={styles.hintCard}>
-            <Ionicons name="information-circle" size={14} color={colors.brand} />
+            <Ionicons name="information-circle" size={14} color={theme.colors.brand} />
             <Text style={styles.hintText}>
               Ces raccourcis apparaissent sur la carte Calories du Dashboard pour ajouter des
               calories en un seul geste.
@@ -101,7 +116,7 @@ export default function MealPresetsScreen() {
                   value={p.label}
                   onChangeText={(t) => update(p.id, { label: t })}
                   placeholder="Nom"
-                  placeholderTextColor={colors.onSurfaceTertiary}
+                  placeholderTextColor={theme.colors.onSurfaceTertiary}
                 />
                 <TextInput
                   testID={`meal-preset-${p.id}-kcal`}
@@ -112,25 +127,28 @@ export default function MealPresetsScreen() {
                   }
                   keyboardType="number-pad"
                   placeholder="kcal"
-                  placeholderTextColor={colors.onSurfaceTertiary}
+                  placeholderTextColor={theme.colors.onSurfaceTertiary}
                 />
               </View>
             </SwipeableRow>
           ))}
 
           <Pressable testID="add-meal-preset" style={styles.addBtn} onPress={add}>
-            <Ionicons name="add-circle" size={18} color={colors.brand} />
+            <Ionicons name="add-circle" size={18} color={theme.colors.brand} />
             <Text style={styles.addBtnText}>Ajouter un raccourci</Text>
           </Pressable>
 
           <View style={{ height: 40 }} />
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
-const styles = StyleSheet.create({
+function buildStyles(theme: Theme) {
+  const { colors, radius } = theme;
+  return StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.surface },
   loading: { color: colors.onSurfaceTertiary, textAlign: "center", marginTop: 40 },
   header: {
@@ -213,4 +231,5 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
   },
   addBtnText: { color: colors.brand, fontWeight: "800", fontSize: 13 },
-});
+  });
+}

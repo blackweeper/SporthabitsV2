@@ -13,7 +13,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing } from "@/src/theme";
+import { spacing, withAlpha } from "@/src/theme";
+import { Theme, useTheme } from "@/src/themes";
+import ThemedBackground from "@/src/themes/ThemedBackground";
 import {
   CARDIO_ACTIVITY_EMOJI,
   CARDIO_ACTIVITY_LABEL,
@@ -42,6 +44,8 @@ const ACTIVITIES: CardioActivity[] = [
  * history/stats exactly like a session started from a cardio program.
  */
 export default function NewCardioLogScreen() {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   const router = useRouter();
   const [activity, setActivity] = useState<CardioActivity>("course");
   const [hours, setHours] = useState("");
@@ -97,10 +101,18 @@ export default function NewCardioLogScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+    <View style={{ flex: 1 }}>
+      <ThemedBackground />
+      <SafeAreaView
+        style={[
+          styles.container,
+          theme.background.mode === "gradient" ? { backgroundColor: "transparent" } : { backgroundColor: theme.colors.surface },
+        ]}
+        edges={["top", "bottom"]}
+      >
       <View style={styles.header}>
         <Pressable testID="close-cardio-log" onPress={() => router.back()} hitSlop={12}>
-          <Ionicons name="chevron-back" size={24} color={colors.onSurface} />
+          <Ionicons name="chevron-back" size={24} color={theme.colors.onSurface} />
         </Pressable>
         <Text style={styles.title}>Activité cardio</Text>
         <Pressable testID="save-cardio-log" onPress={save} hitSlop={12}>
@@ -158,7 +170,7 @@ export default function NewCardioLogScreen() {
             value={distanceKm}
             onChangeText={setDistanceKm}
             placeholder="Ex: 8.5"
-            placeholderTextColor={colors.onSurfaceTertiary}
+            placeholderTextColor={theme.colors.onSurfaceTertiary}
           />
 
           {durationSeconds > 0 && (
@@ -176,7 +188,7 @@ export default function NewCardioLogScreen() {
             value={bodyWeight}
             onChangeText={setBodyWeight}
             placeholder="70"
-            placeholderTextColor={colors.onSurfaceTertiary}
+            placeholderTextColor={theme.colors.onSurfaceTertiary}
           />
 
           <Text style={styles.label}>Notes (optionnel)</Text>
@@ -186,13 +198,14 @@ export default function NewCardioLogScreen() {
             value={notes}
             onChangeText={setNotes}
             placeholder="Ressenti, parcours…"
-            placeholderTextColor={colors.onSurfaceTertiary}
+            placeholderTextColor={theme.colors.onSurfaceTertiary}
             multiline
           />
           <View style={{ height: 40 }} />
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
@@ -207,6 +220,8 @@ function TimeBox({
   onChange: (v: string) => void;
   testID?: string;
 }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   return (
     <View style={styles.timeBox}>
       <TextInput
@@ -216,14 +231,17 @@ function TimeBox({
         onChangeText={(t) => onChange(t.replace(/[^0-9]/g, "").slice(0, 3))}
         keyboardType="number-pad"
         placeholder="0"
-        placeholderTextColor={colors.onSurfaceTertiary}
+        placeholderTextColor={theme.colors.onSurfaceTertiary}
       />
       <Text style={styles.timeLabel}>{label}</Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+function buildStyles(theme: Theme) {
+  const { colors, radius } = theme;
+  const isGlass = theme.card.mode === "glass";
+  return StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.surface },
   header: {
     flexDirection: "row",
@@ -273,7 +291,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   activityChipActive: {
-    backgroundColor: colors.brand,
+    backgroundColor: isGlass ? withAlpha(colors.brand, 20) : colors.brand,
     borderColor: colors.brand,
   },
   activityChipText: {
@@ -314,7 +332,7 @@ const styles = StyleSheet.create({
   },
   previewCard: {
     marginTop: spacing.md,
-    backgroundColor: colors.brand,
+    backgroundColor: isGlass ? withAlpha(colors.brand, 20) : colors.brand,
     borderRadius: radius.md,
     padding: spacing.lg,
     alignItems: "center",
@@ -332,4 +350,5 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     marginTop: 4,
   },
-});
+  });
+}

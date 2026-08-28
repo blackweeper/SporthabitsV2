@@ -4,7 +4,9 @@ import Animated, { FadeInDown } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, motion, radius, spacing } from "@/src/theme";
+import { coloredShadow, motion, spacing, withAlpha } from "@/src/theme";
+import { useTheme } from "@/src/themes";
+import ThemedBackground from "@/src/themes/ThemedBackground";
 import { useExerciseLibraryItems } from "@/src/hooks/useExerciseLibraryItems";
 import { useLibraryUpdate } from "@/src/hooks/useLibraryUpdate";
 import ExerciseSearchBar from "@/src/components/exercise-library/ExerciseSearchBar";
@@ -17,6 +19,8 @@ import {
 } from "@/src/components/exercise-library/ExerciseFilterChips";
 import ExerciseCard from "@/src/components/exercise-library/ExerciseCard";
 import FilterSheet, { FilterCountBadge } from "@/src/components/ui/FilterSheet";
+import SegmentedTabRow from "@/src/components/ui/SegmentedTabRow";
+import GlassCard from "@/src/components/ui/GlassCard";
 import SwipeableRow from "@/src/components/SwipeableRow";
 import { MuscleGroupKey } from "@/src/utils/muscle-groups";
 import { CustomExercise, deleteCustomExercise, saveCustomExercise, uid } from "@/src/utils/gym-storage";
@@ -51,24 +55,36 @@ function DiscoverRow({
   onAdd: () => void;
   onDownloadPack: () => void;
 }) {
+  const { theme } = useTheme();
   const primaryMuscle = item.muscleGroups?.[0]
     ? MUSCLE_GROUPS.find((m) => m.key === item.muscleGroups![0])
     : undefined;
   const pack = item.collections?.[0];
   return (
-    <View style={styles.discoverRow}>
+    <View
+      style={[
+        styles.discoverRow,
+        {
+          backgroundColor: theme.colors.surfaceSecondary,
+          borderRadius: theme.radius.md,
+          borderColor: theme.colors.border,
+        },
+      ]}
+    >
       <View style={{ flex: 1 }}>
-        <Text style={styles.discoverRowName} numberOfLines={1}>
+        <Text style={[styles.discoverRowName, { color: theme.colors.onSurface }]} numberOfLines={1}>
           {item.name}
         </Text>
         <View style={styles.discoverRowMeta}>
           {primaryMuscle && <Text style={styles.discoverRowMetaEmoji}>{primaryMuscle.emoji}</Text>}
           {item.difficulty && (
-            <Text style={styles.discoverRowMetaText}>{EXERCISE_DIFFICULTY_LABEL[item.difficulty]}</Text>
+            <Text style={[styles.discoverRowMetaText, { color: theme.colors.onSurfaceTertiary }]}>
+              {EXERCISE_DIFFICULTY_LABEL[item.difficulty]}
+            </Text>
           )}
         </View>
         {pack && (
-          <Text style={styles.discoverRowPack}>
+          <Text style={[styles.discoverRowPack, { color: theme.colors.info }]}>
             Disponible dans : {FUTURE_COLLECTION_LABEL[pack]}
           </Text>
         )}
@@ -76,19 +92,27 @@ function DiscoverRow({
       <View style={styles.discoverRowActions}>
         <PressableScale
           testID={`lib-discover-add-${item.id}`}
-          style={styles.discoverAddBtn}
+          style={[
+            styles.discoverAddBtn,
+            theme.card.mode === "glass"
+              ? [
+                  { backgroundColor: withAlpha(theme.colors.brand, 20), borderWidth: 1, borderColor: withAlpha(theme.colors.brand, 50) },
+                  coloredShadow(theme.colors.brand, { offsetY: 0, opacity: 0.28, radius: 6, elevation: 2 }),
+                ]
+              : { backgroundColor: theme.colors.brand },
+          ]}
           onPress={onAdd}
         >
-          <Ionicons name="add" size={16} color={colors.onSurface} />
+          <Ionicons name="add" size={16} color={theme.colors.onSurface} />
         </PressableScale>
         {pack && (
           <PressableScale
             testID={`lib-discover-pack-${item.id}`}
-            style={styles.discoverPackBtn}
+            style={[styles.discoverPackBtn, { borderRadius: theme.radius.pill, borderColor: theme.colors.brand }]}
             onPress={onDownloadPack}
             disabled={downloading}
           >
-            <Text style={styles.discoverPackBtnText}>
+            <Text style={[styles.discoverPackBtnText, { color: theme.colors.brand }]}>
               {downloading ? "…" : "Tout le pack"}
             </Text>
           </PressableScale>
@@ -106,6 +130,7 @@ function DiscoverRow({
  * custom exercises and usage stats stay perfectly in sync everywhere.
  */
 export default function LibraryScreen() {
+  const { theme } = useTheme();
   const router = useRouter();
   const { create } = useLocalSearchParams<{ create?: string }>();
   const [query, setQuery] = useState("");
@@ -282,10 +307,18 @@ export default function LibraryScreen() {
       : items.filter((i) => i.exerciseTier === "collection_only").length;
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <View style={{ flex: 1 }}>
+      <ThemedBackground />
+      <SafeAreaView
+        style={[
+          styles.container,
+          theme.background.mode === "gradient" ? { backgroundColor: "transparent" } : { backgroundColor: theme.colors.surface },
+        ]}
+        edges={["top"]}
+      >
       <View style={styles.header}>
-        <Text style={styles.title}>Bibliothèque</Text>
-        <Text style={styles.subtitle}>
+        <Text style={[styles.title, { color: theme.colors.onSurface }]}>Bibliothèque</Text>
+        <Text style={[styles.subtitle, { color: theme.colors.onSurfaceTertiary }]}>
           {scopeCount} exercice{scopeCount > 1 ? "s" : ""}
           {scope === "library" ? " dans ta bibliothèque" : " à découvrir"}
         </Text>
@@ -295,58 +328,74 @@ export default function LibraryScreen() {
         <View style={{ flex: 1 }}>
           <ExerciseSearchBar value={query} onChange={setQuery} testID="lib-search" />
         </View>
-        <PressableScale
-          testID="lib-open-filters"
-          style={styles.filterBtn}
-          onPress={() => setFilterSheetOpen(true)}
-        >
-          <Ionicons name="options-outline" size={18} color={colors.onSurface} />
-          <FilterCountBadge count={activeFilterCount} />
+        <PressableScale testID="lib-open-filters" onPress={() => setFilterSheetOpen(true)}>
+          <GlassCard
+            level="subtle"
+            style={[
+              styles.filterBtn,
+              { borderRadius: theme.radius.md },
+              theme.card.mode !== "glass" && { backgroundColor: theme.colors.surfaceSecondary, borderColor: theme.colors.border },
+            ]}
+          >
+            <Ionicons name="options-outline" size={18} color={theme.colors.onSurface} />
+            <FilterCountBadge count={activeFilterCount} />
+          </GlassCard>
         </PressableScale>
       </View>
 
       <View style={styles.scopeRow}>
-        <PressableScale
-          testID="lib-scope-library"
-          style={[styles.scopeChip, scope === "library" && styles.scopeChipActive]}
-          onPress={() => setScope("library")}
-        >
-          <Text style={[styles.scopeChipText, scope === "library" && styles.scopeChipTextActive]}>
-            Ma bibliothèque
-          </Text>
-        </PressableScale>
-        <PressableScale
-          testID="lib-scope-discover"
-          style={[styles.scopeChip, scope === "discover" && styles.scopeChipActive]}
-          onPress={() => setScope("discover")}
-        >
-          <Text style={[styles.scopeChipText, scope === "discover" && styles.scopeChipTextActive]}>
-            Découvrir
-          </Text>
-        </PressableScale>
+        <View style={{ flex: 1 }}>
+          <SegmentedTabRow
+            testIDPrefix="lib-scope"
+            options={[
+              { key: "library", label: "Ma bibliothèque" },
+              { key: "discover", label: "Découvrir" },
+            ]}
+            value={scope}
+            onChange={setScope}
+          />
+        </View>
       </View>
 
       {scope === "discover" && (
-        <View style={styles.discoverBanner}>
-          <Text style={styles.discoverBannerText}>
+        <GlassCard
+          level="subtle"
+          style={[
+            styles.discoverBanner,
+            { borderRadius: theme.radius.md },
+            theme.card.mode !== "glass" && { backgroundColor: theme.colors.surfaceSecondary, borderColor: theme.colors.border },
+          ]}
+        >
+          <Text style={[styles.discoverBannerText, { color: theme.colors.onSurfaceTertiary }]}>
             Ces exercices rejoindront bientôt les Collections téléchargeables IronFlow — tu peux
             déjà les ajouter à ta bibliothèque personnelle.
           </Text>
-        </View>
+        </GlassCard>
       )}
 
       {scope === "discover" && discoverFetchBusy && (
         <View testID="discover-loading" style={styles.discoverStatusRow}>
-          <ActivityIndicator size="small" color={colors.brand} />
-          <Text style={styles.discoverStatusText}>Chargement du catalogue complet…</Text>
+          <ActivityIndicator size="small" color={theme.colors.brand} />
+          <Text style={[styles.discoverStatusText, { color: theme.colors.onSurfaceTertiary }]}>
+            Chargement du catalogue complet…
+          </Text>
         </View>
       )}
       {scope === "discover" && !discoverFetchBusy && discoverFetchError && (
         <View testID="discover-error" style={styles.discoverStatusRow}>
-          <Ionicons name="cloud-offline-outline" size={16} color={colors.onSurfaceTertiary} />
-          <Text style={styles.discoverStatusText}>{discoverFetchError}</Text>
-          <PressableScale testID="discover-retry" style={styles.discoverRetryBtn} onPress={retryDiscoverFetch}>
-            <Text style={styles.discoverRetryBtnText}>Réessayer</Text>
+          <Ionicons name="cloud-offline-outline" size={16} color={theme.colors.onSurfaceTertiary} />
+          <Text style={[styles.discoverStatusText, { color: theme.colors.onSurfaceTertiary }]}>
+            {discoverFetchError}
+          </Text>
+          <PressableScale
+            testID="discover-retry"
+            style={[
+              styles.discoverRetryBtn,
+              { borderRadius: theme.radius.pill, backgroundColor: theme.colors.surfaceTertiary, borderColor: theme.colors.border },
+            ]}
+            onPress={retryDiscoverFetch}
+          >
+            <Text style={[styles.discoverRetryBtnText, { color: theme.colors.brand }]}>Réessayer</Text>
           </PressableScale>
         </View>
       )}
@@ -368,7 +417,7 @@ export default function LibraryScreen() {
           query.trim() && !exactMatch ? (
             <PressableScale
               testID="lib-create-new"
-              style={styles.createRow}
+              style={[styles.createRow, { borderRadius: theme.radius.md, borderColor: theme.colors.brand }]}
               onPress={() =>
                 setSheet({
                   mode: "create",
@@ -386,10 +435,14 @@ export default function LibraryScreen() {
                 })
               }
             >
-              <Ionicons name="add-circle" size={22} color={colors.brand} />
+              <Ionicons name="add-circle" size={22} color={theme.colors.brand} />
               <View style={{ flex: 1 }}>
-                <Text style={styles.createRowTitle}>Créer «{query.trim()}»</Text>
-                <Text style={styles.createRowSub}>Nouvel exercice, absent de la bibliothèque</Text>
+                <Text style={[styles.createRowTitle, { color: theme.colors.onSurface }]}>
+                  Créer «{query.trim()}»
+                </Text>
+                <Text style={[styles.createRowSub, { color: theme.colors.onSurfaceTertiary }]}>
+                  Nouvel exercice, absent de la bibliothèque
+                </Text>
               </View>
             </PressableScale>
           ) : null
@@ -397,7 +450,7 @@ export default function LibraryScreen() {
         ListEmptyComponent={
           !query.trim() ? (
             <View>
-              <Text style={styles.emptyText}>
+              <Text style={[styles.emptyText, { color: theme.colors.onSurfaceTertiary }]}>
                 {scope === "library"
                   ? tab === "favorites"
                     ? "Aucun exercice favori pour l'instant."
@@ -409,10 +462,26 @@ export default function LibraryScreen() {
               {scope === "library" && (
                 <PressableScale
                   testID="lib-empty-see-discover"
-                  style={styles.emptyCatalogueButton}
+                  style={[
+                    styles.emptyCatalogueButton,
+                    { borderRadius: theme.radius.pill },
+                    theme.card.mode === "glass"
+                      ? [
+                          { backgroundColor: withAlpha(theme.colors.brand, 18), borderWidth: 1, borderColor: withAlpha(theme.colors.brand, 50) },
+                          coloredShadow(theme.colors.brand, { offsetY: 0, opacity: 0.3, radius: 10, elevation: 3 }),
+                        ]
+                      : { backgroundColor: theme.colors.brand },
+                  ]}
                   onPress={() => setScope("discover")}
                 >
-                  <Text style={styles.emptyCatalogueButtonText}>Voir les exercices à découvrir</Text>
+                  <Text
+                    style={[
+                      styles.emptyCatalogueButtonText,
+                      theme.card.mode === "glass" && { color: theme.colors.brand },
+                    ]}
+                  >
+                    Voir les exercices à découvrir
+                  </Text>
                 </PressableScale>
               )}
             </View>
@@ -463,7 +532,9 @@ export default function LibraryScreen() {
         ListFooterComponent={
           discoverMatches.length > 0 ? (
             <View style={styles.discoverSection}>
-              <Text style={styles.discoverSectionTitle}>À découvrir</Text>
+              <Text style={[styles.discoverSectionTitle, { color: theme.colors.onSurfaceTertiary }]}>
+                À découvrir
+              </Text>
               {discoverMatches.map((item) => (
                 <DiscoverRow
                   key={item.id}
@@ -489,7 +560,7 @@ export default function LibraryScreen() {
       <FilterSheet visible={filterSheetOpen} onClose={() => setFilterSheetOpen(false)}>
         {scope === "discover" && (
           <>
-            <Text style={styles.filterSectionLabel}>Collection</Text>
+            <Text style={[styles.filterSectionLabel, { color: theme.colors.onSurfaceTertiary }]}>Collection</Text>
             <CollectionChipRow
               collection={collectionFilter}
               onChange={setCollectionFilter}
@@ -497,17 +568,17 @@ export default function LibraryScreen() {
             />
           </>
         )}
-        <Text style={styles.filterSectionLabel}>Catégorie</Text>
+        <Text style={[styles.filterSectionLabel, { color: theme.colors.onSurfaceTertiary }]}>Catégorie</Text>
         <CategoryTabRow tab={tab} onChange={setTab} testIDPrefix="lib-tab" />
         {tab === "musculation" && (
           <>
-            <Text style={styles.filterSectionLabel}>Muscle</Text>
+            <Text style={[styles.filterSectionLabel, { color: theme.colors.onSurfaceTertiary }]}>Muscle</Text>
             <MuscleChipRow muscle={muscle} onChange={setMuscle} testIDPrefix="lib-muscle" />
           </>
         )}
         {equipmentOptions.length > 0 && (
           <>
-            <Text style={styles.filterSectionLabel}>Équipement</Text>
+            <Text style={[styles.filterSectionLabel, { color: theme.colors.onSurfaceTertiary }]}>Équipement</Text>
             <EquipmentChipRow
               equipment={equipment}
               options={equipmentOptions}
@@ -536,19 +607,20 @@ export default function LibraryScreen() {
             : undefined
         }
       />
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surface },
+  container: { flex: 1 },
   header: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.sm,
     paddingBottom: spacing.md,
   },
-  title: { color: colors.onSurface, fontSize: 22, fontWeight: "800" },
-  subtitle: { color: colors.onSurfaceTertiary, fontSize: 12, fontWeight: "600", marginTop: 2 },
+  title: { fontSize: 22, fontWeight: "800" },
+  subtitle: { fontSize: 12, fontWeight: "600", marginTop: 2 },
   searchWrap: {
     flexDirection: "row",
     alignItems: "center",
@@ -560,15 +632,11 @@ const styles = StyleSheet.create({
     position: "relative",
     width: 40,
     height: 40,
-    borderRadius: radius.md,
-    backgroundColor: colors.surfaceSecondary,
     borderWidth: 1,
-    borderColor: colors.border,
     alignItems: "center",
     justifyContent: "center",
   },
   filterSectionLabel: {
-    color: colors.onSurfaceTertiary,
     fontSize: 11,
     fontWeight: "800",
     letterSpacing: 0.5,
@@ -586,24 +654,16 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     paddingVertical: 8,
-    borderRadius: radius.pill,
-    backgroundColor: colors.surfaceSecondary,
     borderWidth: 1,
-    borderColor: colors.border,
   },
-  scopeChipActive: { backgroundColor: colors.brand, borderColor: colors.brand },
-  scopeChipText: { color: colors.onSurfaceTertiary, fontWeight: "800", fontSize: 13 },
-  scopeChipTextActive: { color: "#fff" },
+  scopeChipText: { fontWeight: "800", fontSize: 13 },
   discoverBanner: {
     marginHorizontal: spacing.lg,
     marginBottom: spacing.sm,
     padding: spacing.md,
-    borderRadius: radius.md,
-    backgroundColor: colors.surfaceSecondary,
     borderWidth: 1,
-    borderColor: colors.border,
   },
-  discoverBannerText: { color: colors.onSurfaceTertiary, fontSize: 12, fontWeight: "600", lineHeight: 17 },
+  discoverBannerText: { fontSize: 12, fontWeight: "600", lineHeight: 17 },
   discoverStatusRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -612,23 +672,18 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
     padding: spacing.sm,
   },
-  discoverStatusText: { flex: 1, color: colors.onSurfaceTertiary, fontSize: 12, fontWeight: "600" },
+  discoverStatusText: { flex: 1, fontSize: 12, fontWeight: "600" },
   discoverRetryBtn: {
     paddingHorizontal: 10,
     paddingVertical: 6,
-    borderRadius: radius.pill,
-    backgroundColor: colors.surfaceTertiary,
     borderWidth: 1,
-    borderColor: colors.border,
   },
-  discoverRetryBtnText: { color: colors.brand, fontSize: 11, fontWeight: "800" },
+  discoverRetryBtnText: { fontSize: 11, fontWeight: "800" },
   emptyCatalogueButton: {
     alignSelf: "center",
     marginTop: spacing.md,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
-    borderRadius: radius.pill,
-    backgroundColor: colors.brand,
   },
   emptyCatalogueButtonText: { color: "#fff", fontWeight: "800", fontSize: 13 },
   list: { padding: spacing.lg, paddingTop: spacing.sm },
@@ -646,23 +701,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.md,
     padding: spacing.md,
-    borderRadius: radius.md,
     borderWidth: 1.5,
-    borderColor: colors.brand,
     borderStyle: "dashed",
     marginBottom: spacing.sm,
   },
-  createRowTitle: { color: colors.onSurface, fontWeight: "800", fontSize: 14 },
-  createRowSub: { color: colors.onSurfaceTertiary, fontSize: 11, marginTop: 2 },
+  createRowTitle: { fontWeight: "800", fontSize: 14 },
+  createRowSub: { fontSize: 11, marginTop: 2 },
   emptyText: {
-    color: colors.onSurfaceTertiary,
     textAlign: "center",
     marginTop: spacing.xl,
     fontStyle: "italic",
   },
   discoverSection: { marginTop: spacing.md },
   discoverSectionTitle: {
-    color: colors.onSurfaceTertiary,
     fontSize: 11,
     fontWeight: "800",
     letterSpacing: 0.5,
@@ -673,19 +724,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
-    backgroundColor: colors.surfaceSecondary,
-    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: colors.border,
     borderStyle: "dashed",
     padding: spacing.md,
     marginBottom: spacing.sm,
   },
-  discoverRowName: { color: colors.onSurface, fontWeight: "800", fontSize: 13 },
+  discoverRowName: { fontWeight: "800", fontSize: 13 },
   discoverRowMeta: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 },
   discoverRowMetaEmoji: { fontSize: 11 },
-  discoverRowMetaText: { color: colors.onSurfaceTertiary, fontSize: 10, fontWeight: "700" },
-  discoverRowPack: { color: colors.info, fontSize: 10, fontWeight: "700", marginTop: 3 },
+  discoverRowMetaText: { fontSize: 10, fontWeight: "700" },
+  discoverRowPack: { fontSize: 10, fontWeight: "700", marginTop: 3 },
   discoverRowActions: { flexDirection: "row", alignItems: "center", gap: spacing.xs },
   discoverAddBtn: {
     width: 28,
@@ -693,14 +741,11 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.brand,
   },
   discoverPackBtn: {
     paddingHorizontal: spacing.sm,
     paddingVertical: 6,
-    borderRadius: radius.pill,
     borderWidth: 1,
-    borderColor: colors.brand,
   },
-  discoverPackBtnText: { color: colors.brand, fontSize: 10, fontWeight: "800" },
+  discoverPackBtnText: { fontSize: 10, fontWeight: "800" },
 });

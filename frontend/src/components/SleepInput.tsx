@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing } from "@/src/theme";
+import { coloredShadow, spacing, withAlpha } from "@/src/theme";
+import { useTheme } from "@/src/themes";
 import {
   computeSleepHoursFromTimes,
   formatSleepHM,
@@ -58,6 +59,8 @@ export default function SleepInput({
   onChange: (next: SleepValue) => void;
   testID?: string;
 }) {
+  const { theme } = useTheme();
+  const isGlass = theme.card.mode === "glass";
   const [editing, setEditing] = useState<null | "bedtime" | "wake" | "manual">(null);
 
   const computedHours =
@@ -75,26 +78,57 @@ export default function SleepInput({
   return (
     <View style={styles.wrap} testID={testID}>
       <View style={styles.headRow}>
-        <Ionicons name="moon" size={14} color={colors.brand} />
-        <Text style={styles.label}>Sommeil</Text>
+        <Ionicons name="moon" size={14} color={theme.colors.brand} />
+        <Text style={[styles.label, { color: theme.colors.onSurface }]}>Sommeil</Text>
       </View>
 
-      <View style={styles.modeRow}>
+      <View
+        style={[
+          styles.modeRow,
+          { borderRadius: theme.radius.sm, backgroundColor: isGlass ? theme.glass.subtle.tint : theme.colors.surfaceTertiary },
+        ]}
+      >
         <Pressable
           testID="sleep-mode-auto"
-          style={[styles.modeChip, value.mode === "auto" && styles.modeChipActive]}
+          style={[
+            styles.modeChip,
+            value.mode === "auto"
+              ? isGlass
+                ? { backgroundColor: withAlpha(theme.colors.brand, 22) }
+                : { backgroundColor: theme.colors.brand }
+              : null,
+          ]}
           onPress={() => onChange({ ...value, mode: "auto" })}
         >
-          <Text style={[styles.modeChipText, value.mode === "auto" && { color: "#fff" }]}>
+          <Text
+            style={[
+              styles.modeChipText,
+              { color: theme.colors.onSurfaceTertiary },
+              value.mode === "auto" && { color: isGlass ? theme.colors.brand : "#fff" },
+            ]}
+          >
             COUCHER / LEVER
           </Text>
         </Pressable>
         <Pressable
           testID="sleep-mode-manual"
-          style={[styles.modeChip, value.mode === "manual" && styles.modeChipActive]}
+          style={[
+            styles.modeChip,
+            value.mode === "manual"
+              ? isGlass
+                ? { backgroundColor: withAlpha(theme.colors.brand, 22) }
+                : { backgroundColor: theme.colors.brand }
+              : null,
+          ]}
           onPress={() => onChange({ ...value, mode: "manual" })}
         >
-          <Text style={[styles.modeChipText, value.mode === "manual" && { color: "#fff" }]}>
+          <Text
+            style={[
+              styles.modeChipText,
+              { color: theme.colors.onSurfaceTertiary },
+              value.mode === "manual" && { color: isGlass ? theme.colors.brand : "#fff" },
+            ]}
+          >
             MANUEL
           </Text>
         </Pressable>
@@ -104,38 +138,59 @@ export default function SleepInput({
         <View style={styles.timesRow}>
           <Pressable
             testID="sleep-bedtime-field"
-            style={styles.timeField}
+            style={[
+              styles.timeField,
+              { borderRadius: theme.radius.md, backgroundColor: isGlass ? theme.glass.subtle.tint : theme.colors.surfaceTertiary },
+            ]}
             onPress={() => setEditing("bedtime")}
           >
-            <Text style={styles.timeFieldLabel}>Coucher</Text>
-            <Text style={styles.timeFieldValue}>{value.bedtime ?? "--:--"}</Text>
+            <Text style={[styles.timeFieldLabel, { color: theme.colors.onSurfaceTertiary }]}>Coucher</Text>
+            <Text style={[styles.timeFieldValue, { color: theme.colors.onSurface }]}>{value.bedtime ?? "--:--"}</Text>
           </Pressable>
-          <Ionicons name="arrow-forward" size={14} color={colors.onSurfaceTertiary} />
+          <Ionicons name="arrow-forward" size={14} color={theme.colors.onSurfaceTertiary} />
           <Pressable
             testID="sleep-wake-field"
-            style={styles.timeField}
+            style={[
+              styles.timeField,
+              { borderRadius: theme.radius.md, backgroundColor: isGlass ? theme.glass.subtle.tint : theme.colors.surfaceTertiary },
+            ]}
             onPress={() => setEditing("wake")}
           >
-            <Text style={styles.timeFieldLabel}>Lever</Text>
-            <Text style={styles.timeFieldValue}>{value.wakeTime ?? "--:--"}</Text>
+            <Text style={[styles.timeFieldLabel, { color: theme.colors.onSurfaceTertiary }]}>Lever</Text>
+            <Text style={[styles.timeFieldValue, { color: theme.colors.onSurface }]}>{value.wakeTime ?? "--:--"}</Text>
           </Pressable>
         </View>
       ) : (
         <Pressable
           testID="sleep-manual-field"
-          style={styles.manualField}
+          style={[
+            styles.manualField,
+            { borderRadius: theme.radius.md, backgroundColor: isGlass ? theme.glass.subtle.tint : theme.colors.surfaceTertiary },
+          ]}
           onPress={() => setEditing("manual")}
         >
-          <Text style={styles.timeFieldLabel}>Durée de sommeil</Text>
-          <Text style={styles.timeFieldValue}>
+          <Text style={[styles.timeFieldLabel, { color: theme.colors.onSurfaceTertiary }]}>Durée de sommeil</Text>
+          <Text style={[styles.timeFieldValue, { color: theme.colors.onSurface }]}>
             {value.manualHours != null ? formatSleepHM(value.manualHours) : "Ex: 7h30"}
           </Text>
         </Pressable>
       )}
 
-      <View style={styles.durationCallout} testID={testID ? `${testID}-duration` : undefined}>
-        <Text style={styles.durationLabel}>Temps de sommeil</Text>
-        <Text style={styles.durationValue}>
+      <View
+        style={[
+          styles.durationCallout,
+          { borderRadius: theme.radius.md },
+          isGlass
+            ? [
+                { backgroundColor: withAlpha(theme.colors.brand, 12), borderColor: withAlpha(theme.colors.brand, 30) },
+                coloredShadow(theme.colors.brand, { offsetY: 0, opacity: 0.12, radius: 10, elevation: 2 }),
+              ]
+            : { backgroundColor: theme.colors.brandTertiary, borderColor: theme.colors.brand },
+        ]}
+        testID={testID ? `${testID}-duration` : undefined}
+      >
+        <Text style={[styles.durationLabel, { color: theme.colors.brandSecondary }]}>Temps de sommeil</Text>
+        <Text style={[styles.durationValue, { color: theme.colors.brand }]}>
           {computedHours != null ? formatSleepHM(computedHours) : "—"}
         </Text>
       </View>
@@ -177,32 +232,25 @@ export default function SleepInput({
 const styles = StyleSheet.create({
   wrap: { gap: 8 },
   headRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  label: { flex: 1, color: colors.onSurface, fontWeight: "800", fontSize: 13 },
+  label: { flex: 1, fontWeight: "800", fontSize: 13 },
   durationCallout: {
     flexDirection: "row",
     alignItems: "baseline",
     justifyContent: "space-between",
-    backgroundColor: colors.brandTertiary,
-    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: colors.brand,
     paddingHorizontal: spacing.md,
     paddingVertical: 10,
   },
   durationLabel: {
-    color: colors.brandSecondary,
     fontWeight: "700",
     fontSize: 12,
   },
   durationValue: {
-    color: colors.brand,
     fontWeight: "800",
     fontSize: 22,
   },
   modeRow: {
     flexDirection: "row",
-    backgroundColor: colors.surfaceTertiary,
-    borderRadius: radius.sm,
     padding: 3,
     gap: 3,
   },
@@ -212,9 +260,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: 4,
   },
-  modeChipActive: { backgroundColor: colors.brand },
   modeChipText: {
-    color: colors.onSurfaceTertiary,
     fontWeight: "800",
     fontSize: 10,
     letterSpacing: 0.6,
@@ -222,23 +268,18 @@ const styles = StyleSheet.create({
   timesRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   timeField: {
     flex: 1,
-    backgroundColor: colors.surfaceTertiary,
-    borderRadius: radius.md,
     padding: spacing.sm,
     alignItems: "center",
   },
   manualField: {
-    backgroundColor: colors.surfaceTertiary,
-    borderRadius: radius.md,
     padding: spacing.md,
     alignItems: "center",
   },
   timeFieldLabel: {
-    color: colors.onSurfaceTertiary,
     fontSize: 10,
     fontWeight: "700",
     letterSpacing: 0.5,
     marginBottom: 2,
   },
-  timeFieldValue: { color: colors.onSurface, fontWeight: "800", fontSize: 16 },
+  timeFieldValue: { fontWeight: "800", fontSize: 16 },
 });

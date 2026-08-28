@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -9,7 +9,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing } from "@/src/theme";
+import { spacing, withAlpha } from "@/src/theme";
+import { Theme, useTheme } from "@/src/themes";
+import ThemedBackground from "@/src/themes/ThemedBackground";
 import { getSessions } from "@/src/utils/gym-storage";
 import { computeAdvancedStats, AdvancedStats } from "@/src/utils/stats";
 import CalendarView from "@/src/components/CalendarView";
@@ -22,6 +24,8 @@ function formatDuration(sec: number) {
 }
 
 export default function StatsScreen() {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   const router = useRouter();
   const [stats, setStats] = useState<AdvancedStats | null>(null);
   const [sessions, setSessions] = useState<any[]>([]);
@@ -39,27 +43,38 @@ export default function StatsScreen() {
 
   if (!stats) {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <Pressable onPress={() => router.back()} hitSlop={12}>
-            <Ionicons name="chevron-back" size={24} color={colors.onSurface} />
-          </Pressable>
-          <Text style={styles.title}>Statistiques</Text>
-          <View style={{ width: 24 }} />
-        </View>
-      </SafeAreaView>
+      <View style={{ flex: 1 }}>
+        <ThemedBackground />
+        <SafeAreaView style={[styles.container, theme.background.mode === "gradient" && { backgroundColor: "transparent" }]}>
+          <View style={styles.header}>
+            <Pressable onPress={() => router.back()} hitSlop={12}>
+              <Ionicons name="chevron-back" size={24} color={theme.colors.onSurface} />
+            </Pressable>
+            <Text style={styles.title}>Statistiques</Text>
+            <View style={{ width: 24 }} />
+          </View>
+        </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+    <View style={{ flex: 1 }}>
+      <ThemedBackground />
+      <SafeAreaView
+        style={[
+          styles.container,
+          theme.background.mode === "gradient" ? { backgroundColor: "transparent" } : { backgroundColor: theme.colors.surface },
+        ]}
+        edges={["top", "bottom"]}
+      >
       <View style={styles.header}>
         <Pressable
           testID="close-stats"
           onPress={() => router.back()}
           hitSlop={12}
         >
-          <Ionicons name="chevron-back" size={24} color={colors.onSurface} />
+          <Ionicons name="chevron-back" size={24} color={theme.colors.onSurface} />
         </Pressable>
         <Text style={styles.title}>Statistiques</Text>
         <View style={{ width: 24 }} />
@@ -121,14 +136,14 @@ export default function StatsScreen() {
               router.push(`/exercise/${encodeURIComponent(stats.favoriteExercise!)}`)
             }
           >
-            <Ionicons name="star" size={18} color={colors.brand} />
+            <Ionicons name="star" size={18} color={theme.colors.brand} />
             <View style={{ flex: 1 }}>
               <Text style={styles.highlightLabel}>Exercice préféré</Text>
               <Text style={styles.highlightVal}>
                 {capitalize(stats.favoriteExercise)}
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color={colors.brand} />
+            <Ionicons name="chevron-forward" size={16} color={theme.colors.brand} />
           </Pressable>
         )}
         {stats.forgottenExercise && (
@@ -139,7 +154,7 @@ export default function StatsScreen() {
               router.push(`/exercise/${encodeURIComponent(stats.forgottenExercise!)}`)
             }
           >
-            <Ionicons name="alert-circle" size={18} color={colors.onSurfaceSecondary} />
+            <Ionicons name="alert-circle" size={18} color={theme.colors.onSurfaceSecondary} />
             <View style={{ flex: 1 }}>
               <Text style={styles.highlightLabelMuted}>Exercice oublié</Text>
               <Text style={styles.highlightValMuted}>
@@ -149,7 +164,7 @@ export default function StatsScreen() {
                 Fait il y a plus de 30 jours
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color={colors.onSurfaceTertiary} />
+            <Ionicons name="chevron-forward" size={16} color={theme.colors.onSurfaceTertiary} />
           </Pressable>
         )}
 
@@ -158,9 +173,9 @@ export default function StatsScreen() {
           style={styles.allExBtn}
           onPress={() => router.push("/exercise")}
         >
-          <Ionicons name="list" size={16} color={colors.brand} />
+          <Ionicons name="list" size={16} color={theme.colors.brand} />
           <Text style={styles.allExBtnText}>Voir tous mes exercices</Text>
-          <Ionicons name="chevron-forward" size={16} color={colors.brand} />
+          <Ionicons name="chevron-forward" size={16} color={theme.colors.brand} />
         </Pressable>
 
         {/* Calendar */}
@@ -173,7 +188,8 @@ export default function StatsScreen() {
 
         <View style={{ height: 40 }} />
       </ScrollView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
@@ -186,9 +202,11 @@ function StatBox({
   value: string;
   label: string;
 }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   return (
     <View style={styles.statBox}>
-      <Ionicons name={icon} size={14} color={colors.brand} />
+      <Ionicons name={icon} size={14} color={theme.colors.brand} />
       <Text style={styles.statVal}>{value}</Text>
       <Text style={styles.statLabel}>{label}</Text>
     </View>
@@ -199,7 +217,10 @@ function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-const styles = StyleSheet.create({
+function buildStyles(theme: Theme) {
+  const { colors, radius } = theme;
+  const isGlass = theme.card.mode === "glass";
+  return StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.surface },
   header: {
     flexDirection: "row",
@@ -216,7 +237,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
-    backgroundColor: colors.brand,
+    backgroundColor: isGlass ? withAlpha(colors.brand, 20) : colors.brand,
     padding: spacing.lg,
     borderRadius: radius.md,
   },
@@ -321,4 +342,5 @@ const styles = StyleSheet.create({
     fontSize: 13,
     letterSpacing: 0.5,
   },
-});
+  });
+}

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { View, Text, StyleSheet, Image, LayoutChangeEvent } from "react-native";
-import { colors, radius, spacing } from "@/src/theme";
+import { spacing } from "@/src/theme";
+import { useTheme } from "@/src/themes";
 import { ExerciseRecord } from "@/src/utils/exercise-records";
 import { matchExerciseRecordLoose } from "@/src/utils/exercise-record-match";
 import { cleanCompositeItemLabel } from "@/src/utils/composite-exercise";
@@ -28,6 +29,7 @@ function CompositePanel({
   // Résolution sur le nom nettoyé (sans quantité/distance/charge — "250m
   // Rameur" -> "Rameur") : la quantité en tête ne matche jamais un nom de
   // bibliothèque, elle rendait toute résolution impossible.
+  const { theme } = useTheme();
   const cleanedName = cleanCompositeItemLabel(name);
   const record = matchExerciseRecordLoose(cleanedName, records);
   const bundled = record?.id ? CORE_LIBRARY_ASSETS[record.id] : undefined;
@@ -36,17 +38,28 @@ function CompositePanel({
 
   return (
     <View style={{ width: size }}>
-      <View style={[styles.panel, { width: size, height: size }]}>
+      <View
+        style={[
+          styles.panel,
+          {
+            width: size,
+            height: size,
+            borderRadius: theme.radius.md,
+            borderColor: theme.colors.border,
+            backgroundColor: theme.colors.surfaceTertiary,
+          },
+        ]}
+      >
         {source ? (
           <Image source={source} style={styles.panelImg} resizeMode="contain" />
         ) : (
-          <View style={styles.panelFallback}>
+          <View style={[styles.panelFallback, { backgroundColor: theme.colors.brandTertiary }]}>
             <Text style={{ fontSize: size * 0.4 }}>{iconEmojiForExercise(cleanedName, null)}</Text>
           </View>
         )}
       </View>
       {showCaption && (
-        <Text style={styles.panelLabel} numberOfLines={1}>
+        <Text style={[styles.panelLabel, { color: theme.colors.onSurfaceSecondary }]} numberOfLines={1}>
           {name}
         </Text>
       )}
@@ -90,13 +103,14 @@ export default function CompositeExerciseImage({
   // (largeur de contenu mobile typique) le temps du premier layout, pour
   // éviter un flash de vignettes à taille nulle — même discipline que
   // `useDynamicMediaHeight`.
+  const { theme } = useTheme();
   const [frameWidth, setFrameWidth] = useState(343);
   const panelSize = compact ? 64 : Math.max(0, (frameWidth - gap * (columns - 1)) / columns);
   const onLayout = compact ? undefined : (e: LayoutChangeEvent) => setFrameWidth(e.nativeEvent.layout.width);
 
   return (
     <View style={styles.wrap}>
-      {showLabel && <Text style={styles.label}>COMPOSÉ DE</Text>}
+      {showLabel && <Text style={[styles.label, { color: theme.colors.onSurfaceTertiary }]}>COMPOSÉ DE</Text>}
       <View style={[styles.frame, { gap }]} onLayout={onLayout}>
         {items.map((item, i) => (
           <CompositePanel
@@ -115,29 +129,23 @@ export default function CompositeExerciseImage({
 const styles = StyleSheet.create({
   wrap: { gap: spacing.sm },
   label: {
-    color: colors.onSurfaceTertiary,
     fontSize: 10,
     fontWeight: "800",
     letterSpacing: 0.8,
   },
   frame: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center" },
   panel: {
-    borderRadius: radius.md,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surfaceTertiary,
   },
   panelImg: { width: "100%", height: "100%" },
   panelFallback: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.brandTertiary,
   },
   panelLabel: {
     marginTop: 4,
-    color: colors.onSurfaceSecondary,
     fontSize: 10,
     fontWeight: "700",
     textAlign: "center",

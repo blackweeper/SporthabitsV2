@@ -3,7 +3,9 @@ import { View, Text, StyleSheet, Pressable, Modal, Animated } from "react-native
 import { Ionicons } from "@expo/vector-icons";
 import Svg, { Circle } from "react-native-svg";
 import * as Haptics from "expo-haptics";
-import { colors, radius, spacing } from "@/src/theme";
+import { coloredShadow, spacing, withAlpha } from "@/src/theme";
+import { useTheme } from "@/src/themes";
+import GlassCard from "@/src/components/ui/GlassCard";
 import { Habit, setHabitValue, todayYYYYMMDD } from "@/src/utils/gym-storage";
 import { speak } from "@/src/utils/audio";
 import {
@@ -25,6 +27,7 @@ export default function HabitTimerModal({
   onClose: () => void;
   onCompleted: () => void;
 }) {
+  const { theme } = useTheme();
   const [timer, setTimer] = useState<ActiveHabitTimer | null>(null);
   const [elapsedMs, setElapsedMs] = useState(0);
   const [done, setDone] = useState(false);
@@ -46,7 +49,7 @@ export default function HabitTimerModal({
         t = {
           habitId: habit.id,
           habitTitle: habit.title,
-          color: habit.color ?? colors.brand,
+          color: habit.color ?? theme.colors.brand,
           targetSeconds: target,
           status: "running",
           baseMs: 0,
@@ -140,40 +143,70 @@ export default function HabitTimerModal({
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <View style={styles.backdrop}>
-        <View style={styles.sheet}>
+        <GlassCard
+          level="elevated"
+          style={[styles.sheet, theme.card.mode !== "glass" && { backgroundColor: theme.colors.surfaceSecondary }]}
+        >
           {!done ? (
             <>
-              <Text style={styles.title}>{habit.title}</Text>
-              <TimerRing pct={pct} color={color} label={formatTime(remainingSec)} />
-              <Text style={styles.hint}>
+              <Text style={[styles.title, { color: theme.colors.onSurface }]}>{habit.title}</Text>
+              <TimerRing pct={pct} color={color} label={formatTime(remainingSec)} trackColor={theme.colors.surfaceTertiary} labelColor={theme.colors.onSurface} unitColor={theme.colors.onSurfaceTertiary} />
+              <Text style={[styles.hint, { color: theme.colors.onSurfaceTertiary }]}>
                 Objectif : {Math.max(1, habit.target ?? 1)} min
               </Text>
               <View style={styles.controlsRow}>
                 <Pressable
                   testID="habit-timer-stop"
-                  style={styles.ctlBtn}
+                  style={[
+                    styles.ctlBtn,
+                    {
+                      borderRadius: theme.radius.md,
+                      backgroundColor: theme.colors.surfaceTertiary,
+                      borderColor: theme.colors.border,
+                    },
+                  ]}
                   onPress={stop}
                 >
-                  <Ionicons name="stop" size={20} color={colors.onSurface} />
-                  <Text style={styles.ctlBtnText}>ARRÊTER</Text>
+                  <Ionicons name="stop" size={20} color={theme.colors.onSurface} />
+                  <Text style={[styles.ctlBtnText, { color: theme.colors.onSurface }]}>ARRÊTER</Text>
                 </Pressable>
                 {timer.status === "running" ? (
                   <Pressable
                     testID="habit-timer-pause"
-                    style={[styles.ctlBtn, styles.ctlBtnPrimary, { backgroundColor: color }]}
+                    style={[
+                      styles.ctlBtn,
+                      styles.ctlBtnPrimary,
+                      { borderRadius: theme.radius.md },
+                      theme.card.mode === "glass"
+                        ? [
+                            { backgroundColor: withAlpha(color, 20), borderWidth: 1, borderColor: withAlpha(color, 50) },
+                            coloredShadow(color, { offsetY: 0, opacity: 0.3, radius: 10, elevation: 3 }),
+                          ]
+                        : { backgroundColor: color },
+                    ]}
                     onPress={pause}
                   >
-                    <Ionicons name="pause" size={20} color="#fff" />
-                    <Text style={[styles.ctlBtnText, { color: "#fff" }]}>PAUSE</Text>
+                    <Ionicons name="pause" size={20} color={theme.card.mode === "glass" ? color : "#fff"} />
+                    <Text style={[styles.ctlBtnText, { color: theme.card.mode === "glass" ? color : "#fff" }]}>PAUSE</Text>
                   </Pressable>
                 ) : (
                   <Pressable
                     testID="habit-timer-resume"
-                    style={[styles.ctlBtn, styles.ctlBtnPrimary, { backgroundColor: color }]}
+                    style={[
+                      styles.ctlBtn,
+                      styles.ctlBtnPrimary,
+                      { borderRadius: theme.radius.md },
+                      theme.card.mode === "glass"
+                        ? [
+                            { backgroundColor: withAlpha(color, 20), borderWidth: 1, borderColor: withAlpha(color, 50) },
+                            coloredShadow(color, { offsetY: 0, opacity: 0.3, radius: 10, elevation: 3 }),
+                          ]
+                        : { backgroundColor: color },
+                    ]}
                     onPress={resume}
                   >
-                    <Ionicons name="play" size={20} color="#fff" />
-                    <Text style={[styles.ctlBtnText, { color: "#fff" }]}>REPRENDRE</Text>
+                    <Ionicons name="play" size={20} color={theme.card.mode === "glass" ? color : "#fff"} />
+                    <Text style={[styles.ctlBtnText, { color: theme.card.mode === "glass" ? color : "#fff" }]}>REPRENDRE</Text>
                   </Pressable>
                 )}
               </View>
@@ -188,11 +221,11 @@ export default function HabitTimerModal({
               >
                 <Ionicons name="checkmark" size={48} color="#fff" />
               </Animated.View>
-              <Text style={styles.successTitle}>Habitude terminée !</Text>
-              <Text style={styles.successSub}>{habit.title}</Text>
+              <Text style={[styles.successTitle, { color: theme.colors.onSurface }]}>Habitude terminée !</Text>
+              <Text style={[styles.successSub, { color: theme.colors.onSurfaceTertiary }]}>{habit.title}</Text>
             </View>
           )}
-        </View>
+        </GlassCard>
       </View>
     </Modal>
   );
@@ -202,10 +235,16 @@ function TimerRing({
   pct,
   color,
   label,
+  trackColor,
+  labelColor,
+  unitColor,
 }: {
   pct: number;
   color: string;
   label: string;
+  trackColor: string;
+  labelColor: string;
+  unitColor: string;
 }) {
   const size = 220;
   const strokeWidth = 14;
@@ -219,7 +258,7 @@ function TimerRing({
           cx={size / 2}
           cy={size / 2}
           r={r}
-          stroke={colors.surfaceTertiary}
+          stroke={trackColor}
           strokeWidth={strokeWidth}
           fill="none"
         />
@@ -236,8 +275,8 @@ function TimerRing({
           transform={`rotate(-90 ${size / 2} ${size / 2})`}
         />
       </Svg>
-      <Text style={styles.ringLabel}>{label}</Text>
-      <Text style={styles.ringUnit}>RESTANT</Text>
+      <Text style={[styles.ringLabel, { color: labelColor }]}>{label}</Text>
+      <Text style={[styles.ringUnit, { color: unitColor }]}>RESTANT</Text>
     </View>
   );
 }
@@ -255,7 +294,6 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   sheet: {
-    backgroundColor: colors.surfaceSecondary,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: spacing.xl,
@@ -265,22 +303,18 @@ const styles = StyleSheet.create({
     minHeight: 420,
   },
   title: {
-    color: colors.onSurface,
     fontSize: 20,
     fontWeight: "800",
   },
   hint: {
-    color: colors.onSurfaceTertiary,
     fontSize: 12,
     fontWeight: "600",
   },
   ringLabel: {
-    color: colors.onSurface,
     fontSize: 44,
     fontWeight: "800",
   },
   ringUnit: {
-    color: colors.onSurfaceTertiary,
     fontSize: 11,
     letterSpacing: 2,
     marginTop: 2,
@@ -297,14 +331,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 6,
     paddingVertical: 16,
-    borderRadius: radius.md,
-    backgroundColor: colors.surfaceTertiary,
     borderWidth: 1,
-    borderColor: colors.border,
   },
   ctlBtnPrimary: { borderWidth: 0 },
   ctlBtnText: {
-    color: colors.onSurface,
     fontWeight: "800",
     fontSize: 12,
     letterSpacing: 0.6,
@@ -323,12 +353,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   successTitle: {
-    color: colors.onSurface,
     fontSize: 20,
     fontWeight: "800",
   },
   successSub: {
-    color: colors.onSurfaceTertiary,
     fontSize: 13,
     fontWeight: "600",
   },

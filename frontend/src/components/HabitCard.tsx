@@ -15,8 +15,10 @@ import {
 // horizontalement même si chaque chip restait cliquable.
 import { ScrollView } from "react-native-gesture-handler";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, shadow, spacing } from "@/src/theme";
+import { coloredShadow, shadow, spacing, withAlpha } from "@/src/theme";
+import { useTheme } from "@/src/themes";
 import PressableScale from "@/src/components/ui/PressableScale";
+import GlassCard from "@/src/components/ui/GlassCard";
 
 /** Shared "saisir/ajouter une valeur" modal for quantitative habit cards
  * (Eau, Calories, Pas, and any future numeric habit) — one instance reused
@@ -51,6 +53,8 @@ export function QuantityModal({
   onClose: () => void;
   onSubmit: (n: number) => void;
 }) {
+  const { theme } = useTheme();
+  const isGlass = theme.card.mode === "glass";
   const [draft, setDraft] = useState("");
 
   useEffect(() => {
@@ -74,36 +78,63 @@ export function QuantityModal({
       <View style={styles.modalBackdrop}>
         <Pressable style={{ flex: 1 }} onPress={onClose} />
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}>
-          <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>
+          <GlassCard
+            level="elevated"
+            style={[
+              styles.modalCard,
+              { borderRadius: theme.radius.lg },
+              !isGlass && { backgroundColor: theme.colors.surfaceSecondary, borderColor: theme.colors.border },
+            ]}
+          >
+            <Text style={[styles.modalTitle, { color: theme.colors.onSurface }]}>
               {mode === "add" ? `Ajouter ${label.toLowerCase()}` : `Saisir ${label.toLowerCase()}`}
             </Text>
             {quickActions}
             <TextInput
               testID="quantity-modal-input"
-              style={styles.modalInput}
+              style={[
+                styles.modalInput,
+                {
+                  backgroundColor: isGlass ? theme.glass.subtle.tint : theme.colors.surfaceTertiary,
+                  borderRadius: theme.radius.md,
+                  color: theme.colors.onSurface,
+                  borderColor: theme.colors.border,
+                },
+              ]}
               value={draft}
               onChangeText={setDraft}
               keyboardType="number-pad"
               placeholder={mode === "add" ? `Ex: 325 ${unit}` : `0 ${unit}`}
-              placeholderTextColor={colors.onSurfaceTertiary}
+              placeholderTextColor={theme.colors.onSurfaceTertiary}
               autoFocus
             />
             <View style={styles.modalActions}>
-              <Pressable onPress={onClose} style={styles.modalBtnGhost}>
-                <Text style={styles.modalBtnGhostText}>Annuler</Text>
+              <Pressable
+                onPress={onClose}
+                style={[styles.modalBtnGhost, { borderRadius: theme.radius.md, borderColor: theme.colors.border }]}
+              >
+                <Text style={[styles.modalBtnGhostText, { color: theme.colors.onSurfaceSecondary }]}>Annuler</Text>
               </Pressable>
               <Pressable
                 onPress={submit}
-                style={[styles.modalBtn, { backgroundColor: color }]}
+                style={[
+                  styles.modalBtn,
+                  { borderRadius: theme.radius.md },
+                  isGlass
+                    ? [
+                        { backgroundColor: withAlpha(color, 20), borderWidth: 1, borderColor: withAlpha(color, 50) },
+                        coloredShadow(color, { offsetY: 0, opacity: 0.3, radius: 10, elevation: 3 }),
+                      ]
+                    : { backgroundColor: color },
+                ]}
                 testID="quantity-modal-save"
               >
-                <Text style={styles.modalBtnText}>
+                <Text style={[styles.modalBtnText, isGlass && { color }]}>
                   {mode === "add" ? "Ajouter" : "Valider"}
                 </Text>
               </Pressable>
             </View>
-          </View>
+          </GlassCard>
         </KeyboardAvoidingView>
         <Pressable style={{ flex: 1 }} onPress={onClose} />
       </View>
@@ -138,14 +169,27 @@ export function ActionChip({
   color?: string;
   testID?: string;
 }) {
+  const { theme } = useTheme();
+  const isGlass = theme.card.mode === "glass";
   return (
     <PressableScale
       testID={testID}
-      style={[styles.chip, color && { borderColor: color }]}
+      style={[
+        styles.chip,
+        {
+          backgroundColor: isGlass ? theme.glass.subtle.tint : theme.colors.surfaceTertiary,
+          borderRadius: theme.radius.pill,
+          borderColor: theme.colors.border,
+        },
+        color && { borderColor: color },
+      ]}
       onPress={onPress}
     >
       {emoji ? <Text style={styles.chipEmoji}>{emoji}</Text> : null}
-      <Text style={[styles.chipText, color && { color }]} numberOfLines={1}>
+      <Text
+        style={[styles.chipText, { color: theme.colors.onSurface }, color && { color }]}
+        numberOfLines={1}
+      >
         {label}
       </Text>
     </PressableScale>
@@ -170,13 +214,26 @@ export function PresetCard({
   onPress: () => void;
   testID?: string;
 }) {
+  const { theme } = useTheme();
+  const isGlass = theme.card.mode === "glass";
   return (
-    <PressableScale testID={testID} style={styles.presetCard} onPress={onPress}>
+    <PressableScale
+      testID={testID}
+      style={[
+        styles.presetCard,
+        {
+          backgroundColor: isGlass ? theme.glass.subtle.tint : theme.colors.surfaceTertiary,
+          borderRadius: theme.radius.md,
+          borderColor: theme.colors.border,
+        },
+      ]}
+      onPress={onPress}
+    >
       <Text style={styles.presetCardEmoji}>{emoji ?? "🍽️"}</Text>
-      <Text style={styles.presetCardValue} numberOfLines={1}>
+      <Text style={[styles.presetCardValue, { color: theme.colors.onSurface }]} numberOfLines={1}>
         {value}
       </Text>
-      <Text style={styles.presetCardLabel} numberOfLines={1}>
+      <Text style={[styles.presetCardLabel, { color: theme.colors.onSurfaceTertiary }]} numberOfLines={1}>
         {label}
       </Text>
     </PressableScale>
@@ -184,9 +241,22 @@ export function PresetCard({
 }
 
 export function MinusButton({ onPress, testID }: { onPress: () => void; testID?: string }) {
+  const { theme } = useTheme();
+  const isGlass = theme.card.mode === "glass";
   return (
-    <PressableScale testID={testID} style={styles.minusBtn} onPress={onPress} hitSlop={6}>
-      <Ionicons name="remove" size={14} color={colors.onSurface} />
+    <PressableScale
+      testID={testID}
+      style={[
+        styles.minusBtn,
+        {
+          backgroundColor: isGlass ? theme.glass.subtle.tint : theme.colors.surfaceTertiary,
+          borderColor: theme.colors.border,
+        },
+      ]}
+      onPress={onPress}
+      hitSlop={6}
+    >
+      <Ionicons name="remove" size={14} color={theme.colors.onSurface} />
     </PressableScale>
   );
 }
@@ -203,14 +273,10 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingHorizontal: 10,
     paddingVertical: 7,
-    backgroundColor: colors.surfaceTertiary,
-    borderRadius: radius.pill,
     borderWidth: 1,
-    borderColor: colors.border,
   },
   chipEmoji: { fontSize: 12 },
   chipText: {
-    color: colors.onSurface,
     fontWeight: "700",
     fontSize: 11.5,
   },
@@ -218,11 +284,9 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 8,
-    backgroundColor: colors.surfaceTertiary,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
-    borderColor: colors.border,
   },
   modalBackdrop: {
     flex: 1,
@@ -231,12 +295,9 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
   },
   modalCard: {
-    backgroundColor: colors.surfaceSecondary,
-    borderRadius: radius.lg,
     padding: spacing.lg,
     gap: spacing.md,
     borderWidth: 1,
-    borderColor: colors.border,
     ...shadow.elevated,
   },
   presetCard: {
@@ -245,26 +306,18 @@ const styles = StyleSheet.create({
     gap: 2,
     paddingVertical: spacing.sm,
     paddingHorizontal: 6,
-    backgroundColor: colors.surfaceTertiary,
-    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: colors.border,
   },
   presetCardEmoji: { fontSize: 20 },
-  presetCardValue: { color: colors.onSurface, fontWeight: "800", fontSize: 13 },
-  presetCardLabel: { color: colors.onSurfaceTertiary, fontWeight: "600", fontSize: 10, textAlign: "center" },
+  presetCardValue: { fontWeight: "800", fontSize: 13 },
+  presetCardLabel: { fontWeight: "600", fontSize: 10, textAlign: "center" },
   modalTitle: {
-    color: colors.onSurface,
     fontWeight: "800",
     fontSize: 16,
   },
   modalInput: {
-    backgroundColor: colors.surfaceTertiary,
     borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
     padding: 14,
-    color: colors.onSurface,
     fontSize: 22,
     fontWeight: "800",
   },
@@ -275,7 +328,6 @@ const styles = StyleSheet.create({
   modalBtn: {
     flex: 1,
     padding: 12,
-    borderRadius: radius.md,
     alignItems: "center",
   },
   modalBtnText: {
@@ -286,13 +338,10 @@ const styles = StyleSheet.create({
   modalBtnGhost: {
     flex: 1,
     padding: 12,
-    borderRadius: radius.md,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: colors.border,
   },
   modalBtnGhostText: {
-    color: colors.onSurfaceSecondary,
     fontWeight: "800",
   },
 });

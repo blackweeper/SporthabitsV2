@@ -14,7 +14,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import { colors, radius, spacing } from "@/src/theme";
+import { spacing, withAlpha } from "@/src/theme";
+import { Theme, useTheme } from "@/src/themes";
+import ThemedBackground from "@/src/themes/ThemedBackground";
 import { useConfirmDialog } from "@/src/hooks/use-confirm-dialog";
 import {
   deletePR,
@@ -41,6 +43,8 @@ const RUN_PRESETS: { label: string; meters: number }[] = [
  * upsert par id, donc aucune nouvelle fonction de stockage n'était
  * nécessaire : il ne manquait que le chargement d'un record existant. */
 export default function PRScreen() {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const isNew = id === "new";
@@ -203,27 +207,38 @@ export default function PRScreen() {
 
   if (!loaded) {
     return (
-      <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
-        <View style={styles.header}>
-          <Pressable testID="close-pr" onPress={() => router.back()} hitSlop={12}>
-            <Ionicons name="chevron-back" size={24} color={colors.onSurface} />
-          </Pressable>
-        </View>
-      </SafeAreaView>
+      <View style={{ flex: 1 }}>
+        <ThemedBackground />
+        <SafeAreaView style={[styles.container, theme.background.mode === "gradient" && { backgroundColor: "transparent" }]} edges={["top", "bottom"]}>
+          <View style={styles.header}>
+            <Pressable testID="close-pr" onPress={() => router.back()} hitSlop={12}>
+              <Ionicons name="chevron-back" size={24} color={theme.colors.onSurface} />
+            </Pressable>
+          </View>
+        </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+    <View style={{ flex: 1 }}>
+      <ThemedBackground />
+      <SafeAreaView
+        style={[
+          styles.container,
+          theme.background.mode === "gradient" ? { backgroundColor: "transparent" } : { backgroundColor: theme.colors.surface },
+        ]}
+        edges={["top", "bottom"]}
+      >
       <View style={styles.header}>
         <Pressable testID="close-pr" onPress={() => router.back()} hitSlop={12}>
-          <Ionicons name="chevron-back" size={24} color={colors.onSurface} />
+          <Ionicons name="chevron-back" size={24} color={theme.colors.onSurface} />
         </Pressable>
         <Text style={styles.title}>{isNew ? "Nouveau record" : "Modifier le record"}</Text>
         <View style={styles.headerActions}>
           {!isNew && (
             <Pressable testID="delete-pr" onPress={remove} hitSlop={12}>
-              <Ionicons name="trash" size={18} color={colors.error} />
+              <Ionicons name="trash" size={18} color={theme.colors.error} />
             </Pressable>
           )}
           <Pressable testID="save-pr" onPress={save} hitSlop={12}>
@@ -281,7 +296,7 @@ export default function PRScreen() {
                 ? "Ex: Pompes"
                 : "Ex: Développé couché"
             }
-            placeholderTextColor={colors.onSurfaceTertiary}
+            placeholderTextColor={theme.colors.onSurfaceTertiary}
           />
 
           {type === "weight" && (
@@ -296,7 +311,7 @@ export default function PRScreen() {
                     onChangeText={setWeight}
                     keyboardType="decimal-pad"
                     placeholder="100"
-                    placeholderTextColor={colors.onSurfaceTertiary}
+                    placeholderTextColor={theme.colors.onSurfaceTertiary}
                   />
                 </View>
                 <View style={{ flex: 1 }}>
@@ -308,7 +323,7 @@ export default function PRScreen() {
                     onChangeText={(t) => setReps(t.replace(/[^0-9]/g, ""))}
                     keyboardType="number-pad"
                     placeholder="1"
-                    placeholderTextColor={colors.onSurfaceTertiary}
+                    placeholderTextColor={theme.colors.onSurfaceTertiary}
                   />
                 </View>
               </View>
@@ -335,7 +350,7 @@ export default function PRScreen() {
                 onChangeText={(t) => setReps(t.replace(/[^0-9]/g, ""))}
                 keyboardType="number-pad"
                 placeholder="Ex: 25 pompes"
-                placeholderTextColor={colors.onSurfaceTertiary}
+                placeholderTextColor={theme.colors.onSurfaceTertiary}
               />
               {r > 0 && (
                 <View style={styles.previewCard}>
@@ -371,7 +386,7 @@ export default function PRScreen() {
                   <Ionicons
                     name="location"
                     size={13}
-                    color={inputMode === "distance" ? "#fff" : colors.onSurfaceTertiary}
+                    color={inputMode === "distance" ? "#fff" : theme.colors.onSurfaceTertiary}
                   />
                   <Text
                     style={[
@@ -393,7 +408,7 @@ export default function PRScreen() {
                   <Ionicons
                     name="speedometer"
                     size={13}
-                    color={inputMode === "pace" ? "#fff" : colors.onSurfaceTertiary}
+                    color={inputMode === "pace" ? "#fff" : theme.colors.onSurfaceTertiary}
                   />
                   <Text
                     style={[
@@ -419,7 +434,7 @@ export default function PRScreen() {
                         setPaceMin(t.replace(/[^0-9]/g, "").slice(0, 2))
                       }
                       placeholder="4"
-                      placeholderTextColor={colors.onSurfaceTertiary}
+                      placeholderTextColor={theme.colors.onSurfaceTertiary}
                       maxLength={2}
                     />
                     <Text style={styles.paceSep}>:</Text>
@@ -432,7 +447,7 @@ export default function PRScreen() {
                         setPaceSec(t.replace(/[^0-9]/g, "").slice(0, 2))
                       }
                       placeholder="00"
-                      placeholderTextColor={colors.onSurfaceTertiary}
+                      placeholderTextColor={theme.colors.onSurfaceTertiary}
                       maxLength={2}
                     />
                     <Text style={styles.paceUnit}>/ km</Text>
@@ -502,7 +517,7 @@ export default function PRScreen() {
                     value={customDistance}
                     onChangeText={setCustomDistance}
                     placeholder="Distance en km (ex: 7.5)"
-                    placeholderTextColor={colors.onSurfaceTertiary}
+                    placeholderTextColor={theme.colors.onSurfaceTertiary}
                   />
                   <Text style={styles.customDistHint}>
                     Saisis ta distance en kilomètres
@@ -548,14 +563,14 @@ export default function PRScreen() {
                   </View>
                   <View style={styles.metricsGrid}>
                     <View style={styles.metricBox}>
-                      <Ionicons name="location" size={14} color={colors.brand} />
+                      <Ionicons name="location" size={14} color={theme.colors.brand} />
                       <Text style={styles.metricVal}>
                         {(finalDistanceMeters / 1000).toFixed(2)} km
                       </Text>
                       <Text style={styles.metricLbl}>Distance{inputMode === "pace" ? " (auto)" : ""}</Text>
                     </View>
                     <View style={styles.metricBox}>
-                      <Ionicons name="flame" size={14} color={colors.brand} />
+                      <Ionicons name="flame" size={14} color={theme.colors.brand} />
                       <Text style={styles.metricVal}>
                         {estimatedCalories} kcal
                       </Text>
@@ -570,7 +585,7 @@ export default function PRScreen() {
                     value={bodyWeight}
                     onChangeText={setBodyWeight}
                     placeholder="70"
-                    placeholderTextColor={colors.onSurfaceTertiary}
+                    placeholderTextColor={theme.colors.onSurfaceTertiary}
                   />
                 </>
               )}
@@ -584,14 +599,15 @@ export default function PRScreen() {
             value={notes}
             onChangeText={setNotes}
             placeholder="Ex: Après 8 semaines de prépa"
-            placeholderTextColor={colors.onSurfaceTertiary}
+            placeholderTextColor={theme.colors.onSurfaceTertiary}
             multiline
           />
           <View style={{ height: 40 }} />
         </ScrollView>
       </KeyboardAvoidingView>
       {ConfirmModal}
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
@@ -610,6 +626,8 @@ function TypeBtn({
   onPress: () => void;
   testID: string;
 }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   return (
     <Pressable
       testID={testID}
@@ -619,7 +637,7 @@ function TypeBtn({
       <Ionicons
         name={icon}
         size={20}
-        color={active ? "#fff" : colors.brand}
+        color={active ? "#fff" : theme.colors.brand}
       />
       <Text
         style={[
@@ -652,6 +670,8 @@ function TimeBox({
   onChange: (v: string) => void;
   testID?: string;
 }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   return (
     <View style={styles.timeBox}>
       <TextInput
@@ -661,14 +681,17 @@ function TimeBox({
         onChangeText={(t) => onChange(t.replace(/[^0-9]/g, "").slice(0, 3))}
         keyboardType="number-pad"
         placeholder="0"
-        placeholderTextColor={colors.onSurfaceTertiary}
+        placeholderTextColor={theme.colors.onSurfaceTertiary}
       />
       <Text style={styles.timeLabel}>{label}</Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+function buildStyles(theme: Theme) {
+  const { colors, radius } = theme;
+  const isGlass = theme.card.mode === "glass";
+  return StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.surface },
   header: {
     flexDirection: "row",
@@ -695,7 +718,7 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   typeBtnActive: {
-    backgroundColor: colors.brand,
+    backgroundColor: isGlass ? withAlpha(colors.brand, 20) : colors.brand,
     borderColor: colors.brand,
   },
   typeBtnLabel: {
@@ -730,7 +753,7 @@ const styles = StyleSheet.create({
   row: { flexDirection: "row", gap: spacing.md },
   previewCard: {
     marginTop: spacing.md,
-    backgroundColor: colors.brand,
+    backgroundColor: isGlass ? withAlpha(colors.brand, 20) : colors.brand,
     borderRadius: radius.md,
     padding: spacing.lg,
     alignItems: "center",
@@ -787,7 +810,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   distChipActive: {
-    backgroundColor: colors.brand,
+    backgroundColor: isGlass ? withAlpha(colors.brand, 20) : colors.brand,
     borderColor: colors.brand,
   },
   distChipText: {
@@ -851,7 +874,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   modeChipActive: {
-    backgroundColor: colors.brand,
+    backgroundColor: isGlass ? withAlpha(colors.brand, 20) : colors.brand,
     borderColor: colors.brand,
   },
   modeChipText: {
@@ -908,4 +931,5 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "700",
   },
-});
+  });
+}

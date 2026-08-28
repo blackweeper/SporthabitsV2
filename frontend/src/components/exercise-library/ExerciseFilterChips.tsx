@@ -1,8 +1,47 @@
 import { ScrollView, Text, StyleSheet } from "react-native";
-import { colors, radius, spacing } from "@/src/theme";
+import { coloredShadow, spacing, withAlpha } from "@/src/theme";
+import { useTheme } from "@/src/themes";
+import { Theme } from "@/src/themes/types";
 import { LIBRARY_MUSCLE_GROUPS, MuscleGroupKey } from "@/src/utils/muscle-groups";
 import { FUTURE_COLLECTIONS, FUTURE_COLLECTION_LABEL, FutureCollection } from "@/src/utils/exercise-collection";
 import PressableScale from "@/src/components/ui/PressableScale";
+
+/** Shared chip look for the 4 rows below — computed from `theme` so Classique
+ * stays byte-identical (same literal values as before) while Sunset picks up
+ * its own palette automatically. Sous Sunset, un chip est une petite surface
+ * de verre "légère" (translucide, sans flou propre — trop petite pour qu'un
+ * flou individuel ait un sens) : inactif = quasi invisible sur le fond,
+ * actif = "Active Glass" (fond Sunset translucide + bordure + lueur douce),
+ * jamais un pavé plein. Sous Classique, rendu inchangé. */
+function chipStyle(theme: Theme, active: boolean) {
+  const isGlass = theme.card.mode === "glass";
+  if (isGlass) {
+    return [
+      styles.miniChip,
+      {
+        borderRadius: theme.radius.pill,
+        backgroundColor: active ? withAlpha(theme.colors.brand, 20) : theme.glass.subtle.tint,
+        borderColor: active ? withAlpha(theme.colors.brand, 50) : theme.colors.border,
+      },
+      active && coloredShadow(theme.colors.brand, { offsetY: 0, opacity: 0.28, radius: 6, elevation: 2 }),
+    ];
+  }
+  return [
+    styles.miniChip,
+    {
+      borderRadius: theme.radius.pill,
+      backgroundColor: active ? theme.colors.brand : theme.colors.surfaceSecondary,
+      borderColor: active ? theme.colors.brand : theme.colors.border,
+    },
+  ];
+}
+function chipTextStyle(theme: Theme, active: boolean) {
+  const isGlass = theme.card.mode === "glass";
+  if (isGlass) {
+    return [styles.miniChipText, { color: active ? theme.colors.brand : theme.colors.onSurfaceTertiary }];
+  }
+  return [styles.miniChipText, { color: active ? "#fff" : theme.colors.onSurfaceTertiary }];
+}
 
 export type LibTab = "favorites" | "musculation" | "cardio_machine" | "mobility" | "all";
 
@@ -25,6 +64,7 @@ export function CategoryTabRow({
   onChange: (t: LibTab) => void;
   testIDPrefix?: string;
 }) {
+  const { theme } = useTheme();
   return (
     <ScrollView
       horizontal
@@ -38,11 +78,11 @@ export function CategoryTabRow({
           <PressableScale
             key={t.key}
             testID={`${testIDPrefix}-${t.key}`}
-            style={[styles.miniChip, active && styles.chipActive]}
+            style={chipStyle(theme, active)}
             onPress={() => onChange(t.key)}
           >
             <Text style={styles.emoji}>{t.emoji}</Text>
-            <Text style={[styles.miniChipText, active && { color: "#fff" }]}>{t.label}</Text>
+            <Text style={chipTextStyle(theme, active)}>{t.label}</Text>
           </PressableScale>
         );
       })}
@@ -60,6 +100,7 @@ export function MuscleChipRow({
   onChange: (m: MuscleGroupKey | null) => void;
   testIDPrefix?: string;
 }) {
+  const { theme } = useTheme();
   return (
     <ScrollView
       horizontal
@@ -69,10 +110,10 @@ export function MuscleChipRow({
     >
       <PressableScale
         testID={`${testIDPrefix}-all`}
-        style={[styles.miniChip, !muscle && styles.chipActive]}
+        style={chipStyle(theme, !muscle)}
         onPress={() => onChange(null)}
       >
-        <Text style={[styles.miniChipText, !muscle && { color: "#fff" }]}>Tous</Text>
+        <Text style={chipTextStyle(theme, !muscle)}>Tous</Text>
       </PressableScale>
       {LIBRARY_MUSCLE_GROUPS.map((mg) => {
         const active = muscle === mg.key;
@@ -80,11 +121,11 @@ export function MuscleChipRow({
           <PressableScale
             key={mg.key}
             testID={`${testIDPrefix}-${mg.key}`}
-            style={[styles.miniChip, active && styles.chipActive]}
+            style={chipStyle(theme, active)}
             onPress={() => onChange(active ? null : mg.key)}
           >
             <Text style={styles.emoji}>{mg.emoji}</Text>
-            <Text style={[styles.miniChipText, active && { color: "#fff" }]}>{mg.label}</Text>
+            <Text style={chipTextStyle(theme, active)}>{mg.label}</Text>
           </PressableScale>
         );
       })}
@@ -108,6 +149,7 @@ export function EquipmentChipRow({
   onChange: (e: string | null) => void;
   testIDPrefix?: string;
 }) {
+  const { theme } = useTheme();
   if (options.length === 0) return null;
   return (
     <ScrollView
@@ -118,12 +160,10 @@ export function EquipmentChipRow({
     >
       <PressableScale
         testID={`${testIDPrefix}-all`}
-        style={[styles.miniChip, !equipment && styles.chipActive]}
+        style={chipStyle(theme, !equipment)}
         onPress={() => onChange(null)}
       >
-        <Text style={[styles.miniChipText, !equipment && { color: "#fff" }]}>
-          Tout matériel
-        </Text>
+        <Text style={chipTextStyle(theme, !equipment)}>Tout matériel</Text>
       </PressableScale>
       {options.map((eq) => {
         const active = equipment === eq;
@@ -131,10 +171,10 @@ export function EquipmentChipRow({
           <PressableScale
             key={eq}
             testID={`${testIDPrefix}-${eq}`}
-            style={[styles.miniChip, active && styles.chipActive]}
+            style={chipStyle(theme, active)}
             onPress={() => onChange(active ? null : eq)}
           >
-            <Text style={[styles.miniChipText, active && { color: "#fff" }]}>{eq}</Text>
+            <Text style={chipTextStyle(theme, active)}>{eq}</Text>
           </PressableScale>
         );
       })}
@@ -154,6 +194,7 @@ export function CollectionChipRow({
   onChange: (c: FutureCollection | null) => void;
   testIDPrefix?: string;
 }) {
+  const { theme } = useTheme();
   return (
     <ScrollView
       horizontal
@@ -163,10 +204,10 @@ export function CollectionChipRow({
     >
       <PressableScale
         testID={`${testIDPrefix}-all`}
-        style={[styles.miniChip, !collection && styles.chipActive]}
+        style={chipStyle(theme, !collection)}
         onPress={() => onChange(null)}
       >
-        <Text style={[styles.miniChipText, !collection && { color: "#fff" }]}>Toutes</Text>
+        <Text style={chipTextStyle(theme, !collection)}>Toutes</Text>
       </PressableScale>
       {FUTURE_COLLECTIONS.map((c) => {
         const active = collection === c;
@@ -174,12 +215,10 @@ export function CollectionChipRow({
           <PressableScale
             key={c}
             testID={`${testIDPrefix}-${c}`}
-            style={[styles.miniChip, active && styles.chipActive]}
+            style={chipStyle(theme, active)}
             onPress={() => onChange(active ? null : c)}
           >
-            <Text style={[styles.miniChipText, active && { color: "#fff" }]}>
-              {FUTURE_COLLECTION_LABEL[c]}
-            </Text>
+            <Text style={chipTextStyle(theme, active)}>{FUTURE_COLLECTION_LABEL[c]}</Text>
           </PressableScale>
         );
       })}
@@ -196,7 +235,6 @@ const styles = StyleSheet.create({
   // numColumns/flex:1 déjà corrigé ailleurs dans la Bibliothèque.
   chipScroller: { maxHeight: 38, flexGrow: 0, flexShrink: 0 },
   row: { flexDirection: "row", gap: 6, paddingHorizontal: spacing.lg, paddingBottom: spacing.sm },
-  chipActive: { backgroundColor: colors.brand, borderColor: colors.brand },
   emoji: { fontSize: 12 },
   miniChip: {
     flexDirection: "row",
@@ -204,13 +242,9 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingHorizontal: 10,
     paddingVertical: 5,
-    borderRadius: radius.pill,
-    backgroundColor: colors.surfaceSecondary,
     borderWidth: 1,
-    borderColor: colors.border,
   },
   miniChipText: {
-    color: colors.onSurfaceTertiary,
     fontWeight: "700",
     fontSize: 10,
   },

@@ -9,7 +9,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing } from "@/src/theme";
+import { spacing, withAlpha } from "@/src/theme";
+import { Theme, useTheme } from "@/src/themes";
+import ThemedBackground from "@/src/themes/ThemedBackground";
 import { LEVEL_LABEL, Program, ProgramSession } from "@/src/data/programs";
 import { findProgram } from "@/src/utils/programs";
 import {
@@ -23,6 +25,8 @@ import {
 type Loaded = { active: ActiveProgram; program: Program };
 
 export default function ProgramTabScreen() {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   const router = useRouter();
   const [loaded, setLoaded] = useState<Loaded[]>([]);
   const [ready, setReady] = useState(false);
@@ -48,18 +52,35 @@ export default function ProgramTabScreen() {
 
   if (!ready) {
     return (
-      <SafeAreaView style={styles.container} edges={["top"]}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Programme</Text>
-        </View>
-      </SafeAreaView>
+      <View style={{ flex: 1 }}>
+        <ThemedBackground />
+        <SafeAreaView
+          style={[
+            styles.container,
+            theme.background.mode === "gradient" ? { backgroundColor: "transparent" } : { backgroundColor: theme.colors.surface },
+          ]}
+          edges={["top"]}
+        >
+          <View style={styles.header}>
+            <Text style={styles.title}>Programme</Text>
+          </View>
+        </SafeAreaView>
+      </View>
     );
   }
 
   if (loaded.length === 0) return <EmptyState router={router} />;
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <View style={{ flex: 1 }}>
+      <ThemedBackground />
+      <SafeAreaView
+        style={[
+          styles.container,
+          theme.background.mode === "gradient" ? { backgroundColor: "transparent" } : { backgroundColor: theme.colors.surface },
+        ]}
+        edges={["top"]}
+      >
       <View style={styles.header}>
         <Text style={styles.title}>Programme</Text>
         <Pressable
@@ -67,7 +88,7 @@ export default function ProgramTabScreen() {
           onPress={() => router.push("/programs")}
           hitSlop={12}
         >
-          <Ionicons name="add-circle" size={22} color={colors.brand} />
+          <Ionicons name="add-circle" size={22} color={theme.colors.brand} />
         </Pressable>
       </View>
       <ScrollView
@@ -76,7 +97,7 @@ export default function ProgramTabScreen() {
       >
         {loaded.length >= 2 ? (
           <View style={styles.dualBanner}>
-            <Ionicons name="layers" size={14} color={colors.brand} />
+            <Ionicons name="layers" size={14} color={theme.colors.brand} />
             <Text style={styles.dualText}>
               Tu suis 2 programmes en parallèle
             </Text>
@@ -87,11 +108,11 @@ export default function ProgramTabScreen() {
             style={styles.dualInvite}
             onPress={() => router.push("/programs")}
           >
-            <Ionicons name="add-circle-outline" size={16} color={colors.brand} />
+            <Ionicons name="add-circle-outline" size={16} color={theme.colors.brand} />
             <Text style={styles.dualInviteText}>
               Suivre un 2ᵉ programme en parallèle
             </Text>
-            <Ionicons name="chevron-forward" size={14} color={colors.brand} />
+            <Ionicons name="chevron-forward" size={14} color={theme.colors.brand} />
           </Pressable>
         )}
 
@@ -126,19 +147,30 @@ export default function ProgramTabScreen() {
         ))}
         <View style={{ height: 40 }} />
       </ScrollView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
 function EmptyState({ router }: { router: any }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <View style={{ flex: 1 }}>
+      <ThemedBackground />
+      <SafeAreaView
+        style={[
+          styles.container,
+          theme.background.mode === "gradient" ? { backgroundColor: "transparent" } : { backgroundColor: theme.colors.surface },
+        ]}
+        edges={["top"]}
+      >
       <View style={styles.header}>
         <Text style={styles.title}>Programme</Text>
       </View>
       <ScrollView contentContainerStyle={styles.emptyScroll}>
         <View style={styles.emptyIcon}>
-          <Ionicons name="calendar" size={40} color={colors.brand} />
+          <Ionicons name="calendar" size={40} color={theme.colors.brand} />
         </View>
         <Text style={styles.emptyTitle}>Aucun programme actif</Text>
         <Text style={styles.emptyText}>
@@ -157,11 +189,12 @@ function EmptyState({ router }: { router: any }) {
           style={styles.ctaBtnSecondary}
           onPress={() => router.push("/custom-program/new")}
         >
-          <Ionicons name="add-circle" size={18} color={colors.brand} />
+          <Ionicons name="add-circle" size={18} color={theme.colors.brand} />
           <Text style={styles.ctaTextSecondary}>CRÉER MON PROGRAMME</Text>
         </Pressable>
       </ScrollView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
@@ -176,6 +209,8 @@ function ProgramTracker({
   onOpen: () => void;
   onLaunch: (dayIndex: number, sessionIndex: number, s: ProgramSession) => void;
 }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   const today = currentDayIndex(active, program.durationDays);
   const doneCount = active.completedSessions.length;
   const totalSessions = program.days.reduce(
@@ -259,7 +294,7 @@ function ProgramTracker({
                 <Text style={styles.dayIdxText}>J{dayIndex}</Text>
               </View>
               <View style={styles.restRow}>
-                <Ionicons name="bed" size={16} color={colors.onSurfaceTertiary} />
+                <Ionicons name="bed" size={16} color={theme.colors.onSurfaceTertiary} />
                 <Text style={styles.restText}>Repos</Text>
               </View>
             </View>
@@ -321,7 +356,7 @@ function ProgramTracker({
                     <Ionicons
                       name="checkmark-circle"
                       size={22}
-                      color={colors.success}
+                      color={theme.colors.success}
                     />
                   ) : (
                     <Ionicons
@@ -362,7 +397,10 @@ function dayLabel(dayIndex: number, today: number): string {
   });
 }
 
-const styles = StyleSheet.create({
+function buildStyles(theme: Theme) {
+  const { colors, radius } = theme;
+  const isGlass = theme.card.mode === "glass";
+  return StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.surface },
   header: {
     flexDirection: "row",
@@ -401,7 +439,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   ctaBtn: {
-    backgroundColor: colors.brand,
+    backgroundColor: isGlass ? withAlpha(colors.brand, 20) : colors.brand,
     paddingVertical: 16,
     paddingHorizontal: spacing.xl,
     borderRadius: radius.md,
@@ -572,4 +610,5 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
     fontSize: 12,
   },
-});
+  });
+}

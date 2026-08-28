@@ -1,13 +1,21 @@
 import { ReactNode, useState } from "react";
 import { Pressable, StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, shadow, spacing } from "@/src/theme";
+import { shadow, spacing } from "@/src/theme";
+import { GlassLevel, useTheme } from "@/src/themes";
+import GlassCard from "./GlassCard";
 
 /**
  * Shared card shell (surfaceSecondary + border + radius.md + padding) —
  * the shape ~36 screens redefine locally today. Not force-migrated
  * everywhere yet: introduced here and adopted screen-by-screen so each
  * rollout stays reviewable instead of one giant diff.
+ *
+ * Theme-aware via `GlassCard`: under Classique (`card.mode==="flat"`), the
+ * background/border/radius below are exactly the previous hardcoded values
+ * (now read from `theme.colors`/`theme.radius`, byte-identical for that
+ * theme) — under Sunset, `GlassCard` overrides them with the blur/tint
+ * treatment automatically, no call site changes needed.
  */
 export default function Card({
   children,
@@ -19,6 +27,8 @@ export default function Card({
   testID,
   collapsible = false,
   defaultCollapsed = false,
+  accent,
+  level,
 }: {
   children: ReactNode;
   style?: StyleProp<ViewStyle>;
@@ -38,12 +48,36 @@ export default function Card({
    * glance-frequency content on a screen — most cards should stay expanded. */
   collapsible?: boolean;
   defaultCollapsed?: boolean;
+  /** Liquid Glass "active"/"important" accent (Sunset only, see
+   * `GlassCard`) — a tinted glow border instead of the neutral one. Reserve
+   * for the one card that should visually win (a selected item, a personal
+   * record, a reached goal), not for ordinary rows. */
+  accent?: string;
+  /** Palier de verre Liquid Glass (Sunset only, voir `GlassCard`). Par
+   * défaut, suit `elevated` : une carte "hero" passe automatiquement au
+   * palier `"elevated"` (verre plus marqué) sans avoir à le répéter — mais
+   * peut être forcé explicitement (ex. `"subtle"` pour une ligne de liste
+   * qui n'a pas besoin de l'ombre `elevated` mais veut un verre plus léger). */
+  level?: GlassLevel;
 }) {
+  const { theme } = useTheme();
   const [collapsed, setCollapsed] = useState(collapsible && defaultCollapsed);
   return (
-    <View
+    <GlassCard
       testID={testID}
-      style={[styles.card, { padding }, elevated && shadow.elevated, style]}
+      accent={accent}
+      level={level ?? (elevated ? "elevated" : "card")}
+      style={[
+        styles.card,
+        {
+          padding,
+          backgroundColor: theme.colors.surfaceSecondary,
+          borderColor: theme.colors.border,
+          borderRadius: theme.radius.md,
+        },
+        elevated && shadow.elevated,
+        style,
+      ]}
     >
       {title &&
         (collapsible ? (
@@ -52,32 +86,27 @@ export default function Card({
             style={styles.heading}
             onPress={() => setCollapsed((c) => !c)}
           >
-            {icon && <Ionicons name={icon} size={15} color={colors.brand} />}
-            <Text style={[styles.headingText, { flex: 1 }]}>{title}</Text>
+            {icon && <Ionicons name={icon} size={15} color={theme.colors.brand} />}
+            <Text style={[styles.headingText, { flex: 1, color: theme.colors.onSurface }]}>{title}</Text>
             <Ionicons
               name={collapsed ? "chevron-down" : "chevron-up"}
               size={16}
-              color={colors.onSurfaceTertiary}
+              color={theme.colors.onSurfaceTertiary}
             />
           </Pressable>
         ) : (
           <View style={styles.heading}>
-            {icon && <Ionicons name={icon} size={15} color={colors.brand} />}
-            <Text style={styles.headingText}>{title}</Text>
+            {icon && <Ionicons name={icon} size={15} color={theme.colors.brand} />}
+            <Text style={[styles.headingText, { color: theme.colors.onSurface }]}>{title}</Text>
           </View>
         ))}
       {(!collapsible || !collapsed) && children}
-    </View>
+    </GlassCard>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.surfaceSecondary,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
+  card: { borderWidth: 1 },
   heading: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: spacing.sm },
-  headingText: { color: colors.onSurface, fontSize: 15, fontWeight: "800", letterSpacing: 0.3 },
+  headingText: { fontSize: 15, fontWeight: "800", letterSpacing: 0.3 },
 });

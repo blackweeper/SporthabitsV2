@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -13,7 +13,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing } from "@/src/theme";
+import { spacing, withAlpha } from "@/src/theme";
+import { Theme, useTheme } from "@/src/themes";
+import ThemedBackground from "@/src/themes/ThemedBackground";
 import { useConfirmDialog } from "@/src/hooks/use-confirm-dialog";
 import DatePickerField from "@/src/components/DatePickerField";
 import {
@@ -51,6 +53,8 @@ const REMINDER_PRESETS: { label: string; minutes: number | null }[] = [
 const FAR_FUTURE = new Date(Date.now() + 365 * 86400000);
 
 export default function CalendarEventEditor() {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   const { id, date } = useLocalSearchParams<{ id: string; date?: string }>();
   const router = useRouter();
   const isNew = id === "new";
@@ -81,9 +85,12 @@ export default function CalendarEventEditor() {
 
   if (!e) {
     return (
-      <SafeAreaView style={styles.container}>
-        <Text style={styles.loading}>Chargement…</Text>
-      </SafeAreaView>
+      <View style={{ flex: 1 }}>
+        <ThemedBackground />
+        <SafeAreaView style={[styles.container, theme.background.mode === "gradient" && { backgroundColor: "transparent" }]}>
+          <Text style={styles.loading}>Chargement…</Text>
+        </SafeAreaView>
+      </View>
     );
   }
 
@@ -113,10 +120,18 @@ export default function CalendarEventEditor() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+    <View style={{ flex: 1 }}>
+      <ThemedBackground />
+      <SafeAreaView
+        style={[
+          styles.container,
+          theme.background.mode === "gradient" ? { backgroundColor: "transparent" } : { backgroundColor: theme.colors.surface },
+        ]}
+        edges={["top", "bottom"]}
+      >
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} hitSlop={12}>
-          <Ionicons name="chevron-back" size={24} color={colors.onSurface} />
+          <Ionicons name="chevron-back" size={24} color={theme.colors.onSurface} />
         </Pressable>
         <Text style={styles.title}>{isNew ? "Nouvel événement" : "Événement"}</Text>
         <Pressable onPress={save} hitSlop={12} testID="save-calendar-event">
@@ -148,7 +163,7 @@ export default function CalendarEventEditor() {
                   <Ionicons
                     name={CALENDAR_EVENT_KIND_ICON[k]}
                     size={14}
-                    color={active ? "#fff" : colors.brand}
+                    color={active ? "#fff" : theme.colors.brand}
                   />
                   <Text style={[styles.kindLabel, active && { color: "#fff" }]}>
                     {CALENDAR_EVENT_KIND_LABEL[k]}
@@ -165,7 +180,7 @@ export default function CalendarEventEditor() {
             value={e.title}
             onChangeText={(t) => set("title", t)}
             placeholder={CALENDAR_EVENT_KIND_LABEL[e.kind]}
-            placeholderTextColor={colors.onSurfaceTertiary}
+            placeholderTextColor={theme.colors.onSurfaceTertiary}
           />
 
           <DatePickerField
@@ -185,7 +200,7 @@ export default function CalendarEventEditor() {
               set("time", t.replace(/[^0-9:]/g, "").slice(0, 5) || null)
             }
             placeholder="18:30"
-            placeholderTextColor={colors.onSurfaceTertiary}
+            placeholderTextColor={theme.colors.onSurfaceTertiary}
             keyboardType="numbers-and-punctuation"
           />
 
@@ -215,7 +230,7 @@ export default function CalendarEventEditor() {
 
           {!isNew && (
             <Pressable style={styles.deleteBtn} onPress={remove}>
-              <Ionicons name="trash" size={16} color={colors.error} />
+              <Ionicons name="trash" size={16} color={theme.colors.error} />
               <Text style={styles.deleteText}>Supprimer</Text>
             </Pressable>
           )}
@@ -223,11 +238,15 @@ export default function CalendarEventEditor() {
         </ScrollView>
       </KeyboardAvoidingView>
       {ConfirmModal}
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
-const styles = StyleSheet.create({
+function buildStyles(theme: Theme) {
+  const { colors, radius } = theme;
+  const isGlass = theme.card.mode === "glass";
+  return StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.surface },
   loading: { color: colors.onSurfaceTertiary, textAlign: "center", marginTop: 40 },
   header: {
@@ -272,7 +291,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  kindChipActive: { backgroundColor: colors.brand, borderColor: colors.brand },
+  kindChipActive: isGlass
+    ? { backgroundColor: withAlpha(colors.brand, 20), borderColor: withAlpha(colors.brand, 50) }
+    : { backgroundColor: colors.brand, borderColor: colors.brand },
   kindLabel: {
     color: colors.onSurfaceSecondary,
     fontSize: 12,
@@ -287,7 +308,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  reminderChipActive: { backgroundColor: colors.brand, borderColor: colors.brand },
+  reminderChipActive: isGlass
+    ? { backgroundColor: withAlpha(colors.brand, 20), borderColor: withAlpha(colors.brand, 50) }
+    : { backgroundColor: colors.brand, borderColor: colors.brand },
   reminderChipText: {
     color: colors.onSurfaceSecondary,
     fontSize: 12,
@@ -308,4 +331,5 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
   },
   deleteText: { color: colors.error, fontWeight: "700" },
-});
+  });
+}

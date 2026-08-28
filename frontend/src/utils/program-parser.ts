@@ -175,7 +175,7 @@ export function parseProgramText(text: string): ParsedProgramResult {
     level: 'intermediaire',
     goal: 'Importé',
     coverEmoji: '📋',
-    color: '#FF6B00',
+    color: '#4DA3FF',
     days,
     isCustom: true,
     category: 'workout',

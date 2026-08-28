@@ -1,11 +1,11 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { BarChart } from "react-native-gifted-charts";
-import { colors, radius, spacing } from "@/src/theme";
-import { useTheme } from "@/src/themes";
+import { spacing } from "@/src/theme";
+import { Theme, useTheme } from "@/src/themes";
 import ThemedBackground from "@/src/themes/ThemedBackground";
 import GlassCard from "@/src/components/ui/GlassCard";
 import MultiRingGauge from "@/src/components/ui/MultiRingGauge";
@@ -48,6 +48,7 @@ function formatDayLabel(dateStr: string): string {
 export default function DayDetailScreen() {
   const router = useRouter();
   const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   const [sessions, setSessions] = useState<WorkoutSession[]>([]);
   const [habits, setHabits] = useState<Habit[]>([]);
   const [logs, setLogs] = useState<HabitLog[]>([]);
@@ -257,7 +258,9 @@ export default function DayDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+function buildStyles(theme: Theme) {
+  const { colors, radius } = theme;
+  return StyleSheet.create({
   container: { flex: 1 },
   header: {
     flexDirection: "row",
@@ -293,4 +296,5 @@ const styles = StyleSheet.create({
     padding: spacing.sm,
   },
   progressionLinkText: { fontSize: 12, fontWeight: "700" },
-});
+  });
+}

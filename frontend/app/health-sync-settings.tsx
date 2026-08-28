@@ -1,9 +1,11 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { View, Text, StyleSheet, ScrollView, Pressable, TextInput } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing } from "@/src/theme";
+import { spacing, withAlpha } from "@/src/theme";
+import { Theme, useTheme } from "@/src/themes";
+import ThemedBackground from "@/src/themes/ThemedBackground";
 import { AppSettings, getAppSettings, saveAppSettings } from "@/src/utils/app-settings";
 import {
   getHealthMetrics,
@@ -24,6 +26,8 @@ function formatDateTime(iso: string | null): string {
 }
 
 export default function HealthSyncSettingsScreen() {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   const router = useRouter();
   const { phase, error, lastResult, sync } = useHealthSync();
 
@@ -77,10 +81,18 @@ export default function HealthSyncSettingsScreen() {
   const webhookUrl = baseUrl.trim() ? `${baseUrl.trim().replace(/\/+$/, "")}/api/health-import` : "";
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+    <View style={{ flex: 1 }}>
+      <ThemedBackground />
+      <SafeAreaView
+        style={[
+          styles.container,
+          theme.background.mode === "gradient" ? { backgroundColor: "transparent" } : { backgroundColor: theme.colors.surface },
+        ]}
+        edges={["top", "bottom"]}
+      >
       <View style={styles.header}>
         <Pressable testID="close-health-sync-settings" onPress={() => router.back()} hitSlop={12}>
-          <Ionicons name="chevron-back" size={24} color={colors.onSurface} />
+          <Ionicons name="chevron-back" size={24} color={theme.colors.onSurface} />
         </Pressable>
         <Text style={styles.title}>Import santé</Text>
         <View style={{ width: 24 }} />
@@ -98,7 +110,7 @@ export default function HealthSyncSettingsScreen() {
             onChangeText={setBaseUrl}
             onBlur={() => saveField({ healthSyncBaseUrl: baseUrl.trim() || null })}
             placeholder="https://mon-service.onrender.com"
-            placeholderTextColor={colors.onSurfaceTertiary}
+            placeholderTextColor={theme.colors.onSurfaceTertiary}
             autoCapitalize="none"
             autoCorrect={false}
             keyboardType="url"
@@ -114,7 +126,7 @@ export default function HealthSyncSettingsScreen() {
             onChangeText={setToken}
             onBlur={() => saveField({ healthSyncToken: token.trim() || null })}
             placeholder="Le HEALTH_IMPORT_TOKEN configuré sur le serveur"
-            placeholderTextColor={colors.onSurfaceTertiary}
+            placeholderTextColor={theme.colors.onSurfaceTertiary}
             autoCapitalize="none"
             autoCorrect={false}
             secureTextEntry
@@ -187,11 +199,15 @@ export default function HealthSyncSettingsScreen() {
 
         <View style={{ height: 40 }} />
       </ScrollView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
-const styles = StyleSheet.create({
+function buildStyles(theme: Theme) {
+  const { colors, radius } = theme;
+  const isGlass = theme.card.mode === "glass";
+  return StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.surface },
   header: {
     flexDirection: "row",
@@ -229,12 +245,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    backgroundColor: colors.brand,
+    backgroundColor: isGlass ? withAlpha(colors.brand, 18) : colors.brand,
     padding: spacing.md,
     borderRadius: radius.md,
   },
   ctaFullDisabled: { opacity: 0.5 },
-  ctaFullText: { color: "#fff", fontWeight: "800", letterSpacing: 1 },
+  ctaFullText: { color: isGlass ? colors.brand : "#fff", fontWeight: "800", letterSpacing: 1 },
   errorText: { color: colors.error, fontSize: 12, textAlign: "center" },
   successText: { color: colors.success, fontSize: 12, textAlign: "center" },
   lastSync: { color: colors.onSurfaceTertiary, fontSize: 11, textAlign: "center" },
@@ -269,4 +285,5 @@ const styles = StyleSheet.create({
   workoutName: { color: colors.onSurface, fontSize: 12, fontWeight: "600" },
   workoutSub: { color: colors.onSurfaceTertiary, fontSize: 10, marginTop: 2 },
   workoutKcal: { color: colors.onSurfaceSecondary, fontSize: 11, fontWeight: "700" },
-});
+  });
+}

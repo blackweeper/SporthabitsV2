@@ -15,9 +15,13 @@ export const EXERCISE_CATEGORY_ICON: Record<ExerciseCategory, any> = {
   mobility: 'body',
 };
 
+// Glacier Aurora : musculation/force = Glacier Blue, cardio = Cyan — même
+// mapping sémantique que `Theme.colors.data` (§8 du brief de rebrand), gardé
+// séparé de `Theme` car ce fichier est utilisé aussi hors contexte thème
+// (scripts, matching) et doit rester une simple constante statique.
 export const EXERCISE_CATEGORY_COLOR: Record<ExerciseCategory, string> = {
-  cardio_machine: '#00B0FF',
-  musculation: '#FF5722',
+  cardio_machine: '#35D6E8',
+  musculation: '#4DA3FF',
   mobility: '#00E676',
 };
 

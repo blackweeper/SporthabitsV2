@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -15,7 +15,9 @@ import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
 import { captureRef } from "react-native-view-shot";
 import * as Sharing from "expo-sharing";
-import { colors, radius, spacing, withAlpha } from "@/src/theme";
+import { spacing, withAlpha } from "@/src/theme";
+import { Theme, useTheme } from "@/src/themes";
+import ThemedBackground from "@/src/themes/ThemedBackground";
 import { useConfirmDialog } from "@/src/hooks/use-confirm-dialog";
 import {
   deleteSession,
@@ -24,6 +26,8 @@ import {
 } from "@/src/utils/gym-storage";
 
 export default function SessionDetailScreen() {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const [session, setSession] = useState<WorkoutSession | null>(null);
@@ -39,9 +43,12 @@ export default function SessionDetailScreen() {
 
   if (!session) {
     return (
-      <SafeAreaView style={styles.container}>
-        <Text style={styles.loading}>Chargement…</Text>
-      </SafeAreaView>
+      <View style={{ flex: 1 }}>
+        <ThemedBackground />
+        <SafeAreaView style={[styles.container, theme.background.mode === "gradient" && { backgroundColor: "transparent" }]}>
+          <Text style={styles.loading}>Chargement…</Text>
+        </SafeAreaView>
+      </View>
     );
   }
 
@@ -135,18 +142,26 @@ export default function SessionDetailScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+    <View style={{ flex: 1 }}>
+      <ThemedBackground />
+      <SafeAreaView
+        style={[
+          styles.container,
+          theme.background.mode === "gradient" ? { backgroundColor: "transparent" } : { backgroundColor: theme.colors.surface },
+        ]}
+        edges={["top", "bottom"]}
+      >
       <View style={styles.header}>
         <Pressable
           testID="back-session"
           onPress={() => router.back()}
           hitSlop={12}
         >
-          <Ionicons name="chevron-back" size={24} color={colors.onSurface} />
+          <Ionicons name="chevron-back" size={24} color={theme.colors.onSurface} />
         </Pressable>
         <Text style={styles.headerTitle}>Résumé</Text>
         <Pressable testID="delete-session" onPress={remove} hitSlop={12}>
-          <Ionicons name="trash-outline" size={20} color={colors.onSurfaceTertiary} />
+          <Ionicons name="trash-outline" size={20} color={theme.colors.onSurfaceTertiary} />
         </Pressable>
       </View>
 
@@ -154,7 +169,7 @@ export default function SessionDetailScreen() {
         {/* Shareable card (wrapped for view-shot capture) */}
         <View collapsable={false} ref={shareCardRef} style={styles.shareable}>
           <LinearGradient
-            colors={[colors.brand, "#B02A00"]}
+            colors={[theme.colors.brand, "#B02A00"]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.heroCard}
@@ -263,7 +278,7 @@ export default function SessionDetailScreen() {
           style={styles.journalBtn}
           onPress={() => router.push(`/journal/${session.id}`)}
         >
-          <Ionicons name="book" size={18} color={colors.brand} />
+          <Ionicons name="book" size={18} color={theme.colors.brand} />
           <View style={{ flex: 1 }}>
             <Text style={styles.journalBtnTitle}>Journal & cardio</Text>
             <Text style={styles.journalBtnSub}>
@@ -272,7 +287,7 @@ export default function SessionDetailScreen() {
                 : "Ajouter ressenti, sommeil, activité cardio…"}
             </Text>
           </View>
-          <Ionicons name="chevron-forward" size={16} color={colors.brand} />
+          <Ionicons name="chevron-forward" size={16} color={theme.colors.brand} />
         </Pressable>
 
         <Pressable
@@ -280,7 +295,7 @@ export default function SessionDetailScreen() {
           style={styles.shareBtn}
           onPress={shareImage}
         >
-          <Ionicons name="share-social" size={20} color="#fff" />
+          <Ionicons name="share-social" size={20} color={theme.card.mode === "glass" ? theme.colors.brand : "#fff"} />
           <Text style={styles.shareText}>PARTAGER MA SÉANCE</Text>
         </Pressable>
         <Text style={styles.disclaimer}>
@@ -292,17 +307,20 @@ export default function SessionDetailScreen() {
           style={styles.finishBtn}
           onPress={() => router.replace("/")}
         >
-          <Ionicons name="checkmark-circle" size={20} color={colors.brand} />
+          <Ionicons name="checkmark-circle" size={20} color={theme.colors.brand} />
           <Text style={styles.finishBtnText}>TERMINER · RETOUR À L&apos;ACCUEIL</Text>
         </Pressable>
         <View style={{ height: 40 }} />
       </ScrollView>
       {ConfirmModal}
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
 function SubKpi({ label, value }: { label: string; value: string }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   return (
     <View style={styles.subKpi}>
       <Text style={styles.subKpiValue}>{value}</Text>
@@ -330,7 +348,10 @@ function formatDate(iso: string) {
   });
 }
 
-const styles = StyleSheet.create({
+function buildStyles(theme: Theme) {
+  const { colors, radius } = theme;
+  const isGlass = theme.card.mode === "glass";
+  return StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.surface },
   loading: {
     color: colors.onSurfaceTertiary,
@@ -468,17 +489,30 @@ const styles = StyleSheet.create({
   },
   setPillDone: { backgroundColor: colors.success, borderColor: colors.success },
   setPillText: { color: colors.onSurfaceSecondary, fontSize: 11, fontWeight: "600" },
-  shareBtn: {
-    backgroundColor: colors.brand,
-    paddingVertical: 16,
-    borderRadius: radius.md,
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: spacing.sm,
-    marginTop: spacing.md,
-  },
-  shareText: { color: "#fff", fontWeight: "800", letterSpacing: 1 },
+  shareBtn: isGlass
+    ? {
+        backgroundColor: withAlpha(colors.brand, 18),
+        borderWidth: 1,
+        borderColor: withAlpha(colors.brand, 50),
+        paddingVertical: 16,
+        borderRadius: radius.md,
+        flexDirection: "row",
+        justifyContent: "center",
+        alignItems: "center",
+        gap: spacing.sm,
+        marginTop: spacing.md,
+      }
+    : {
+        backgroundColor: colors.brand,
+        paddingVertical: 16,
+        borderRadius: radius.md,
+        flexDirection: "row",
+        justifyContent: "center",
+        alignItems: "center",
+        gap: spacing.sm,
+        marginTop: spacing.md,
+      },
+  shareText: { color: isGlass ? colors.brand : "#fff", fontWeight: "800", letterSpacing: 1 },
   finishBtn: {
     backgroundColor: colors.surfaceSecondary,
     paddingVertical: 16,
@@ -524,4 +558,5 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontStyle: "italic",
   },
-});
+  });
+}

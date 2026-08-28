@@ -14,7 +14,9 @@ import {
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, radius, spacing } from '@/src/theme';
+import { spacing, withAlpha } from '@/src/theme';
+import { useTheme } from '@/src/themes';
+import GlassCard from '@/src/components/ui/GlassCard';
 import { EXERCISE_ICONS } from '@/src/data/exercise-icons';
 
 type Props = {
@@ -43,6 +45,8 @@ export default function ExercisePicturePicker({
   onClose,
   onPick,
 }: Props) {
+  const { theme } = useTheme();
+  const isGlass = theme.card.mode === 'glass';
   const [query, setQuery] = useState('');
   const [cat, setCat] = useState<any>('all');
 
@@ -108,12 +112,18 @@ export default function ExercisePicturePicker({
     >
       <View style={styles.backdrop}>
         <Pressable style={{ flex: 1 }} onPress={onClose} />
-        <View style={styles.sheet}>
-          <View style={styles.handle} />
+        <GlassCard
+          level="elevated"
+          style={[
+            styles.sheet,
+            !isGlass && { backgroundColor: theme.colors.surfaceSecondary },
+          ]}
+        >
+          <View style={[styles.handle, { backgroundColor: theme.colors.border }]} />
           <View style={styles.headerRow}>
-            <Text style={styles.title}>Photo de l&apos;exercice</Text>
+            <Text style={[styles.title, { color: theme.colors.onSurface }]}>Photo de l&apos;exercice</Text>
             <Pressable onPress={onClose} hitSlop={12}>
-              <Ionicons name="close" size={22} color={colors.onSurface} />
+              <Ionicons name="close" size={22} color={theme.colors.onSurface} />
             </Pressable>
           </View>
 
@@ -121,31 +131,48 @@ export default function ExercisePicturePicker({
           <View style={styles.photoRow}>
             <Pressable
               testID="photo-camera-ex"
-              style={styles.photoBtn}
+              style={[
+                styles.photoBtn,
+                {
+                  borderRadius: theme.radius.md,
+                  borderColor: theme.colors.brand,
+                  backgroundColor: isGlass ? theme.glass.subtle.tint : theme.colors.surfaceTertiary,
+                },
+              ]}
               onPress={() => pickPhoto(true)}
             >
-              <Ionicons name="camera" size={16} color={colors.brand} />
-              <Text style={styles.photoBtnText}>Caméra</Text>
+              <Ionicons name="camera" size={16} color={theme.colors.brand} />
+              <Text style={[styles.photoBtnText, { color: theme.colors.brand }]}>Caméra</Text>
             </Pressable>
             <Pressable
               testID="photo-gallery-ex"
-              style={styles.photoBtn}
+              style={[
+                styles.photoBtn,
+                {
+                  borderRadius: theme.radius.md,
+                  borderColor: theme.colors.brand,
+                  backgroundColor: isGlass ? theme.glass.subtle.tint : theme.colors.surfaceTertiary,
+                },
+              ]}
               onPress={() => pickPhoto(false)}
             >
-              <Ionicons name="images" size={16} color={colors.brand} />
-              <Text style={styles.photoBtnText}>Galerie</Text>
+              <Ionicons name="images" size={16} color={theme.colors.brand} />
+              <Text style={[styles.photoBtnText, { color: theme.colors.brand }]}>Galerie</Text>
             </Pressable>
             {(currentPhoto || currentIconKey) && (
               <Pressable
                 testID="photo-clear-ex"
-                style={styles.photoBtnDanger}
+                style={[
+                  styles.photoBtnDanger,
+                  { borderRadius: theme.radius.md, borderColor: theme.colors.error },
+                ]}
                 onPress={() => {
                   onPick({ photoBase64: null, iconKey: null });
                   onClose();
                 }}
               >
-                <Ionicons name="trash" size={16} color={colors.error} />
-                <Text style={[styles.photoBtnText, { color: colors.error }]}>
+                <Ionicons name="trash" size={16} color={theme.colors.error} />
+                <Text style={[styles.photoBtnText, { color: theme.colors.error }]}>
                   Retirer
                 </Text>
               </Pressable>
@@ -156,21 +183,29 @@ export default function ExercisePicturePicker({
             <View style={styles.currentPhotoBox}>
               <Image
                 source={{ uri: `data:image/jpeg;base64,${currentPhoto}` }}
-                style={styles.currentPhoto}
+                style={[styles.currentPhoto, { borderRadius: theme.radius.md, backgroundColor: theme.colors.surfaceTertiary }]}
               />
-              <Text style={styles.currentPhotoLabel}>Photo actuelle</Text>
+              <Text style={[styles.currentPhotoLabel, { color: theme.colors.onSurfaceTertiary }]}>Photo actuelle</Text>
             </View>
           ) : null}
 
-          <Text style={styles.libLabel}>OU CHOISIR UNE ICÔNE</Text>
+          <Text style={[styles.libLabel, { color: theme.colors.onSurfaceTertiary }]}>OU CHOISIR UNE ICÔNE</Text>
 
           <TextInput
             testID="icon-search"
-            style={styles.search}
+            style={[
+              styles.search,
+              {
+                borderRadius: theme.radius.md,
+                backgroundColor: isGlass ? theme.glass.subtle.tint : theme.colors.surfaceTertiary,
+                borderColor: theme.colors.border,
+                color: theme.colors.onSurface,
+              },
+            ]}
             value={query}
             onChangeText={setQuery}
             placeholder="Rechercher (pompes, squat, curl…)"
-            placeholderTextColor={colors.onSurfaceTertiary}
+            placeholderTextColor={theme.colors.onSurfaceTertiary}
           />
 
           <ScrollView
@@ -184,12 +219,24 @@ export default function ExercisePicturePicker({
                 <Pressable
                   key={c.key}
                   onPress={() => setCat(c.key)}
-                  style={[styles.catChip, active && styles.catChipActive]}
+                  style={[
+                    styles.catChip,
+                    {
+                      borderRadius: theme.radius.pill,
+                      backgroundColor: isGlass ? theme.glass.subtle.tint : theme.colors.surfaceTertiary,
+                      borderColor: theme.colors.border,
+                    },
+                    active &&
+                      (isGlass
+                        ? { backgroundColor: withAlpha(theme.colors.brand, 22), borderColor: withAlpha(theme.colors.brand, 50) }
+                        : { backgroundColor: theme.colors.brand, borderColor: theme.colors.brand }),
+                  ]}
                 >
                   <Text
                     style={[
                       styles.catText,
-                      active && { color: '#fff' },
+                      { color: theme.colors.onSurfaceTertiary },
+                      active && { color: isGlass ? theme.colors.brand : '#fff' },
                     ]}
                   >
                     {c.label}
@@ -210,25 +257,36 @@ export default function ExercisePicturePicker({
                 <Pressable
                   key={icon.key}
                   testID={`icon-${icon.key}`}
-                  style={[styles.iconTile, active && styles.iconTileActive]}
+                  style={[
+                    styles.iconTile,
+                    {
+                      borderRadius: theme.radius.md,
+                      backgroundColor: isGlass ? theme.glass.subtle.tint : theme.colors.surfaceTertiary,
+                      borderColor: theme.colors.border,
+                    },
+                    active &&
+                      (isGlass
+                        ? { backgroundColor: withAlpha(theme.colors.brand, 16), borderColor: withAlpha(theme.colors.brand, 55) }
+                        : { backgroundColor: theme.colors.brandTertiary, borderColor: theme.colors.brand }),
+                  ]}
                   onPress={() => {
                     onPick({ photoBase64: null, iconKey: icon.key });
                     onClose();
                   }}
                 >
                   <Text style={styles.iconEmoji}>{icon.emoji}</Text>
-                  <Text style={styles.iconLabel} numberOfLines={1}>
+                  <Text style={[styles.iconLabel, { color: theme.colors.onSurfaceSecondary }]} numberOfLines={1}>
                     {icon.label}
                   </Text>
                 </Pressable>
               );
             })}
             {list.length === 0 && (
-              <Text style={styles.noResults}>Aucune icône trouvée</Text>
+              <Text style={[styles.noResults, { color: theme.colors.onSurfaceTertiary }]}>Aucune icône trouvée</Text>
             )}
           </ScrollView>
           {Platform.OS === 'ios' && <View style={{ height: 16 }} />}
-        </View>
+        </GlassCard>
       </View>
     </Modal>
   );
@@ -241,7 +299,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   sheet: {
-    backgroundColor: colors.surfaceSecondary,
     padding: spacing.lg,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
@@ -250,7 +307,6 @@ const styles = StyleSheet.create({
   handle: {
     width: 48,
     height: 5,
-    backgroundColor: colors.border,
     borderRadius: 3,
     alignSelf: 'center',
     marginBottom: spacing.md,
@@ -261,7 +317,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: spacing.md,
   },
-  title: { color: colors.onSurface, fontSize: 17, fontWeight: '800' },
+  title: { fontSize: 17, fontWeight: '800' },
   photoRow: {
     flexDirection: 'row',
     gap: spacing.sm,
@@ -274,11 +330,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 6,
     paddingVertical: 12,
-    borderRadius: radius.md,
     borderWidth: 1.5,
-    borderColor: colors.brand,
     borderStyle: 'dashed',
-    backgroundColor: colors.surfaceTertiary,
   },
   photoBtnDanger: {
     flex: 1,
@@ -287,13 +340,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 6,
     paddingVertical: 12,
-    borderRadius: radius.md,
     borderWidth: 1.5,
-    borderColor: colors.error,
     borderStyle: 'dashed',
   },
   photoBtnText: {
-    color: colors.brand,
     fontWeight: '800',
     fontSize: 12,
     letterSpacing: 0.5,
@@ -306,45 +356,29 @@ const styles = StyleSheet.create({
   currentPhoto: {
     width: 120,
     height: 120,
-    borderRadius: radius.md,
-    backgroundColor: colors.surfaceTertiary,
   },
   currentPhotoLabel: {
-    color: colors.onSurfaceTertiary,
     fontSize: 10,
     letterSpacing: 0.8,
   },
   libLabel: {
-    color: colors.onSurfaceTertiary,
     fontSize: 10,
     letterSpacing: 1.4,
     fontWeight: '800',
     marginBottom: 6,
   },
   search: {
-    backgroundColor: colors.surfaceTertiary,
-    borderRadius: radius.md,
     padding: spacing.md,
-    color: colors.onSurface,
     borderWidth: 1,
-    borderColor: colors.border,
     marginBottom: spacing.sm,
   },
   catsRow: { gap: 6, paddingBottom: spacing.sm },
   catChip: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: radius.pill,
-    backgroundColor: colors.surfaceTertiary,
     borderWidth: 1,
-    borderColor: colors.border,
-  },
-  catChipActive: {
-    backgroundColor: colors.brand,
-    borderColor: colors.brand,
   },
   catText: {
-    color: colors.onSurfaceTertiary,
     fontWeight: '700',
     fontSize: 11,
     letterSpacing: 0.4,
@@ -358,26 +392,17 @@ const styles = StyleSheet.create({
   iconTile: {
     width: 74,
     padding: 8,
-    borderRadius: radius.md,
-    backgroundColor: colors.surfaceTertiary,
     borderWidth: 1,
-    borderColor: colors.border,
     alignItems: 'center',
     gap: 4,
   },
-  iconTileActive: {
-    borderColor: colors.brand,
-    backgroundColor: colors.brandTertiary,
-  },
   iconEmoji: { fontSize: 28 },
   iconLabel: {
-    color: colors.onSurfaceSecondary,
     fontSize: 10,
     fontWeight: '600',
     textAlign: 'center',
   },
   noResults: {
-    color: colors.onSurfaceTertiary,
     padding: spacing.lg,
     textAlign: 'center',
     width: '100%',

@@ -1,10 +1,12 @@
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { colors, radius, spacing, shadow } from "@/src/theme";
+import { spacing, shadow } from "@/src/theme";
+import { useTheme } from "@/src/themes";
 import { XPState } from "@/src/utils/xp";
 import AnimatedNumber from "@/src/components/ui/AnimatedNumber";
 import PressableScale from "@/src/components/ui/PressableScale";
+import GlassCard from "@/src/components/ui/GlassCard";
 
 /**
  * Carte "cockpit" Niveau/XP/Streak/Trophées — aucune donnée nouvelle à
@@ -30,22 +32,39 @@ export default function CockpitCard({
   onPress?: () => void;
   testID?: string;
 }) {
+  const { theme } = useTheme();
   const router = useRouter();
-  const Wrapper = onPress ? PressableScale : View;
-  const wrapperProps = onPress ? { testID, onPress } : {};
 
-  return (
-    <Wrapper style={styles.cockpitCard} {...wrapperProps}>
+  const content = (
+    <GlassCard
+      testID={onPress ? undefined : testID}
+      style={[
+        styles.cockpitCard,
+        {
+          backgroundColor: theme.colors.surfaceSecondary,
+          borderRadius: theme.radius.md,
+          borderColor: theme.colors.border,
+        },
+        shadow.card,
+      ]}
+    >
       <View style={styles.cockpitTop}>
-        <View style={styles.cockpitLevelBadge}>
+        <View style={[styles.cockpitLevelBadge, { backgroundColor: theme.colors.progress }]}>
           <Text style={styles.cockpitLevelBadgeNum}>{xpState.level}</Text>
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={styles.cockpitLevelLabel}>NIVEAU {xpState.level}</Text>
-          <View style={styles.cockpitXpBar}>
-            <View style={[styles.cockpitXpFill, { width: `${xpState.progress * 100}%` }]} />
+          <Text style={[styles.cockpitLevelLabel, { color: theme.colors.onSurfaceTertiary }]}>
+            NIVEAU {xpState.level}
+          </Text>
+          <View style={[styles.cockpitXpBar, { backgroundColor: theme.colors.surfaceTertiary }]}>
+            <View
+              style={[
+                styles.cockpitXpFill,
+                { width: `${xpState.progress * 100}%`, backgroundColor: theme.colors.progress },
+              ]}
+            />
           </View>
-          <Text style={styles.cockpitXpCaption}>
+          <Text style={[styles.cockpitXpCaption, { color: theme.colors.onSurface }]}>
             {xpState.xpToNext} XP → N{xpState.level + 1}
             {xpState.nextBadge
               ? ` · Prochain badge : ${xpState.nextBadge.emoji} ${xpState.nextBadge.title}`
@@ -53,25 +72,25 @@ export default function CockpitCard({
           </Text>
         </View>
       </View>
-      <View style={styles.cockpitDivider} />
+      <View style={[styles.cockpitDivider, { backgroundColor: theme.colors.divider }]} />
       <View style={styles.cockpitBottom}>
         <View style={styles.cockpitStat}>
-          <Ionicons name="flame-outline" size={14} color={colors.onSurfaceTertiary} />
+          <Ionicons name="flame-outline" size={14} color={theme.colors.onSurfaceTertiary} />
           <AnimatedNumber
             value={currentStreakDays}
             formatter={(n) => `${Math.round(n)} j`}
-            style={styles.cockpitStatValue}
+            style={[styles.cockpitStatValue, { color: theme.colors.onSurface }]}
           />
-          <Text style={styles.cockpitStatLabel}>Streak</Text>
+          <Text style={[styles.cockpitStatLabel, { color: theme.colors.onSurfaceTertiary }]}>Streak</Text>
         </View>
         <View style={styles.cockpitStat}>
-          <Ionicons name="trophy-outline" size={14} color={colors.onSurfaceTertiary} />
+          <Ionicons name="trophy-outline" size={14} color={theme.colors.onSurfaceTertiary} />
           <AnimatedNumber
             value={bestStreakDays}
             formatter={(n) => `${Math.round(n)} j`}
-            style={styles.cockpitStatValue}
+            style={[styles.cockpitStatValue, { color: theme.colors.onSurface }]}
           />
-          <Text style={styles.cockpitStatLabel}>Record</Text>
+          <Text style={[styles.cockpitStatLabel, { color: theme.colors.onSurfaceTertiary }]}>Record</Text>
         </View>
         <Pressable
           testID={testID ? `${testID}-achievements` : "cockpit-achievements-link"}
@@ -81,39 +100,40 @@ export default function CockpitCard({
             router.push("/achievements");
           }}
         >
-          <Ionicons name="ribbon-outline" size={14} color={colors.onSurfaceTertiary} />
-          <Text style={styles.cockpitStatValue}>
+          <Ionicons name="ribbon-outline" size={14} color={theme.colors.onSurfaceTertiary} />
+          <Text style={[styles.cockpitStatValue, { color: theme.colors.onSurface }]}>
             {unlockedAchievements}/{totalAchievements}
           </Text>
-          <Text style={styles.cockpitStatLabel}>Trophées</Text>
+          <Text style={[styles.cockpitStatLabel, { color: theme.colors.onSurfaceTertiary }]}>Trophées</Text>
         </Pressable>
       </View>
-    </Wrapper>
+    </GlassCard>
+  );
+
+  if (!onPress) return content;
+  return (
+    <PressableScale testID={testID} onPress={onPress}>
+      {content}
+    </PressableScale>
   );
 }
 
 const styles = StyleSheet.create({
   cockpitCard: {
-    backgroundColor: colors.surfaceSecondary,
-    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: colors.border,
     padding: spacing.md,
     gap: spacing.sm,
-    ...shadow.card,
   },
   cockpitTop: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   cockpitLevelBadge: {
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: colors.progress,
     alignItems: "center",
     justifyContent: "center",
   },
   cockpitLevelBadgeNum: { color: "#fff", fontWeight: "800", fontSize: 12 },
   cockpitLevelLabel: {
-    color: colors.onSurfaceTertiary,
     fontSize: 9,
     fontWeight: "800",
     letterSpacing: 0.6,
@@ -122,22 +142,19 @@ const styles = StyleSheet.create({
   cockpitXpBar: {
     height: 5,
     borderRadius: 3,
-    backgroundColor: colors.surfaceTertiary,
     overflow: "hidden",
   },
-  cockpitXpFill: { height: "100%", borderRadius: 3, backgroundColor: colors.progress },
+  cockpitXpFill: { height: "100%", borderRadius: 3 },
   cockpitXpCaption: {
-    color: colors.onSurface,
     fontSize: 11,
     fontWeight: "700",
     marginTop: 4,
   },
-  cockpitDivider: { height: 1, backgroundColor: colors.divider },
+  cockpitDivider: { height: 1 },
   cockpitBottom: { flexDirection: "row" },
   cockpitStat: { flex: 1, alignItems: "center", gap: 2 },
-  cockpitStatValue: { color: colors.onSurface, fontSize: 13, fontWeight: "800" },
+  cockpitStatValue: { fontSize: 13, fontWeight: "800" },
   cockpitStatLabel: {
-    color: colors.onSurfaceTertiary,
     fontSize: 9,
     fontWeight: "700",
   },

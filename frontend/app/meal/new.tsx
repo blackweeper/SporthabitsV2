@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import {
   View,
   Text,
@@ -13,7 +13,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import { colors, radius, spacing } from "@/src/theme";
+import { spacing, withAlpha } from "@/src/theme";
+import { Theme, useTheme } from "@/src/themes";
+import ThemedBackground from "@/src/themes/ThemedBackground";
 import {
   DEFAULT_CALORIES_TARGET_KCAL,
   getProfile,
@@ -32,6 +34,8 @@ const PRESETS: { label: string; kcal: number; icon: any }[] = [
 ];
 
 export default function NewMealScreen() {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   const router = useRouter();
   const [current, setCurrent] = useState<number>(0);
   const [target, setTarget] = useState<number>(DEFAULT_CALORIES_TARGET_KCAL);
@@ -68,7 +72,15 @@ export default function NewMealScreen() {
   const pct = Math.min(1, target ? current / target : 0);
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+    <View style={{ flex: 1 }}>
+      <ThemedBackground />
+      <SafeAreaView
+        style={[
+          styles.container,
+          theme.background.mode === "gradient" ? { backgroundColor: "transparent" } : { backgroundColor: theme.colors.surface },
+        ]}
+        edges={["top", "bottom"]}
+      >
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={{ flex: 1 }}
@@ -79,7 +91,7 @@ export default function NewMealScreen() {
             hitSlop={12}
             testID="close-meal"
           >
-            <Ionicons name="chevron-back" size={24} color={colors.onSurface} />
+            <Ionicons name="chevron-back" size={24} color={theme.colors.onSurface} />
           </Pressable>
           <Text style={styles.title}>Ajouter un repas</Text>
           <View style={{ width: 24 }} />
@@ -97,7 +109,7 @@ export default function NewMealScreen() {
                   Cible {target} kcal · {Math.round(pct * 100)}%
                 </Text>
               </View>
-              <Ionicons name="nutrition" size={40} color={colors.brand} />
+              <Ionicons name="nutrition" size={40} color={theme.colors.brand} />
             </View>
             <View style={styles.bar}>
               <View style={[styles.fill, { width: `${pct * 100}%` }]} />
@@ -115,7 +127,7 @@ export default function NewMealScreen() {
                 disabled={saving}
               >
                 <View style={styles.presetIcon}>
-                  <Ionicons name={p.icon} size={16} color={colors.brand} />
+                  <Ionicons name={p.icon} size={16} color={theme.colors.brand} />
                 </View>
                 <Text style={styles.presetLabel}>{p.label}</Text>
                 <Text style={styles.presetKcal}>+{p.kcal} kcal</Text>
@@ -132,7 +144,7 @@ export default function NewMealScreen() {
               onChangeText={setCustom}
               keyboardType="number-pad"
               placeholder="Ex : 350"
-              placeholderTextColor={colors.onSurfaceTertiary}
+              placeholderTextColor={theme.colors.onSurfaceTertiary}
             />
             <Text style={styles.inputSuffix}>kcal</Text>
             <Pressable
@@ -158,7 +170,7 @@ export default function NewMealScreen() {
                 setCurrent(0);
               }}
             >
-              <Ionicons name="refresh" size={14} color={colors.error} />
+              <Ionicons name="refresh" size={14} color={theme.colors.error} />
               <Text style={styles.resetBtnText}>
                 Réinitialiser l&apos;apport du jour
               </Text>
@@ -166,11 +178,15 @@ export default function NewMealScreen() {
           )}
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
-const styles = StyleSheet.create({
+function buildStyles(theme: Theme) {
+  const { colors, radius } = theme;
+  const isGlass = theme.card.mode === "glass";
+  return StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.surface },
   header: {
     flexDirection: "row",
@@ -222,7 +238,7 @@ const styles = StyleSheet.create({
   },
   fill: {
     height: "100%",
-    backgroundColor: colors.brand,
+    backgroundColor: isGlass ? withAlpha(colors.brand, 20) : colors.brand,
     borderRadius: 3,
   },
   sectionTitle: {
@@ -290,7 +306,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    backgroundColor: colors.brand,
+    backgroundColor: isGlass ? withAlpha(colors.brand, 20) : colors.brand,
     paddingHorizontal: 14,
     paddingVertical: 12,
     borderRadius: radius.md,
@@ -314,4 +330,5 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontSize: 12,
   },
-});
+  });
+}

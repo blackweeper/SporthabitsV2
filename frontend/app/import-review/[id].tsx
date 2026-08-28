@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { View, Text, StyleSheet, ScrollView, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing, withAlpha } from "@/src/theme";
+import { spacing, withAlpha } from "@/src/theme";
+import { Theme, useTheme } from "@/src/themes";
+import ThemedBackground from "@/src/themes/ThemedBackground";
 import Card from "@/src/components/ui/Card";
 import CTAButton from "@/src/components/ui/CTAButton";
 import PressableScale from "@/src/components/ui/PressableScale";
@@ -21,11 +23,11 @@ import {
   MatchScoreBand,
 } from "@/src/utils/exercise-matching";
 
-function bandColor(band: MatchScoreBand): string {
-  if (band.color === "success") return colors.success;
-  if (band.color === "warning") return colors.warning;
-  if (band.color === "info") return colors.info;
-  return colors.onSurfaceTertiary;
+function bandColor(theme: Theme, band: MatchScoreBand): string {
+  if (band.color === "success") return theme.colors.success;
+  if (band.color === "warning") return theme.colors.warning;
+  if (band.color === "info") return theme.colors.info;
+  return theme.colors.onSurfaceTertiary;
 }
 
 /**
@@ -41,6 +43,8 @@ function bandColor(band: MatchScoreBand): string {
  * une fois compte pour 3 si le programme contient 3 séances avec "Squat".
  */
 export default function ImportReviewScreen() {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   const { id, autoLinked: autoLinkedParam } = useLocalSearchParams<{ id: string; autoLinked?: string }>();
   const router = useRouter();
   const autoLinked = Number(autoLinkedParam) || 0;
@@ -140,14 +144,25 @@ export default function ImportReviewScreen() {
 
   if (!program) {
     return (
-      <SafeAreaView style={styles.container}>
-        <Text style={styles.loading}>Chargement…</Text>
-      </SafeAreaView>
+      <View style={{ flex: 1 }}>
+        <ThemedBackground />
+        <SafeAreaView style={[styles.container, theme.background.mode === "gradient" && { backgroundColor: "transparent" }]}>
+          <Text style={styles.loading}>Chargement…</Text>
+        </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+    <View style={{ flex: 1 }}>
+      <ThemedBackground />
+      <SafeAreaView
+        style={[
+          styles.container,
+          theme.background.mode === "gradient" ? { backgroundColor: "transparent" } : { backgroundColor: theme.colors.surface },
+        ]}
+        edges={["top", "bottom"]}
+      >
       <View style={styles.header}>
         <View style={{ flex: 1 }}>
           <Text style={styles.title}>Vérifier les exercices</Text>
@@ -162,7 +177,7 @@ export default function ImportReviewScreen() {
 
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.hintCard}>
-          <Ionicons name="information-circle" size={14} color={colors.brand} />
+          <Ionicons name="information-circle" size={14} color={theme.colors.brand} />
           <Text style={styles.hintText}>
             Ces exercices n&apos;ont pas de correspondance sûre dans ta bibliothèque. Choisis une
             suggestion, cherche l&apos;exercice existant, ou laisse-le en texte libre — tu pourras
@@ -181,14 +196,14 @@ export default function ImportReviewScreen() {
                   styles.statusBadge,
                   {
                     backgroundColor:
-                      result.status === "fuzzy" ? withAlpha(colors.warning, 18) : withAlpha(colors.onSurfaceTertiary, 15),
+                      result.status === "fuzzy" ? withAlpha(theme.colors.warning, 18) : withAlpha(theme.colors.onSurfaceTertiary, 15),
                   },
                 ]}
               >
                 <Text
                   style={[
                     styles.statusBadgeText,
-                    { color: result.status === "fuzzy" ? colors.warning : colors.onSurfaceTertiary },
+                    { color: result.status === "fuzzy" ? theme.colors.warning : theme.colors.onSurfaceTertiary },
                   ]}
                 >
                   {result.status === "fuzzy" ? "SUGGESTION" : "AUCUN MATCH"}
@@ -198,18 +213,18 @@ export default function ImportReviewScreen() {
 
             {result.suggestions.map((s, i) => {
               const band = matchScoreBand(s.score);
-              const color = bandColor(band);
+              const color = bandColor(theme, band);
               return (
                 <PressableScale
                   key={s.id}
                   testID={`import-review-suggestion-${result.rawName}-${s.id}`}
-                  style={[styles.suggestionRow, i === 0 && { borderWidth: 1.5, borderColor: colors.brand }]}
+                  style={[styles.suggestionRow, i === 0 && { borderWidth: 1.5, borderColor: theme.colors.brand }]}
                   onPress={() => {
                     const record = records.find((r) => r.id === s.id);
                     if (record) applyResolution(result.rawName, record, false);
                   }}
                 >
-                  <Ionicons name="link" size={14} color={colors.brand} />
+                  <Ionicons name="link" size={14} color={theme.colors.brand} />
                   <Text style={styles.suggestionName} numberOfLines={1}>
                     {s.name}
                   </Text>
@@ -227,7 +242,7 @@ export default function ImportReviewScreen() {
               style={styles.searchBtn}
               onPress={() => setResolverFor(result.rawName)}
             >
-              <Ionicons name="search" size={13} color={colors.onSurfaceSecondary} />
+              <Ionicons name="search" size={13} color={theme.colors.onSurfaceSecondary} />
               <Text style={styles.searchBtnText}>Chercher ou créer un exercice</Text>
             </Pressable>
           </Card>
@@ -262,11 +277,14 @@ export default function ImportReviewScreen() {
           }}
         />
       )}
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
-const styles = StyleSheet.create({
+function buildStyles(theme: Theme) {
+  const { colors, radius } = theme;
+  return StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.surface },
   loading: { color: colors.onSurfaceTertiary, textAlign: "center", marginTop: 40 },
   header: {
@@ -331,4 +349,5 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.border,
   },
-});
+  });
+}

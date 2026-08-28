@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -10,7 +10,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing } from "@/src/theme";
+import { spacing, withAlpha } from "@/src/theme";
+import { Theme, useTheme } from "@/src/themes";
+import ThemedBackground from "@/src/themes/ThemedBackground";
 import {
   COVER_COLORS,
   Program,
@@ -24,6 +26,8 @@ import {
 } from "@/src/utils/gym-storage";
 
 export default function PlansScreen() {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   const router = useRouter();
   const [plans, setPlans] = useState<Plan[]>([]);
 
@@ -101,7 +105,15 @@ export default function PlansScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <View style={{ flex: 1 }}>
+      <ThemedBackground />
+      <SafeAreaView
+        style={[
+          styles.container,
+          theme.background.mode === "gradient" ? { backgroundColor: "transparent" } : { backgroundColor: theme.colors.surface },
+        ]}
+        edges={["top"]}
+      >
       <View style={styles.header}>
         <Text style={styles.title}>Mes plans</Text>
         <Pressable
@@ -109,7 +121,7 @@ export default function PlansScreen() {
           style={styles.headerBtn}
           onPress={() => router.push("/plan/new")}
         >
-          <Ionicons name="add" size={20} color={colors.brand} />
+          <Ionicons name="add" size={20} color={theme.colors.brand} />
         </Pressable>
       </View>
 
@@ -123,7 +135,7 @@ export default function PlansScreen() {
               <Ionicons
                 name="barbell"
                 size={40}
-                color={colors.brand}
+                color={theme.colors.brand}
               />
             </View>
             <Text style={styles.emptyTitle}>Aucun plan</Text>
@@ -163,7 +175,7 @@ export default function PlansScreen() {
                   <Ionicons
                     name="trash-outline"
                     size={18}
-                    color={colors.onSurfaceTertiary}
+                    color={theme.colors.onSurfaceTertiary}
                   />
                 </Pressable>
               </View>
@@ -185,7 +197,7 @@ export default function PlansScreen() {
                   style={styles.dupBtn}
                   onPress={() => duplicateToProgram(p)}
                 >
-                  <Ionicons name="copy" size={14} color={colors.brand} />
+                  <Ionicons name="copy" size={14} color={theme.colors.brand} />
                   <Text style={styles.dupBtnText}>PROGRAMME</Text>
                 </Pressable>
                 <Pressable
@@ -202,11 +214,15 @@ export default function PlansScreen() {
         )}
         <View style={{ height: spacing.xl2 }} />
       </ScrollView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
-const styles = StyleSheet.create({
+function buildStyles(theme: Theme) {
+  const { colors, radius } = theme;
+  const isGlass = theme.card.mode === "glass";
+  return StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.surface },
   header: {
     flexDirection: "row",
@@ -260,7 +276,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   ctaBtn: {
-    backgroundColor: colors.brand,
+    backgroundColor: isGlass ? withAlpha(colors.brand, 20) : colors.brand,
     paddingVertical: 16,
     paddingHorizontal: spacing.xl,
     borderRadius: radius.md,
@@ -302,7 +318,7 @@ const styles = StyleSheet.create({
   moreText: { color: colors.brand, fontSize: 12, marginTop: 2 },
   startBtn: {
     flex: 1,
-    backgroundColor: colors.brand,
+    backgroundColor: isGlass ? withAlpha(colors.brand, 20) : colors.brand,
     paddingVertical: 12,
     borderRadius: radius.md,
     flexDirection: "row",
@@ -332,4 +348,5 @@ const styles = StyleSheet.create({
     fontSize: 11,
     letterSpacing: 0.6,
   },
-});
+  });
+}

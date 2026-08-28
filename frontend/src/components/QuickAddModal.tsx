@@ -1,6 +1,8 @@
 import { View, Text, StyleSheet, Modal, Pressable, Platform } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing } from "@/src/theme";
+import { spacing } from "@/src/theme";
+import { useTheme } from "@/src/themes";
+import GlassCard from "@/src/components/ui/GlassCard";
 
 type QuickAddItem = {
   id: string;
@@ -12,13 +14,14 @@ type QuickAddItem = {
   testID: string;
 };
 
-const ITEMS: QuickAddItem[] = [
+function buildItems(brandColor: string): QuickAddItem[] {
+  return [
   {
     id: "session",
     title: "Démarrer une séance",
     subtitle: "Choisir un plan et commencer",
     icon: "flame",
-    color: colors.brand,
+    color: brandColor,
     path: "/plans",
     testID: "qa-session",
   },
@@ -85,7 +88,8 @@ const ITEMS: QuickAddItem[] = [
     path: "/pr/new",
     testID: "qa-pr",
   },
-];
+  ];
+}
 
 /**
  * Global "Actions rapides" sheet — reachable from a floating button visible
@@ -101,6 +105,8 @@ export default function QuickAddModal({
   onClose: () => void;
   onPick: (path: string) => void;
 }) {
+  const { theme } = useTheme();
+  const items = buildItems(theme.colors.brand);
   return (
     <Modal
       visible={visible}
@@ -110,31 +116,41 @@ export default function QuickAddModal({
     >
       <View style={styles.backdrop}>
         <Pressable style={{ flex: 1 }} onPress={onClose} />
-        <View style={styles.sheet}>
-          <View style={styles.handle} />
-          <Text style={styles.title}>Actions rapides</Text>
+        <GlassCard
+          level="elevated"
+          style={[styles.sheet, theme.card.mode !== "glass" && { backgroundColor: theme.colors.surfaceSecondary }]}
+        >
+          <View style={[styles.handle, { backgroundColor: theme.colors.border }]} />
+          <Text style={[styles.title, { color: theme.colors.onSurface }]}>Actions rapides</Text>
           <View style={styles.grid}>
-            {ITEMS.map((i) => (
+            {items.map((i) => (
               <Pressable
                 key={i.id}
                 testID={i.testID}
-                style={styles.item}
+                style={[
+                  styles.item,
+                  {
+                    backgroundColor: theme.card.mode === "glass" ? theme.glass.subtle.tint : theme.colors.surfaceTertiary,
+                    borderRadius: theme.radius.md,
+                    borderColor: theme.colors.border,
+                  },
+                ]}
                 onPress={() => onPick(i.path)}
               >
                 <View style={[styles.itemIcon, { backgroundColor: `${i.color}22` }]}>
                   <Ionicons name={i.icon} size={22} color={i.color} />
                 </View>
-                <Text style={styles.itemTitle} numberOfLines={1}>
+                <Text style={[styles.itemTitle, { color: theme.colors.onSurface }]} numberOfLines={1}>
                   {i.title}
                 </Text>
-                <Text style={styles.itemSub} numberOfLines={2}>
+                <Text style={[styles.itemSub, { color: theme.colors.onSurfaceTertiary }]} numberOfLines={2}>
                   {i.subtitle}
                 </Text>
               </Pressable>
             ))}
           </View>
           {Platform.OS === "ios" && <View style={{ height: 20 }} />}
-        </View>
+        </GlassCard>
       </View>
     </Modal>
   );
@@ -147,7 +163,6 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   sheet: {
-    backgroundColor: colors.surfaceSecondary,
     padding: spacing.lg,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
@@ -156,13 +171,11 @@ const styles = StyleSheet.create({
   handle: {
     width: 48,
     height: 5,
-    backgroundColor: colors.border,
     borderRadius: 3,
     alignSelf: "center",
     marginBottom: spacing.md,
   },
   title: {
-    color: colors.onSurface,
     fontSize: 18,
     fontWeight: "800",
     marginBottom: spacing.md,
@@ -174,11 +187,8 @@ const styles = StyleSheet.create({
   },
   item: {
     width: "48%",
-    backgroundColor: colors.surfaceTertiary,
     padding: spacing.md,
-    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: colors.border,
     gap: 4,
   },
   itemIcon: {
@@ -189,9 +199,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: 4,
   },
-  itemTitle: { color: colors.onSurface, fontWeight: "800", fontSize: 13 },
+  itemTitle: { fontWeight: "800", fontSize: 13 },
   itemSub: {
-    color: colors.onSurfaceTertiary,
     fontSize: 11,
     lineHeight: 14,
   },

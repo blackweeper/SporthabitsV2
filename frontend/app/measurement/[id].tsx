@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -15,7 +15,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { colors, radius, spacing } from "@/src/theme";
+import { spacing, withAlpha } from "@/src/theme";
+import { Theme, useTheme } from "@/src/themes";
+import ThemedBackground from "@/src/themes/ThemedBackground";
 import DatePickerField from "@/src/components/DatePickerField";
 import { cropImage } from "@/src/utils/imageCropper";
 import { useConfirmDialog } from "@/src/hooks/use-confirm-dialog";
@@ -50,6 +52,8 @@ const CORE_FIELDS: FieldDef[] = [
 ];
 
 export default function MeasurementEditScreen() {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const isNew = id === "new";
@@ -168,9 +172,12 @@ export default function MeasurementEditScreen() {
 
   if (loading || !m) {
     return (
-      <SafeAreaView style={styles.container}>
-        <Text style={styles.loading}>Chargement…</Text>
-      </SafeAreaView>
+      <View style={{ flex: 1 }}>
+        <ThemedBackground />
+        <SafeAreaView style={[styles.container, theme.background.mode === "gradient" && { backgroundColor: "transparent" }]}>
+          <Text style={styles.loading}>Chargement…</Text>
+        </SafeAreaView>
+      </View>
     );
   }
 
@@ -183,14 +190,22 @@ export default function MeasurementEditScreen() {
   });
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+    <View style={{ flex: 1 }}>
+      <ThemedBackground />
+      <SafeAreaView
+        style={[
+          styles.container,
+          theme.background.mode === "gradient" ? { backgroundColor: "transparent" } : { backgroundColor: theme.colors.surface },
+        ]}
+        edges={["top", "bottom"]}
+      >
       <View style={styles.header}>
         <Pressable
           testID="close-measurement"
           onPress={() => router.back()}
           hitSlop={12}
         >
-          <Ionicons name="chevron-back" size={24} color={colors.onSurface} />
+          <Ionicons name="chevron-back" size={24} color={theme.colors.onSurface} />
         </Pressable>
         <Text style={styles.title}>
           {isNew ? "Nouvelle mesure" : "Modifier mesure"}
@@ -246,7 +261,7 @@ export default function MeasurementEditScreen() {
           {/* Body fat card */}
           <View style={styles.bfCard}>
             <View style={styles.bfHeader}>
-              <Ionicons name="pulse" size={16} color={colors.brand} />
+              <Ionicons name="pulse" size={16} color={theme.colors.brand} />
               <Text style={styles.bfTitle}>Pourcentage de masse grasse</Text>
             </View>
 
@@ -314,7 +329,7 @@ export default function MeasurementEditScreen() {
                   value={m.body_fat_pct == null ? "" : String(m.body_fat_pct)}
                   keyboardType="decimal-pad"
                   placeholder="Ex: 18.5"
-                  placeholderTextColor={colors.onSurfaceTertiary}
+                  placeholderTextColor={theme.colors.onSurfaceTertiary}
                   onChangeText={(t) => {
                     if (t.trim() === "") return set("body_fat_pct", null);
                     const n = parseFloat(t.replace(",", "."));
@@ -350,7 +365,7 @@ export default function MeasurementEditScreen() {
                 style={styles.photoBtn}
                 onPress={() => pickPhoto(true)}
               >
-                <Ionicons name="camera" size={18} color={colors.brand} />
+                <Ionicons name="camera" size={18} color={theme.colors.brand} />
                 <Text style={styles.photoBtnText}>PRENDRE</Text>
               </Pressable>
               <Pressable
@@ -358,7 +373,7 @@ export default function MeasurementEditScreen() {
                 style={styles.photoBtn}
                 onPress={() => pickPhoto(false)}
               >
-                <Ionicons name="images" size={18} color={colors.brand} />
+                <Ionicons name="images" size={18} color={theme.colors.brand} />
                 <Text style={styles.photoBtnText}>GALERIE</Text>
               </Pressable>
             </View>
@@ -371,13 +386,13 @@ export default function MeasurementEditScreen() {
             value={m.notes || ""}
             onChangeText={(t) => set("notes", t.trim() ? t : null)}
             placeholder="Ex: Après vacances, prise de masse…"
-            placeholderTextColor={colors.onSurfaceTertiary}
+            placeholderTextColor={theme.colors.onSurfaceTertiary}
             multiline
           />
 
           {!isNew && (
             <Pressable style={styles.deleteBtn} onPress={remove}>
-              <Ionicons name="trash" size={16} color={colors.error} />
+              <Ionicons name="trash" size={16} color={theme.colors.error} />
               <Text style={styles.deleteText}>Supprimer cette mesure</Text>
             </Pressable>
           )}
@@ -385,7 +400,8 @@ export default function MeasurementEditScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
       {ConfirmModal}
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
@@ -404,10 +420,12 @@ function Field({
   icon: any;
   hint?: string;
 }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   return (
     <View style={styles.fieldBox}>
       <View style={styles.fieldTop}>
-        <Ionicons name={icon} size={12} color={colors.brand} />
+        <Ionicons name={icon} size={12} color={theme.colors.brand} />
         <Text style={styles.miniLabel}>{label}</Text>
       </View>
       <TextInput
@@ -421,7 +439,7 @@ function Field({
         }}
         keyboardType="decimal-pad"
         placeholder="—"
-        placeholderTextColor={colors.onSurfaceTertiary}
+        placeholderTextColor={theme.colors.onSurfaceTertiary}
       />
       {hint ? <Text style={styles.fieldHint}>{hint}</Text> : null}
     </View>
@@ -438,7 +456,10 @@ function formatDate(iso: string) {
   });
 }
 
-const styles = StyleSheet.create({
+function buildStyles(theme: Theme) {
+  const { colors, radius } = theme;
+  const isGlass = theme.card.mode === "glass";
+  return StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.surface },
   loading: {
     color: colors.onSurfaceTertiary,
@@ -460,7 +481,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    backgroundColor: colors.brand,
+    backgroundColor: isGlass ? withAlpha(colors.brand, 20) : colors.brand,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: radius.pill,
@@ -550,7 +571,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: radius.sm,
   },
-  bfSegBtnActive: { backgroundColor: colors.brand },
+  bfSegBtnActive: isGlass ? { backgroundColor: withAlpha(colors.brand, 22) } : { backgroundColor: colors.brand },
   bfSegText: {
     color: colors.onSurfaceTertiary,
     fontSize: 11,
@@ -558,7 +579,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   bfResultBox: {
-    backgroundColor: colors.brand,
+    backgroundColor: isGlass ? withAlpha(colors.brand, 20) : colors.brand,
     borderRadius: radius.md,
     padding: spacing.md,
     alignItems: "center",
@@ -648,4 +669,5 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
   },
   deleteText: { color: colors.error, fontWeight: "700" },
-});
+  });
+}

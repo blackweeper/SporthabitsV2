@@ -1,5 +1,5 @@
 import { View, Text, StyleSheet, Image } from "react-native";
-import { colors, radius } from "@/src/theme";
+import { useTheme } from "@/src/themes";
 import { iconEmojiForExercise } from "@/src/data/exercise-icons";
 import { ExerciseRecord } from "@/src/utils/exercise-records";
 import { matchExerciseRecordLoose } from "@/src/utils/exercise-record-match";
@@ -36,37 +36,49 @@ export default function ExerciseThumbnail({
   size?: number;
   square?: boolean;
 }) {
+  const { theme } = useTheme();
   const byId = exerciseRecordId ? records.find((r) => r.id === exerciseRecordId) : undefined;
   const record = byId ?? matchExerciseRecordLoose(name, records);
   const bundled = record?.id ? CORE_LIBRARY_ASSETS[record.id] : undefined;
   const { uri: networkUri } = useExerciseMedia(!photoBase64 && !bundled ? record?.id ?? null : null);
 
-  const style = { width: size, height: size, borderRadius: square ? radius.sm : radius.md } as const;
+  const style = {
+    width: size,
+    height: size,
+    borderRadius: square ? theme.radius.sm : theme.radius.md,
+  } as const;
 
   if (photoBase64) {
     return (
       <Image
         source={{ uri: `data:image/jpeg;base64,${photoBase64}` }}
-        style={[style, styles.img]}
+        style={[style, { backgroundColor: theme.colors.surfaceTertiary }]}
         resizeMode="contain"
       />
     );
   }
   if (bundled) {
-    return <Image source={bundled} style={[style, styles.img]} resizeMode="contain" />;
+    return (
+      <Image source={bundled} style={[style, { backgroundColor: theme.colors.surfaceTertiary }]} resizeMode="contain" />
+    );
   }
   if (networkUri) {
-    return <Image source={{ uri: networkUri }} style={[style, styles.img]} resizeMode="contain" />;
+    return (
+      <Image
+        source={{ uri: networkUri }}
+        style={[style, { backgroundColor: theme.colors.surfaceTertiary }]}
+        resizeMode="contain"
+      />
+    );
   }
   const emoji = iconEmojiForExercise(name, iconKey);
   return (
-    <View style={[style, styles.iconBox]}>
+    <View style={[style, styles.iconBox, { backgroundColor: theme.colors.brandTertiary }]}>
       <Text style={{ fontSize: size * 0.5 }}>{emoji}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  img: { backgroundColor: colors.surfaceTertiary },
-  iconBox: { backgroundColor: colors.brandTertiary, alignItems: "center", justifyContent: "center" },
+  iconBox: { alignItems: "center", justifyContent: "center" },
 });

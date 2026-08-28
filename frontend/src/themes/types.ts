@@ -1,9 +1,9 @@
 /**
  * Forme d'un thème — voir `src/themes/classic.ts` (byte-identique à
- * `src/theme.ts` existant) et `src/themes/sunset.ts` (nouveau look). Seuls
- * le Dashboard, `/day-detail` et la barre d'onglets consomment ceci via
- * `useTheme()` (voir `ThemeProvider.tsx`) — le reste de l'app continue
- * d'importer les valeurs statiques de `src/theme.ts`, inchangées.
+ * `src/theme.ts` existant) et `src/themes/sunset.ts` (nouveau look). Tout
+ * `app/*.tsx` consomme désormais ceci via `useTheme()` (voir
+ * `ThemeProvider.tsx`) — `src/theme.ts` (les valeurs statiques historiques)
+ * ne sert plus que de valeurs par défaut à `classic.ts`.
  */
 
 /** Une couleur simple, ou un dégradé 2 stops (extrémité1 → extrémité2) pour
@@ -16,6 +16,24 @@ export type MetricColorSet = {
   sleep: RingColor;
   training: RingColor;
   score: RingColor;
+};
+
+/** Couleurs "sémantiques de données" — distinctes de l'accent `brand` du
+ * thème : un graphique/badge choisit sa couleur selon CE QUE la donnée
+ * représente (force, cardio, performance...), jamais selon le thème actif.
+ * Sous Classique, ces clés pointent vers les hex déjà existants (aucun
+ * changement visuel) ; sous Sunset, vers la palette dédiée du brief Liquid
+ * Glass. Consommé par les graphiques (`progression.tsx`, `exercise/[name]`)
+ * et par tout badge qui doit distinguer visuellement plusieurs catégories de
+ * données sans que tout devienne la couleur d'accent du thème. */
+export type DataColorSet = {
+  strength: string;
+  cardio: string;
+  performance: string;
+  success: string;
+  energy: string;
+  achievement: string;
+  danger: string;
 };
 
 export type ThemeColors = {
@@ -47,6 +65,7 @@ export type ThemeColors = {
    * détonne (trop sombre) sur un fond lumineux. */
   ringTrack: string;
   metricColors: MetricColorSet;
+  data: DataColorSet;
 };
 
 export type ThemeRadius = { sm: number; md: number; lg: number; pill: number };
@@ -68,6 +87,21 @@ export type ThemeCard =
   | { mode: "flat" }
   | { mode: "glass"; tint: string; blurIntensity: number };
 
+/** Trois paliers de profondeur du système Liquid Glass (Sunset uniquement —
+ * ignorés par construction sous Classique, `card.mode==="flat"` court-
+ * circuite avant qu'ils ne soient lus) :
+ * - `subtle` : zones secondaires, lignes de liste, chips inactifs — à peine
+ *   visible, laisse le fond dominer.
+ * - `card` : la carte "par défaut" — identique à `card.tint`/`blurIntensity`
+ *   ci-dessus (même valeur, gardée aussi ici pour que tout composant Glass
+ *   puisse choisir un palier par un seul champ `level` sans cas particulier).
+ * - `elevated` : élément mis en avant (carte héros, badge important, sheet
+ *   modale) — tint et flou plus marqués, mais jamais opaque.
+ * Voir `GlassCard.tsx` (`level` prop) et `GlassChip.tsx`. */
+export type GlassLevel = "subtle" | "card" | "elevated";
+export type GlassLevelStyle = { tint: string; blurIntensity: number };
+export type ThemeGlass = Record<GlassLevel, GlassLevelStyle>;
+
 /** Timing = comportement actuel (`Easing.out(Easing.cubic)`, seule la durée
  * varie) ; spring = remplissage "rebondissant" (Sunset). Voir `RingLayer`
  * dans `MultiRingGauge.tsx`. */
@@ -85,5 +119,6 @@ export type Theme = {
   spacing: ThemeSpacing;
   background: ThemeBackground;
   card: ThemeCard;
+  glass: ThemeGlass;
   ringFill: RingFillConfig;
 };

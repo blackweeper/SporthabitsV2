@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -22,7 +22,8 @@ import Animated, {
   withTiming,
   runOnJS,
 } from "react-native-reanimated";
-import { colors, radius, spacing } from "@/src/theme";
+import { spacing, withAlpha } from "@/src/theme";
+import { Theme, useTheme } from "@/src/themes";
 import {
   _consumePending,
   _resolvePending,
@@ -33,6 +34,8 @@ const MIN_SCALE = 1;
 const MAX_SCALE = 6;
 
 export default function PhotoCropScreen() {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   const router = useRouter();
   const [ready, setReady] = useState(false);
   const [processing, setProcessing] = useState(false);
@@ -297,7 +300,7 @@ export default function PhotoCropScreen() {
           hitSlop={16}
           style={styles.headerBtn}
         >
-          <Ionicons name="close" size={22} color={colors.onSurface} />
+          <Ionicons name="close" size={22} color={theme.colors.onSurface} />
         </Pressable>
         <Text style={styles.title} numberOfLines={1}>
           {title}
@@ -494,7 +497,7 @@ export default function PhotoCropScreen() {
         </>
       ) : (
         <View style={styles.loadingBox}>
-          <ActivityIndicator color={colors.brand} />
+          <ActivityIndicator color={theme.colors.brand} />
           <Text style={styles.loadingText}>Chargement de l&apos;image…</Text>
         </View>
       )}
@@ -513,6 +516,8 @@ function ControlBtn({
   onPress: () => void;
   testID?: string;
 }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   return (
     <Pressable
       onPress={onPress}
@@ -523,7 +528,7 @@ function ControlBtn({
         pressed && { opacity: 0.7 },
       ]}
     >
-      <Ionicons name={icon} size={22} color={colors.brand} />
+      <Ionicons name={icon} size={22} color={theme.colors.brand} />
       <Text style={styles.ctrlLabel}>{label}</Text>
     </Pressable>
   );
@@ -533,7 +538,10 @@ function ControlBtn({
 // (unused right now – kept in case we add gestures that run on UI thread)
 export const _crop_runOnJS = runOnJS;
 
-const styles = StyleSheet.create({
+function buildStyles(theme: Theme) {
+  const { colors, radius } = theme;
+  const isGlass = theme.card.mode === "glass";
+  return StyleSheet.create({
   container: { flex: 1, backgroundColor: "#000" },
   header: {
     flexDirection: "row",
@@ -555,7 +563,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    backgroundColor: colors.brand,
+    backgroundColor: isGlass ? withAlpha(colors.brand, 20) : colors.brand,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: radius.pill,
@@ -637,4 +645,5 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 12,
   },
-});
+  });
+}

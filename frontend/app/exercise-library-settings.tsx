@@ -1,9 +1,11 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { View, Text, StyleSheet, ScrollView, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing } from "@/src/theme";
+import { spacing, withAlpha } from "@/src/theme";
+import { Theme, useTheme } from "@/src/themes";
+import ThemedBackground from "@/src/themes/ThemedBackground";
 import {
   getLibraryBackupInfo,
   getLibraryMeta,
@@ -28,6 +30,8 @@ function formatDate(iso: string | null): string {
 }
 
 export default function ExerciseLibrarySettingsScreen() {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   const router = useRouter();
   const { confirm, ConfirmModal } = useConfirmDialog();
   const { checkForUpdate } = useLibraryUpdate();
@@ -100,10 +104,18 @@ export default function ExerciseLibrarySettingsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+    <View style={{ flex: 1 }}>
+      <ThemedBackground />
+      <SafeAreaView
+        style={[
+          styles.container,
+          theme.background.mode === "gradient" ? { backgroundColor: "transparent" } : { backgroundColor: theme.colors.surface },
+        ]}
+        edges={["top", "bottom"]}
+      >
       <View style={styles.header}>
         <Pressable testID="close-library-settings" onPress={() => router.back()} hitSlop={12}>
-          <Ionicons name="chevron-back" size={24} color={colors.onSurface} />
+          <Ionicons name="chevron-back" size={24} color={theme.colors.onSurface} />
         </Pressable>
         <Text style={styles.title}>Bibliothèque d&apos;exercices</Text>
         <View style={{ width: 24 }} />
@@ -120,7 +132,7 @@ export default function ExerciseLibrarySettingsScreen() {
 
         {!hasSource && (
           <View style={styles.hintBox}>
-            <Ionicons name="information-circle" size={14} color={colors.brand} />
+            <Ionicons name="information-circle" size={14} color={theme.colors.brand} />
             <Text style={styles.hintText}>
               Aucune source de mise à jour n&apos;est configurée pour l&apos;instant. Les
               vérifications et mises à jour seront disponibles une fois la bibliothèque
@@ -135,7 +147,7 @@ export default function ExerciseLibrarySettingsScreen() {
           onPress={onCheck}
           disabled={!hasSource || checking}
         >
-          <Ionicons name="refresh" size={16} color={hasSource ? colors.brand : colors.onSurfaceTertiary} />
+          <Ionicons name="refresh" size={16} color={hasSource ? theme.colors.brand : theme.colors.onSurfaceTertiary} />
           <Text style={[styles.actionBtnText, !hasSource && styles.actionBtnTextDisabled]}>
             {checking ? "VÉRIFICATION…" : "VÉRIFIER LES MISES À JOUR"}
           </Text>
@@ -160,12 +172,12 @@ export default function ExerciseLibrarySettingsScreen() {
             onPress={onRestore}
             disabled={restoring}
           >
-            <Ionicons name="arrow-undo" size={16} color={colors.onSurfaceSecondary} />
+            <Ionicons name="arrow-undo" size={16} color={theme.colors.onSurfaceSecondary} />
             <View style={{ flex: 1 }}>
               <Text style={styles.restoreTitle}>Restaurer la version précédente</Text>
               <Text style={styles.restoreSub}>Sauvegarde du {formatDate(backupSavedAt)}</Text>
             </View>
-            <Ionicons name="chevron-forward" size={16} color={colors.onSurfaceTertiary} />
+            <Ionicons name="chevron-forward" size={16} color={theme.colors.onSurfaceTertiary} />
           </Pressable>
         )}
 
@@ -176,7 +188,7 @@ export default function ExerciseLibrarySettingsScreen() {
               style={styles.unresolvedHeader}
               onPress={() => setUnresolvedExpanded((v) => !v)}
             >
-              <Ionicons name="alert-circle-outline" size={16} color={colors.warning} />
+              <Ionicons name="alert-circle-outline" size={16} color={theme.colors.warning} />
               <Text style={styles.unresolvedTitle}>
                 {unresolved.length} exercice{unresolved.length > 1 ? "s" : ""} de tes programmes
                 sans correspondance
@@ -184,7 +196,7 @@ export default function ExerciseLibrarySettingsScreen() {
               <Ionicons
                 name={unresolvedExpanded ? "chevron-up" : "chevron-down"}
                 size={16}
-                color={colors.onSurfaceTertiary}
+                color={theme.colors.onSurfaceTertiary}
               />
             </Pressable>
             <Text style={styles.unresolvedSub}>
@@ -215,11 +227,15 @@ export default function ExerciseLibrarySettingsScreen() {
       </ScrollView>
 
       {ConfirmModal}
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
-const styles = StyleSheet.create({
+function buildStyles(theme: Theme) {
+  const { colors, radius } = theme;
+  const isGlass = theme.card.mode === "glass";
+  return StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.surface },
   header: {
     flexDirection: "row",
@@ -282,11 +298,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    backgroundColor: colors.brand,
+    backgroundColor: isGlass ? withAlpha(colors.brand, 18) : colors.brand,
     padding: spacing.md,
     borderRadius: radius.md,
   },
-  ctaFullText: { color: "#fff", fontWeight: "800", letterSpacing: 1 },
+  ctaFullText: { color: isGlass ? colors.brand : "#fff", fontWeight: "800", letterSpacing: 1 },
   restoreRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -331,4 +347,5 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   unresolvedClearBtnText: { color: colors.onSurfaceTertiary, fontSize: 10, fontWeight: "800" },
-});
+  });
+}

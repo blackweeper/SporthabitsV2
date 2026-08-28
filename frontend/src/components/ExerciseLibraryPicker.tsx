@@ -13,7 +13,9 @@ import {
   Platform,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing, withAlpha } from "@/src/theme";
+import { coloredShadow, colors, radius, spacing, withAlpha } from "@/src/theme";
+import { useTheme } from "@/src/themes";
+import GlassCard from "@/src/components/ui/GlassCard";
 import {
   EXERCISE_CATEGORY_COLOR,
   EXERCISE_CATEGORY_ICON,
@@ -399,6 +401,7 @@ export function NewExerciseSheet({
   onSave: (e: CustomExercise) => void;
   onDelete?: () => void;
 }) {
+  const { theme } = useTheme();
   const [draft, setDraft] = useState<CustomExercise | null>(null);
 
   useEffect(() => {
@@ -430,33 +433,47 @@ export function NewExerciseSheet({
       <View style={styles.sheetBackdrop}>
         <Pressable style={{ flex: 1 }} onPress={onClose} />
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}>
-          <ScrollView style={styles.sheet} contentContainerStyle={{ gap: spacing.sm }}>
-            <View style={styles.sheetHandle} />
-            <Text style={styles.sheetTitle}>
+          <GlassCard
+            level="elevated"
+            style={[
+              styles.sheet,
+              { borderRadius: theme.radius.lg },
+              theme.card.mode !== "glass" && { backgroundColor: theme.colors.surfaceSecondary },
+            ]}
+          >
+          <ScrollView style={{ maxHeight: "100%" }} contentContainerStyle={{ gap: spacing.sm }}>
+            <View style={[styles.sheetHandle, { backgroundColor: theme.colors.border }]} />
+            <Text style={[styles.sheetTitle, { color: theme.colors.onSurface }]}>
               {state.mode === "create" ? "Nouvel exercice" : "Modifier l'exercice"}
             </Text>
 
-            <Text style={styles.miniLabel}>Nom (français)</Text>
+            <Text style={[styles.miniLabel, { color: theme.colors.onSurfaceTertiary }]}>Nom (français)</Text>
             <TextInput
               testID="new-ex-name-fr"
-              style={styles.input}
+              style={[
+                styles.input,
+                { backgroundColor: theme.colors.surfaceTertiary, borderRadius: theme.radius.md, color: theme.colors.onSurface, borderColor: theme.colors.border },
+              ]}
               value={draft.nameFr}
               onChangeText={(t) => set("nameFr", t)}
               placeholder="Ex: Développé incliné haltères"
-              placeholderTextColor={colors.onSurfaceTertiary}
+              placeholderTextColor={theme.colors.onSurfaceTertiary}
             />
 
-            <Text style={styles.miniLabel}>Nom (anglais, optionnel)</Text>
+            <Text style={[styles.miniLabel, { color: theme.colors.onSurfaceTertiary }]}>Nom (anglais, optionnel)</Text>
             <TextInput
               testID="new-ex-name-en"
-              style={styles.input}
+              style={[
+                styles.input,
+                { backgroundColor: theme.colors.surfaceTertiary, borderRadius: theme.radius.md, color: theme.colors.onSurface, borderColor: theme.colors.border },
+              ]}
               value={draft.nameEn ?? ""}
               onChangeText={(t) => set("nameEn", t || null)}
               placeholder="Ex: Incline Dumbbell Press"
-              placeholderTextColor={colors.onSurfaceTertiary}
+              placeholderTextColor={theme.colors.onSurfaceTertiary}
             />
 
-            <Text style={styles.miniLabel}>Catégorie</Text>
+            <Text style={[styles.miniLabel, { color: theme.colors.onSurfaceTertiary }]}>Catégorie</Text>
             <View style={styles.chipWrap}>
               {CATEGORIES.map((c) => {
                 const active = draft.category === c;
@@ -464,15 +481,28 @@ export function NewExerciseSheet({
                   <Pressable
                     key={c}
                     testID={`new-ex-cat-${c}`}
-                    style={[styles.tabChip, active && styles.tabChipActive]}
+                    style={[
+                      styles.tabChip,
+                      { borderRadius: theme.radius.pill },
+                      !active && { backgroundColor: theme.colors.surfaceTertiary, borderColor: theme.colors.border },
+                      active &&
+                        (theme.card.mode === "glass"
+                          ? { backgroundColor: withAlpha(theme.colors.brand, 20), borderColor: withAlpha(theme.colors.brand, 50) }
+                          : { backgroundColor: theme.colors.brand, borderColor: theme.colors.brand }),
+                    ]}
                     onPress={() => set("category", c)}
                   >
                     <Ionicons
                       name={EXERCISE_CATEGORY_ICON[c]}
                       size={12}
-                      color={active ? "#fff" : EXERCISE_CATEGORY_COLOR[c]}
+                      color={active ? (theme.card.mode === "glass" ? theme.colors.brand : "#fff") : EXERCISE_CATEGORY_COLOR[c]}
                     />
-                    <Text style={[styles.tabChipText, active && { color: "#fff" }]}>
+                    <Text
+                      style={[
+                        styles.tabChipText,
+                        { color: active ? (theme.card.mode === "glass" ? theme.colors.brand : "#fff") : theme.colors.onSurfaceTertiary },
+                      ]}
+                    >
                       {EXERCISE_CATEGORY_LABEL[c]}
                     </Text>
                   </Pressable>
@@ -480,7 +510,7 @@ export function NewExerciseSheet({
               })}
             </View>
 
-            <Text style={styles.miniLabel}>Groupes musculaires</Text>
+            <Text style={[styles.miniLabel, { color: theme.colors.onSurfaceTertiary }]}>Groupes musculaires</Text>
             <View style={styles.chipWrap}>
               {LIBRARY_MUSCLE_GROUPS.map((mg) => {
                 const active = (draft.muscleGroups ?? []).includes(mg.key);
@@ -488,11 +518,24 @@ export function NewExerciseSheet({
                   <Pressable
                     key={mg.key}
                     testID={`new-ex-muscle-${mg.key}`}
-                    style={[styles.muscleChip, active && styles.muscleChipActive]}
+                    style={[
+                      styles.muscleChip,
+                      { borderRadius: theme.radius.pill },
+                      !active && { backgroundColor: theme.colors.surfaceTertiary, borderColor: theme.colors.border },
+                      active &&
+                        (theme.card.mode === "glass"
+                          ? { backgroundColor: withAlpha(theme.colors.brand, 20), borderColor: withAlpha(theme.colors.brand, 50) }
+                          : { backgroundColor: theme.colors.brand, borderColor: theme.colors.brand }),
+                    ]}
                     onPress={() => toggleMuscle(mg.key)}
                   >
                     <Text style={styles.tabEmoji}>{mg.emoji}</Text>
-                    <Text style={[styles.muscleChipText, active && { color: "#fff" }]}>
+                    <Text
+                      style={[
+                        styles.muscleChipText,
+                        { color: active ? (theme.card.mode === "glass" ? theme.colors.brand : "#fff") : theme.colors.onSurfaceTertiary },
+                      ]}
+                    >
                       {mg.label}
                     </Text>
                   </Pressable>
@@ -500,41 +543,48 @@ export function NewExerciseSheet({
               })}
             </View>
 
-            <Text style={styles.miniLabel}>Matériel (optionnel)</Text>
+            <Text style={[styles.miniLabel, { color: theme.colors.onSurfaceTertiary }]}>Matériel (optionnel)</Text>
             <TextInput
               testID="new-ex-equipment"
-              style={styles.input}
+              style={[
+                styles.input,
+                { backgroundColor: theme.colors.surfaceTertiary, borderRadius: theme.radius.md, color: theme.colors.onSurface, borderColor: theme.colors.border },
+              ]}
               value={draft.equipment ?? ""}
               onChangeText={(t) => set("equipment", t || null)}
               placeholder="Ex: Haltères, banc incliné"
-              placeholderTextColor={colors.onSurfaceTertiary}
+              placeholderTextColor={theme.colors.onSurfaceTertiary}
             />
 
-            <Text style={styles.miniLabel}>Description (optionnel)</Text>
+            <Text style={[styles.miniLabel, { color: theme.colors.onSurfaceTertiary }]}>Description (optionnel)</Text>
             <TextInput
               testID="new-ex-description"
-              style={[styles.input, { minHeight: 70, textAlignVertical: "top" }]}
+              style={[
+                styles.input,
+                { backgroundColor: theme.colors.surfaceTertiary, borderRadius: theme.radius.md, color: theme.colors.onSurface, borderColor: theme.colors.border },
+                { minHeight: 70, textAlignVertical: "top" },
+              ]}
               value={draft.description ?? ""}
               onChangeText={(t) => set("description", t || null)}
               placeholder="Consignes, points de repère…"
-              placeholderTextColor={colors.onSurfaceTertiary}
+              placeholderTextColor={theme.colors.onSurfaceTertiary}
               multiline
             />
 
-            <Text style={styles.miniLabel}>Photo (optionnel)</Text>
+            <Text style={[styles.miniLabel, { color: theme.colors.onSurfaceTertiary }]}>Photo (optionnel)</Text>
             {draft.imageBase64 ? (
               <View style={styles.imagePreviewWrap}>
                 <Image
                   source={{ uri: `data:image/webp;base64,${draft.imageBase64}` }}
-                  style={styles.imagePreview}
+                  style={[styles.imagePreview, { borderRadius: theme.radius.md }]}
                 />
                 <Pressable
                   testID="new-ex-image-remove"
                   style={styles.imageRemoveBtn}
                   onPress={() => set("imageBase64", null)}
                 >
-                  <Ionicons name="trash" size={14} color={colors.error} />
-                  <Text style={{ color: colors.error, fontWeight: "700", fontSize: 11 }}>
+                  <Ionicons name="trash" size={14} color={theme.colors.error} />
+                  <Text style={{ color: theme.colors.error, fontWeight: "700", fontSize: 11 }}>
                     Retirer
                   </Text>
                 </Pressable>
@@ -543,40 +593,61 @@ export function NewExerciseSheet({
               <View style={styles.photoRow}>
                 <Pressable
                   testID="new-ex-photo-camera"
-                  style={styles.photoBtn}
+                  style={[styles.photoBtn, { borderRadius: theme.radius.pill, borderColor: theme.colors.brand, backgroundColor: theme.colors.surfaceTertiary }]}
                   onPress={() => pickImage("camera")}
                 >
-                  <Ionicons name="camera" size={16} color={colors.brand} />
-                  <Text style={styles.photoBtnText}>Caméra</Text>
+                  <Ionicons name="camera" size={16} color={theme.colors.brand} />
+                  <Text style={[styles.photoBtnText, { color: theme.colors.brand }]}>Caméra</Text>
                 </Pressable>
                 <Pressable
                   testID="new-ex-photo-library"
-                  style={styles.photoBtn}
+                  style={[styles.photoBtn, { borderRadius: theme.radius.pill, borderColor: theme.colors.brand, backgroundColor: theme.colors.surfaceTertiary }]}
                   onPress={() => pickImage("library")}
                 >
-                  <Ionicons name="images" size={16} color={colors.brand} />
-                  <Text style={styles.photoBtnText}>Galerie</Text>
+                  <Ionicons name="images" size={16} color={theme.colors.brand} />
+                  <Text style={[styles.photoBtnText, { color: theme.colors.brand }]}>Galerie</Text>
                 </Pressable>
               </View>
             )}
 
             <View style={styles.sheetActions}>
               {onDelete && (
-                <Pressable testID="new-ex-delete" style={styles.deleteBtn} onPress={onDelete}>
-                  <Ionicons name="trash" size={16} color={colors.error} />
-                  <Text style={styles.deleteBtnText}>Supprimer</Text>
+                <Pressable
+                  testID="new-ex-delete"
+                  style={[styles.deleteBtn, { borderRadius: theme.radius.md, borderColor: theme.colors.error }]}
+                  onPress={onDelete}
+                >
+                  <Ionicons name="trash" size={16} color={theme.colors.error} />
+                  <Text style={[styles.deleteBtnText, { color: theme.colors.error }]}>Supprimer</Text>
                 </Pressable>
               )}
               <Pressable
                 testID="new-ex-save"
-                style={[styles.saveBtn, { flex: onDelete ? 1 : undefined }]}
+                style={[
+                  styles.saveBtn,
+                  { borderRadius: theme.radius.md, flex: onDelete ? 1 : undefined },
+                  theme.card.mode === "glass"
+                    ? [
+                        { backgroundColor: withAlpha(theme.colors.brand, 18), borderWidth: 1, borderColor: withAlpha(theme.colors.brand, 50) },
+                        coloredShadow(theme.colors.brand, { offsetY: 0, opacity: 0.3, radius: 10, elevation: 3 }),
+                      ]
+                    : { backgroundColor: theme.colors.brand },
+                ]}
                 onPress={() => draft.nameFr.trim() && onSave({ ...draft, nameFr: draft.nameFr.trim() })}
               >
-                <Text style={styles.saveBtnText}>ENREGISTRER</Text>
+                <Text
+                  style={[
+                    styles.saveBtnText,
+                    theme.card.mode === "glass" && { color: theme.colors.brand },
+                  ]}
+                >
+                  ENREGISTRER
+                </Text>
               </Pressable>
             </View>
             <View style={{ height: 24 }} />
           </ScrollView>
+          </GlassCard>
         </KeyboardAvoidingView>
       </View>
     </Modal>

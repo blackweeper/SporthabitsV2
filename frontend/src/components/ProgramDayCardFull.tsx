@@ -1,7 +1,9 @@
 import { StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing } from "@/src/theme";
+import { coloredShadow, spacing, withAlpha } from "@/src/theme";
+import { useTheme } from "@/src/themes";
 import PressableScale from "@/src/components/ui/PressableScale";
+import GlassCard from "@/src/components/ui/GlassCard";
 import ExerciseThumbnail from "@/src/components/ExerciseThumbnail";
 import { ProgramDay, ProgramSession } from "@/src/data/programs";
 import { ExerciseRecord } from "@/src/utils/exercise-records";
@@ -59,17 +61,27 @@ export default function ProgramDayCardFull({
   onLaunch: (sessionIndex: number, session: ProgramSession) => void;
   onPressExercise: (name: string) => void;
 }) {
+  const { theme } = useTheme();
   if (day.rest) {
     return (
-      <View style={[styles.card, styles.restCard]} testID={`week-day-full-${dayIndex}`}>
-        <View style={styles.restBadge}>
-          <Ionicons name="bed" size={20} color={colors.onSurfaceTertiary} />
+      <GlassCard
+        level="subtle"
+        style={[
+          styles.card,
+          { borderRadius: theme.radius.lg },
+          styles.restCard,
+          theme.card.mode !== "glass" && { backgroundColor: theme.colors.surface, borderColor: theme.colors.border },
+        ]}
+        testID={`week-day-full-${dayIndex}`}
+      >
+        <View style={[styles.restBadge, { backgroundColor: theme.colors.surfaceTertiary }]}>
+          <Ionicons name="bed" size={20} color={theme.colors.onSurfaceTertiary} />
         </View>
-        <Text style={styles.restTitle}>{day.title}</Text>
+        <Text style={[styles.restTitle, { color: theme.colors.onSurfaceTertiary }]}>{day.title}</Text>
         {plannedDate && (
-          <Text style={styles.dateText}>{formatPlannedDate(plannedDate)}</Text>
+          <Text style={[styles.dateText, { color: theme.colors.brand }]}>{formatPlannedDate(plannedDate)}</Text>
         )}
-      </View>
+      </GlassCard>
     );
   }
 
@@ -83,10 +95,14 @@ export default function ProgramDayCardFull({
   const sessionDone = (si: number) => doneSessionIndices?.has(si) ?? done;
 
   const body = (
-    <View
+    <GlassCard
+      level="card"
+      accent={isToday ? color : undefined}
       style={[
         styles.card,
-        isToday && { borderColor: color, borderWidth: 2 },
+        { borderRadius: theme.radius.lg },
+        theme.card.mode !== "glass" && { backgroundColor: theme.colors.surfaceSecondary, borderColor: theme.colors.border },
+        theme.card.mode !== "glass" && isToday && { borderColor: color, borderWidth: 2 },
         done && !isToday && styles.doneCard,
       ]}
       testID={`week-day-full-${dayIndex}`}
@@ -95,38 +111,53 @@ export default function ProgramDayCardFull({
         <View
           style={[
             styles.idxBadge,
-            done && { backgroundColor: colors.success },
+            { backgroundColor: theme.colors.surfaceTertiary },
+            done && { backgroundColor: theme.colors.success },
             isToday && !done && { backgroundColor: color },
           ]}
         >
           {done ? (
             <Ionicons name="checkmark" size={14} color="#fff" />
           ) : (
-            <Text style={[styles.idxText, isToday && { color: "#fff" }]}>{dayIndex}</Text>
+            <Text style={[styles.idxText, { color: theme.colors.onSurface }, isToday && { color: "#fff" }]}>
+              {dayIndex}
+            </Text>
           )}
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={styles.title} numberOfLines={1}>
+          <Text style={[styles.title, { color: theme.colors.onSurface }]} numberOfLines={1}>
             {day.title}
           </Text>
           {plannedDate && (
-            <Text style={styles.dateText}>{formatPlannedDate(plannedDate)}</Text>
+            <Text style={[styles.dateText, { color: theme.colors.brand }]}>{formatPlannedDate(plannedDate)}</Text>
           )}
         </View>
         {isToday && <Text style={[styles.todayTag, { color }]}>AUJOURD&apos;HUI</Text>}
       </View>
 
       <View style={styles.metaRow}>
-        <View style={styles.metaPill}>
-          <Ionicons name="barbell" size={10} color={colors.onSurfaceTertiary} />
-          <Text style={styles.metaPillText}>
+        <View
+          style={[
+            styles.metaPill,
+            { backgroundColor: theme.card.mode === "glass" ? theme.glass.subtle.tint : theme.colors.surface },
+          ]}
+        >
+          <Ionicons name="barbell" size={10} color={theme.colors.onSurfaceTertiary} />
+          <Text style={[styles.metaPillText, { color: theme.colors.onSurfaceTertiary }]}>
             {uniqueExerciseCount} exercice{uniqueExerciseCount > 1 ? "s" : ""}
           </Text>
         </View>
         {est > 0 && (
-          <View style={styles.metaPill}>
-            <Ionicons name="time" size={10} color={colors.onSurfaceTertiary} />
-            <Text style={styles.metaPillText}>{formatEstimatedDuration(est)}</Text>
+          <View
+          style={[
+            styles.metaPill,
+            { backgroundColor: theme.card.mode === "glass" ? theme.glass.subtle.tint : theme.colors.surface },
+          ]}
+        >
+            <Ionicons name="time" size={10} color={theme.colors.onSurfaceTertiary} />
+            <Text style={[styles.metaPillText, { color: theme.colors.onSurfaceTertiary }]}>
+              {formatEstimatedDuration(est)}
+            </Text>
           </View>
         )}
       </View>
@@ -138,11 +169,11 @@ export default function ProgramDayCardFull({
             <View key={si} style={styles.sessionBlock}>
               {multiSession && (s.label || s.title) && (
                 <View style={styles.sessLabelRow}>
-                  <Text style={styles.sessLabelText} numberOfLines={1}>
+                  <Text style={[styles.sessLabelText, { color: theme.colors.onSurfaceTertiary }]} numberOfLines={1}>
                     {(s.label ?? s.title ?? "").toUpperCase()}
                   </Text>
                   {sDone && (
-                    <Ionicons name="checkmark-circle" size={14} color={colors.success} />
+                    <Ionicons name="checkmark-circle" size={14} color={theme.colors.success} />
                   )}
                 </View>
               )}
@@ -151,7 +182,14 @@ export default function ProgramDayCardFull({
                   <PressableScale
                     key={ei}
                     testID={`week-day-full-${dayIndex}-s${si}-ex-${ei}`}
-                    style={styles.exRow}
+                    style={[
+                      styles.exRow,
+                      {
+                        borderRadius: theme.radius.sm,
+                        backgroundColor:
+                          theme.card.mode === "glass" ? theme.glass.subtle.tint : theme.colors.surface,
+                      },
+                    ]}
                     onPress={() => onPressExercise(ex.name)}
                   >
                     <ExerciseThumbnail
@@ -165,16 +203,25 @@ export default function ProgramDayCardFull({
                     />
                     <View style={{ flex: 1 }}>
                       <View style={styles.exNameRow}>
-                        <Text style={styles.exName} numberOfLines={1}>
+                        <Text style={[styles.exName, { color: theme.colors.onSurface }]} numberOfLines={1}>
                           {ex.name}
                         </Text>
                         {count > 1 && (
-                          <View style={styles.roundBadge}>
-                            <Text style={styles.roundBadgeText}>× {count}</Text>
+                          <View
+                            style={[
+                              styles.roundBadge,
+                              { backgroundColor: theme.colors.surfaceTertiary, borderRadius: theme.radius.pill },
+                            ]}
+                          >
+                            <Text style={[styles.roundBadgeText, { color: theme.colors.onSurfaceSecondary }]}>
+                              × {count}
+                            </Text>
                           </View>
                         )}
                       </View>
-                      <Text style={styles.exDetail}>{formatExerciseDetail(ex)}</Text>
+                      <Text style={[styles.exDetail, { color: theme.colors.onSurfaceTertiary }]}>
+                        {formatExerciseDetail(ex)}
+                      </Text>
                     </View>
                   </PressableScale>
                 ))}
@@ -182,11 +229,20 @@ export default function ProgramDayCardFull({
 
               <PressableScale
                 testID={`week-day-full-launch-${dayIndex}-${si}`}
-                style={[styles.launchBtn, { backgroundColor: color }]}
+                style={[
+                  styles.launchBtn,
+                  { borderRadius: theme.radius.md },
+                  theme.card.mode === "glass"
+                    ? [
+                        { backgroundColor: withAlpha(color, 18), borderWidth: 1, borderColor: withAlpha(color, 50) },
+                        coloredShadow(color, { offsetY: 0, opacity: 0.3, radius: 10, elevation: 3 }),
+                      ]
+                    : { backgroundColor: color },
+                ]}
                 onPress={() => onLaunch(si, s)}
               >
-                <Ionicons name="play" size={14} color="#fff" />
-                <Text style={styles.launchBtnText}>
+                <Ionicons name="play" size={14} color={theme.card.mode === "glass" ? color : "#fff"} />
+                <Text style={[styles.launchBtnText, { color: theme.card.mode === "glass" ? color : "#fff" }]}>
                   {multiSession
                     ? `${sDone ? "REFAIRE" : "LANCER"} · ${(s.label ?? s.title ?? `SÉANCE ${si + 1}`).toUpperCase()}`
                     : sDone
@@ -198,7 +254,7 @@ export default function ProgramDayCardFull({
           );
         })}
       </View>
-    </View>
+    </GlassCard>
   );
 
   return body;
@@ -207,10 +263,7 @@ export default function ProgramDayCardFull({
 const styles = StyleSheet.create({
   card: {
     width: PROGRAM_DAY_CARD_FULL_WIDTH,
-    backgroundColor: colors.surfaceSecondary,
-    borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: colors.border,
     padding: spacing.md,
     gap: spacing.sm,
   },
@@ -219,31 +272,27 @@ const styles = StyleSheet.create({
     minHeight: 120,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: colors.surface,
     gap: 6,
   },
   restBadge: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: colors.surfaceTertiary,
     alignItems: "center",
     justifyContent: "center",
   },
-  restTitle: { color: colors.onSurfaceTertiary, fontWeight: "700", fontSize: 13 },
+  restTitle: { fontWeight: "700", fontSize: 13 },
   head: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   idxBadge: {
     width: 30,
     height: 30,
     borderRadius: 9,
-    backgroundColor: colors.surfaceTertiary,
     alignItems: "center",
     justifyContent: "center",
   },
-  idxText: { color: colors.onSurface, fontWeight: "800", fontSize: 12 },
-  title: { color: colors.onSurface, fontWeight: "800", fontSize: 14, flex: 1 },
+  idxText: { fontWeight: "800", fontSize: 12 },
+  title: { fontWeight: "800", fontSize: 14, flex: 1 },
   dateText: {
-    color: colors.brand,
     fontSize: 10,
     fontWeight: "800",
     letterSpacing: 0.4,
@@ -256,12 +305,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 3,
-    backgroundColor: colors.surface,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
   },
-  metaPillText: { color: colors.onSurfaceTertiary, fontSize: 10, fontWeight: "700" },
+  metaPillText: { fontSize: 10, fontWeight: "700" },
   sessionBlock: { gap: 6 },
   sessLabelRow: {
     flexDirection: "row",
@@ -270,7 +318,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2,
   },
   sessLabelText: {
-    color: colors.onSurfaceTertiary,
     fontSize: 10,
     fontWeight: "800",
     letterSpacing: 0.6,
@@ -282,26 +329,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.sm,
     padding: 8,
-    backgroundColor: colors.surface,
-    borderRadius: radius.sm,
   },
   exNameRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  exName: { color: colors.onSurface, fontWeight: "800", fontSize: 12, flexShrink: 1 },
-  exDetail: { color: colors.onSurfaceTertiary, fontSize: 10, fontWeight: "600", marginTop: 2 },
+  exName: { fontWeight: "800", fontSize: 12, flexShrink: 1 },
+  exDetail: { fontSize: 10, fontWeight: "600", marginTop: 2 },
   roundBadge: {
-    backgroundColor: colors.surfaceTertiary,
     paddingHorizontal: 6,
     paddingVertical: 1,
-    borderRadius: radius.pill,
   },
-  roundBadgeText: { color: colors.onSurfaceSecondary, fontSize: 9, fontWeight: "800" },
+  roundBadgeText: { fontSize: 9, fontWeight: "800" },
   launchBtn: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
     paddingVertical: 12,
-    borderRadius: radius.md,
     marginTop: 2,
   },
   launchBtnText: { color: "#fff", fontWeight: "800", letterSpacing: 0.8, fontSize: 12 },

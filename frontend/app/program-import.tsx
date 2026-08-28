@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -12,7 +12,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing } from "@/src/theme";
+import { spacing, withAlpha } from "@/src/theme";
+import { Theme, useTheme } from "@/src/themes";
+import ThemedBackground from "@/src/themes/ThemedBackground";
 import { parseProgramText } from "@/src/utils/program-parser";
 import { saveCustomProgram } from "@/src/utils/gym-storage";
 import { getExerciseRecords } from "@/src/utils/exercise-records";
@@ -33,6 +35,8 @@ Cardio
 Rameur 20 min`;
 
 export default function ProgramImportScreen() {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   const router = useRouter();
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
@@ -90,10 +94,18 @@ export default function ProgramImportScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+    <View style={{ flex: 1 }}>
+      <ThemedBackground />
+      <SafeAreaView
+        style={[
+          styles.container,
+          theme.background.mode === "gradient" ? { backgroundColor: "transparent" } : { backgroundColor: theme.colors.surface },
+        ]}
+        edges={["top", "bottom"]}
+      >
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} hitSlop={12}>
-          <Ionicons name="chevron-back" size={24} color={colors.onSurface} />
+          <Ionicons name="chevron-back" size={24} color={theme.colors.onSurface} />
         </Pressable>
         <Text style={styles.title}>Importer un programme</Text>
         <View style={{ width: 24 }} />
@@ -105,7 +117,7 @@ export default function ProgramImportScreen() {
       >
         <ScrollView contentContainerStyle={styles.scroll}>
           <View style={styles.hintCard}>
-            <Ionicons name="information-circle" size={14} color={colors.brand} />
+            <Ionicons name="information-circle" size={14} color={theme.colors.brand} />
             <Text style={styles.hintText}>
               Colle un programme structuré (semaines, jours, blocs Musculation/Cardio/WOD,
               exercices avec séries x répétitions). L&apos;analyse est automatique mais jamais
@@ -120,7 +132,7 @@ export default function ProgramImportScreen() {
             value={text}
             onChangeText={setText}
             placeholder={EXAMPLE}
-            placeholderTextColor={colors.onSurfaceTertiary}
+            placeholderTextColor={theme.colors.onSurfaceTertiary}
             multiline
             textAlignVertical="top"
           />
@@ -138,11 +150,15 @@ export default function ProgramImportScreen() {
           <View style={{ height: 40 }} />
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
-const styles = StyleSheet.create({
+function buildStyles(theme: Theme) {
+  const { colors, radius } = theme;
+  const isGlass = theme.card.mode === "glass";
+  return StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.surface },
   header: {
     flexDirection: "row",
@@ -192,10 +208,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    backgroundColor: colors.brand,
+    backgroundColor: isGlass ? withAlpha(colors.brand, 20) : colors.brand,
     borderRadius: radius.md,
     padding: spacing.md,
     marginTop: spacing.md,
   },
   analyzeBtnText: { color: "#fff", fontWeight: "800", letterSpacing: 0.8 },
-});
+  });
+}

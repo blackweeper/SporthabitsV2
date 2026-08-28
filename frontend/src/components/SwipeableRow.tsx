@@ -3,7 +3,7 @@ import { StyleSheet, StyleProp, Text, ViewStyle } from "react-native";
 import { RectButton } from "react-native-gesture-handler";
 import Swipeable from "react-native-gesture-handler/Swipeable";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius } from "@/src/theme";
+import { useTheme } from "@/src/themes";
 import { ConfirmOptions, useConfirmDialog } from "@/src/hooks/use-confirm-dialog";
 
 type Props = {
@@ -35,6 +35,7 @@ export default function SwipeableRow({
 }: Props) {
   const swipeRef = useRef<Swipeable>(null);
   const { confirm, ConfirmModal } = useConfirmDialog();
+  const { theme } = useTheme();
 
   if (!onDelete && !onEdit) {
     return <>{children}</>;
@@ -66,7 +67,7 @@ export default function SwipeableRow({
             ? () => (
                 <RectButton
                   testID={testID ? `${testID}-swipe-delete` : undefined}
-                  style={styles.deleteAction}
+                  style={[styles.deleteAction, { backgroundColor: theme.colors.error }]}
                   onPress={handleDelete}
                 >
                   <Ionicons name="trash" size={20} color="#fff" />
@@ -80,7 +81,7 @@ export default function SwipeableRow({
             ? () => (
                 <RectButton
                   testID={testID ? `${testID}-swipe-edit` : undefined}
-                  style={styles.editAction}
+                  style={[styles.editAction, { backgroundColor: theme.colors.brand }]}
                   onPress={handleEdit}
                 >
                   <Ionicons name="pencil" size={20} color="#fff" />
@@ -94,7 +95,7 @@ export default function SwipeableRow({
         friction={1.6}
         rightThreshold={40}
         leftThreshold={40}
-        containerStyle={[styles.container, style]}
+        containerStyle={[styles.container, { borderRadius: theme.radius.md }, style]}
       >
         {children}
       </Swipeable>
@@ -105,11 +106,9 @@ export default function SwipeableRow({
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: radius.md,
     overflow: "hidden",
   },
   deleteAction: {
-    backgroundColor: colors.error,
     justifyContent: "center",
     alignItems: "center",
     width: 96,
@@ -117,7 +116,6 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   editAction: {
-    backgroundColor: colors.brand,
     justifyContent: "center",
     alignItems: "center",
     width: 96,

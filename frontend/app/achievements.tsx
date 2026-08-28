@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -9,7 +9,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing } from "@/src/theme";
+import { spacing, withAlpha } from "@/src/theme";
+import { Theme, useTheme } from "@/src/themes";
+import ThemedBackground from "@/src/themes/ThemedBackground";
 import {
   getMeasurements,
   getPRs,
@@ -35,6 +37,8 @@ const CATEGORIES: {
 ];
 
 export default function AchievementsScreen() {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   const router = useRouter();
   const [items, setItems] = useState<Achievement[]>([]);
   const [cat, setCat] = useState<any>("all");
@@ -54,14 +58,22 @@ export default function AchievementsScreen() {
   const unlocked = items.filter((i) => i.unlocked).length;
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+    <View style={{ flex: 1 }}>
+      <ThemedBackground />
+      <SafeAreaView
+        style={[
+          styles.container,
+          theme.background.mode === "gradient" ? { backgroundColor: "transparent" } : { backgroundColor: theme.colors.surface },
+        ]}
+        edges={["top", "bottom"]}
+      >
       <View style={styles.header}>
         <Pressable
           testID="close-achievements"
           onPress={() => router.back()}
           hitSlop={12}
         >
-          <Ionicons name="chevron-back" size={24} color={colors.onSurface} />
+          <Ionicons name="chevron-back" size={24} color={theme.colors.onSurface} />
         </Pressable>
         <Text style={styles.title}>Succès</Text>
         <View style={{ width: 24 }} />
@@ -123,7 +135,7 @@ export default function AchievementsScreen() {
             <Text
               style={[
                 styles.cardTitle,
-                !a.unlocked && { color: colors.onSurfaceTertiary },
+                !a.unlocked && { color: theme.colors.onSurfaceTertiary },
               ]}
               numberOfLines={2}
             >
@@ -138,7 +150,7 @@ export default function AchievementsScreen() {
                   styles.progressFill,
                   {
                     width: `${Math.min(100, (a.progress / a.target) * 100)}%`,
-                    backgroundColor: a.unlocked ? colors.success : colors.brand,
+                    backgroundColor: a.unlocked ? theme.colors.success : theme.colors.brand,
                   },
                 ]}
               />
@@ -153,11 +165,15 @@ export default function AchievementsScreen() {
           </View>
         ))}
       </ScrollView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
-const styles = StyleSheet.create({
+function buildStyles(theme: Theme) {
+  const { colors, radius } = theme;
+  const isGlass = theme.card.mode === "glass";
+  return StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.surface },
   header: {
     flexDirection: "row",
@@ -184,7 +200,7 @@ const styles = StyleSheet.create({
   summaryTitle: { color: colors.onSurface, fontWeight: "800", fontSize: 15 },
   summarySub: { color: colors.onSurfaceTertiary, fontSize: 12, marginTop: 2 },
   summaryBadge: {
-    backgroundColor: colors.brand,
+    backgroundColor: isGlass ? withAlpha(colors.brand, 20) : colors.brand,
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: radius.md,
@@ -205,7 +221,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  catChipActive: { backgroundColor: colors.brand, borderColor: colors.brand },
+  catChipActive: isGlass
+    ? { backgroundColor: withAlpha(colors.brand, 20), borderColor: withAlpha(colors.brand, 50) }
+    : { backgroundColor: colors.brand, borderColor: colors.brand },
   catChipText: {
     color: colors.onSurfaceTertiary,
     fontSize: 11,
@@ -270,4 +288,5 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     letterSpacing: 0.4,
   },
-});
+  });
+}

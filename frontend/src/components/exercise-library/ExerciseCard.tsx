@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { View, Text, Image, StyleSheet, ImageSourcePropType } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, shadow, withAlpha } from "@/src/theme";
+import { shadow, withAlpha } from "@/src/theme";
+import { useTheme } from "@/src/themes";
 import { EXERCISE_CATEGORY_COLOR } from "@/src/utils/exercise-category";
 import { iconEmojiForExercise } from "@/src/data/exercise-icons";
 import { MUSCLE_GROUPS } from "@/src/utils/muscle-groups";
@@ -34,6 +35,7 @@ export default function ExerciseCard({
   onToggleLibrary?: () => void;
   testID?: string;
 }) {
+  const { theme } = useTheme();
   const color = EXERCISE_CATEGORY_COLOR[item.category];
   const primaryMuscle = item.muscleGroups?.[0]
     ? MUSCLE_GROUPS.find((m) => m.key === item.muscleGroups![0])
@@ -65,7 +67,11 @@ export default function ExerciseCard({
       <View
         style={[
           styles.artwork,
-          { borderColor: withAlpha(color, 33), backgroundColor: withAlpha(color, 10) },
+          {
+            borderRadius: theme.radius.md,
+            borderColor: withAlpha(color, 33),
+            backgroundColor: withAlpha(color, 10),
+          },
         ]}
       >
         {mediaSource ? (
@@ -88,14 +94,16 @@ export default function ExerciseCard({
           <Ionicons
             name={item.favorite ? "star" : "star-outline"}
             size={12}
-            color={item.favorite ? "#FFC107" : colors.onSurface}
+            color={item.favorite ? "#FFC107" : theme.colors.onSurface}
           />
         </PressableScale>
 
         {item.difficulty && (
-          <View style={styles.diffBadge}>
+          <View style={[styles.diffBadge, { borderRadius: theme.radius.pill }]}>
             <View style={[styles.diffDot, { backgroundColor: EXERCISE_DIFFICULTY_COLOR[item.difficulty] }]} />
-            <Text style={styles.diffBadgeText}>{EXERCISE_DIFFICULTY_LABEL[item.difficulty]}</Text>
+            <Text style={[styles.diffBadgeText, { color: theme.colors.onSurface }]}>
+              {EXERCISE_DIFFICULTY_LABEL[item.difficulty]}
+            </Text>
           </View>
         )}
 
@@ -103,13 +111,13 @@ export default function ExerciseCard({
           <PressableScale
             testID={testID ? `${testID}-gif-toggle` : undefined}
             hitSlop={8}
-            style={[styles.gifBadge, mediaMode === "gif" && { backgroundColor: colors.brand }]}
+            style={[styles.gifBadge, mediaMode === "gif" && { backgroundColor: theme.colors.brand }]}
             onPress={(e) => {
               e.stopPropagation?.();
               setMediaMode((m) => (m === "gif" ? "photo" : "gif"));
             }}
           >
-            <Ionicons name={mediaMode === "gif" ? "image" : "play"} size={11} color={colors.onSurface} />
+            <Ionicons name={mediaMode === "gif" ? "image" : "play"} size={11} color={theme.colors.onSurface} />
           </PressableScale>
         )}
 
@@ -117,33 +125,43 @@ export default function ExerciseCard({
           <PressableScale
             testID={testID ? `${testID}-add-library` : undefined}
             hitSlop={8}
-            style={[styles.libBadge, { backgroundColor: colors.brand }]}
+            style={[styles.libBadge, { backgroundColor: theme.colors.brand, borderColor: theme.colors.surface }]}
             onPress={(e) => {
               e.stopPropagation?.();
               onToggleLibrary();
             }}
           >
-            <Ionicons name="add" size={12} color={colors.onSurface} />
+            <Ionicons name="add" size={12} color={theme.colors.onSurface} />
           </PressableScale>
         )}
       </View>
 
-      <Text style={styles.name} numberOfLines={1}>
+      <Text style={[styles.name, { color: theme.colors.onSurface }]} numberOfLines={1}>
         {item.name}
       </Text>
 
       <View style={styles.metaRow}>
         {primaryMuscle && (
-          <View style={styles.metaChip}>
+          <View
+            style={[
+              styles.metaChip,
+              { borderRadius: theme.radius.pill, backgroundColor: theme.colors.surfaceTertiary },
+            ]}
+          >
             <Text style={styles.metaChipEmoji}>{primaryMuscle.emoji}</Text>
-            <Text style={styles.metaChipText} numberOfLines={1}>
+            <Text style={[styles.metaChipText, { color: theme.colors.onSurfaceTertiary }]} numberOfLines={1}>
               {primaryMuscle.label}
             </Text>
           </View>
         )}
         {item.equipment && (
-          <View style={styles.metaChip}>
-            <Text style={styles.metaChipText} numberOfLines={1}>
+          <View
+            style={[
+              styles.metaChip,
+              { borderRadius: theme.radius.pill, backgroundColor: theme.colors.surfaceTertiary },
+            ]}
+          >
+            <Text style={[styles.metaChipText, { color: theme.colors.onSurfaceTertiary }]} numberOfLines={1}>
               {item.equipment}
             </Text>
           </View>
@@ -160,7 +178,6 @@ const styles = StyleSheet.create({
   artwork: {
     width: "100%",
     aspectRatio: 1,
-    borderRadius: radius.md,
     borderWidth: 1.5,
     alignItems: "center",
     justifyContent: "center",
@@ -188,11 +205,10 @@ const styles = StyleSheet.create({
     gap: 3,
     paddingHorizontal: 5,
     paddingVertical: 2,
-    borderRadius: radius.pill,
     backgroundColor: withAlpha("#000000", 55),
   },
   diffDot: { width: 5, height: 5, borderRadius: 2.5 },
-  diffBadgeText: { color: colors.onSurface, fontSize: 8, fontWeight: "800" },
+  diffBadgeText: { fontSize: 8, fontWeight: "800" },
   libBadge: {
     position: "absolute",
     bottom: 5,
@@ -203,7 +219,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 2,
-    borderColor: colors.surface,
   },
   gifBadge: {
     position: "absolute",
@@ -217,7 +232,6 @@ const styles = StyleSheet.create({
     backgroundColor: withAlpha("#000000", 55),
   },
   name: {
-    color: colors.onSurface,
     fontWeight: "800",
     fontSize: 12,
     lineHeight: 15,
@@ -229,13 +243,10 @@ const styles = StyleSheet.create({
     gap: 3,
     paddingHorizontal: 5,
     paddingVertical: 2,
-    borderRadius: radius.pill,
-    backgroundColor: colors.surfaceTertiary,
     flexShrink: 1,
   },
   metaChipEmoji: { fontSize: 9 },
   metaChipText: {
-    color: colors.onSurfaceTertiary,
     fontSize: 8.5,
     fontWeight: "700",
   },

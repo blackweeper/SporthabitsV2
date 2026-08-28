@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Alert, Image, View, Text, StyleSheet, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing } from "@/src/theme";
+import { spacing } from "@/src/theme";
+import { Theme } from "@/src/themes";
+import ThemedBackground from "@/src/themes/ThemedBackground";
 import PressableScale from "@/src/components/ui/PressableScale";
 import Card from "@/src/components/ui/Card";
 import { useConfirmDialog } from "@/src/hooks/use-confirm-dialog";
@@ -51,8 +53,9 @@ const CALENDAR_OPTIONS: {
 ];
 
 export default function SettingsScreen() {
+  const { theme, themeId, setThemeId, refreshWallpaper } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   const router = useRouter();
-  const { themeId, setThemeId, refreshWallpaper } = useTheme();
   const { confirm, ConfirmModal } = useConfirmDialog();
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [wallpapers, setWallpapers] = useState<WallpaperMeta[]>([]);
@@ -125,10 +128,18 @@ export default function SettingsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+    <View style={{ flex: 1 }}>
+      <ThemedBackground />
+      <SafeAreaView
+        style={[
+          styles.container,
+          theme.background.mode === "gradient" ? { backgroundColor: "transparent" } : { backgroundColor: theme.colors.surface },
+        ]}
+        edges={["top", "bottom"]}
+      >
       <View style={styles.header}>
         <PressableScale testID="settings-back" onPress={() => router.back()} hitSlop={12}>
-          <Ionicons name="chevron-back" size={24} color={colors.onSurface} />
+          <Ionicons name="chevron-back" size={24} color={theme.colors.onSurface} />
         </PressableScale>
         <Text style={styles.title}>Paramètres</Text>
         <View style={{ width: 24 }} />
@@ -145,12 +156,12 @@ export default function SettingsScreen() {
               testID={`settings-calendar-${opt.key}`}
               onPress={() => setCalendarView(opt.key)}
             >
-              <Card style={[styles.optionRow, active && styles.optionRowActive]}>
+              <Card style={styles.optionRow} accent={active ? theme.colors.brand : undefined}>
                 <View style={[styles.optionIcon, active && styles.optionIconActive]}>
                   <Ionicons
                     name={opt.icon}
                     size={18}
-                    color={active ? "#fff" : colors.onSurfaceTertiary}
+                    color={active ? "#fff" : theme.colors.onSurfaceTertiary}
                   />
                 </View>
                 <View style={{ flex: 1 }}>
@@ -158,7 +169,7 @@ export default function SettingsScreen() {
                   <Text style={styles.optionHint}>{opt.hint}</Text>
                 </View>
                 {active && (
-                  <Ionicons name="checkmark-circle" size={20} color={colors.brand} />
+                  <Ionicons name="checkmark-circle" size={20} color={theme.colors.brand} />
                 )}
               </Card>
             </PressableScale>
@@ -179,12 +190,12 @@ export default function SettingsScreen() {
               testID={`settings-theme-${t.id}`}
               onPress={() => setThemeId(t.id as ThemeId)}
             >
-              <Card style={[styles.optionRow, active && styles.optionRowActive]}>
+              <Card style={styles.optionRow} accent={active ? theme.colors.brand : undefined}>
                 <View style={[styles.swatch, { backgroundColor: t.swatch }]} />
                 <View style={{ flex: 1 }}>
                   <Text style={styles.optionLabel}>{t.label}</Text>
                 </View>
-                {active && <Ionicons name="checkmark-circle" size={20} color={colors.brand} />}
+                {active && <Ionicons name="checkmark-circle" size={20} color={theme.colors.brand} />}
               </Card>
             </PressableScale>
           );
@@ -208,9 +219,9 @@ export default function SettingsScreen() {
               disabled={addingWallpaper}
             >
               {addingWallpaper ? (
-                <ActivityIndicator color={colors.brand} />
+                <ActivityIndicator color={theme.colors.brand} />
               ) : (
-                <Ionicons name="add" size={18} color={colors.brand} />
+                <Ionicons name="add" size={18} color={theme.colors.brand} />
               )}
               <Text style={styles.addWallpaperLabel}>
                 {addingWallpaper ? "Import en cours…" : "Ajouter un fond d'écran"}
@@ -228,7 +239,7 @@ export default function SettingsScreen() {
                 <Image source={DEFAULT_WALLPAPER_PREVIEW} style={styles.wallpaperTileImage} />
                 {activeWallpaperId === null && (
                   <View style={styles.wallpaperCheckBadge}>
-                    <Ionicons name="checkmark-circle" size={18} color={colors.brand} />
+                    <Ionicons name="checkmark-circle" size={18} color={theme.colors.brand} />
                   </View>
                 )}
                 <Text style={styles.wallpaperTileLabel} numberOfLines={1}>
@@ -246,12 +257,12 @@ export default function SettingsScreen() {
                       <Image source={{ uri: thumbUris[w.id] }} style={styles.wallpaperTileImage} />
                     ) : (
                       <View style={[styles.wallpaperTileImage, styles.wallpaperTileLoading]}>
-                        <ActivityIndicator color={colors.onSurfaceTertiary} size="small" />
+                        <ActivityIndicator color={theme.colors.onSurfaceTertiary} size="small" />
                       </View>
                     )}
                     {activeWallpaperId === w.id && (
                       <View style={styles.wallpaperCheckBadge}>
-                        <Ionicons name="checkmark-circle" size={18} color={colors.brand} />
+                        <Ionicons name="checkmark-circle" size={18} color={theme.colors.brand} />
                       </View>
                     )}
                   </PressableScale>
@@ -270,11 +281,14 @@ export default function SettingsScreen() {
         )}
       </ScrollView>
       {ConfirmModal}
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
-const styles = StyleSheet.create({
+function buildStyles(theme: Theme) {
+  const { colors, radius } = theme;
+  return StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.surface },
   header: {
     flexDirection: "row",
@@ -300,7 +314,6 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   optionRow: { flexDirection: "row", alignItems: "center", gap: spacing.md },
-  optionRowActive: { borderColor: colors.brand },
   optionIcon: {
     width: 36,
     height: 36,
@@ -371,4 +384,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-});
+  });
+}

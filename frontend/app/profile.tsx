@@ -15,7 +15,25 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { colors, radius, spacing } from "@/src/theme";
+import { coloredShadow, spacing, withAlpha } from "@/src/theme";
+import { useTheme } from "@/src/themes";
+import { Theme } from "@/src/themes/types";
+import ThemedBackground from "@/src/themes/ThemedBackground";
+
+/** Chip de sélection actif (Sexe/Objectif/Niveau) — "Active Glass" sous
+ * Sunset (fond translucide + bordure + lueur) au lieu d'un pavé plein. */
+function activeSelectStyle(theme: Theme, active: boolean) {
+  if (!active) return { backgroundColor: theme.colors.surfaceSecondary, borderColor: theme.colors.border };
+  if (theme.card.mode !== "glass") return { backgroundColor: theme.colors.brand, borderColor: theme.colors.brand };
+  return [
+    { backgroundColor: withAlpha(theme.colors.brand, 20), borderColor: withAlpha(theme.colors.brand, 50) },
+    coloredShadow(theme.colors.brand, { offsetY: 0, opacity: 0.28, radius: 6, elevation: 2 }),
+  ];
+}
+function activeSelectColor(theme: Theme, active: boolean) {
+  if (!active) return theme.colors.onSurfaceTertiary;
+  return theme.card.mode === "glass" ? theme.colors.brand : "#fff";
+}
 import { cropImage } from "@/src/utils/imageCropper";
 import {
   getProfile,
@@ -46,6 +64,7 @@ const LEVELS: { key: ProgramLevel }[] = [
 ];
 
 export default function ProfileScreen() {
+  const { theme } = useTheme();
   const router = useRouter();
   const [profile, setProfile] = useState<UserProfile>({
     name: null,
@@ -114,34 +133,52 @@ export default function ProfileScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
-        <Text style={styles.loading}>Chargement…</Text>
-      </SafeAreaView>
+      <View style={{ flex: 1 }}>
+        <ThemedBackground />
+        <SafeAreaView
+          style={[
+            styles.container,
+            theme.background.mode === "gradient" ? { backgroundColor: "transparent" } : { backgroundColor: theme.colors.surface },
+          ]}
+        >
+          <Text style={[styles.loading, { color: theme.colors.onSurfaceTertiary }]}>Chargement…</Text>
+        </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
-      <View style={styles.header}>
+    <View style={{ flex: 1 }}>
+      <ThemedBackground />
+      <SafeAreaView
+        style={[
+          styles.container,
+          theme.background.mode === "gradient" ? { backgroundColor: "transparent" } : { backgroundColor: theme.colors.surface },
+        ]}
+        edges={["top", "bottom"]}
+      >
+      <View style={[styles.header, { borderBottomColor: theme.colors.border }]}>
         <Pressable
           testID="close-profile"
           onPress={() => router.back()}
           hitSlop={12}
         >
-          <Ionicons name="close" size={26} color={colors.onSurface} />
+          <Ionicons name="close" size={26} color={theme.colors.onSurface} />
         </Pressable>
-        <Text style={styles.title}>Mon profil</Text>
+        <Text style={[styles.title, { color: theme.colors.onSurface }]}>Mon profil</Text>
         <Pressable
           testID="save-profile"
           onPress={save}
           hitSlop={16}
           style={({ pressed }) => [
             styles.saveBtn,
+            { borderRadius: theme.radius.pill },
+            activeSelectStyle(theme, true),
             pressed && { opacity: 0.75 },
           ]}
         >
-          <Ionicons name="checkmark" size={14} color="#fff" />
-          <Text style={styles.saveBtnText}>SAUVEGARDER</Text>
+          <Ionicons name="checkmark" size={14} color={activeSelectColor(theme, true)} />
+          <Text style={[styles.saveBtnText, { color: activeSelectColor(theme, true) }]}>SAUVEGARDER</Text>
         </Pressable>
       </View>
 
@@ -155,63 +192,81 @@ export default function ProfileScreen() {
         >
           {/* Avatar block */}
           <View style={styles.avatarWrap}>
-            <View style={styles.avatarCircle}>
+            <View
+              style={[
+                styles.avatarCircle,
+                { backgroundColor: theme.colors.surfaceSecondary, borderColor: theme.colors.brand },
+              ]}
+            >
               {profile.photoBase64 ? (
                 <Image
                   source={{ uri: `data:image/jpeg;base64,${profile.photoBase64}` }}
                   style={styles.avatarImg}
                 />
               ) : (
-                <Ionicons name="person" size={56} color={colors.onSurfaceTertiary} />
+                <Ionicons name="person" size={56} color={theme.colors.onSurfaceTertiary} />
               )}
             </View>
             <View style={styles.avatarActions}>
               <Pressable
                 testID="avatar-camera"
-                style={styles.avatarBtn}
+                style={[styles.avatarBtn, { borderColor: theme.colors.brand, backgroundColor: theme.colors.surfaceSecondary }]}
                 onPress={() => pickPhoto(true)}
               >
-                <Ionicons name="camera" size={16} color={colors.brand} />
-                <Text style={styles.avatarBtnText}>Caméra</Text>
+                <Ionicons name="camera" size={16} color={theme.colors.brand} />
+                <Text style={[styles.avatarBtnText, { color: theme.colors.brand }]}>Caméra</Text>
               </Pressable>
               <Pressable
                 testID="avatar-gallery"
-                style={styles.avatarBtn}
+                style={[styles.avatarBtn, { borderColor: theme.colors.brand, backgroundColor: theme.colors.surfaceSecondary }]}
                 onPress={() => pickPhoto(false)}
               >
-                <Ionicons name="images" size={16} color={colors.brand} />
-                <Text style={styles.avatarBtnText}>Galerie</Text>
+                <Ionicons name="images" size={16} color={theme.colors.brand} />
+                <Text style={[styles.avatarBtnText, { color: theme.colors.brand }]}>Galerie</Text>
               </Pressable>
               {profile.photoBase64 ? (
                 <Pressable
                   testID="avatar-clear"
-                  style={styles.avatarBtnDanger}
+                  style={[styles.avatarBtnDanger, { borderColor: theme.colors.error, backgroundColor: theme.colors.surfaceSecondary }]}
                   onPress={() => set("photoBase64", null)}
                 >
-                  <Ionicons name="trash" size={16} color={colors.error} />
+                  <Ionicons name="trash" size={16} color={theme.colors.error} />
                 </Pressable>
               ) : null}
             </View>
           </View>
 
-          <View style={styles.introCard}>
-            <Ionicons name="body" size={22} color={colors.brand} />
-            <Text style={styles.introText}>
+          <View
+            style={[
+              styles.introCard,
+              { backgroundColor: theme.colors.surfaceSecondary, borderRadius: theme.radius.md, borderColor: theme.colors.border },
+            ]}
+          >
+            <Ionicons name="body" size={22} color={theme.colors.brand} />
+            <Text style={[styles.introText, { color: theme.colors.onSurfaceSecondary }]}>
               Ces infos affinent le calcul des calories brûlées et servent au suivi de progression (IMC, masse grasse).
             </Text>
           </View>
 
-          <Text style={styles.label}>Prénom</Text>
+          <Text style={[styles.label, { color: theme.colors.onSurfaceTertiary }]}>Prénom</Text>
           <TextInput
             testID="input-name"
-            style={styles.input}
+            style={[
+              styles.input,
+              {
+                backgroundColor: theme.colors.surfaceSecondary,
+                borderRadius: theme.radius.md,
+                color: theme.colors.onSurface,
+                borderColor: theme.colors.border,
+              },
+            ]}
             value={profile.name ?? ""}
             onChangeText={(t) => set("name", t.trim() ? t : null)}
             placeholder="Ex: Alex"
-            placeholderTextColor={colors.onSurfaceTertiary}
+            placeholderTextColor={theme.colors.onSurfaceTertiary}
           />
 
-          <Text style={styles.label}>Sexe</Text>
+          <Text style={[styles.label, { color: theme.colors.onSurfaceTertiary }]}>Sexe</Text>
           <View style={styles.sexRow}>
             {SEXES.map((s) => {
               const active = profile.sex === s.key;
@@ -219,20 +274,11 @@ export default function ProfileScreen() {
                 <Pressable
                   key={s.key}
                   testID={`sex-${s.key}`}
-                  style={[styles.sexBtn, active && styles.sexBtnActive]}
+                  style={[styles.sexBtn, { borderRadius: theme.radius.md }, activeSelectStyle(theme, active)]}
                   onPress={() => set("sex", s.key)}
                 >
-                  <Ionicons
-                    name={s.icon}
-                    size={20}
-                    color={active ? "#fff" : colors.onSurfaceTertiary}
-                  />
-                  <Text
-                    style={[
-                      styles.sexLabel,
-                      active && { color: "#fff" },
-                    ]}
-                  >
+                  <Ionicons name={s.icon} size={20} color={activeSelectColor(theme, active)} />
+                  <Text style={[styles.sexLabel, { color: activeSelectColor(theme, active) }]}>
                     {s.label}
                   </Text>
                 </Pressable>
@@ -240,8 +286,8 @@ export default function ProfileScreen() {
             })}
           </View>
 
-          <Text style={styles.label}>Objectif principal</Text>
-          <Text style={styles.sectionHelp}>
+          <Text style={[styles.label, { color: theme.colors.onSurfaceTertiary }]}>Objectif principal</Text>
+          <Text style={[styles.sectionHelp, { color: theme.colors.onSurfaceTertiary }]}>
             Sert à te recommander les programmes prédéfinis les plus pertinents — n&apos;exclut jamais les autres.
           </Text>
           <View style={styles.goalRow}>
@@ -251,15 +297,11 @@ export default function ProfileScreen() {
                 <Pressable
                   key={g.key}
                   testID={`goal-${g.key}`}
-                  style={[styles.goalChip, active && styles.goalChipActive]}
+                  style={[styles.goalChip, { borderRadius: theme.radius.pill }, activeSelectStyle(theme, active)]}
                   onPress={() => set("primaryGoal", active ? null : g.key)}
                 >
-                  <Ionicons
-                    name={g.icon}
-                    size={14}
-                    color={active ? "#fff" : colors.onSurfaceTertiary}
-                  />
-                  <Text style={[styles.goalChipText, active && { color: "#fff" }]}>
+                  <Ionicons name={g.icon} size={14} color={activeSelectColor(theme, active)} />
+                  <Text style={[styles.goalChipText, { color: activeSelectColor(theme, active) }]}>
                     {GOAL_LABEL[g.key]}
                   </Text>
                 </Pressable>
@@ -267,7 +309,7 @@ export default function ProfileScreen() {
             })}
           </View>
 
-          <Text style={styles.label}>Niveau d&apos;expérience</Text>
+          <Text style={[styles.label, { color: theme.colors.onSurfaceTertiary }]}>Niveau d&apos;expérience</Text>
           <View style={styles.sexRow}>
             {LEVELS.map((l) => {
               const active = profile.experienceLevel === l.key;
@@ -275,10 +317,10 @@ export default function ProfileScreen() {
                 <Pressable
                   key={l.key}
                   testID={`level-${l.key}`}
-                  style={[styles.sexBtn, active && styles.sexBtnActive]}
+                  style={[styles.sexBtn, { borderRadius: theme.radius.md }, activeSelectStyle(theme, active)]}
                   onPress={() => set("experienceLevel", active ? null : l.key)}
                 >
-                  <Text style={[styles.sexLabel, active && { color: "#fff" }]}>
+                  <Text style={[styles.sexLabel, { color: activeSelectColor(theme, active) }]}>
                     {LEVEL_LABEL[l.key]}
                   </Text>
                 </Pressable>
@@ -314,12 +356,12 @@ export default function ProfileScreen() {
           </View>
 
           {profile.weight_kg && profile.height_cm ? (
-            <View style={styles.bmiCard}>
-              <Text style={styles.bmiLabel}>INDICE DE MASSE CORPORELLE</Text>
-              <Text style={styles.bmiVal}>
+            <View style={[styles.bmiCard, { backgroundColor: theme.colors.brandTertiary, borderRadius: theme.radius.md }]}>
+              <Text style={[styles.bmiLabel, { color: theme.colors.brandSecondary }]}>INDICE DE MASSE CORPORELLE</Text>
+              <Text style={[styles.bmiVal, { color: theme.colors.onSurface }]}>
                 {computeBMI(profile.weight_kg, profile.height_cm).toFixed(1)}
               </Text>
-              <Text style={styles.bmiHint}>
+              <Text style={[styles.bmiHint, { color: theme.colors.brandSecondary }]}>
                 {bmiCategory(
                   computeBMI(profile.weight_kg, profile.height_cm),
                 )}
@@ -328,8 +370,8 @@ export default function ProfileScreen() {
           ) : null}
 
           {/* Wellness daily targets */}
-          <Text style={styles.sectionHeader}>Objectifs quotidiens bien-être</Text>
-          <Text style={styles.sectionHelp}>
+          <Text style={[styles.sectionHeader, { color: theme.colors.onSurface }]}>Objectifs quotidiens bien-être</Text>
+          <Text style={[styles.sectionHelp, { color: theme.colors.onSurfaceTertiary }]}>
             Utilisés dans le score IRONFLOW & les widgets du dashboard.
           </Text>
 
@@ -364,7 +406,8 @@ export default function ProfileScreen() {
           {/* Shortcuts moved to Profil tab (list). This screen focuses on personal settings. */}
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
@@ -381,12 +424,21 @@ function FieldBox({
   placeholder?: string;
   testID?: string;
 }) {
+  const { theme } = useTheme();
   return (
     <View style={styles.fieldBox}>
-      <Text style={styles.miniLabel}>{label}</Text>
+      <Text style={[styles.miniLabel, { color: theme.colors.onSurfaceTertiary }]}>{label}</Text>
       <TextInput
         testID={testID}
-        style={styles.input}
+        style={[
+          styles.input,
+          {
+            backgroundColor: theme.colors.surfaceSecondary,
+            borderRadius: theme.radius.md,
+            color: theme.colors.onSurface,
+            borderColor: theme.colors.border,
+          },
+        ]}
         value={value == null ? "" : String(value)}
         onChangeText={(t) => {
           if (t.trim() === "") return onChange(null);
@@ -395,7 +447,7 @@ function FieldBox({
         }}
         keyboardType="decimal-pad"
         placeholder={placeholder}
-        placeholderTextColor={colors.onSurfaceTertiary}
+        placeholderTextColor={theme.colors.onSurfaceTertiary}
       />
     </View>
   );
@@ -415,9 +467,8 @@ function bmiCategory(bmi: number) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surface },
+  container: { flex: 1 },
   loading: {
-    color: colors.onSurfaceTertiary,
     textAlign: "center",
     marginTop: 40,
   },
@@ -427,19 +478,15 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
-    borderBottomColor: colors.border,
     borderBottomWidth: 1,
   },
-  title: { color: colors.onSurface, fontSize: 17, fontWeight: "700" },
-  saveText: { color: colors.brand, fontWeight: "800", letterSpacing: 0.8 },
+  title: { fontSize: 17, fontWeight: "700" },
   saveBtn: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    backgroundColor: colors.brand,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: radius.pill,
   },
   saveBtnText: {
     color: "#fff",
@@ -453,9 +500,7 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: colors.surfaceSecondary,
     borderWidth: 2,
-    borderColor: colors.brand,
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
@@ -468,44 +513,34 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingVertical: 10,
     paddingHorizontal: 14,
-    borderRadius: radius.pill,
+    borderRadius: 999,
     borderWidth: 1,
-    borderColor: colors.brand,
-    backgroundColor: colors.surfaceSecondary,
   },
   avatarBtnDanger: {
     padding: 10,
-    borderRadius: radius.pill,
+    borderRadius: 999,
     borderWidth: 1,
-    borderColor: colors.error,
-    backgroundColor: colors.surfaceSecondary,
     alignItems: "center",
     justifyContent: "center",
   },
   avatarBtnText: {
-    color: colors.brand,
     fontWeight: "800",
     fontSize: 12,
     letterSpacing: 0.5,
   },
   introCard: {
-    backgroundColor: colors.surfaceSecondary,
-    borderRadius: radius.md,
     padding: spacing.lg,
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
     borderWidth: 1,
-    borderColor: colors.border,
   },
   introText: {
-    color: colors.onSurfaceSecondary,
     flex: 1,
     fontSize: 13,
     lineHeight: 18,
   },
   label: {
-    color: colors.onSurfaceTertiary,
     fontSize: 11,
     letterSpacing: 1,
     fontWeight: "700",
@@ -518,17 +553,9 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingVertical: 10,
     paddingHorizontal: 14,
-    borderRadius: radius.pill,
-    backgroundColor: colors.surfaceSecondary,
     borderWidth: 1,
-    borderColor: colors.border,
-  },
-  goalChipActive: {
-    backgroundColor: colors.brand,
-    borderColor: colors.brand,
   },
   goalChipText: {
-    color: colors.onSurfaceTertiary,
     fontWeight: "700",
     fontSize: 12,
   },
@@ -536,89 +563,50 @@ const styles = StyleSheet.create({
   sexBtn: {
     flex: 1,
     padding: spacing.md,
-    borderRadius: radius.md,
-    backgroundColor: colors.surfaceSecondary,
     borderWidth: 1,
-    borderColor: colors.border,
     alignItems: "center",
     gap: 6,
   },
-  sexBtnActive: {
-    backgroundColor: colors.brand,
-    borderColor: colors.brand,
-  },
   sexLabel: {
-    color: colors.onSurfaceTertiary,
     fontWeight: "700",
     fontSize: 12,
   },
   fieldRow: { flexDirection: "row", gap: spacing.md },
   fieldBox: { flex: 1 },
   miniLabel: {
-    color: colors.onSurfaceTertiary,
     fontSize: 11,
     letterSpacing: 1,
     fontWeight: "700",
     marginBottom: 6,
   },
   input: {
-    backgroundColor: colors.surfaceSecondary,
-    borderRadius: radius.md,
     padding: spacing.md,
-    color: colors.onSurface,
     borderWidth: 1,
-    borderColor: colors.border,
     fontSize: 16,
     fontWeight: "600",
   },
   bmiCard: {
     marginTop: spacing.lg,
-    backgroundColor: colors.brandTertiary,
-    borderRadius: radius.md,
     padding: spacing.lg,
     alignItems: "center",
     gap: 4,
   },
   bmiLabel: {
-    color: colors.brandSecondary,
     letterSpacing: 2,
     fontSize: 10,
     fontWeight: "800",
   },
-  bmiVal: { color: colors.onSurface, fontSize: 36, fontWeight: "800" },
-  bmiHint: { color: colors.brandSecondary, fontSize: 12, fontWeight: "600" },
+  bmiVal: { fontSize: 36, fontWeight: "800" },
+  bmiHint: { fontSize: 12, fontWeight: "600" },
   sectionHeader: {
-    color: colors.onSurface,
     fontSize: 14,
     fontWeight: "800",
     letterSpacing: 0.5,
     marginTop: spacing.lg,
   },
   sectionHelp: {
-    color: colors.onSurfaceTertiary,
     fontSize: 11,
     marginTop: 2,
     marginBottom: spacing.sm,
   },
-  linkRow: {
-    marginTop: spacing.lg,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
-    backgroundColor: colors.surfaceSecondary,
-    padding: spacing.md,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  linkIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: colors.brandTertiary,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  linkTitle: { color: colors.onSurface, fontWeight: "700", fontSize: 14 },
-  linkSub: { color: colors.onSurfaceTertiary, fontSize: 11, marginTop: 2 },
 });

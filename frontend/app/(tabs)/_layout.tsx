@@ -136,9 +136,10 @@ export default function TabsLayout() {
                 </View>
               )
             : undefined,
-          // Sunset : icônes blanches par défaut, orange (accent du thème)
-          // sur l'onglet actif — pas de fond de pilule par onglet (le
-          // libellé permanent joue déjà ce rôle). Classique : inchangé.
+          // Sunset (Glacier Aurora) : icônes blanches par défaut, Glacier
+          // Blue (accent du thème) sur l'onglet actif — pas de fond de
+          // pilule par onglet (le libellé permanent joue déjà ce rôle).
+          // Classique : inchangé.
           tabBarActiveTintColor: theme.colors.brand,
           tabBarInactiveTintColor: isSunset ? "#FFFFFF" : theme.colors.onSurfaceTertiary,
           tabBarItemStyle: isSunset ? { justifyContent: "center", alignItems: "center" } : undefined,

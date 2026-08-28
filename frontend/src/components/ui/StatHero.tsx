@@ -1,5 +1,5 @@
 import { StyleProp, Text, View, ViewStyle } from "react-native";
-import { colors } from "@/src/theme";
+import { useTheme } from "@/src/themes";
 import AnimatedNumber from "./AnimatedNumber";
 
 const SIZES = {
@@ -32,6 +32,7 @@ export default function StatHero({
   testID?: string;
   style?: StyleProp<ViewStyle>;
 }) {
+  const { theme } = useTheme();
   const { num, unit: unitSize } = SIZES[size];
   return (
     <View style={[{ alignItems: align }, style]} testID={testID}>
@@ -39,7 +40,7 @@ export default function StatHero({
         value={value}
         formatter={formatter}
         style={{
-          color: color ?? colors.onSurface,
+          color: color ?? theme.colors.onSurface,
           fontSize: num,
           fontWeight: "800",
           lineHeight: num * 1.05,
@@ -48,7 +49,7 @@ export default function StatHero({
       {unit ? (
         <Text
           style={{
-            color: colors.onSurfaceTertiary,
+            color: theme.colors.onSurfaceTertiary,
             fontSize: unitSize,
             fontWeight: "700",
             letterSpacing: 0.6,

@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -12,7 +12,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { LineChart } from "react-native-gifted-charts";
-import { colors, radius, spacing } from "@/src/theme";
+import { spacing } from "@/src/theme";
+import { Theme, useTheme } from "@/src/themes";
+import ThemedBackground from "@/src/themes/ThemedBackground";
+import GlassCard from "@/src/components/ui/GlassCard";
 import {
   formatDurationHMS,
   formatPace,
@@ -43,6 +46,8 @@ import {
 const PERIODS: PeriodKey[] = ["7d", "30d", "6m", "1y", "all"];
 
 export default function ExerciseDetailScreen() {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   const { name } = useLocalSearchParams<{ name: string }>();
   const router = useRouter();
   const decoded = decodeURIComponent(name ?? "");
@@ -74,10 +79,18 @@ export default function ExerciseDetailScreen() {
 
   if (!decoded) {
     return (
-      <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+      <View style={{ flex: 1 }}>
+        <ThemedBackground />
+        <SafeAreaView
+          style={[
+            styles.container,
+            theme.background.mode === "gradient" ? { backgroundColor: "transparent" } : { backgroundColor: theme.colors.surface },
+          ]}
+          edges={["top", "bottom"]}
+        >
         <View style={styles.header}>
           <Pressable onPress={() => router.back()} hitSlop={12}>
-            <Ionicons name="chevron-back" size={24} color={colors.onSurface} />
+            <Ionicons name="chevron-back" size={24} color={theme.colors.onSurface} />
           </Pressable>
           <Text style={styles.title}>Choisir un exercice</Text>
           <View style={{ width: 24 }} />
@@ -97,17 +110,18 @@ export default function ExerciseDetailScreen() {
                   router.push(`/exercise/${encodeURIComponent(s.name)}`)
                 }
               >
-                <Ionicons name="barbell" size={16} color={colors.brand} />
+                <Ionicons name="barbell" size={16} color={theme.colors.brand} />
                 <Text style={styles.pickName}>{s.name}</Text>
                 <Text style={styles.pickCount}>
                   {s.count} séance{s.count > 1 ? "s" : ""}
                 </Text>
-                <Ionicons name="chevron-forward" size={16} color={colors.onSurfaceTertiary} />
+                <Ionicons name="chevron-forward" size={16} color={theme.colors.onSurfaceTertiary} />
               </Pressable>
             ))
           )}
         </ScrollView>
-      </SafeAreaView>
+        </SafeAreaView>
+      </View>
     );
   }
 
@@ -127,14 +141,22 @@ export default function ExerciseDetailScreen() {
   }));
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+    <View style={{ flex: 1 }}>
+      <ThemedBackground />
+      <SafeAreaView
+        style={[
+          styles.container,
+          theme.background.mode === "gradient" ? { backgroundColor: "transparent" } : { backgroundColor: theme.colors.surface },
+        ]}
+        edges={["top", "bottom"]}
+      >
       <View style={styles.header}>
         <Pressable
           testID="close-detail"
           onPress={() => router.back()}
           hitSlop={12}
         >
-          <Ionicons name="chevron-back" size={24} color={colors.onSurface} />
+          <Ionicons name="chevron-back" size={24} color={theme.colors.onSurface} />
         </Pressable>
         <Text style={styles.title} numberOfLines={1}>
           {decoded}
@@ -243,9 +265,9 @@ export default function ExerciseDetailScreen() {
               endOpacity={0.05}
               yAxisThickness={0}
               xAxisThickness={0}
-              yAxisTextStyle={{ color: colors.onSurfaceTertiary, fontSize: 10 }}
+              yAxisTextStyle={{ color: theme.colors.onSurfaceTertiary, fontSize: 10 }}
               xAxisLabelTextStyle={{
-                color: colors.onSurfaceTertiary,
+                color: theme.colors.onSurfaceTertiary,
                 fontSize: 9,
               }}
               hideRules
@@ -258,7 +280,7 @@ export default function ExerciseDetailScreen() {
           </View>
         ) : (
           <View style={styles.hintBox}>
-            <Ionicons name="information-circle" size={14} color={colors.brand} />
+            <Ionicons name="information-circle" size={14} color={theme.colors.brand} />
             <Text style={styles.hintText}>
               Pas assez de données sur cette période. Élargis la période ou fais
               plus de séances.
@@ -272,7 +294,7 @@ export default function ExerciseDetailScreen() {
             <Text style={styles.sectionTitle}>Records enregistrés</Text>
             {linkedPRs.map((pr) => (
               <View key={pr.id} style={styles.prCard}>
-                <Ionicons name="trophy" size={14} color={colors.brand} />
+                <Ionicons name="trophy" size={14} color={theme.colors.brand} />
                 <Text style={styles.prCardText}>
                   {(pr.type ?? "weight") === "weight"
                     ? `${pr.weight_kg} kg × ${pr.reps}`
@@ -300,7 +322,10 @@ export default function ExerciseDetailScreen() {
           style={styles.modalBackdrop}
           onPress={() => setShowCatPicker(false)}
         >
-          <View style={styles.modalCard}>
+          <GlassCard
+            level="elevated"
+            style={[styles.modalCard, theme.card.mode !== "glass" && { backgroundColor: theme.colors.surfaceSecondary, borderColor: theme.colors.border }]}
+          >
             <Text style={styles.modalTitle}>Catégorie de l&apos;exercice</Text>
             <Text style={styles.modalHelp}>
               Utilisé pour adapter les statistiques et les graphiques.
@@ -328,7 +353,7 @@ export default function ExerciseDetailScreen() {
                   <Ionicons
                     name={EXERCISE_CATEGORY_ICON[c]}
                     size={18}
-                    color={active ? color : colors.brand}
+                    color={active ? color : theme.colors.brand}
                   />
                   <Text
                     style={[
@@ -353,13 +378,14 @@ export default function ExerciseDetailScreen() {
                 setShowCatPicker(false);
               }}
             >
-              <Ionicons name="sparkles" size={14} color={colors.brand} />
+              <Ionicons name="sparkles" size={14} color={theme.colors.brand} />
               <Text style={styles.autoBtnText}>Réinitialiser (auto-détect)</Text>
             </Pressable>
-          </View>
+          </GlassCard>
         </Pressable>
       </Modal>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
@@ -374,6 +400,8 @@ function CategoryKPIs({
   catColor: string;
   prsCount: number;
 }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   const kpis: { icon: any; value: string; label: string }[] = [];
 
   if (category === "cardio_machine" && catStats.kind === "cardio") {
@@ -456,7 +484,9 @@ function formatDateShort(iso: string) {
   });
 }
 
-const styles = StyleSheet.create({
+function buildStyles(theme: Theme) {
+  const { colors, radius } = theme;
+  return StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.surface },
   header: {
     flexDirection: "row",
@@ -661,4 +691,5 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontSize: 12,
   },
-});
+  });
+}

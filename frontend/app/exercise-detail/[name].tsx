@@ -5,9 +5,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { LineChart } from "react-native-gifted-charts";
-import { colors, coloredShadow, motion, radius, spacing, withAlpha } from "@/src/theme";
+import { coloredShadow, motion, spacing, withAlpha } from "@/src/theme";
+import { Theme, useTheme } from "@/src/themes";
+import ThemedBackground from "@/src/themes/ThemedBackground";
 import Card from "@/src/components/ui/Card";
+import GlassCard from "@/src/components/ui/GlassCard";
 import SegmentedTabRow from "@/src/components/ui/SegmentedTabRow";
+import GlassButton from "@/src/components/ui/GlassButton";
 import ExerciseMediaFrame from "@/src/components/exercise-library/ExerciseMediaFrame";
 import ExerciseThumbnail from "@/src/components/ExerciseThumbnail";
 import { EXERCISE_CATEGORY_COLOR, EXERCISE_CATEGORY_ICON, EXERCISE_CATEGORY_LABEL } from "@/src/utils/exercise-category";
@@ -64,6 +68,8 @@ function normalize(s: string): string {
  * différente (analyser sa progression plutôt qu'apprendre le mouvement).
  */
 export default function ExerciseDetailFiche() {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   const { name } = useLocalSearchParams<{ name: string }>();
   const router = useRouter();
   const decoded = decodeURIComponent(name ?? "");
@@ -250,19 +256,27 @@ export default function ExerciseDetailFiche() {
   if (compositeItems) {
     const compositeTitle = parseCompositePrefix(decoded) ?? decoded;
     return (
-      <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+      <View style={{ flex: 1 }}>
+        <ThemedBackground />
+        <SafeAreaView
+          style={[
+            styles.container,
+            theme.background.mode === "gradient" ? { backgroundColor: "transparent" } : { backgroundColor: theme.colors.surface },
+          ]}
+          edges={["top", "bottom"]}
+        >
         <View style={styles.header}>
           <Pressable testID="close-ex-detail" onPress={() => router.back()} hitSlop={12}>
-            <Ionicons name="chevron-back" size={24} color={colors.onSurface} />
+            <Ionicons name="chevron-back" size={24} color={theme.colors.onSurface} />
           </Pressable>
-          <Text style={styles.title} numberOfLines={1}>
+          <Text style={[styles.title, { color: theme.colors.onSurface }]} numberOfLines={1}>
             {compositeTitle}
           </Text>
           <View style={{ width: 24 }} />
         </View>
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
           <CompositeExerciseImage items={compositeItems} records={allRecords} showLabel={false} />
-          <Text style={styles.circuitFullName}>{decoded}</Text>
+          <Text style={[styles.circuitFullName, { color: theme.colors.onSurfaceSecondary }]}>{decoded}</Text>
           <Card title="Mouvements du circuit" icon="list-outline">
             <View style={{ gap: spacing.sm }}>
               {compositeItems.map((raw, i) => {
@@ -272,13 +286,15 @@ export default function ExerciseDetailFiche() {
                   <>
                     <ExerciseThumbnail name={cleaned} records={allRecords} size={44} square />
                     <View style={{ flex: 1 }}>
-                      <Text style={styles.circuitRowName}>{raw}</Text>
+                      <Text style={[styles.circuitRowName, { color: theme.colors.onSurface }]}>{raw}</Text>
                       {!record && (
-                        <Text style={styles.circuitRowHint}>Pas encore dans la bibliothèque</Text>
+                        <Text style={[styles.circuitRowHint, { color: theme.colors.onSurfaceTertiary }]}>
+                          Pas encore dans la bibliothèque
+                        </Text>
                       )}
                     </View>
                     {record && (
-                      <Ionicons name="chevron-forward" size={16} color={colors.onSurfaceTertiary} />
+                      <Ionicons name="chevron-forward" size={16} color={theme.colors.onSurfaceTertiary} />
                     )}
                   </>
                 );
@@ -303,27 +319,37 @@ export default function ExerciseDetailFiche() {
             </View>
           </Card>
         </ScrollView>
-      </SafeAreaView>
+        </SafeAreaView>
+      </View>
     );
   }
 
   if (!item) {
     return (
-      <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+      <View style={{ flex: 1 }}>
+        <ThemedBackground />
+        <SafeAreaView
+          style={[
+            styles.container,
+            theme.background.mode === "gradient" ? { backgroundColor: "transparent" } : { backgroundColor: theme.colors.surface },
+          ]}
+          edges={["top", "bottom"]}
+        >
         <View style={styles.header}>
           <Pressable testID="close-ex-detail" onPress={() => router.back()} hitSlop={12}>
-            <Ionicons name="chevron-back" size={24} color={colors.onSurface} />
+            <Ionicons name="chevron-back" size={24} color={theme.colors.onSurface} />
           </Pressable>
-          <Text style={styles.title} numberOfLines={1}>
+          <Text style={[styles.title, { color: theme.colors.onSurface }]} numberOfLines={1}>
             {decoded}
           </Text>
           <View style={{ width: 24 }} />
         </View>
         <View style={styles.emptyWrap}>
-          <Ionicons name="help-circle" size={40} color={colors.onSurfaceTertiary} />
-          <Text style={styles.emptyText}>Exercice introuvable.</Text>
+          <Ionicons name="help-circle" size={40} color={theme.colors.onSurfaceTertiary} />
+          <Text style={[styles.emptyText, { color: theme.colors.onSurfaceTertiary }]}>Exercice introuvable.</Text>
         </View>
-      </SafeAreaView>
+        </SafeAreaView>
+      </View>
     );
   }
 
@@ -373,19 +399,27 @@ export default function ExerciseDetailFiche() {
   const hasMoreInfo = usage.length > 0 || !!enrichment?.tags?.length || !!enrichment?.equipmentLevel;
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+    <View style={{ flex: 1 }}>
+      <ThemedBackground />
+      <SafeAreaView
+        style={[
+          styles.container,
+          theme.background.mode === "gradient" ? { backgroundColor: "transparent" } : { backgroundColor: theme.colors.surface },
+        ]}
+        edges={["top", "bottom"]}
+      >
       <View style={styles.header}>
         <Pressable testID="close-ex-detail" onPress={() => router.back()} hitSlop={12}>
-          <Ionicons name="chevron-back" size={24} color={colors.onSurface} />
+          <Ionicons name="chevron-back" size={24} color={theme.colors.onSurface} />
         </Pressable>
-        <Text style={styles.title} numberOfLines={1}>
+        <Text style={[styles.title, { color: theme.colors.onSurface }]} numberOfLines={1}>
           {item.name}
         </Text>
         <Pressable testID="ex-detail-fav" hitSlop={12} onPress={() => toggleFavorite(item.id)}>
           <Ionicons
             name={item.favorite ? "star" : "star-outline"}
             size={22}
-            color={item.favorite ? "#FFC107" : colors.onSurface}
+            color={item.favorite ? "#FFC107" : theme.colors.onSurface}
           />
         </Pressable>
       </View>
@@ -448,7 +482,7 @@ export default function ExerciseDetailFiche() {
             <View style={styles.statChipsRow}>
               {statChips.map((c, i) => (
                 <View key={i} style={styles.statChip}>
-                  <Ionicons name={c.icon} size={14} color={colors.brand} />
+                  <Ionicons name={c.icon} size={14} color={theme.colors.brand} />
                   <View style={{ flexShrink: 1 }}>
                     <Text style={styles.statChipValue} numberOfLines={1}>
                       {c.value}
@@ -462,21 +496,20 @@ export default function ExerciseDetailFiche() {
 
           {currentLevelGuidance?.prerequisites && currentLevelGuidance.prerequisites.length > 0 && (
             <View style={styles.prereqHint}>
-              <Ionicons name="information-circle" size={13} color={colors.progressSecondary} />
+              <Ionicons name="information-circle" size={13} color={theme.colors.progressSecondary} />
               <Text style={styles.prereqHintText}>
                 Prérequis : {currentLevelGuidance.prerequisites.join(", ")}
               </Text>
             </View>
           )}
 
-          <Pressable
+          <GlassButton
             testID="ex-detail-add-to-plan"
-            style={styles.addToPlanBtn}
+            icon="add-circle"
+            label="Ajouter à une séance"
+            style={{ marginTop: spacing.lg }}
             onPress={() => setAddSheetOpen(true)}
-          >
-            <Ionicons name="add-circle" size={16} color="#fff" />
-            <Text style={styles.addToPlanBtnText}>Ajouter à une séance</Text>
-          </Pressable>
+          />
         </Animated.View>
 
         {/* Le mouvement — muscles + description + pourquoi/objectifs/disciplines,
@@ -721,11 +754,11 @@ export default function ExerciseDetailFiche() {
                 {fr.mistakeCorrections.map((mc, i) => (
                   <View key={i} style={styles.mistakePairCard}>
                     <View style={styles.mistakeRow}>
-                      <Ionicons name="close-circle" size={14} color={colors.error} />
+                      <Ionicons name="close-circle" size={14} color={theme.colors.error} />
                       <Text style={[styles.bodyText, { flex: 1, marginTop: 0 }]}>{mc.mistake}</Text>
                     </View>
                     <View style={styles.mistakeRow}>
-                      <Ionicons name="checkmark-circle" size={14} color={colors.success} />
+                      <Ionicons name="checkmark-circle" size={14} color={theme.colors.success} />
                       <Text style={[styles.bodyText, { flex: 1, marginTop: 0 }]}>{mc.correction}</Text>
                     </View>
                   </View>
@@ -836,7 +869,7 @@ export default function ExerciseDetailFiche() {
                         <Ionicons
                           name={u.kind === "program" ? "calendar" : "list"}
                           size={12}
-                          color={colors.brand}
+                          color={theme.colors.brand}
                         />
                         <Text style={styles.linkChipText}>{u.title}</Text>
                       </Pressable>
@@ -925,8 +958,8 @@ export default function ExerciseDetailFiche() {
                       endOpacity={0.05}
                       yAxisThickness={0}
                       xAxisThickness={0}
-                      yAxisTextStyle={{ color: colors.onSurfaceTertiary, fontSize: 10 }}
-                      xAxisLabelTextStyle={{ color: colors.onSurfaceTertiary, fontSize: 9 }}
+                      yAxisTextStyle={{ color: theme.colors.onSurfaceTertiary, fontSize: 10 }}
+                      xAxisLabelTextStyle={{ color: theme.colors.onSurfaceTertiary, fontSize: 9 }}
                       hideRules
                       width={Dimensions.get("window").width - spacing.lg * 2 - spacing.lg * 2 - 32}
                       isAnimated
@@ -965,9 +998,9 @@ export default function ExerciseDetailFiche() {
           style={styles.statsBtn}
           onPress={() => router.push(`/exercise/${encodeURIComponent(item.name)}`)}
         >
-          <Ionicons name="stats-chart" size={16} color={colors.brand} />
+          <Ionicons name="stats-chart" size={16} color={theme.colors.brand} />
           <Text style={styles.statsBtnText}>Voir mes statistiques avancées</Text>
-          <Ionicons name="chevron-forward" size={16} color={colors.brand} />
+          <Ionicons name="chevron-forward" size={16} color={theme.colors.brand} />
         </Pressable>
 
         <View style={{ height: 40 }} />
@@ -981,40 +1014,46 @@ export default function ExerciseDetailFiche() {
       >
         <View style={styles.sheetBackdrop}>
           <Pressable style={{ flex: 1 }} onPress={() => setAddSheetOpen(false)} />
-          <View style={styles.sheet}>
-            <View style={styles.sheetHandle} />
-            <Text style={styles.sheetTitle}>Ajouter « {item.name} » à…</Text>
+          <GlassCard
+            level="elevated"
+            style={[styles.sheet, theme.card.mode !== "glass" && { backgroundColor: theme.colors.surfaceSecondary }]}
+          >
+            <View style={[styles.sheetHandle, { backgroundColor: theme.colors.border }]} />
+            <Text style={[styles.sheetTitle, { color: theme.colors.onSurface }]}>Ajouter « {item.name} » à…</Text>
             <ScrollView style={{ maxHeight: 320 }} contentContainerStyle={{ gap: 8 }}>
               {plans.length === 0 ? (
                 <Text style={styles.placeholderText}>Aucune séance existante.</Text>
               ) : (
                 plans.map((p) => (
-                  <PressableScale
-                    key={p.id}
-                    testID={`ex-detail-add-to-plan-${p.id}`}
-                    style={styles.sheetPlanRow}
-                    onPress={() => addExerciseToPlan(p)}
-                  >
-                    <Text style={styles.sheetPlanTitle} numberOfLines={1}>
-                      {p.title}
-                    </Text>
-                    <Ionicons name="chevron-forward" size={16} color={colors.onSurfaceTertiary} />
+                  <PressableScale key={p.id} testID={`ex-detail-add-to-plan-${p.id}`} onPress={() => addExerciseToPlan(p)}>
+                    <GlassCard
+                      level="subtle"
+                      style={[
+                        styles.sheetPlanRow,
+                        theme.card.mode !== "glass" && { backgroundColor: theme.colors.surfaceTertiary },
+                      ]}
+                    >
+                      <Text style={[styles.sheetPlanTitle, { color: theme.colors.onSurface }]} numberOfLines={1}>
+                        {p.title}
+                      </Text>
+                      <Ionicons name="chevron-forward" size={16} color={theme.colors.onSurfaceTertiary} />
+                    </GlassCard>
                   </PressableScale>
                 ))
               )}
             </ScrollView>
-            <PressableScale
+            <GlassButton
               testID="ex-detail-create-plan"
-              style={styles.sheetCreateBtn}
+              icon="add-circle"
+              label="Créer une nouvelle séance"
+              style={{ marginTop: spacing.sm }}
               onPress={createPlanWithExercise}
-            >
-              <Ionicons name="add-circle" size={16} color="#fff" />
-              <Text style={styles.sheetCreateBtnText}>Créer une nouvelle séance</Text>
-            </PressableScale>
-          </View>
+            />
+          </GlassCard>
         </View>
       </Modal>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
@@ -1024,7 +1063,10 @@ const FATIGUE_LEVEL_LABEL: Record<"low" | "medium" | "high", string> = {
   high: "Élevé",
 };
 
-const styles = StyleSheet.create({
+function buildStyles(theme: Theme) {
+  const { colors, radius } = theme;
+  const isGlass = theme.card.mode === "glass";
+  return StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.surface },
   header: {
     flexDirection: "row",
@@ -1063,7 +1105,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: withAlpha("#000000", 55),
   },
-  mediaToggleBtnActive: { backgroundColor: colors.brand },
+  mediaToggleBtnActive: isGlass ? { backgroundColor: withAlpha(colors.brand, 55) } : { backgroundColor: colors.brand },
   heroName: {
     color: colors.onSurface,
     fontSize: 26,
@@ -1249,16 +1291,37 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
   },
   progressChartTitle: { color: colors.onSurface, fontSize: 13, fontWeight: "700", marginBottom: spacing.md },
-  lastSessionCard: {
-    marginTop: spacing.md,
-    backgroundColor: colors.brand,
-    borderRadius: radius.md,
-    padding: spacing.lg,
-    alignItems: "center",
+  lastSessionCard: isGlass
+    ? {
+        marginTop: spacing.md,
+        backgroundColor: withAlpha(colors.brand, 14),
+        borderWidth: 1,
+        borderColor: withAlpha(colors.brand, 40),
+        borderRadius: radius.md,
+        padding: spacing.lg,
+        alignItems: "center",
+      }
+    : {
+        marginTop: spacing.md,
+        backgroundColor: colors.brand,
+        borderRadius: radius.md,
+        padding: spacing.lg,
+        alignItems: "center",
+      },
+  lastSessionLabel: {
+    color: isGlass ? colors.brand : "#fff",
+    letterSpacing: 2,
+    fontSize: 10,
+    fontWeight: "800",
+    opacity: isGlass ? 1 : 0.9,
   },
-  lastSessionLabel: { color: "#fff", letterSpacing: 2, fontSize: 10, fontWeight: "800", opacity: 0.9 },
-  lastSessionValue: { color: "#fff", fontSize: 24, fontWeight: "800", marginTop: 4 },
-  lastSessionDate: { color: "#fff", opacity: 0.85, fontSize: 11, marginTop: 4 },
+  lastSessionValue: { color: isGlass ? colors.onSurface : "#fff", fontSize: 24, fontWeight: "800", marginTop: 4 },
+  lastSessionDate: {
+    color: isGlass ? colors.onSurfaceSecondary : "#fff",
+    opacity: isGlass ? 1 : 0.85,
+    fontSize: 11,
+    marginTop: 4,
+  },
   statsBtn: {
     flexDirection: "row",
     alignItems: "center",
@@ -1307,4 +1370,5 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
   },
   sheetCreateBtnText: { color: "#fff", fontWeight: "800", fontSize: 13 },
-});
+  });
+}

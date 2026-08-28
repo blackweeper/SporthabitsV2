@@ -1,6 +1,7 @@
 import { ImageSourcePropType, StyleSheet, Text, View, Image } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, withAlpha } from "@/src/theme";
+import { withAlpha } from "@/src/theme";
+import { useTheme } from "@/src/themes";
 import { useDynamicMediaHeight } from "@/src/hooks/useDynamicMediaHeight";
 
 /**
@@ -45,6 +46,7 @@ export default function ExerciseMediaFrame({
   badgeLabel?: string;
   testID?: string;
 }) {
+  const { theme } = useTheme();
   const { height, onLayout } = useDynamicMediaHeight(source, { minHeight, maxHeight });
 
   return (
@@ -52,7 +54,7 @@ export default function ExerciseMediaFrame({
       testID={testID}
       style={[
         styles.frame,
-        { height },
+        { height, borderRadius: theme.radius.lg, backgroundColor: theme.colors.surfaceTertiary },
         !source && fallbackTint ? { backgroundColor: withAlpha(fallbackTint, 15) } : null,
       ]}
       onLayout={onLayout}
@@ -61,16 +63,18 @@ export default function ExerciseMediaFrame({
         <>
           <Image source={source} style={styles.image} resizeMode="contain" />
           {badgeLabel && (
-            <View style={styles.badge}>
-              {badgeIcon && <Ionicons name={badgeIcon} size={11} color={colors.onSurface} />}
-              <Text style={styles.badgeText}>{badgeLabel}</Text>
+            <View style={[styles.badge, { borderRadius: theme.radius.pill }]}>
+              {badgeIcon && <Ionicons name={badgeIcon} size={11} color={theme.colors.onSurface} />}
+              <Text style={[styles.badgeText, { color: theme.colors.onSurface }]}>{badgeLabel}</Text>
             </View>
           )}
         </>
       ) : (
         <View style={styles.fallback}>
           <Text style={styles.fallbackEmoji}>{fallbackEmoji ?? "🏋️"}</Text>
-          {fallbackHint && <Text style={styles.fallbackHint}>{fallbackHint}</Text>}
+          {fallbackHint && (
+            <Text style={[styles.fallbackHint, { color: theme.colors.onSurfaceTertiary }]}>{fallbackHint}</Text>
+          )}
         </View>
       )}
     </View>
@@ -80,8 +84,6 @@ export default function ExerciseMediaFrame({
 const styles = StyleSheet.create({
   frame: {
     width: "100%",
-    borderRadius: radius.lg,
-    backgroundColor: colors.surfaceTertiary,
     overflow: "hidden",
     alignItems: "center",
     justifyContent: "center",
@@ -102,11 +104,10 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingHorizontal: 9,
     paddingVertical: 5,
-    borderRadius: radius.pill,
     backgroundColor: withAlpha("#000000", 55),
   },
-  badgeText: { color: colors.onSurface, fontSize: 10, fontWeight: "800", letterSpacing: 0.4 },
+  badgeText: { fontSize: 10, fontWeight: "800", letterSpacing: 0.4 },
   fallback: { alignItems: "center", justifyContent: "center", gap: 8 },
   fallbackEmoji: { fontSize: 52 },
-  fallbackHint: { color: colors.onSurfaceTertiary, fontSize: 11, fontStyle: "italic" },
+  fallbackHint: { fontSize: 11, fontStyle: "italic" },
 });

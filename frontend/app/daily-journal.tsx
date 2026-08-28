@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -12,7 +12,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing } from "@/src/theme";
+import { spacing, withAlpha } from "@/src/theme";
+import { Theme, useTheme } from "@/src/themes";
+import ThemedBackground from "@/src/themes/ThemedBackground";
 import {
   computeSleepHoursFromTimes,
   DailyJournalEntry,
@@ -32,6 +34,8 @@ import SleepInput, { SleepValue } from "@/src/components/SleepInput";
 import BodyPainMap from "@/src/components/BodyPainMap";
 
 export default function DailyJournalScreen() {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   const router = useRouter();
   const [entry, setEntry] = useState<DailyJournalEntry>({
     date: todayYYYYMMDD(),
@@ -84,10 +88,18 @@ export default function DailyJournalScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+    <View style={{ flex: 1 }}>
+      <ThemedBackground />
+      <SafeAreaView
+        style={[
+          styles.container,
+          theme.background.mode === "gradient" ? { backgroundColor: "transparent" } : { backgroundColor: theme.colors.surface },
+        ]}
+        edges={["top", "bottom"]}
+      >
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} hitSlop={12}>
-          <Ionicons name="chevron-back" size={24} color={colors.onSurface} />
+          <Ionicons name="chevron-back" size={24} color={theme.colors.onSurface} />
         </Pressable>
         <Text style={styles.title}>Journal du jour</Text>
         <Pressable onPress={save} hitSlop={12} testID="save-daily-journal">
@@ -104,7 +116,7 @@ export default function DailyJournalScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.dateCard}>
-            <Ionicons name="calendar" size={14} color={colors.brand} />
+            <Ionicons name="calendar" size={14} color={theme.colors.brand} />
             <Text style={styles.dateText}>
               {formatDate(entry.date)}
             </Text>
@@ -138,7 +150,7 @@ export default function DailyJournalScreen() {
                   <Text
                     style={[
                       styles.feelingLabel,
-                      active && { color: colors.brand },
+                      active && { color: theme.colors.brand },
                     ]}
                     numberOfLines={1}
                   >
@@ -189,7 +201,7 @@ export default function DailyJournalScreen() {
             value={entry.notes || ""}
             onChangeText={(t) => setEntry({ ...entry, notes: t.trim() ? t : null })}
             placeholder="Comment tu te sens aujourd'hui ?"
-            placeholderTextColor={colors.onSurfaceTertiary}
+            placeholderTextColor={theme.colors.onSurfaceTertiary}
             multiline
           />
 
@@ -230,7 +242,8 @@ export default function DailyJournalScreen() {
           <View style={{ height: 40 }} />
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
@@ -245,10 +258,12 @@ function Rating({
   value: number | null;
   onChange: (v: number | null) => void;
 }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   return (
     <View style={styles.ratingRow}>
       <View style={styles.ratingHead}>
-        <Ionicons name={icon} size={14} color={colors.brand} />
+        <Ionicons name={icon} size={14} color={theme.colors.brand} />
         <Text style={styles.ratingLabel}>{label}</Text>
         <Text style={styles.ratingValue}>
           {value != null ? `${value}/10` : "—"}
@@ -268,6 +283,8 @@ function Rating({
 }
 
 function MiniBadge({ label, value }: { label: string; value: number }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   return (
     <View style={styles.miniBadge}>
       <Text style={styles.miniBadgeText}>
@@ -286,7 +303,10 @@ function formatDate(iso: string) {
   });
 }
 
-const styles = StyleSheet.create({
+function buildStyles(theme: Theme) {
+  const { colors, radius } = theme;
+  const isGlass = theme.card.mode === "glass";
+  return StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.surface },
   header: {
     flexDirection: "row",
@@ -362,7 +382,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  dotActive: { backgroundColor: colors.brand, borderColor: colors.brand },
+  dotActive: isGlass
+    ? { backgroundColor: withAlpha(colors.brand, 20), borderColor: withAlpha(colors.brand, 50) }
+    : { backgroundColor: colors.brand, borderColor: colors.brand },
   feelingRow: {
     flexDirection: "row",
     gap: 6,
@@ -431,4 +453,5 @@ const styles = StyleSheet.create({
   },
   pastNotes: { color: colors.onSurfaceSecondary, fontSize: 12, lineHeight: 16 },
   pastPain: { color: colors.onSurfaceSecondary, fontSize: 11, lineHeight: 15 },
-});
+  });
+}

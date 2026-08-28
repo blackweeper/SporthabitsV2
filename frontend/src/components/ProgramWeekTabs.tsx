@@ -1,6 +1,7 @@
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, spacing } from "@/src/theme";
+import { spacing } from "@/src/theme";
+import { useTheme } from "@/src/themes";
 import PressableScale from "@/src/components/ui/PressableScale";
 
 /**
@@ -24,6 +25,7 @@ export default function ProgramWeekTabs({
   color: string;
   completedWeeks?: Set<number>;
 }) {
+  const { theme } = useTheme();
   if (weeks.length <= 1) return null;
   return (
     <ScrollView
@@ -41,14 +43,20 @@ export default function ProgramWeekTabs({
             style={[styles.tab, active && { borderBottomColor: color }]}
             onPress={() => onSelectWeek(w)}
           >
-            <Text style={[styles.tabText, active && styles.tabTextActive]}>
+            <Text
+              style={[
+                styles.tabText,
+                { color: active ? theme.colors.onSurface : theme.colors.onSurfaceTertiary },
+                active && styles.tabTextActive,
+              ]}
+            >
               Semaine {w + 1}
             </Text>
             {done && (
               <Ionicons
                 name="checkmark-circle"
                 size={12}
-                color={colors.success}
+                color={theme.colors.success}
                 style={{ marginLeft: 4 }}
               />
             )}
@@ -69,12 +77,10 @@ const styles = StyleSheet.create({
     borderBottomColor: "transparent",
   },
   tabText: {
-    color: colors.onSurfaceTertiary,
     fontSize: 13,
     fontWeight: "700",
   },
   tabTextActive: {
-    color: colors.onSurface,
     fontWeight: "800",
   },
 });

@@ -9,7 +9,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing } from "@/src/theme";
+import { spacing } from "@/src/theme";
+import { useTheme } from "@/src/themes";
+import ThemedBackground from "@/src/themes/ThemedBackground";
 import {
   getGoals,
   getHabitLogs,
@@ -30,6 +32,7 @@ import PressableScale from "@/src/components/ui/PressableScale";
 import CockpitCard from "@/src/components/CockpitCard";
 
 export default function ProfileTab() {
+  const { theme } = useTheme();
   const router = useRouter();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [librarySubtitle, setLibrarySubtitle] = useState("Chargement…");
@@ -78,9 +81,17 @@ export default function ProfileTab() {
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <View style={{ flex: 1 }}>
+      <ThemedBackground />
+      <SafeAreaView
+        style={[
+          styles.container,
+          theme.background.mode === "gradient" ? { backgroundColor: "transparent" } : { backgroundColor: theme.colors.surface },
+        ]}
+        edges={["top"]}
+      >
       <View style={styles.header}>
-        <Text style={styles.title}>Profil</Text>
+        <Text style={[styles.title, { color: theme.colors.onSurface }]}>Profil</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll}>
@@ -91,21 +102,21 @@ export default function ProfileTab() {
           onPress={() => router.push("/profile")}
         >
           <Card style={styles.headerRowLayout}>
-            <View style={styles.avatarCircle}>
+            <View style={[styles.avatarCircle, { backgroundColor: theme.colors.surface, borderColor: theme.colors.brand }]}>
               {profile?.photoBase64 ? (
                 <Image
                   source={{ uri: `data:image/jpeg;base64,${profile.photoBase64}` }}
                   style={styles.avatarImg}
                 />
               ) : (
-                <Ionicons name="person" size={30} color={colors.onSurfaceTertiary} />
+                <Ionicons name="person" size={30} color={theme.colors.onSurfaceTertiary} />
               )}
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.userName}>
+              <Text style={[styles.userName, { color: theme.colors.onSurface }]}>
                 {profile?.name || "Ajouter ton prénom"}
               </Text>
-              <Text style={styles.userSub}>
+              <Text style={[styles.userSub, { color: theme.colors.onSurfaceTertiary }]}>
                 {[
                   profile?.sex ? capitalize(profile.sex) : null,
                   profile?.age ? `${profile.age} ans` : null,
@@ -116,7 +127,7 @@ export default function ProfileTab() {
                   .join(" · ") || "Renseigne tes infos personnelles"}
               </Text>
             </View>
-            <Ionicons name="chevron-forward" size={20} color={colors.onSurfaceTertiary} />
+            <Ionicons name="chevron-forward" size={20} color={theme.colors.onSurfaceTertiary} />
           </Card>
         </PressableScale>
 
@@ -140,25 +151,27 @@ export default function ProfileTab() {
 
         <PressableScale
           testID="profile-goals-pill"
-          style={[styles.statPill, styles.goalsPillSpacing]}
+          style={styles.goalsPillSpacing}
           onPress={() => router.push("/goals")}
         >
-          <View style={[styles.statPillBadge, { backgroundColor: colors.brand }]}>
-            <Ionicons name="flag" size={16} color="#fff" />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.statPillLabel}>OBJECTIFS</Text>
-            <Text style={styles.statPillValue}>
-              {activeGoalsCount > 0
-                ? `${activeGoalsCount} en cours`
-                : "Aucun objectif"}
-            </Text>
-          </View>
-          <Ionicons name="chevron-forward" size={18} color={colors.onSurfaceTertiary} />
+          <Card style={styles.statPill} padding={spacing.sm}>
+            <View style={[styles.statPillBadge, { backgroundColor: theme.colors.brand }]}>
+              <Ionicons name="flag" size={16} color="#fff" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.statPillLabel, { color: theme.colors.onSurfaceTertiary }]}>OBJECTIFS</Text>
+              <Text style={[styles.statPillValue, { color: theme.colors.onSurface }]}>
+                {activeGoalsCount > 0
+                  ? `${activeGoalsCount} en cours`
+                  : "Aucun objectif"}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={theme.colors.onSurfaceTertiary} />
+          </Card>
         </PressableScale>
 
         {/* Sections list */}
-        <Text style={styles.sectionLabel}>SUIVI CORPOREL</Text>
+        <Text style={[styles.sectionLabel, { color: theme.colors.onSurfaceTertiary }]}>SUIVI CORPOREL</Text>
         <ListRow
           icon="resize"
           iconBg="#4FC3F7"
@@ -176,7 +189,7 @@ export default function ProfileTab() {
           testID="row-photos"
         />
 
-        <Text style={styles.sectionLabel}>PROGRESSION</Text>
+        <Text style={[styles.sectionLabel, { color: theme.colors.onSurfaceTertiary }]}>PROGRESSION</Text>
         <ListRow
           icon="trophy"
           iconBg="#FFC107"
@@ -187,7 +200,7 @@ export default function ProfileTab() {
         />
         <ListRow
           icon="flag"
-          iconBg={colors.progressSecondary}
+          iconBg={theme.colors.progressSecondary}
           title="Objectifs"
           subtitle="Cibles personnelles"
           onPress={() => router.push("/goals")}
@@ -195,24 +208,24 @@ export default function ProfileTab() {
         />
         <ListRow
           icon="stats-chart"
-          iconBg={colors.success}
+          iconBg={theme.colors.success}
           title="Statistiques avancées"
           subtitle="Volume, streak, calendrier…"
           onPress={() => router.push("/stats")}
           testID="row-stats"
         />
 
-        <Text style={styles.sectionLabel}>ACTIVITÉ</Text>
+        <Text style={[styles.sectionLabel, { color: theme.colors.onSurfaceTertiary }]}>ACTIVITÉ</Text>
         <ListRow
           icon="time"
-          iconBg={colors.brand}
+          iconBg={theme.colors.brand}
           title="Historique des séances"
           subtitle="Toutes tes séances passées"
           onPress={() => router.push("/history")}
           testID="row-history"
         />
 
-        <Text style={styles.sectionLabel}>PARAMÈTRES</Text>
+        <Text style={[styles.sectionLabel, { color: theme.colors.onSurfaceTertiary }]}>PARAMÈTRES</Text>
         <ListRow
           icon="color-palette"
           iconBg="#7E57C2"
@@ -248,7 +261,8 @@ export default function ProfileTab() {
 
         <View style={{ height: 40 }} />
       </ScrollView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
@@ -267,6 +281,7 @@ function ListRow({
   onPress: () => void;
   testID?: string;
 }) {
+  const { theme } = useTheme();
   return (
     <PressableScale testID={testID} onPress={onPress}>
       <Card style={styles.rowLayout}>
@@ -274,10 +289,10 @@ function ListRow({
           <Ionicons name={icon} size={18} color="#fff" />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={styles.rowTitle}>{title}</Text>
-          <Text style={styles.rowSub}>{subtitle}</Text>
+          <Text style={[styles.rowTitle, { color: theme.colors.onSurface }]}>{title}</Text>
+          <Text style={[styles.rowSub, { color: theme.colors.onSurfaceTertiary }]}>{subtitle}</Text>
         </View>
-        <Ionicons name="chevron-forward" size={18} color={colors.onSurfaceTertiary} />
+        <Ionicons name="chevron-forward" size={18} color={theme.colors.onSurfaceTertiary} />
       </Card>
     </PressableScale>
   );
@@ -288,13 +303,13 @@ function capitalize(s: string): string {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.surface },
+  container: { flex: 1 },
   header: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
     paddingBottom: spacing.sm,
   },
-  title: { color: colors.onSurface, fontSize: 26, fontWeight: "800" },
+  title: { fontSize: 26, fontWeight: "800" },
   scroll: { padding: spacing.lg, gap: 6, paddingBottom: 60 },
   // Forme de carte (fond/bordure/radius/padding) déléguée au composant Card
   // partagé — ces styles ne portent plus que la mise en page interne.
@@ -304,21 +319,17 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: colors.surface,
     borderWidth: 2,
-    borderColor: colors.brand,
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
   },
   avatarImg: { width: 64, height: 64, borderRadius: 32 },
   userName: {
-    color: colors.onSurface,
     fontSize: 18,
     fontWeight: "800",
   },
   userSub: {
-    color: colors.onSurfaceTertiary,
     fontSize: 12,
     marginTop: 4,
   },
@@ -328,35 +339,26 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
-    backgroundColor: colors.surfaceSecondary,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.sm,
   },
   statPillBadge: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: colors.progress,
     alignItems: "center",
     justifyContent: "center",
   },
   statPillBadgeNum: { color: "#fff", fontWeight: "800", fontSize: 15 },
   statPillLabel: {
-    color: colors.onSurfaceTertiary,
     fontSize: 9,
     fontWeight: "800",
     letterSpacing: 0.6,
   },
   statPillValue: {
-    color: colors.onSurface,
     fontSize: 12,
     fontWeight: "800",
     marginTop: 1,
   },
   sectionLabel: {
-    color: colors.onSurfaceTertiary,
     fontSize: 10,
     letterSpacing: 1.5,
     fontWeight: "800",
@@ -371,9 +373,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  rowTitle: { color: colors.onSurface, fontWeight: "800", fontSize: 14 },
+  rowTitle: { fontWeight: "800", fontSize: 14 },
   rowSub: {
-    color: colors.onSurfaceTertiary,
     fontSize: 12,
     marginTop: 2,
   },

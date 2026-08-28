@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -14,7 +14,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing } from "@/src/theme";
+import { spacing, withAlpha } from "@/src/theme";
+import { Theme, useTheme } from "@/src/themes";
+import ThemedBackground from "@/src/themes/ThemedBackground";
 import { useConfirmDialog } from "@/src/hooks/use-confirm-dialog";
 import {
   deleteReminder,
@@ -47,6 +49,8 @@ const DAYS = [
 ];
 
 export default function ReminderEditor() {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const isNew = id === "new";
@@ -76,9 +80,12 @@ export default function ReminderEditor() {
 
   if (!r) {
     return (
-      <SafeAreaView style={styles.container}>
-        <Text style={styles.loading}>Chargement…</Text>
-      </SafeAreaView>
+      <View style={{ flex: 1 }}>
+        <ThemedBackground />
+        <SafeAreaView style={[styles.container, theme.background.mode === "gradient" && { backgroundColor: "transparent" }]}>
+          <Text style={styles.loading}>Chargement…</Text>
+        </SafeAreaView>
+      </View>
     );
   }
 
@@ -118,10 +125,18 @@ export default function ReminderEditor() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+    <View style={{ flex: 1 }}>
+      <ThemedBackground />
+      <SafeAreaView
+        style={[
+          styles.container,
+          theme.background.mode === "gradient" ? { backgroundColor: "transparent" } : { backgroundColor: theme.colors.surface },
+        ]}
+        edges={["top", "bottom"]}
+      >
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} hitSlop={12}>
-          <Ionicons name="chevron-back" size={24} color={colors.onSurface} />
+          <Ionicons name="chevron-back" size={24} color={theme.colors.onSurface} />
         </Pressable>
         <Text style={styles.title}>{isNew ? "Nouveau rappel" : "Rappel"}</Text>
         <Pressable onPress={save} hitSlop={12} testID="save-reminder">
@@ -135,7 +150,7 @@ export default function ReminderEditor() {
       >
         <ScrollView contentContainerStyle={styles.scroll}>
           <View style={styles.hintCard}>
-            <Ionicons name="information-circle" size={14} color={colors.brand} />
+            <Ionicons name="information-circle" size={14} color={theme.colors.brand} />
             <Text style={styles.hintText}>
               Les rappels apparaîtront comme des notifications push après publication de l&apos;app avec un build natif.
             </Text>
@@ -160,7 +175,7 @@ export default function ReminderEditor() {
                   <Ionicons
                     name={REMINDER_KIND_ICON[k]}
                     size={14}
-                    color={active ? "#fff" : colors.brand}
+                    color={active ? "#fff" : theme.colors.brand}
                   />
                   <Text style={[styles.kindLabel, active && { color: "#fff" }]}>
                     {REMINDER_KIND_LABEL[k]}
@@ -177,7 +192,7 @@ export default function ReminderEditor() {
             value={r.title}
             onChangeText={(t) => set("title", t)}
             placeholder={REMINDER_KIND_LABEL[r.kind]}
-            placeholderTextColor={colors.onSurfaceTertiary}
+            placeholderTextColor={theme.colors.onSurfaceTertiary}
           />
 
           <Text style={styles.miniLabel}>Heure (HH:MM)</Text>
@@ -187,7 +202,7 @@ export default function ReminderEditor() {
             value={r.time}
             onChangeText={(t) => set("time", t.replace(/[^0-9:]/g, "").slice(0, 5))}
             placeholder="18:00"
-            placeholderTextColor={colors.onSurfaceTertiary}
+            placeholderTextColor={theme.colors.onSurfaceTertiary}
             keyboardType="numbers-and-punctuation"
           />
 
@@ -221,14 +236,14 @@ export default function ReminderEditor() {
               testID="reminder-enabled"
               value={r.enabled}
               onValueChange={(v) => set("enabled", v)}
-              trackColor={{ true: colors.brand, false: colors.surfaceTertiary }}
+              trackColor={{ true: theme.colors.brand, false: theme.colors.surfaceTertiary }}
               thumbColor="#fff"
             />
           </View>
 
           {!isNew && (
             <Pressable style={styles.deleteBtn} onPress={remove}>
-              <Ionicons name="trash" size={16} color={colors.error} />
+              <Ionicons name="trash" size={16} color={theme.colors.error} />
               <Text style={styles.deleteText}>Supprimer</Text>
             </Pressable>
           )}
@@ -236,11 +251,15 @@ export default function ReminderEditor() {
         </ScrollView>
       </KeyboardAvoidingView>
       {ConfirmModal}
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
-const styles = StyleSheet.create({
+function buildStyles(theme: Theme) {
+  const { colors, radius } = theme;
+  const isGlass = theme.card.mode === "glass";
+  return StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.surface },
   loading: { color: colors.onSurfaceTertiary, textAlign: "center", marginTop: 40 },
   header: {
@@ -300,7 +319,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  kindChipActive: { backgroundColor: colors.brand, borderColor: colors.brand },
+  kindChipActive: isGlass
+    ? { backgroundColor: withAlpha(colors.brand, 20), borderColor: withAlpha(colors.brand, 50) }
+    : { backgroundColor: colors.brand, borderColor: colors.brand },
   kindLabel: {
     color: colors.onSurfaceSecondary,
     fontSize: 12,
@@ -317,7 +338,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  dayBtnActive: { backgroundColor: colors.brand, borderColor: colors.brand },
+  dayBtnActive: isGlass
+    ? { backgroundColor: withAlpha(colors.brand, 20), borderColor: withAlpha(colors.brand, 50) }
+    : { backgroundColor: colors.brand, borderColor: colors.brand },
   dayText: { color: colors.onSurfaceSecondary, fontWeight: "800", fontSize: 12 },
   switchRow: {
     flexDirection: "row",
@@ -341,4 +364,5 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
   },
   deleteText: { color: colors.error, fontWeight: "700" },
-});
+  });
+}

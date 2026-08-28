@@ -11,7 +11,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { BarChart } from "react-native-gifted-charts";
-import { colors, radius, spacing } from "@/src/theme";
+import { spacing, withAlpha } from "@/src/theme";
+import { Theme, useTheme } from "@/src/themes";
+import ThemedBackground from "@/src/themes/ThemedBackground";
 import {
   CARDIO_ACTIVITY_EMOJI,
   CARDIO_ACTIVITY_LABEL,
@@ -38,6 +40,8 @@ function formatDate(iso: string) {
 }
 
 export default function HistoryScreen() {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   const router = useRouter();
   const [sessions, setSessions] = useState<WorkoutSession[]>([]);
   const [tab, setTab] = useState<"history" | "stats">("history");
@@ -95,7 +99,15 @@ export default function HistoryScreen() {
   const chartWidth = Dimensions.get("window").width - spacing.lg * 2 - 32;
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <View style={{ flex: 1 }}>
+      <ThemedBackground />
+      <SafeAreaView
+        style={[
+          styles.container,
+          theme.background.mode === "gradient" ? { backgroundColor: "transparent" } : { backgroundColor: theme.colors.surface },
+        ]}
+        edges={["top"]}
+      >
       <View style={styles.header}>
         <Text style={styles.title}>Historique</Text>
       </View>
@@ -136,7 +148,7 @@ export default function HistoryScreen() {
               <Ionicons
                 name="time-outline"
                 size={40}
-                color={colors.onSurfaceTertiary}
+                color={theme.colors.onSurfaceTertiary}
               />
               <Text style={styles.emptyText}>
                 Aucune séance enregistrée.{"\n"}Termine ta première séance pour
@@ -175,19 +187,19 @@ export default function HistoryScreen() {
                 ) : null}
                 <View style={styles.sessionStats}>
                   <View style={styles.sessionStat}>
-                    <Ionicons name="time" size={14} color={colors.brand} />
+                    <Ionicons name="time" size={14} color={theme.colors.brand} />
                     <Text style={styles.sessionStatVal}>
                       {formatDuration(s.durationSeconds)}
                     </Text>
                   </View>
                   <View style={styles.sessionStat}>
-                    <Ionicons name="flame" size={14} color={colors.brand} />
+                    <Ionicons name="flame" size={14} color={theme.colors.brand} />
                     <Text style={styles.sessionStatVal}>
                       {s.caloriesBurned ?? 0} kcal
                     </Text>
                   </View>
                   <View style={styles.sessionStat}>
-                    <Ionicons name="barbell" size={14} color={colors.brand} />
+                    <Ionicons name="barbell" size={14} color={theme.colors.brand} />
                     <Text style={styles.sessionStatVal}>
                       {s.exercises.length} ex.
                     </Text>
@@ -221,16 +233,16 @@ export default function HistoryScreen() {
                 data={weekData.map((d) => ({
                   value: d.value,
                   label: d.label,
-                  frontColor: colors.brand,
+                  frontColor: theme.colors.brand,
                 }))}
                 barWidth={22}
                 spacing={14}
                 barBorderRadius={4}
                 yAxisThickness={0}
                 xAxisThickness={0}
-                yAxisTextStyle={{ color: colors.onSurfaceTertiary, fontSize: 10 }}
+                yAxisTextStyle={{ color: theme.colors.onSurfaceTertiary, fontSize: 10 }}
                 xAxisLabelTextStyle={{
-                  color: colors.onSurfaceTertiary,
+                  color: theme.colors.onSurfaceTertiary,
                   fontSize: 10,
                 }}
                 noOfSections={4}
@@ -244,11 +256,14 @@ export default function HistoryScreen() {
         )}
         <View style={{ height: spacing.xl2 }} />
       </ScrollView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
 function StatBox({ label, value }: { label: string; value: string }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   return (
     <View style={styles.statBox}>
       <Text style={styles.statBoxValue}>{value}</Text>
@@ -257,7 +272,10 @@ function StatBox({ label, value }: { label: string; value: string }) {
   );
 }
 
-const styles = StyleSheet.create({
+function buildStyles(theme: Theme) {
+  const { colors, radius } = theme;
+  const isGlass = theme.card.mode === "glass";
+  return StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.surface },
   header: {
     paddingHorizontal: spacing.lg,
@@ -281,7 +299,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: radius.sm,
   },
-  segBtnActive: { backgroundColor: colors.brand },
+  segBtnActive: isGlass ? { backgroundColor: withAlpha(colors.brand, 22) } : { backgroundColor: colors.brand },
   segText: {
     color: colors.onSurfaceTertiary,
     fontWeight: "700",
@@ -393,4 +411,5 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
     letterSpacing: 0.5,
   },
-});
+  });
+}

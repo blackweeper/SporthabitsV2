@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { View, Text, StyleSheet, ScrollView, Pressable, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing, withAlpha } from "@/src/theme";
+import { spacing, withAlpha } from "@/src/theme";
+import { Theme, useTheme } from "@/src/themes";
+import ThemedBackground from "@/src/themes/ThemedBackground";
 import PressableScale from "@/src/components/ui/PressableScale";
 import {
   TRAINING_GOALS,
@@ -61,6 +63,8 @@ function NumberStepper({
   suffix?: string;
   testID: string;
 }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   return (
     <View style={styles.stepperRow}>
       <Pressable
@@ -88,6 +92,8 @@ function NumberStepper({
 }
 
 export default function CoachNewScreen() {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   const router = useRouter();
   const [goal, setGoal] = useState<TrainingGoal>("hypertrophy");
   const [level, setLevel] = useState<ProgramLevel>("intermediaire");
@@ -207,10 +213,18 @@ export default function CoachNewScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+    <View style={{ flex: 1 }}>
+      <ThemedBackground />
+      <SafeAreaView
+        style={[
+          styles.container,
+          theme.background.mode === "gradient" ? { backgroundColor: "transparent" } : { backgroundColor: theme.colors.surface },
+        ]}
+        edges={["top", "bottom"]}
+      >
       <View style={styles.header}>
         <Pressable testID="coach-close" onPress={() => router.back()} hitSlop={12}>
-          <Ionicons name="close" size={26} color={colors.onSurface} />
+          <Ionicons name="close" size={26} color={theme.colors.onSurface} />
         </Pressable>
         <Text style={styles.headerTitle}>Coach IronFlow</Text>
         <View style={{ width: 26 }} />
@@ -353,11 +367,15 @@ export default function CoachNewScreen() {
         </Pressable>
         <View style={{ height: 40 }} />
       </ScrollView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
-const styles = StyleSheet.create({
+function buildStyles(theme: Theme) {
+  const { colors, radius } = theme;
+  const isGlass = theme.card.mode === "glass";
+  return StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.surface },
   header: {
     flexDirection: "row",
@@ -403,7 +421,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  chipActive: { backgroundColor: colors.brand, borderColor: colors.brand },
+  chipActive: isGlass
+    ? { backgroundColor: withAlpha(colors.brand, 20), borderColor: withAlpha(colors.brand, 50) }
+    : { backgroundColor: colors.brand, borderColor: colors.brand },
   chipText: { color: colors.onSurfaceSecondary, fontSize: 12, fontWeight: "700" },
   chipTextActive: { color: "#fff" },
   fieldRow: {
@@ -437,10 +457,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     gap: spacing.sm,
-    backgroundColor: colors.brand,
+    backgroundColor: isGlass ? withAlpha(colors.brand, 20) : colors.brand,
     padding: 18,
     borderRadius: radius.md,
     marginTop: spacing.xl,
   },
   generateBtnText: { color: "#fff", fontWeight: "800", letterSpacing: 1 },
-});
+  });
+}

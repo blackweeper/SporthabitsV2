@@ -35,13 +35,13 @@ export default function ProgramActionCard({
   return (
     <GlassCard testID={testID} style={[styles.card, style]}>
       <PressableScale style={styles.inner} onPress={onPress}>
-        <View style={styles.topRow}>
-          <View style={[styles.iconChip, { backgroundColor: withAlpha(iconColor, 22) }]}>
-            <Ionicons name={icon} size={18} color={iconColor} />
+        <View style={[styles.iconBanner, { backgroundColor: withAlpha(iconColor, 22) }]}>
+          <Ionicons name={icon} size={30} color={iconColor} />
+          <View style={[styles.chevronBadge, { backgroundColor: withAlpha("#000000", 30) }]}>
+            <Ionicons name="chevron-forward" size={12} color={theme.colors.onSurface} />
           </View>
-          <Ionicons name="chevron-forward" size={14} color={theme.colors.onSurfaceTertiary} />
         </View>
-        <View>
+        <View style={styles.textBlock}>
           <Text style={[styles.title, { color: theme.colors.onSurface }]} numberOfLines={1}>
             {title}
           </Text>
@@ -61,15 +61,27 @@ const styles = StyleSheet.create({
   // dimensionne la carte — `inner` doit alors occuper `flex:1` pour remplir
   // ce cadre plutôt que de se limiter à une `minHeight` fixe.
   card: { minWidth: 140 },
-  inner: { flex: 1, padding: spacing.sm, gap: 4, justifyContent: "space-between" },
-  topRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  iconChip: {
-    width: 32,
-    height: 32,
+  inner: { flex: 1, padding: spacing.xs, gap: 6 },
+  // Grand carré arrondi mettant l'icône en avant façon "image vedette" —
+  // occupe la majorité de la carte (`flex:1`), au lieu d'un petit badge
+  // circulaire perdu dans l'espace de la carte glass.
+  iconBanner: {
+    flex: 1,
     borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
   },
+  chevronBadge: {
+    position: "absolute",
+    top: 6,
+    right: 6,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  textBlock: { paddingHorizontal: 2 },
   title: { fontSize: 13, fontWeight: "800" },
   subtitle: { fontSize: 10.5, fontWeight: "600", marginTop: 1 },
 });

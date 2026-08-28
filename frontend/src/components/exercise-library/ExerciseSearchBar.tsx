@@ -1,6 +1,7 @@
 import { View, TextInput, Pressable, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing } from "@/src/theme";
+import { spacing } from "@/src/theme";
+import { useTheme } from "@/src/themes";
 
 export default function ExerciseSearchBar({
   value,
@@ -15,21 +16,31 @@ export default function ExerciseSearchBar({
   autoFocus?: boolean;
   testID?: string;
 }) {
+  const { theme } = useTheme();
   return (
-    <View style={styles.row}>
-      <Ionicons name="search" size={16} color={colors.onSurfaceTertiary} />
+    <View
+      style={[
+        styles.row,
+        {
+          backgroundColor: theme.colors.surfaceSecondary,
+          borderRadius: theme.radius.md,
+          borderColor: theme.colors.border,
+        },
+      ]}
+    >
+      <Ionicons name="search" size={16} color={theme.colors.onSurfaceTertiary} />
       <TextInput
         testID={testID}
-        style={styles.input}
+        style={[styles.input, { color: theme.colors.onSurface }]}
         value={value}
         onChangeText={onChange}
         placeholder={placeholder}
-        placeholderTextColor={colors.onSurfaceTertiary}
+        placeholderTextColor={theme.colors.onSurfaceTertiary}
         autoFocus={autoFocus}
       />
       {value.length > 0 && (
         <Pressable onPress={() => onChange("")} hitSlop={8}>
-          <Ionicons name="close-circle" size={16} color={colors.onSurfaceTertiary} />
+          <Ionicons name="close-circle" size={16} color={theme.colors.onSurfaceTertiary} />
         </Pressable>
       )}
     </View>
@@ -41,16 +52,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
-    backgroundColor: colors.surfaceSecondary,
-    borderRadius: radius.md,
     borderWidth: 1,
-    borderColor: colors.border,
     paddingHorizontal: spacing.md,
   },
   input: {
     flex: 1,
     paddingVertical: 12,
-    color: colors.onSurface,
     fontSize: 14,
   },
 });

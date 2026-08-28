@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -9,7 +9,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing, withAlpha } from "@/src/theme";
+import { spacing, withAlpha } from "@/src/theme";
+import { Theme, useTheme } from "@/src/themes";
+import ThemedBackground from "@/src/themes/ThemedBackground";
 import { programIconFor } from "@/src/utils/program-goal-icon";
 import { useConfirmDialog } from "@/src/hooks/use-confirm-dialog";
 import {
@@ -49,6 +51,8 @@ import { nonRestDaysInRange } from "@/src/utils/program-week-grouping";
 import { formatExerciseDetail } from "@/src/utils/exercise-set-format";
 
 export default function ProgramDetailScreen() {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const [program, setProgram] = useState<Program | null>(null);
@@ -94,16 +98,22 @@ export default function ProgramDetailScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
-        <Text style={styles.loading}>Chargement…</Text>
-      </SafeAreaView>
+      <View style={{ flex: 1 }}>
+        <ThemedBackground />
+        <SafeAreaView style={[styles.container, theme.background.mode === "gradient" && { backgroundColor: "transparent" }]}>
+          <Text style={styles.loading}>Chargement…</Text>
+        </SafeAreaView>
+      </View>
     );
   }
   if (!program) {
     return (
-      <SafeAreaView style={styles.container}>
-        <Text style={styles.loading}>Programme introuvable</Text>
-      </SafeAreaView>
+      <View style={{ flex: 1 }}>
+        <ThemedBackground />
+        <SafeAreaView style={[styles.container, theme.background.mode === "gradient" && { backgroundColor: "transparent" }]}>
+          <Text style={styles.loading}>Programme introuvable</Text>
+        </SafeAreaView>
+      </View>
     );
   }
 
@@ -198,14 +208,22 @@ export default function ProgramDetailScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+    <View style={{ flex: 1 }}>
+      <ThemedBackground />
+      <SafeAreaView
+        style={[
+          styles.container,
+          theme.background.mode === "gradient" ? { backgroundColor: "transparent" } : { backgroundColor: theme.colors.surface },
+        ]}
+        edges={["top", "bottom"]}
+      >
       <View style={styles.header}>
         <Pressable
           testID="back-program"
           onPress={() => router.back()}
           hitSlop={12}
         >
-          <Ionicons name="chevron-back" size={24} color={colors.onSurface} />
+          <Ionicons name="chevron-back" size={24} color={theme.colors.onSurface} />
         </Pressable>
         <Text style={styles.headerTitle} numberOfLines={1}>
           {program.title}
@@ -215,7 +233,7 @@ export default function ProgramDetailScreen() {
           onPress={() => router.push(`/custom-program/${program.id}`)}
           hitSlop={12}
         >
-          <Ionicons name="pencil" size={20} color={colors.brand} />
+          <Ionicons name="pencil" size={20} color={theme.colors.brand} />
         </Pressable>
       </View>
 
@@ -246,7 +264,7 @@ export default function ProgramDetailScreen() {
 
         {isActive ? (
           <View style={styles.activeBanner}>
-            <Ionicons name="checkmark-circle" size={20} color={colors.success} />
+            <Ionicons name="checkmark-circle" size={20} color={theme.colors.success} />
             <View style={{ flex: 1 }}>
               <Text style={styles.activeTitle}>Programme en cours</Text>
               <Text style={styles.activeSub}>
@@ -263,7 +281,7 @@ export default function ProgramDetailScreen() {
               </View>
             </View>
             <Pressable testID="stop-program" onPress={stop} hitSlop={10}>
-              <Ionicons name="stop-circle" size={22} color={colors.error} />
+              <Ionicons name="stop-circle" size={22} color={theme.colors.error} />
             </Pressable>
           </View>
         ) : (
@@ -324,13 +342,14 @@ export default function ProgramDetailScreen() {
         )}
 
         <Pressable style={styles.delBtn} onPress={removeCustom}>
-          <Ionicons name="trash" size={16} color={colors.error} />
+          <Ionicons name="trash" size={16} color={theme.colors.error} />
           <Text style={styles.delBtnText}>Supprimer ce programme</Text>
         </Pressable>
         <View style={{ height: 40 }} />
       </ScrollView>
       {ConfirmModal}
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
@@ -353,6 +372,8 @@ function ProgramWeekView({
   onChangeWeekOffset: (o: number) => void;
   onLaunch: (di: number, si: number, s: ProgramSession) => void;
 }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   const router = useRouter();
   const totalWeeks = Math.ceil(program.durationDays / 7);
   const startIdx = weekOffset * 7 + 1; // 1-based day index
@@ -458,6 +479,8 @@ function ProgramDayCard({
   onLaunch: (di: number, si: number, s: ProgramSession) => void;
   plannedDate: Date | null;
 }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   const doneOf = (si: number) =>
     active?.completedSessions.some(
       (s) => s.dayIndex === dayIndex && s.sessionIndex === si,
@@ -470,8 +493,8 @@ function ProgramDayCard({
         testID={`day-${dayIndex}`}
       >
         <View style={styles.dayHead}>
-          <View style={[styles.dayIdx, { backgroundColor: colors.surfaceTertiary }]}>
-            <Text style={{ color: colors.onSurfaceTertiary, fontWeight: "800" }}>
+          <View style={[styles.dayIdx, { backgroundColor: theme.colors.surfaceTertiary }]}>
+            <Text style={{ color: theme.colors.onSurfaceTertiary, fontWeight: "800" }}>
               {dayIndex}
             </Text>
           </View>
@@ -483,7 +506,7 @@ function ProgramDayCard({
               </Text>
             )}
           </View>
-          <Ionicons name="bed" size={18} color={colors.onSurfaceTertiary} />
+          <Ionicons name="bed" size={18} color={theme.colors.onSurfaceTertiary} />
         </View>
       </View>
     );
@@ -503,7 +526,7 @@ function ProgramDayCard({
         <View
           style={[
             styles.dayIdx,
-            allDone && { backgroundColor: colors.success },
+            allDone && { backgroundColor: theme.colors.success },
             isToday && !allDone && { backgroundColor: color },
           ]}
         >
@@ -512,7 +535,7 @@ function ProgramDayCard({
           ) : (
             <Text
               style={{
-                color: isToday ? "#fff" : colors.onSurface,
+                color: isToday ? "#fff" : theme.colors.onSurface,
                 fontWeight: "800",
                 fontSize: 12,
               }}
@@ -563,7 +586,7 @@ function ProgramDayCard({
                   <Ionicons
                     name="checkmark-circle"
                     size={22}
-                    color={colors.success}
+                    color={theme.colors.success}
                   />
                 )}
               </View>
@@ -572,7 +595,7 @@ function ProgramDayCard({
                   <Ionicons
                     name="barbell"
                     size={10}
-                    color={colors.onSurfaceTertiary}
+                    color={theme.colors.onSurfaceTertiary}
                   />
                   <Text style={styles.metaPillText}>
                     {groupedExercises.length} exercice{groupedExercises.length > 1 ? "s" : ""}
@@ -583,7 +606,7 @@ function ProgramDayCard({
                     <Ionicons
                       name="time"
                       size={10}
-                      color={colors.onSurfaceTertiary}
+                      color={theme.colors.onSurfaceTertiary}
                     />
                     <Text style={styles.metaPillText}>
                       {formatEstimatedDuration(est)}
@@ -663,7 +686,7 @@ function ProgramDayCard({
                       <Ionicons
                         name="checkmark-circle"
                         size={14}
-                        color={colors.success}
+                        color={theme.colors.success}
                       />
                     )}
                     <Ionicons name="play" size={12} color={color} />
@@ -677,7 +700,7 @@ function ProgramDayCard({
                     <Ionicons
                       name="barbell"
                       size={10}
-                      color={colors.onSurfaceTertiary}
+                      color={theme.colors.onSurfaceTertiary}
                     />
                     <Text style={styles.metaPillText}>
                       {s.exercises.length} ex.
@@ -688,7 +711,7 @@ function ProgramDayCard({
                       <Ionicons
                         name="time"
                         size={10}
-                        color={colors.onSurfaceTertiary}
+                        color={theme.colors.onSurfaceTertiary}
                       />
                       <Text style={styles.metaPillText}>
                         {formatEstimatedDuration(est)}
@@ -716,7 +739,9 @@ function ProgramDayCard({
   );
 }
 
-const styles = StyleSheet.create({
+function buildStyles(theme: Theme) {
+  const { colors, radius } = theme;
+  return StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.surface },
   loading: {
     color: colors.onSurfaceTertiary,
@@ -1022,4 +1047,5 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
   },
   delBtnText: { color: colors.error, fontWeight: "700", fontSize: 13 },
-});
+  });
+}

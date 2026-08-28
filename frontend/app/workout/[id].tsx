@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -14,7 +14,10 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { LinearGradient } from "expo-linear-gradient";
-import { colors, radius, spacing, withAlpha } from "@/src/theme";
+import { coloredShadow, spacing, withAlpha } from "@/src/theme";
+import { Theme, useTheme } from "@/src/themes";
+import ThemedBackground from "@/src/themes/ThemedBackground";
+import GlassCard from "@/src/components/ui/GlassCard";
 import TimerCircle from "@/src/components/TimerCircle";
 import ExerciseLiveOverlay from "@/src/components/ExerciseLiveOverlay";
 import ExerciseMediaFrame from "@/src/components/exercise-library/ExerciseMediaFrame";
@@ -56,6 +59,8 @@ type OverlayMode = null | "rest" | "work" | "amrap" | "for_time";
 const COUNTDOWN_TICK_SECONDS = 6;
 
 export default function WorkoutScreen() {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const [plan, setPlan] = useState<Plan | null>(null);
@@ -600,9 +605,12 @@ export default function WorkoutScreen() {
 
   if (!plan || !currentEx) {
     return (
-      <SafeAreaView style={styles.container}>
-        <Text style={{ color: "#fff", padding: 20 }}>Chargement…</Text>
-      </SafeAreaView>
+      <View style={{ flex: 1 }}>
+        <ThemedBackground />
+        <SafeAreaView style={[styles.container, theme.background.mode === "gradient" && { backgroundColor: "transparent" }]}>
+          <Text style={{ color: "#fff", padding: 20 }}>Chargement…</Text>
+        </SafeAreaView>
+      </View>
     );
   }
 
@@ -655,7 +663,7 @@ export default function WorkoutScreen() {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
           }}
         >
-          <Ionicons name="add" size={22} color="#fff" />
+          <Ionicons name="add" size={22} color={theme.card.mode === "glass" ? theme.colors.warning : "#fff"} />
         </Pressable>
       </View>
     ) : liveOverlayVariant === "for_time" ? (
@@ -665,7 +673,7 @@ export default function WorkoutScreen() {
           style={[styles.roundBtn, styles.roundBtnPrimary]}
           onPress={decrementForTimeRounds}
         >
-          <Ionicons name="remove" size={22} color="#fff" />
+          <Ionicons name="remove" size={22} color={theme.card.mode === "glass" ? theme.colors.warning : "#fff"} />
         </Pressable>
         <View style={styles.amrapRoundsBox}>
           <Text style={styles.amrapRoundsBig}>{forTimeRoundsRemaining}</Text>
@@ -675,7 +683,15 @@ export default function WorkoutScreen() {
     ) : null;
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+    <View style={{ flex: 1 }}>
+      <ThemedBackground />
+      <SafeAreaView
+        style={[
+          styles.container,
+          theme.background.mode === "gradient" ? { backgroundColor: "transparent" } : { backgroundColor: theme.colors.surface },
+        ]}
+        edges={["top", "bottom"]}
+      >
       <View style={styles.header}>
         <Pressable
           testID="close-workout"
@@ -693,7 +709,7 @@ export default function WorkoutScreen() {
           }}
           hitSlop={12}
         >
-          <Ionicons name="chevron-back" size={24} color={colors.onSurface} />
+          <Ionicons name="chevron-back" size={24} color={theme.colors.onSurface} />
         </Pressable>
         <View style={{ alignItems: "center", flex: 1 }}>
           <Text style={styles.planTitle} numberOfLines={1}>
@@ -734,13 +750,14 @@ export default function WorkoutScreen() {
                 <Ionicons
                   name="checkmark-circle"
                   size={12}
-                  color={active ? "#fff" : colors.success}
+                  color={active ? (theme.card.mode === "glass" ? theme.colors.brand : "#fff") : theme.colors.success}
                 />
               )}
               <Text
                 style={[
                   styles.exChipText,
-                  (active || done) && { color: "#fff" },
+                  active && { color: theme.card.mode === "glass" ? theme.colors.brand : "#fff" },
+                  done && !active && { color: theme.colors.success },
                 ]}
                 numberOfLines={1}
               >
@@ -784,7 +801,7 @@ export default function WorkoutScreen() {
               testID="workout-media-frame"
               source={mediaMode === "gif" ? (gifSource ?? illustrationSource) : illustrationSource}
               fallbackEmoji={iconEmojiForExercise(currentEx.name, planEx?.iconKey)}
-              fallbackTint={colors.brand}
+              fallbackTint={theme.colors.brand}
               minHeight={200}
               maxHeight={280}
             />
@@ -829,7 +846,7 @@ export default function WorkoutScreen() {
         <View style={styles.statChipsRow}>
           {statChips.map((c, i) => (
             <View key={i} style={styles.statChip}>
-              <Ionicons name={c.icon} size={14} color={colors.brand} />
+              <Ionicons name={c.icon} size={14} color={theme.colors.brand} />
               <View>
                 <Text style={styles.statChipValue}>{c.value}</Text>
                 <Text style={styles.statChipLabel}>{c.label}</Text>
@@ -862,7 +879,7 @@ export default function WorkoutScreen() {
                       value={s.reps}
                       onChangeText={(t) => updateSet(exIdx, i, { reps: t })}
                       placeholder="—"
-                      placeholderTextColor={colors.onSurfaceTertiary}
+                      placeholderTextColor={theme.colors.onSurfaceTertiary}
                     />
                   </View>
                   <View style={styles.setInputBlock}>
@@ -873,7 +890,7 @@ export default function WorkoutScreen() {
                       value={s.weight}
                       onChangeText={(t) => updateSet(exIdx, i, { weight: t })}
                       placeholder="—"
-                      placeholderTextColor={colors.onSurfaceTertiary}
+                      placeholderTextColor={theme.colors.onSurfaceTertiary}
                     />
                   </View>
                 </>
@@ -903,7 +920,7 @@ export default function WorkoutScreen() {
                       keyboardType="number-pad"
                       onChangeText={(t) => updateSet(exIdx, i, { reps: t })}
                       placeholder={currentEx.targetReps}
-                      placeholderTextColor={colors.onSurfaceTertiary}
+                      placeholderTextColor={theme.colors.onSurfaceTertiary}
                     />
                   </View>
                 </>
@@ -925,7 +942,7 @@ export default function WorkoutScreen() {
                       keyboardType="number-pad"
                       onChangeText={(t) => updateSet(exIdx, i, { reps: t })}
                       placeholder="0"
-                      placeholderTextColor={colors.onSurfaceTertiary}
+                      placeholderTextColor={theme.colors.onSurfaceTertiary}
                     />
                   </View>
                 </>
@@ -947,7 +964,7 @@ export default function WorkoutScreen() {
                       keyboardType="number-pad"
                       onChangeText={(t) => updateSet(exIdx, i, { reps: t })}
                       placeholder={String(currentEx.targetRounds ?? 0)}
-                      placeholderTextColor={colors.onSurfaceTertiary}
+                      placeholderTextColor={theme.colors.onSurfaceTertiary}
                     />
                   </View>
                 </>
@@ -959,12 +976,12 @@ export default function WorkoutScreen() {
               style={[styles.checkBtn, s.completed && styles.checkBtnDone]}
             >
               {currentEx.mode !== "reps" && !s.completed ? (
-                <Ionicons name="play" size={20} color={colors.brand} />
+                <Ionicons name="play" size={20} color={theme.colors.brand} />
               ) : (
                 <Ionicons
                   name="checkmark"
                   size={22}
-                  color={s.completed ? "#fff" : colors.onSurfaceTertiary}
+                  color={s.completed ? "#fff" : theme.colors.onSurfaceTertiary}
                 />
               )}
             </Pressable>
@@ -973,7 +990,7 @@ export default function WorkoutScreen() {
 
         {currentEx.notes && (
           <View style={styles.notesBox}>
-            <Ionicons name="information-circle" size={14} color={colors.brand} />
+            <Ionicons name="information-circle" size={14} color={theme.colors.brand} />
             <Text style={styles.notesText}>{currentEx.notes}</Text>
           </View>
         )}
@@ -998,8 +1015,8 @@ export default function WorkoutScreen() {
             ]}
             onPress={() => setExIdx((i) => Math.min(logs.length - 1, i + 1))}
           >
-            <Text style={styles.navText}>SUIVANT</Text>
-            <Ionicons name="chevron-forward" size={18} color="#fff" />
+            <Text style={[styles.navText, styles.navTextPrimary]}>SUIVANT</Text>
+            <Ionicons name="chevron-forward" size={18} color={theme.card.mode === "glass" ? theme.colors.brand : "#fff"} />
           </Pressable>
         </View>
         <View style={{ height: 40 }} />
@@ -1008,7 +1025,7 @@ export default function WorkoutScreen() {
       {/* Timer overlay: rest / work / amrap / for_time */}
       <Modal visible={overlay !== null} animationType="slide" transparent>
         <View style={styles.restBackdrop}>
-          <View style={styles.restSheet}>
+          <GlassCard level="elevated" style={styles.restSheet}>
             {showLiveOverlay ? (
               <ExerciseLiveOverlay
                 variant={liveOverlayVariant}
@@ -1030,7 +1047,7 @@ export default function WorkoutScreen() {
             <Text
               style={[
                 styles.restLabel,
-                overlay === "work" && { color: colors.success },
+                overlay === "work" && { color: theme.colors.success },
               ]}
             >
               {overlay === "rest"
@@ -1040,11 +1057,11 @@ export default function WorkoutScreen() {
             <TimerCircle
               remaining={overlayRemaining}
               total={Math.max(1, overlayTotal)}
-              color={overlay === "rest" ? colors.brand : colors.success}
+              color={overlay === "rest" ? theme.colors.brand : theme.colors.success}
             />
             {overlay === "rest" && pendingResume && (
               <View style={styles.nextUpBox} testID="rest-next-up">
-                <Ionicons name="play-forward" size={14} color={colors.onSurfaceTertiary} />
+                <Ionicons name="play-forward" size={14} color={theme.colors.onSurfaceTertiary} />
                 <Text style={styles.nextUpText}>
                   Suivant ·{" "}
                   {pendingResume.exI === exIdx
@@ -1079,7 +1096,7 @@ export default function WorkoutScreen() {
                   overlay === "rest" ? "play-skip-forward" : "checkmark-done"
                 }
                 size={18}
-                color="#fff"
+                color={theme.card.mode === "glass" ? theme.colors.brand : "#fff"}
               />
               <Text style={styles.skipText}>
                 {overlay === "rest" ? "PASSER LA PAUSE" : "TERMINER"}
@@ -1087,12 +1104,13 @@ export default function WorkoutScreen() {
             </Pressable>
             </>
             )}
-          </View>
+          </GlassCard>
         </View>
       </Modal>
 
       {ConfirmModal}
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
@@ -1151,7 +1169,10 @@ function formatDur(sec: number) {
   return `${m}min${s}s`;
 }
 
-const styles = StyleSheet.create({
+function buildStyles(theme: Theme) {
+  const { colors, radius } = theme;
+  const isGlass = theme.card.mode === "glass";
+  return StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.surface },
   header: {
     flexDirection: "row",
@@ -1199,7 +1220,7 @@ const styles = StyleSheet.create({
     height: 30,
     paddingHorizontal: spacing.sm,
     borderRadius: radius.pill,
-    backgroundColor: withAlpha(colors.surfaceSecondary, 70),
+    backgroundColor: isGlass ? theme.glass.subtle.tint : withAlpha(colors.surfaceSecondary, 70),
     borderWidth: 1,
     borderColor: colors.border,
     flexDirection: "row",
@@ -1207,10 +1228,9 @@ const styles = StyleSheet.create({
     gap: 4,
     maxWidth: 200,
   },
-  exChipActive: {
-    backgroundColor: colors.brand,
-    borderColor: colors.brand,
-  },
+  exChipActive: isGlass
+    ? { backgroundColor: withAlpha(colors.brand, 20), borderColor: withAlpha(colors.brand, 50) }
+    : { backgroundColor: colors.brand, borderColor: colors.brand },
   exChipDone: {
     backgroundColor: withAlpha(colors.success, 12),
     borderColor: colors.success,
@@ -1249,7 +1269,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: withAlpha("#000000", 55),
   },
-  mediaBtnActive: { backgroundColor: colors.brand },
+  mediaBtnActive: isGlass ? { backgroundColor: withAlpha(colors.brand, 55) } : { backgroundColor: colors.brand },
   mediaOverlayInfo: {
     position: "absolute",
     left: spacing.md,
@@ -1280,7 +1300,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    backgroundColor: colors.surfaceSecondary,
+    backgroundColor: isGlass ? theme.glass.subtle.tint : colors.surfaceSecondary,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: radius.md,
@@ -1293,7 +1313,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.md,
-    backgroundColor: colors.surfaceSecondary,
+    backgroundColor: isGlass ? theme.glass.subtle.tint : colors.surfaceSecondary,
     padding: spacing.md,
     borderRadius: radius.md,
     borderWidth: 1,
@@ -1313,7 +1333,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 8,
-    backgroundColor: colors.surfaceTertiary,
+    backgroundColor: isGlass ? theme.glass.subtle.tint : colors.surfaceTertiary,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -1347,7 +1367,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: radius.md,
-    backgroundColor: colors.surfaceTertiary,
+    backgroundColor: isGlass ? theme.glass.subtle.tint : colors.surfaceTertiary,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1,
@@ -1360,10 +1380,12 @@ const styles = StyleSheet.create({
   notesBox: {
     flexDirection: "row",
     gap: 6,
-    backgroundColor: colors.brandTertiary,
+    backgroundColor: isGlass ? withAlpha(colors.brand, 12) : colors.brandTertiary,
     padding: spacing.md,
     borderRadius: radius.sm,
     alignItems: "flex-start",
+    borderWidth: isGlass ? 1 : 0,
+    borderColor: withAlpha(colors.brand, 30),
   },
   notesText: { color: colors.brandSecondary, flex: 1, fontSize: 12 },
   navRow: {
@@ -1379,20 +1401,20 @@ const styles = StyleSheet.create({
     gap: 4,
     padding: spacing.md,
     borderRadius: radius.md,
-    backgroundColor: colors.surfaceSecondary,
+    backgroundColor: isGlass ? theme.glass.subtle.tint : colors.surfaceSecondary,
     borderWidth: 1,
     borderColor: colors.border,
   },
-  navBtnPrimary: {
-    backgroundColor: colors.brand,
-    borderColor: colors.brand,
-  },
+  navBtnPrimary: isGlass
+    ? { backgroundColor: withAlpha(colors.brand, 20), borderColor: withAlpha(colors.brand, 50) }
+    : { backgroundColor: colors.brand, borderColor: colors.brand },
   navText: {
     color: "#fff",
     fontWeight: "800",
     fontSize: 12,
     letterSpacing: 0.8,
   },
+  navTextPrimary: { color: isGlass ? colors.brand : "#fff" },
 
   restBackdrop: {
     flex: 1,
@@ -1400,7 +1422,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   restSheet: {
-    backgroundColor: colors.surfaceSecondary,
+    ...(isGlass ? {} : { backgroundColor: colors.surfaceSecondary }),
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: spacing.xl,
@@ -1438,16 +1460,15 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: colors.surfaceTertiary,
+    backgroundColor: isGlass ? theme.glass.subtle.tint : colors.surfaceTertiary,
     borderWidth: 1,
     borderColor: colors.borderStrong,
     alignItems: "center",
     justifyContent: "center",
   },
-  roundBtnPrimary: {
-    backgroundColor: colors.warning,
-    borderColor: colors.warning,
-  },
+  roundBtnPrimary: isGlass
+    ? { backgroundColor: withAlpha(colors.warning, 22), borderColor: withAlpha(colors.warning, 55) }
+    : { backgroundColor: colors.warning, borderColor: colors.warning },
   amrapRoundsBox: { alignItems: "center", minWidth: 90 },
   amrapRoundsBig: {
     color: colors.warning,
@@ -1467,7 +1488,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.md,
     borderRadius: radius.pill,
-    backgroundColor: colors.surfaceTertiary,
+    backgroundColor: isGlass ? theme.glass.subtle.tint : colors.surfaceTertiary,
     borderWidth: 1,
     borderColor: colors.borderStrong,
   },
@@ -1477,7 +1498,9 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   skipBtn: {
-    backgroundColor: colors.brand,
+    ...(isGlass
+      ? { backgroundColor: withAlpha(colors.brand, 18), borderWidth: 1, borderColor: withAlpha(colors.brand, 50) }
+      : { backgroundColor: colors.brand }),
     paddingVertical: 16,
     paddingHorizontal: spacing.xl2,
     borderRadius: radius.md,
@@ -1485,5 +1508,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.sm,
   },
-  skipText: { color: "#fff", fontWeight: "800", letterSpacing: 1 },
-});
+  skipText: { color: isGlass ? colors.brand : "#fff", fontWeight: "800", letterSpacing: 1 },
+  });
+}

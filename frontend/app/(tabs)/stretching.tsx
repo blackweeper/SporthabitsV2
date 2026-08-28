@@ -9,7 +9,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing } from "@/src/theme";
+import { spacing } from "@/src/theme";
+import { Theme, useTheme } from "@/src/themes";
+import ThemedBackground from "@/src/themes/ThemedBackground";
 import { LEVEL_LABEL, Program, ProgramSession } from "@/src/data/programs";
 import { findProgram } from "@/src/utils/programs";
 import {
@@ -23,6 +25,8 @@ import {
 type Loaded = { active: ActiveProgram; program: Program };
 
 export default function StretchingTabScreen() {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   const router = useRouter();
   const [loaded, setLoaded] = useState<Loaded[]>([]);
   const [ready, setReady] = useState(false);
@@ -48,18 +52,35 @@ export default function StretchingTabScreen() {
 
   if (!ready) {
     return (
-      <SafeAreaView style={styles.container} edges={["top"]}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Étirements</Text>
-        </View>
-      </SafeAreaView>
+      <View style={{ flex: 1 }}>
+        <ThemedBackground />
+        <SafeAreaView
+          style={[
+            styles.container,
+            theme.background.mode === "gradient" ? { backgroundColor: "transparent" } : { backgroundColor: theme.colors.surface },
+          ]}
+          edges={["top"]}
+        >
+          <View style={styles.header}>
+            <Text style={styles.title}>Étirements</Text>
+          </View>
+        </SafeAreaView>
+      </View>
     );
   }
 
   if (loaded.length === 0) return <EmptyState router={router} />;
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <View style={{ flex: 1 }}>
+      <ThemedBackground />
+      <SafeAreaView
+        style={[
+          styles.container,
+          theme.background.mode === "gradient" ? { backgroundColor: "transparent" } : { backgroundColor: theme.colors.surface },
+        ]}
+        edges={["top"]}
+      >
       <View style={styles.header}>
         <Text style={styles.title}>Étirements</Text>
         <Pressable
@@ -67,7 +88,7 @@ export default function StretchingTabScreen() {
           onPress={() => router.push("/programs?category=stretch")}
           hitSlop={12}
         >
-          <Ionicons name="add-circle" size={22} color={colors.brand} />
+          <Ionicons name="add-circle" size={22} color={theme.colors.brand} />
         </Pressable>
       </View>
       <ScrollView
@@ -106,13 +127,24 @@ export default function StretchingTabScreen() {
         ))}
         <View style={{ height: 40 }} />
       </ScrollView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
 function EmptyState({ router }: { router: any }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <View style={{ flex: 1 }}>
+      <ThemedBackground />
+      <SafeAreaView
+        style={[
+          styles.container,
+          theme.background.mode === "gradient" ? { backgroundColor: "transparent" } : { backgroundColor: theme.colors.surface },
+        ]}
+        edges={["top"]}
+      >
       <View style={styles.header}>
         <Text style={styles.title}>Étirements</Text>
       </View>
@@ -141,7 +173,8 @@ function EmptyState({ router }: { router: any }) {
           <Text style={styles.ctaTextSecondary}>CRÉER MON PROGRAMME</Text>
         </Pressable>
       </ScrollView>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
@@ -156,6 +189,8 @@ function StretchTracker({
   onOpen: () => void;
   onLaunch: (dayIndex: number, sessionIndex: number, s: ProgramSession) => void;
 }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   const today = currentDayIndex(active, program.durationDays);
   const doneCount = active.completedSessions.length;
   const totalSessions = program.days.reduce(
@@ -257,7 +292,7 @@ function StretchTracker({
                     </Text>
                   </View>
                   {done ? (
-                    <Ionicons name="checkmark-circle" size={22} color={colors.success} />
+                    <Ionicons name="checkmark-circle" size={22} color={theme.colors.success} />
                   ) : (
                     <Ionicons name="play-circle" size={22} color={program.color} />
                   )}
@@ -289,7 +324,9 @@ function dayLabel(dayIndex: number, today: number): string {
   });
 }
 
-const styles = StyleSheet.create({
+function buildStyles(theme: Theme) {
+  const { colors, radius } = theme;
+  return StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.surface },
   header: {
     flexDirection: "row",
@@ -444,4 +481,5 @@ const styles = StyleSheet.create({
   sessMeta: { color: colors.onSurfaceTertiary, fontSize: 10, marginTop: 1 },
   viewAll: { padding: spacing.sm, alignItems: "flex-end" },
   viewAllText: { fontWeight: "800", letterSpacing: 0.5, fontSize: 12 },
-});
+  });
+}

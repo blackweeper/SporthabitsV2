@@ -14,7 +14,7 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
-import { colors, motion, radius, spacing, withAlpha } from "@/src/theme";
+import { coloredShadow, motion, spacing, withAlpha } from "@/src/theme";
 import { programIconFor } from "@/src/utils/program-goal-icon";
 import {
   ActiveProgram,
@@ -93,7 +93,7 @@ import { scheduleKindForDate } from "@/src/utils/calendar-day-schedule";
 import { launchProgramDay } from "@/src/utils/program-launch";
 import { sumCaloriesBurnedForDate, sumTrainingMinutesForDate } from "@/src/utils/daily-metrics";
 import { computeDailyAggregateScore } from "@/src/utils/daily-aggregate-score";
-import { useTheme } from "@/src/themes";
+import { Theme, useTheme } from "@/src/themes";
 import ThemedBackground from "@/src/themes/ThemedBackground";
 import GlassCard from "@/src/components/ui/GlassCard";
 import StatBadge from "@/src/components/dashboard/StatBadge";
@@ -133,6 +133,7 @@ const WELLNESS_DUPLICATE_KINDS = new Set<HabitKind>([
 export default function TodayScreen() {
   const router = useRouter();
   const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   // Utilisé uniquement par le hero Sunset (texte contextuel à côté de
   // l'anneau) — appelé inconditionnellement ici (règle des hooks), consommé
   // plus bas seulement sous ce thème.
@@ -553,7 +554,7 @@ export default function TodayScreen() {
         <HabitProgressRow
           testID="widget-water"
           icon="water"
-          color={colors.info}
+          color={theme.colors.info}
           label="Eau"
           value={wellness?.water_ml ?? 0}
           target={profile?.water_target_ml || DEFAULT_WATER_TARGET_ML}
@@ -576,7 +577,7 @@ export default function TodayScreen() {
           const isTimed = h.unit === "min";
           const isCheckbox = !isTimed && target <= 1;
           const done = cur >= target;
-          const step = niceStep(target);
+          const step = Math.max(1, niceStep(target));
           const onOpen = () => router.push(`/habit/${h.id}` as any);
           return (
             <Animated.View
@@ -604,11 +605,13 @@ export default function TodayScreen() {
                 onQuickAdd={
                   isTimed
                     ? () => setTimerHabit(h)
-                    : !isCheckbox && !done && step > 1
-                      ? () => bumpHabit(h.id, cur, step, target)
-                      : undefined
+                    : done
+                      ? undefined
+                      : isCheckbox
+                        ? () => toggleHabit(h.id, cur, target)
+                        : () => bumpHabit(h.id, cur, step, target)
                 }
-                quickAddIcon={isTimed ? "play" : "add"}
+                quickAddIcon={isTimed ? "play" : isCheckbox ? "checkmark" : "add"}
                 onLongPress={onOpen}
                 bare={theme.id === "sunset"}
               />
@@ -682,7 +685,7 @@ export default function TodayScreen() {
               onPress={() => router.push(`/calendar-event/new?date=${today}` as any)}
               hitSlop={8}
             >
-              <Ionicons name="add-circle" size={20} color={colors.brand} />
+              <Ionicons name="add-circle" size={20} color={theme.colors.brand} />
             </Pressable>
           </View>
         )}
@@ -757,7 +760,7 @@ export default function TodayScreen() {
               >
                 {isRestDay ? (
                   <View style={styles.dayRestRow}>
-                    <Ionicons name="moon" size={14} color={colors.progress} />
+                    <Ionicons name="moon" size={14} color={theme.colors.progress} />
                     <Text style={styles.dayRestLabel}>REPOS</Text>
                   </View>
                 ) : (
@@ -774,30 +777,27 @@ export default function TodayScreen() {
 
         {/* Reminders due now — in-app only, no OS push */}
         {dueReminders.map((d) => (
-          <Pressable
-            key={d.key}
-            testID={`due-reminder-${d.key}`}
-            style={styles.reminderBanner}
-            onPress={() => router.push(d.href as any)}
-          >
-            <Text style={styles.reminderBannerEmoji}>{d.emoji}</Text>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.reminderBannerTitle} numberOfLines={1}>
-                {d.title}
-              </Text>
-              <Text style={styles.reminderBannerSub}>{d.subtitle}</Text>
-            </View>
-            <Pressable
-              testID={`due-reminder-${d.key}-dismiss`}
-              hitSlop={10}
-              onPress={(ev) => {
-                ev.stopPropagation?.();
-                dismissDue(d.key);
-              }}
-            >
-              <Ionicons name="close" size={18} color={colors.onSurfaceTertiary} />
-            </Pressable>
-          </Pressable>
+          <PressableScale key={d.key} testID={`due-reminder-${d.key}`} onPress={() => router.push(d.href as any)}>
+            <GlassCard accent={theme.colors.brand} style={styles.reminderBanner}>
+              <Text style={styles.reminderBannerEmoji}>{d.emoji}</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.reminderBannerTitle} numberOfLines={1}>
+                  {d.title}
+                </Text>
+                <Text style={styles.reminderBannerSub}>{d.subtitle}</Text>
+              </View>
+              <Pressable
+                testID={`due-reminder-${d.key}-dismiss`}
+                hitSlop={10}
+                onPress={(ev) => {
+                  ev.stopPropagation?.();
+                  dismissDue(d.key);
+                }}
+              >
+                <Ionicons name="close" size={18} color={theme.colors.onSurfaceTertiary} />
+              </Pressable>
+            </GlassCard>
+          </PressableScale>
         ))}
 
         {theme.id === "sunset" ? (
@@ -933,12 +933,12 @@ export default function TodayScreen() {
                       <Ionicons
                         name={scoreDelta > 0 ? "arrow-up" : "arrow-down"}
                         size={12}
-                        color={scoreDelta > 0 ? colors.success : colors.error}
+                        color={scoreDelta > 0 ? theme.colors.success : theme.colors.error}
                       />
                       <Text
                         style={[
                           styles.scoreDeltaText,
-                          { color: scoreDelta > 0 ? colors.success : colors.error },
+                          { color: scoreDelta > 0 ? theme.colors.success : theme.colors.error },
                         ]}
                       >
                         {scoreDelta > 0 ? "+" : ""}
@@ -960,7 +960,18 @@ export default function TodayScreen() {
                 testID="start-session"
                 style={[
                   styles.mainCta,
-                  !todayScore.workoutDone && !isRestDay && { backgroundColor: theme.colors.brand },
+                  !todayScore.workoutDone &&
+                    !isRestDay &&
+                    (theme.card.mode === "glass"
+                      ? [
+                          {
+                            backgroundColor: withAlpha(theme.colors.brand, 18),
+                            borderWidth: 1,
+                            borderColor: withAlpha(theme.colors.brand, 50),
+                          },
+                          coloredShadow(theme.colors.brand, { offsetY: 0, opacity: 0.3, radius: 10, elevation: 3 }),
+                        ]
+                      : { backgroundColor: theme.colors.brand }),
                   todayScore.workoutDone && styles.mainCtaDone,
                   !todayScore.workoutDone && isRestDay && styles.mainCtaRest,
                 ]}
@@ -977,10 +988,12 @@ export default function TodayScreen() {
                   size={20}
                   color={
                     todayScore.workoutDone
-                      ? colors.success
+                      ? theme.colors.success
                       : isRestDay
-                        ? colors.progressSecondary
-                        : "#fff"
+                        ? theme.colors.progressSecondary
+                        : theme.card.mode === "glass"
+                          ? theme.colors.brand
+                          : "#fff"
                   }
                 />
                 <Text
@@ -1091,7 +1104,7 @@ export default function TodayScreen() {
               style={styles.addHabitRow}
               onPress={() => router.push("/habit/new" as any)}
             >
-              <Ionicons name="add" size={18} color={colors.brand} />
+              <Ionicons name="add" size={18} color={theme.colors.brand} />
               <Text style={styles.addHabitRowLabel}>Nouvelle habitude</Text>
             </PressableScale>
           </View>
@@ -1245,7 +1258,7 @@ export default function TodayScreen() {
         }
         color={
           quantityModal?.which === "water"
-            ? colors.info
+            ? theme.colors.info
             : quantityModal?.which === "calories"
             ? "#F97316"
             : "#10B981"
@@ -1319,7 +1332,7 @@ export default function TodayScreen() {
                 {dayModalDate ? formatDayModalDate(dayModalDate) : ""}
               </Text>
               <Pressable onPress={() => setDayModalDate(null)} hitSlop={12}>
-                <Ionicons name="close" size={22} color={colors.onSurfaceTertiary} />
+                <Ionicons name="close" size={22} color={theme.colors.onSurfaceTertiary} />
               </Pressable>
             </View>
             <ScrollView contentContainerStyle={{ gap: 8 }}>
@@ -1354,7 +1367,7 @@ export default function TodayScreen() {
                 router.push(`/calendar-event/new?date=${d}` as any);
               }}
             >
-              <Ionicons name="add-circle" size={16} color="#fff" />
+              <Ionicons name="add-circle" size={16} color={theme.card.mode === "glass" ? theme.colors.brand : "#fff"} />
               <Text style={styles.dayModalAddText}>AJOUTER UN ÉVÉNEMENT</Text>
             </Pressable>
           </View>
@@ -1390,7 +1403,10 @@ function formatFullDate() {
   });
 }
 
-const styles = StyleSheet.create({
+function buildStyles(theme: Theme) {
+  const { colors, radius } = theme;
+  const isGlass = theme.card.mode === "glass";
+  return StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.surface },
   scroll: { padding: spacing.lg, gap: spacing.md, paddingBottom: 40 },
   reminderBanner: {
@@ -1515,13 +1531,11 @@ const styles = StyleSheet.create({
   },
   // Une fois la séance faite, le CTA devient une confirmation discrète
   // (contour) plutôt qu'une action pressante identique à avant.
-  mainCtaDone: {
-    backgroundColor: colors.surfaceTertiary,
-    borderWidth: 1,
-    borderColor: colors.success,
-  },
+  mainCtaDone: isGlass
+    ? { backgroundColor: withAlpha(colors.success, 12), borderWidth: 1, borderColor: withAlpha(colors.success, 45) }
+    : { backgroundColor: colors.surfaceTertiary, borderWidth: 1, borderColor: colors.success },
   mainCtaText: {
-    color: "#fff",
+    color: isGlass ? colors.brand : "#fff",
     fontWeight: "800",
     fontSize: 15,
     letterSpacing: 1.5,
@@ -1529,11 +1543,9 @@ const styles = StyleSheet.create({
   mainCtaTextDone: { color: colors.success },
   // Jour de repos programmé : ni une action pressante (orange), ni une
   // victoire (vert) — un état calme, neutre, dans la famille violette.
-  mainCtaRest: {
-    backgroundColor: colors.surfaceTertiary,
-    borderWidth: 1,
-    borderColor: colors.progressTertiary,
-  },
+  mainCtaRest: isGlass
+    ? { backgroundColor: withAlpha(colors.progress, 12), borderWidth: 1, borderColor: withAlpha(colors.progress, 45) }
+    : { backgroundColor: colors.surfaceTertiary, borderWidth: 1, borderColor: colors.progressTertiary },
   mainCtaTextRest: { color: colors.progressSecondary },
   heroEmptyHint: {
     color: colors.onSurfaceTertiary,
@@ -1767,17 +1779,30 @@ const styles = StyleSheet.create({
     textAlign: "center",
     paddingVertical: spacing.lg,
   },
-  dayModalAddBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    backgroundColor: colors.brand,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    marginTop: spacing.sm,
-  },
-  dayModalAddText: { color: "#fff", fontWeight: "800", letterSpacing: 0.5 },
+  dayModalAddBtn: isGlass
+    ? {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 8,
+        backgroundColor: withAlpha(colors.brand, 18),
+        borderWidth: 1,
+        borderColor: withAlpha(colors.brand, 50),
+        borderRadius: radius.md,
+        padding: spacing.md,
+        marginTop: spacing.sm,
+      }
+    : {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 8,
+        backgroundColor: colors.brand,
+        borderRadius: radius.md,
+        padding: spacing.md,
+        marginTop: spacing.sm,
+      },
+  dayModalAddText: { color: isGlass ? colors.brand : "#fff", fontWeight: "800", letterSpacing: 0.5 },
   // --- Sunset uniquement (voir conditionnels `theme.id === "sunset"`) ---
   calendarLegendRow: {
     flexDirection: "row",
@@ -1838,5 +1863,6 @@ const styles = StyleSheet.create({
   // Ratio assoupli de 1 (carré) à 1.4 (un peu plus large que haut) — retour
   // utilisateur : les cartes carrées étaient trop imposantes/hautes ; garde
   // la grille 2 colonnes mais réduit nettement l'emprise verticale.
-  sunsetProgramCard: { width: "48%", aspectRatio: 1.4 },
-});
+  sunsetProgramCard: { width: "48%", aspectRatio: 1.05 },
+  });
+}

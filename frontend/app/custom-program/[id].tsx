@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -14,8 +14,11 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing, withAlpha } from "@/src/theme";
-import { PLAN_TYPE_COLORS } from "@/src/utils/plan-type-colors";
+import { spacing, withAlpha } from "@/src/theme";
+import { Theme, useTheme } from "@/src/themes";
+import ThemedBackground from "@/src/themes/ThemedBackground";
+import GlassCard from "@/src/components/ui/GlassCard";
+import { getPlanTypeColors } from "@/src/utils/plan-type-colors";
 import { programIconFor } from "@/src/utils/program-goal-icon";
 import ExerciseThumbnail from "@/src/components/ExerciseThumbnail";
 import ExercisePicturePicker from "@/src/components/ExercisePicturePicker";
@@ -140,6 +143,8 @@ function newSession(): ProgramSession {
 }
 
 export default function CustomProgramEditor() {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   const { id, category, linked, created, toReview } = useLocalSearchParams<{
     id: string;
     category?: string;
@@ -232,9 +237,9 @@ export default function CustomProgramEditor() {
               : "",
           coverEmoji: isStretch ? "🧘" : isCardio ? "🏃" : "💪",
           color: isStretch
-            ? PLAN_TYPE_COLORS.stretch
+            ? getPlanTypeColors(theme).stretch
             : isCardio
-              ? PLAN_TYPE_COLORS.cardio
+              ? getPlanTypeColors(theme).cardio
               : COVER_COLORS[0],
           days: Array.from({ length: defaultDuration }, () => emptyDay()),
           isCustom: true,
@@ -527,19 +532,30 @@ export default function CustomProgramEditor() {
 
   if (!program) {
     return (
-      <SafeAreaView style={styles.container}>
-        <Text style={styles.loading}>Chargement…</Text>
-      </SafeAreaView>
+      <View style={{ flex: 1 }}>
+        <ThemedBackground />
+        <SafeAreaView style={[styles.container, theme.background.mode === "gradient" && { backgroundColor: "transparent" }]}>
+          <Text style={styles.loading}>Chargement…</Text>
+        </SafeAreaView>
+      </View>
     );
   }
 
   const currentDay: ProgramDay | null = program.days[selectedDay - 1] ?? program.days[0] ?? null;
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+    <View style={{ flex: 1 }}>
+      <ThemedBackground />
+      <SafeAreaView
+        style={[
+          styles.container,
+          theme.background.mode === "gradient" ? { backgroundColor: "transparent" } : { backgroundColor: theme.colors.surface },
+        ]}
+        edges={["top", "bottom"]}
+      >
       <View style={styles.header}>
         <Pressable testID="cancel-cp" onPress={() => router.back()} hitSlop={12}>
-          <Ionicons name="close" size={26} color={colors.onSurface} />
+          <Ionicons name="close" size={26} color={theme.colors.onSurface} />
         </Pressable>
         <Text style={styles.title} numberOfLines={1}>
           {isNew ? "Nouveau programme" : "Modifier programme"}
@@ -553,19 +569,19 @@ export default function CustomProgramEditor() {
             pressed && { opacity: 0.75 },
           ]}
         >
-          <Ionicons name="checkmark" size={14} color="#fff" />
+          <Ionicons name="checkmark" size={14} color={theme.card.mode === "glass" ? theme.colors.brand : "#fff"} />
           <Text style={styles.saveBtnText}>SAUVEGARDER</Text>
         </Pressable>
       </View>
 
       {importSummary && (
-        <View style={styles.importSummaryBanner}>
-          <Ionicons name="checkmark-circle" size={16} color={colors.brand} />
+        <GlassCard accent={theme.colors.brand} style={styles.importSummaryBanner}>
+          <Ionicons name="checkmark-circle" size={16} color={theme.colors.brand} />
           <Text style={styles.importSummaryText}>{importSummary}</Text>
           <Pressable testID="import-summary-dismiss" hitSlop={8} onPress={() => setImportSummary(null)}>
-            <Ionicons name="close" size={16} color={colors.onSurfaceTertiary} />
+            <Ionicons name="close" size={16} color={theme.colors.onSurfaceTertiary} />
           </Pressable>
-        </View>
+        </GlassCard>
       )}
 
       <KeyboardAvoidingView
@@ -585,7 +601,7 @@ export default function CustomProgramEditor() {
             value={program.title}
             onChangeText={(t) => patch("title", t)}
             placeholder="Ex: Mon programme 45 jours"
-            placeholderTextColor={colors.onSurfaceTertiary}
+            placeholderTextColor={theme.colors.onSurfaceTertiary}
           />
 
           <Text style={styles.label}>Objectif</Text>
@@ -595,7 +611,7 @@ export default function CustomProgramEditor() {
             value={program.goal}
             onChangeText={(t) => patch("goal", t)}
             placeholder="Prise de masse, perte de graisse…"
-            placeholderTextColor={colors.onSurfaceTertiary}
+            placeholderTextColor={theme.colors.onSurfaceTertiary}
           />
 
           <Text style={styles.label}>Description</Text>
@@ -605,7 +621,7 @@ export default function CustomProgramEditor() {
             value={program.description}
             onChangeText={(t) => patch("description", t)}
             placeholder="Décris brièvement ton programme"
-            placeholderTextColor={colors.onSurfaceTertiary}
+            placeholderTextColor={theme.colors.onSurfaceTertiary}
             multiline
           />
 
@@ -623,7 +639,7 @@ export default function CustomProgramEditor() {
                   <Text
                     style={[
                       styles.lvlChipText,
-                      active && { color: "#fff" },
+                      active && { color: theme.card.mode === "glass" ? theme.colors.brand : "#fff" },
                     ]}
                   >
                     {LEVEL_LABEL[l].toUpperCase()}
@@ -656,7 +672,7 @@ export default function CustomProgramEditor() {
                       <Ionicons
                         name={programIconFor(e)}
                         size={20}
-                        color={active ? "#fff" : colors.onSurfaceSecondary}
+                        color={active ? "#fff" : theme.colors.onSurfaceSecondary}
                       />
                     </Pressable>
                   );
@@ -726,7 +742,7 @@ export default function CustomProgramEditor() {
                     <Ionicons
                       name="bed"
                       size={14}
-                      color={active ? "#fff" : colors.onSurfaceTertiary}
+                      color={active ? "#fff" : theme.colors.onSurfaceTertiary}
                     />
                   ) : (
                     <Text
@@ -764,12 +780,12 @@ export default function CustomProgramEditor() {
                   <Ionicons
                     name={currentDay.rest ? "bed" : "flame"}
                     size={12}
-                    color={currentDay.rest ? "#fff" : colors.brand}
+                    color={currentDay.rest ? "#fff" : theme.colors.brand}
                   />
                   <Text
                     style={[
                       styles.restToggleText,
-                      currentDay.rest && { color: "#fff" },
+                      currentDay.rest && theme.card.mode !== "glass" && { color: "#fff" },
                     ]}
                   >
                     {currentDay.rest ? "REPOS" : "SÉANCE"}
@@ -838,7 +854,7 @@ export default function CustomProgramEditor() {
                             style={styles.addCardBtn}
                             onPress={() => setToursCards((prev) => [...prev, newCircuitCard()])}
                           >
-                            <Ionicons name="add" size={14} color={colors.brand} />
+                            <Ionicons name="add" size={14} color={theme.colors.brand} />
                             <Text style={styles.addCardBtnText}>Ajouter un exercice</Text>
                           </Pressable>
                           <View style={styles.fieldsRow}>
@@ -861,7 +877,7 @@ export default function CustomProgramEditor() {
                             style={styles.addExBtn}
                             onPress={() => addToursBlockToSession(si, toursCards, toursRounds, toursRestSeconds)}
                           >
-                            <Ionicons name="checkmark" size={14} color={colors.brand} />
+                            <Ionicons name="checkmark" size={14} color={theme.colors.brand} />
                             <Text style={styles.addExText}>
                               Générer {toursRounds * toursCards.filter((c) => c.name.trim()).length || ""} exercices
                             </Text>
@@ -881,7 +897,7 @@ export default function CustomProgramEditor() {
                         }))
                       }
                     >
-                      <Ionicons name="add" size={16} color={colors.brand} />
+                      <Ionicons name="add" size={16} color={theme.colors.brand} />
                       <Text style={styles.addSessText}>SÉANCE VIDE</Text>
                     </Pressable>
                     <Pressable
@@ -889,7 +905,7 @@ export default function CustomProgramEditor() {
                       style={[styles.addSessBtn, { flex: 1 }]}
                       onPress={() => setImportOpen(true)}
                     >
-                      <Ionicons name="download" size={16} color={colors.brand} />
+                      <Ionicons name="download" size={16} color={theme.colors.brand} />
                       <Text style={styles.addSessText}>IMPORTER</Text>
                     </Pressable>
                   </View>
@@ -909,7 +925,7 @@ export default function CustomProgramEditor() {
                   setSelectedDay(1);
                 }}
               >
-                <Ionicons name="add" size={16} color={colors.brand} />
+                <Ionicons name="add" size={16} color={theme.colors.brand} />
                 <Text style={styles.addSessText}>AJOUTER UN JOUR</Text>
               </Pressable>
             </View>
@@ -917,7 +933,7 @@ export default function CustomProgramEditor() {
 
           {!isNew && (
             <Pressable style={styles.delBtn} onPress={remove}>
-              <Ionicons name="trash" size={16} color={colors.error} />
+              <Ionicons name="trash" size={16} color={theme.colors.error} />
               <Text style={styles.delText}>Supprimer le programme</Text>
             </Pressable>
           )}
@@ -1079,7 +1095,8 @@ export default function CustomProgramEditor() {
         />
       )}
       {ConfirmModal}
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
@@ -1094,6 +1111,8 @@ function PlanPickerModal({
   onClose: () => void;
   onPick: (p: Plan) => void;
 }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   return (
     <Modal
       visible={visible}
@@ -1103,7 +1122,7 @@ function PlanPickerModal({
     >
       <View style={styles.sheetBackdrop}>
         <Pressable style={{ flex: 1 }} onPress={onClose} />
-        <View style={styles.sheet}>
+        <GlassCard level="elevated" style={styles.sheet}>
           <View style={styles.sheetHandle} />
           <Text style={styles.sheetTitle}>Importer une séance</Text>
           <Text style={styles.sheetHelp}>
@@ -1111,7 +1130,7 @@ function PlanPickerModal({
           </Text>
           {plans.length === 0 ? (
             <View style={styles.emptyImport}>
-              <Ionicons name="folder-open" size={40} color={colors.brand} />
+              <Ionicons name="folder-open" size={40} color={theme.colors.brand} />
               <Text style={styles.emptyImportTitle}>
                 Aucune séance individuelle
               </Text>
@@ -1135,13 +1154,13 @@ function PlanPickerModal({
                       style={[
                         styles.planIcon,
                         p.type === "cardio" && {
-                          backgroundColor: withAlpha(PLAN_TYPE_COLORS.cardio, 25),
+                          backgroundColor: withAlpha(getPlanTypeColors(theme).cardio, 25),
                         },
                         p.type === "hiit" && {
-                          backgroundColor: withAlpha(PLAN_TYPE_COLORS.hiit, 25),
+                          backgroundColor: withAlpha(getPlanTypeColors(theme).hiit, 25),
                         },
                         p.category === "stretch" && {
-                          backgroundColor: withAlpha(PLAN_TYPE_COLORS.stretch, 25),
+                          backgroundColor: withAlpha(getPlanTypeColors(theme).stretch, 25),
                         },
                       ]}
                     >
@@ -1156,7 +1175,7 @@ function PlanPickerModal({
                                 : "barbell"
                         }
                         size={16}
-                        color={colors.brand}
+                        color={theme.colors.brand}
                       />
                     </View>
                     <View style={{ flex: 1 }}>
@@ -1172,7 +1191,7 @@ function PlanPickerModal({
                     <Ionicons
                       name="chevron-forward"
                       size={16}
-                      color={colors.onSurfaceTertiary}
+                      color={theme.colors.onSurfaceTertiary}
                     />
                   </Pressable>
                 );
@@ -1186,7 +1205,7 @@ function PlanPickerModal({
           >
             <Text style={styles.sheetCloseText}>Fermer</Text>
           </Pressable>
-        </View>
+        </GlassCard>
       </View>
     </Modal>
   );
@@ -1227,6 +1246,8 @@ function SessionEditor({
   focusedExIdx: number | null;
   onGenerateEmom: (exIdx: number, cards: CircuitCardDraft[], totalMinutes: number) => void;
 }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   return (
     <View style={styles.sessBox} testID={`session-editor-${index}`}>
       <View style={styles.sessHead}>
@@ -1236,7 +1257,7 @@ function SessionEditor({
           onPress={onRemove}
           hitSlop={8}
         >
-          <Ionicons name="close-circle" size={20} color={colors.onSurfaceTertiary} />
+          <Ionicons name="close-circle" size={20} color={theme.colors.onSurfaceTertiary} />
         </Pressable>
       </View>
       <View style={styles.row}>
@@ -1248,7 +1269,7 @@ function SessionEditor({
             value={session.label}
             onChangeText={(t) => onChange({ label: t })}
             placeholder="Matin, Cardio…"
-            placeholderTextColor={colors.onSurfaceTertiary}
+            placeholderTextColor={theme.colors.onSurfaceTertiary}
           />
         </View>
         <View style={{ flex: 2 }}>
@@ -1259,7 +1280,7 @@ function SessionEditor({
             value={session.title}
             onChangeText={(t) => onChange({ title: t })}
             placeholder="Push, Cardio 30 min…"
-            placeholderTextColor={colors.onSurfaceTertiary}
+            placeholderTextColor={theme.colors.onSurfaceTertiary}
           />
         </View>
       </View>
@@ -1317,7 +1338,7 @@ function SessionEditor({
           style={[styles.addExBtn, { flex: 1 }]}
           onPress={onOpenToursBuilder}
         >
-          <Ionicons name="repeat" size={14} color={colors.brand} />
+          <Ionicons name="repeat" size={14} color={theme.colors.brand} />
           <Text style={styles.addExText}>Tours</Text>
         </Pressable>
         <Pressable
@@ -1341,7 +1362,7 @@ function SessionEditor({
             })
           }
         >
-          <Ionicons name="add" size={14} color={colors.brand} />
+          <Ionicons name="add" size={14} color={theme.colors.brand} />
           <Text style={styles.addExText}>Manuel</Text>
         </Pressable>
         <Pressable
@@ -1349,7 +1370,7 @@ function SessionEditor({
           style={[styles.addExBtn, { flex: 1 }]}
           onPress={onAddFromLibrary}
         >
-          <Ionicons name="library" size={14} color={colors.brand} />
+          <Ionicons name="library" size={14} color={theme.colors.brand} />
           <Text style={styles.addExText}>Bibliothèque</Text>
         </Pressable>
       </View>
@@ -1392,6 +1413,8 @@ function ExerciseEditor({
   isFocused: boolean;
   onGenerateEmom: (cards: CircuitCardDraft[], totalMinutes: number) => void;
 }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   const composite = parseCompositeExerciseName(exercise.name);
   const needsLink = !composite && !exercise.exerciseRecordId && !matchExerciseRecord(exercise.name, records);
   const linkedRecord = exercise.exerciseRecordId ? records.find((r) => r.id === exercise.exerciseRecordId) : undefined;
@@ -1454,7 +1477,7 @@ function ExerciseEditor({
           }}
           onFocus={onFocusName}
           placeholder="Nom de l'exercice"
-          placeholderTextColor={colors.onSurfaceTertiary}
+          placeholderTextColor={theme.colors.onSurfaceTertiary}
         />
         <Pressable
           testID={`move-ex-up-${index}`}
@@ -1465,7 +1488,7 @@ function ExerciseEditor({
           <Ionicons
             name="chevron-up-circle"
             size={18}
-            color={onMoveUp ? colors.onSurfaceSecondary : colors.surfaceTertiary}
+            color={onMoveUp ? theme.colors.onSurfaceSecondary : theme.colors.surfaceTertiary}
           />
         </Pressable>
         <Pressable
@@ -1477,7 +1500,7 @@ function ExerciseEditor({
           <Ionicons
             name="chevron-down-circle"
             size={18}
-            color={onMoveDown ? colors.onSurfaceSecondary : colors.surfaceTertiary}
+            color={onMoveDown ? theme.colors.onSurfaceSecondary : theme.colors.surfaceTertiary}
           />
         </Pressable>
         <Pressable
@@ -1488,7 +1511,7 @@ function ExerciseEditor({
           <Ionicons
             name="close-circle"
             size={18}
-            color={colors.onSurfaceTertiary}
+            color={theme.colors.onSurfaceTertiary}
           />
         </Pressable>
       </View>
@@ -1499,11 +1522,11 @@ function ExerciseEditor({
           style={styles.linkHint}
           onPress={onRequestLink}
         >
-          <Ionicons name="link-outline" size={12} color={colors.warning} />
+          <Ionicons name="link-outline" size={12} color={theme.colors.warning} />
           <Text style={styles.linkHintText}>
             Pas encore illustré — lier à la bibliothèque
           </Text>
-          <Ionicons name="chevron-forward" size={12} color={colors.warning} />
+          <Ionicons name="chevron-forward" size={12} color={theme.colors.warning} />
         </Pressable>
       )}
       {showSuggestions && (
@@ -1523,7 +1546,7 @@ function ExerciseEditor({
               <Text
                 style={[
                   styles.modeChipText,
-                  active && { color: "#fff" },
+                  active && { color: theme.card.mode === "glass" ? theme.colors.brand : "#fff" },
                 ]}
               >
                 {m.label}
@@ -1620,7 +1643,7 @@ function ExerciseEditor({
             style={styles.addCardBtn}
             onPress={() => onCircuitCardsChange([...circuitCards, newCircuitCard()])}
           >
-            <Ionicons name="add" size={14} color={colors.brand} />
+            <Ionicons name="add" size={14} color={theme.colors.brand} />
             <Text style={styles.addCardBtnText}>Ajouter un exercice</Text>
           </Pressable>
         </>
@@ -1655,7 +1678,7 @@ function ExerciseEditor({
             style={styles.addCardBtn}
             onPress={() => onCircuitCardsChange([...circuitCards, newCircuitCard()])}
           >
-            <Ionicons name="add" size={14} color={colors.brand} />
+            <Ionicons name="add" size={14} color={theme.colors.brand} />
             <Text style={styles.addCardBtnText}>Ajouter un exercice</Text>
           </Pressable>
         </>
@@ -1686,7 +1709,7 @@ function ExerciseEditor({
             style={styles.addCardBtn}
             onPress={() => onCircuitCardsChange([...circuitCards, newCircuitCard()])}
           >
-            <Ionicons name="add" size={14} color={colors.brand} />
+            <Ionicons name="add" size={14} color={theme.colors.brand} />
             <Text style={styles.addCardBtnText}>Ajouter un exercice</Text>
           </Pressable>
           <Pressable
@@ -1694,7 +1717,7 @@ function ExerciseEditor({
             style={styles.addExBtn}
             onPress={() => onGenerateEmom(circuitCards, exercise.sets)}
           >
-            <Ionicons name="checkmark" size={14} color={colors.brand} />
+            <Ionicons name="checkmark" size={14} color={theme.colors.brand} />
             <Text style={styles.addExText}>Générer {exercise.sets} exercices</Text>
           </Pressable>
         </>
@@ -1706,7 +1729,7 @@ function ExerciseEditor({
         value={exercise.notes || ""}
         onChangeText={(t) => onChange({ notes: t.trim() ? t : null })}
         placeholder="Notes (optionnel)"
-        placeholderTextColor={colors.onSurfaceTertiary}
+        placeholderTextColor={theme.colors.onSurfaceTertiary}
       />
     </View>
   );
@@ -1727,6 +1750,8 @@ function MiniField({
   placeholder?: string;
   testID?: string;
 }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   return (
     <View style={{ flex: 1 }}>
       <Text style={styles.fLabel}>{label}</Text>
@@ -1737,13 +1762,16 @@ function MiniField({
         onChangeText={onChange}
         keyboardType={keyboard || "default"}
         placeholder={placeholder}
-        placeholderTextColor={colors.onSurfaceTertiary}
+        placeholderTextColor={theme.colors.onSurfaceTertiary}
       />
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+function buildStyles(theme: Theme) {
+  const { colors, radius } = theme;
+  const isGlass = theme.card.mode === "glass";
+  return StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.surface },
   loading: { color: colors.onSurfaceTertiary, textAlign: "center", marginTop: 40 },
   linkHint: {
@@ -1787,17 +1815,29 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   saveText: { color: colors.brand, fontWeight: "800", letterSpacing: 0.8 },
-  saveBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    backgroundColor: colors.brand,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: radius.pill,
-  },
+  saveBtn: isGlass
+    ? {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 4,
+        backgroundColor: withAlpha(colors.brand, 18),
+        borderWidth: 1,
+        borderColor: withAlpha(colors.brand, 50),
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        borderRadius: radius.pill,
+      }
+    : {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 4,
+        backgroundColor: colors.brand,
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        borderRadius: radius.pill,
+      },
   saveBtnText: {
-    color: "#fff",
+    color: isGlass ? colors.brand : "#fff",
     fontWeight: "800",
     letterSpacing: 0.6,
     fontSize: 11,
@@ -1828,7 +1868,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  lvlChipActive: { backgroundColor: colors.brand, borderColor: colors.brand },
+  lvlChipActive: isGlass
+    ? { backgroundColor: withAlpha(colors.brand, 20), borderColor: withAlpha(colors.brand, 50) }
+    : { backgroundColor: colors.brand, borderColor: colors.brand },
   lvlChipText: {
     color: colors.onSurfaceTertiary,
     fontWeight: "800",
@@ -1929,7 +1971,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.brand,
   },
-  restToggleOn: { backgroundColor: colors.brand },
+  restToggleOn: isGlass ? { backgroundColor: withAlpha(colors.brand, 25) } : { backgroundColor: colors.brand },
   restToggleText: {
     color: colors.brand,
     fontWeight: "800",
@@ -1997,7 +2039,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: 4,
   },
-  modeChipActive: { backgroundColor: colors.brand },
+  modeChipActive: isGlass ? { backgroundColor: withAlpha(colors.brand, 25) } : { backgroundColor: colors.brand },
   modeChipText: {
     color: colors.onSurfaceTertiary,
     fontWeight: "800",
@@ -2181,4 +2223,5 @@ const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: "center",
   },
-});
+  });
+}

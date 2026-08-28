@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -14,7 +14,10 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing } from "@/src/theme";
+import { spacing, withAlpha } from "@/src/theme";
+import { Theme, useTheme } from "@/src/themes";
+import ThemedBackground from "@/src/themes/ThemedBackground";
+import GlassCard from "@/src/components/ui/GlassCard";
 import { useConfirmDialog } from "@/src/hooks/use-confirm-dialog";
 import SwipeableRow from "@/src/components/SwipeableRow";
 import {
@@ -49,6 +52,8 @@ const CATEGORIES: {
 ];
 
 export default function GoalsScreen() {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   const router = useRouter();
   const [goals, setGoals] = useState<Goal[]>([]);
   const [editing, setEditing] = useState<Goal | null>(null);
@@ -89,14 +94,22 @@ export default function GoalsScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+    <View style={{ flex: 1 }}>
+      <ThemedBackground />
+      <SafeAreaView
+        style={[
+          styles.container,
+          theme.background.mode === "gradient" ? { backgroundColor: "transparent" } : { backgroundColor: theme.colors.surface },
+        ]}
+        edges={["top", "bottom"]}
+      >
       <View style={styles.header}>
         <Pressable
           testID="close-goals"
           onPress={() => router.back()}
           hitSlop={12}
         >
-          <Ionicons name="chevron-back" size={24} color={colors.onSurface} />
+          <Ionicons name="chevron-back" size={24} color={theme.colors.onSurface} />
         </Pressable>
         <Text style={styles.title}>Mes objectifs</Text>
         <Pressable
@@ -114,14 +127,14 @@ export default function GoalsScreen() {
           }
           hitSlop={12}
         >
-          <Ionicons name="add-circle" size={22} color={colors.brand} />
+          <Ionicons name="add-circle" size={22} color={theme.colors.brand} />
         </Pressable>
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll}>
         {goals.length === 0 ? (
           <View style={styles.empty}>
-            <Ionicons name="flag" size={40} color={colors.brand} />
+            <Ionicons name="flag" size={40} color={theme.colors.brand} />
             <Text style={styles.emptyTitle}>Aucun objectif</Text>
             <Text style={styles.emptyText}>
               Fixe-toi une cible : 20 tractions, 10 km, 12% de masse grasse, 100 séances…
@@ -169,7 +182,7 @@ export default function GoalsScreen() {
                     <Ionicons
                       name={GOAL_CATEGORY_ICON[g.category]}
                       size={18}
-                      color={done ? colors.success : colors.brand}
+                      color={done ? theme.colors.success : theme.colors.brand}
                     />
                   </View>
                   <View style={{ flex: 1 }}>
@@ -201,7 +214,7 @@ export default function GoalsScreen() {
                       styles.progressFill,
                       {
                         width: `${pct * 100}%`,
-                        backgroundColor: done ? colors.success : colors.brand,
+                        backgroundColor: done ? theme.colors.success : theme.colors.brand,
                       },
                     ]}
                   />
@@ -238,7 +251,8 @@ export default function GoalsScreen() {
         }}
       />
       {ConfirmModal}
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
@@ -253,6 +267,8 @@ function GoalEditorModal({
   onSave: (g: Goal) => void;
   onDelete: (id: string) => void;
 }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   const [draft, setDraft] = useState<Goal | null>(null);
 
   useState(() => {
@@ -273,7 +289,10 @@ function GoalEditorModal({
     >
       <View style={styles.sheetBackdrop}>
         <Pressable style={{ flex: 1 }} onPress={onClose} />
-        <View style={styles.sheet}>
+        <GlassCard
+          level="elevated"
+          style={[styles.sheet, theme.card.mode !== "glass" && { backgroundColor: theme.colors.surfaceSecondary }]}
+        >
           <KeyboardAvoidingView
             behavior={Platform.OS === "ios" ? "padding" : undefined}
           >
@@ -289,7 +308,7 @@ function GoalEditorModal({
               value={draft.title}
               onChangeText={(t) => setDraft({ ...draft, title: t })}
               placeholder="Ex: Faire 20 tractions"
-              placeholderTextColor={colors.onSurfaceTertiary}
+              placeholderTextColor={theme.colors.onSurfaceTertiary}
             />
 
             <Text style={styles.miniLabel}>Catégorie</Text>
@@ -316,7 +335,7 @@ function GoalEditorModal({
                     <Ionicons
                       name={GOAL_CATEGORY_ICON[c.key]}
                       size={12}
-                      color={active ? "#fff" : colors.brand}
+                      color={active ? "#fff" : theme.colors.brand}
                     />
                     <Text
                       style={[
@@ -355,7 +374,7 @@ function GoalEditorModal({
                   value={String(draft.targetValue)}
                   keyboardType="decimal-pad"
                   placeholder={catDef.placeholder}
-                  placeholderTextColor={colors.onSurfaceTertiary}
+                  placeholderTextColor={theme.colors.onSurfaceTertiary}
                   onChangeText={(t) =>
                     setDraft({
                       ...draft,
@@ -387,7 +406,7 @@ function GoalEditorModal({
                   style={styles.deleteBtn}
                   onPress={() => onDelete(goal.id)}
                 >
-                  <Ionicons name="trash" size={16} color={colors.error} />
+                  <Ionicons name="trash" size={16} color={theme.colors.error} />
                   <Text style={styles.deleteBtnText}>Supprimer</Text>
                 </Pressable>
               ) : (
@@ -402,7 +421,7 @@ function GoalEditorModal({
               </Pressable>
             </View>
           </KeyboardAvoidingView>
-        </View>
+        </GlassCard>
       </View>
     </Modal>
   );
@@ -478,7 +497,10 @@ function computeCurrentValue(
   }
 }
 
-const styles = StyleSheet.create({
+function buildStyles(theme: Theme) {
+  const { colors, radius } = theme;
+  const isGlass = theme.card.mode === "glass";
+  return StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.surface },
   header: {
     flexDirection: "row",
@@ -505,7 +527,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   ctaBtn: {
-    backgroundColor: colors.brand,
+    backgroundColor: isGlass ? withAlpha(colors.brand, 20) : colors.brand,
     paddingVertical: 14,
     paddingHorizontal: spacing.xl,
     borderRadius: radius.md,
@@ -627,7 +649,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  catChipActive: { backgroundColor: colors.brand, borderColor: colors.brand },
+  catChipActive: isGlass
+    ? { backgroundColor: withAlpha(colors.brand, 20), borderColor: withAlpha(colors.brand, 50) }
+    : { backgroundColor: colors.brand, borderColor: colors.brand },
   catChipText: {
     color: colors.onSurfaceSecondary,
     fontSize: 11,
@@ -653,10 +677,11 @@ const styles = StyleSheet.create({
   deleteBtnText: { color: colors.error, fontWeight: "700", fontSize: 13 },
   saveBtn: {
     flex: 1,
-    backgroundColor: colors.brand,
+    backgroundColor: isGlass ? withAlpha(colors.brand, 20) : colors.brand,
     padding: 14,
     borderRadius: radius.md,
     alignItems: "center",
   },
   saveBtnText: { color: "#fff", fontWeight: "800", letterSpacing: 1 },
-});
+  });
+}

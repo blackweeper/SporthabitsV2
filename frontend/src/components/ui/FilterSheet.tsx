@@ -1,6 +1,8 @@
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing } from "@/src/theme";
+import { spacing } from "@/src/theme";
+import { useTheme } from "@/src/themes";
+import GlassCard from "./GlassCard";
 
 /**
  * Generic collapsible filter panel — same Modal/backdrop/sheet pattern as
@@ -21,22 +23,26 @@ export default function FilterSheet({
   title?: string;
   children: React.ReactNode;
 }) {
+  const { theme } = useTheme();
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
       <View style={styles.backdrop}>
         <Pressable style={{ flex: 1 }} onPress={onClose} />
-        <View style={styles.sheet}>
-          <View style={styles.handle} />
+        <GlassCard
+          level="elevated"
+          style={[styles.sheet, theme.card.mode !== "glass" && { backgroundColor: theme.colors.surfaceSecondary }]}
+        >
+          <View style={[styles.handle, { backgroundColor: theme.colors.border }]} />
           <View style={styles.headerRow}>
-            <Text style={styles.title}>{title}</Text>
+            <Text style={[styles.title, { color: theme.colors.onSurface }]}>{title}</Text>
             <Pressable testID="filter-sheet-close" hitSlop={12} onPress={onClose}>
-              <Ionicons name="close" size={22} color={colors.onSurfaceTertiary} />
+              <Ionicons name="close" size={22} color={theme.colors.onSurfaceTertiary} />
             </Pressable>
           </View>
           <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
             {children}
           </ScrollView>
-        </View>
+        </GlassCard>
       </View>
     </Modal>
   );
@@ -44,9 +50,10 @@ export default function FilterSheet({
 
 /** Small numeric badge for the "Filtres" trigger button — 0 = no badge. */
 export function FilterCountBadge({ count }: { count: number }) {
+  const { theme } = useTheme();
   if (count <= 0) return null;
   return (
-    <View style={styles.countBadge}>
+    <View style={[styles.countBadge, { backgroundColor: theme.colors.brand }]}>
       <Text style={styles.countBadgeText}>{count}</Text>
     </View>
   );
@@ -59,7 +66,6 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   sheet: {
-    backgroundColor: colors.surfaceSecondary,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingTop: spacing.sm,
@@ -70,7 +76,6 @@ const styles = StyleSheet.create({
   handle: {
     width: 48,
     height: 5,
-    backgroundColor: colors.border,
     borderRadius: 3,
     alignSelf: "center",
     marginBottom: spacing.sm,
@@ -81,7 +86,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: spacing.sm,
   },
-  title: { color: colors.onSurface, fontSize: 17, fontWeight: "800" },
+  title: { fontSize: 17, fontWeight: "800" },
   content: { gap: spacing.xs, paddingBottom: spacing.md },
   countBadge: {
     position: "absolute",
@@ -91,7 +96,6 @@ const styles = StyleSheet.create({
     height: 16,
     borderRadius: 8,
     paddingHorizontal: 4,
-    backgroundColor: colors.brand,
     alignItems: "center",
     justifyContent: "center",
   },

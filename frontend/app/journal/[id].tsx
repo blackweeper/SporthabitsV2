@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -14,7 +14,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import { colors, radius, spacing } from "@/src/theme";
+import { spacing, withAlpha } from "@/src/theme";
+import { Theme, useTheme } from "@/src/themes";
+import ThemedBackground from "@/src/themes/ThemedBackground";
+import GlassCard from "@/src/components/ui/GlassCard";
 import {
   CardioActivity,
   CARDIO_ACTIVITY_EMOJI,
@@ -43,6 +46,8 @@ const ACTIVITIES: CardioActivity[] = [
 ];
 
 export default function JournalScreen() {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const [session, setSession] = useState<WorkoutSession | null>(null);
@@ -157,9 +162,12 @@ export default function JournalScreen() {
 
   if (!session) {
     return (
-      <SafeAreaView style={styles.container}>
-        <Text style={styles.loading}>Chargement…</Text>
-      </SafeAreaView>
+      <View style={{ flex: 1 }}>
+        <ThemedBackground />
+        <SafeAreaView style={[styles.container, theme.background.mode === "gradient" && { backgroundColor: "transparent" }]}>
+          <Text style={styles.loading}>Chargement…</Text>
+        </SafeAreaView>
+      </View>
     );
   }
 
@@ -168,10 +176,18 @@ export default function JournalScreen() {
   const showCardio = ["cardio", "mixte", "hiit"].includes(session.planType);
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+    <View style={{ flex: 1 }}>
+      <ThemedBackground />
+      <SafeAreaView
+        style={[
+          styles.container,
+          theme.background.mode === "gradient" ? { backgroundColor: "transparent" } : { backgroundColor: theme.colors.surface },
+        ]}
+        edges={["top", "bottom"]}
+      >
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} hitSlop={12}>
-          <Ionicons name="chevron-back" size={24} color={colors.onSurface} />
+          <Ionicons name="chevron-back" size={24} color={theme.colors.onSurface} />
         </Pressable>
         <Text style={styles.title}>Journal & cardio</Text>
         <Pressable testID="save-journal" onPress={save} hitSlop={12}>
@@ -316,7 +332,7 @@ export default function JournalScreen() {
               value={j.comment || ""}
               onChangeText={(t) => patchJournal({ comment: t.trim() ? t : null })}
               placeholder="Séance intense, bon feeling…"
-              placeholderTextColor={colors.onSurfaceTertiary}
+              placeholderTextColor={theme.colors.onSurfaceTertiary}
               multiline
             />
           </View>
@@ -334,7 +350,10 @@ export default function JournalScreen() {
         <View style={styles.modalBackdrop}>
           <Pressable style={{ flex: 1 }} onPress={() => setManualFor(null)} />
           <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}>
-            <View style={styles.modalCard}>
+            <GlassCard
+              level="elevated"
+              style={[styles.modalCard, theme.card.mode !== "glass" && { backgroundColor: theme.colors.surfaceSecondary, borderColor: theme.colors.border }]}
+            >
               <Text style={styles.modalTitle}>
                 {manualFor === "before" ? "Avant la séance" : "Après la séance"}
               </Text>
@@ -344,7 +363,7 @@ export default function JournalScreen() {
                 value={manualLabel}
                 onChangeText={setManualLabel}
                 placeholder="Ex: Tartines + fromage blanc"
-                placeholderTextColor={colors.onSurfaceTertiary}
+                placeholderTextColor={theme.colors.onSurfaceTertiary}
                 autoFocus
               />
               <TextInput
@@ -354,7 +373,7 @@ export default function JournalScreen() {
                 onChangeText={setManualKcal}
                 keyboardType="number-pad"
                 placeholder="Calories (ex: 300)"
-                placeholderTextColor={colors.onSurfaceTertiary}
+                placeholderTextColor={theme.colors.onSurfaceTertiary}
               />
               <View style={styles.modalActions}>
                 <Pressable onPress={() => setManualFor(null)} style={styles.modalBtnGhost}>
@@ -368,12 +387,13 @@ export default function JournalScreen() {
                   <Text style={styles.modalBtnText}>Ajouter</Text>
                 </Pressable>
               </View>
-            </View>
+            </GlassCard>
           </KeyboardAvoidingView>
           <Pressable style={{ flex: 1 }} onPress={() => setManualFor(null)} />
         </View>
       </Modal>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
@@ -394,6 +414,8 @@ function MealSection({
   onRemove: (entry: MealLogEntry) => void;
   onAddManual: () => void;
 }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   const total = entries.reduce((a, e) => a + e.kcal, 0);
   const acceptedLabels = new Set(
     entries.filter((e) => e.source === "suggestion").map((e) => e.label),
@@ -446,7 +468,7 @@ function MealSection({
                 hitSlop={8}
                 onPress={() => onRemove(e)}
               >
-                <Ionicons name="close-circle" size={16} color={colors.onSurfaceTertiary} />
+                <Ionicons name="close-circle" size={16} color={theme.colors.onSurfaceTertiary} />
               </Pressable>
             </View>
           ))}
@@ -468,10 +490,12 @@ function Rating({
   value: number | null;
   onChange: (v: number | null) => void;
 }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   return (
     <View style={styles.ratingRow}>
       <View style={styles.ratingLabelRow}>
-        <Ionicons name={icon} size={14} color={colors.brand} />
+        <Ionicons name={icon} size={14} color={theme.colors.brand} />
         <Text style={styles.ratingLabel}>{label}</Text>
         <Text style={styles.ratingValue}>
           {value != null ? `${value}/10` : "—"}
@@ -502,6 +526,8 @@ function NumField({
   onChange: (v: number | null) => void;
   full?: boolean;
 }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   return (
     <View style={[styles.numField, full && { width: "100%" }]}>
       <Text style={styles.miniLabel}>{label}</Text>
@@ -515,13 +541,16 @@ function NumField({
         }}
         keyboardType="decimal-pad"
         placeholder="—"
-        placeholderTextColor={colors.onSurfaceTertiary}
+        placeholderTextColor={theme.colors.onSurfaceTertiary}
       />
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+function buildStyles(theme: Theme) {
+  const { colors, radius } = theme;
+  const isGlass = theme.card.mode === "glass";
+  return StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.surface },
   loading: {
     color: colors.onSurfaceTertiary,
@@ -572,7 +601,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  actChipActive: { backgroundColor: colors.brand, borderColor: colors.brand },
+  actChipActive: isGlass
+    ? { backgroundColor: withAlpha(colors.brand, 20), borderColor: withAlpha(colors.brand, 50) }
+    : { backgroundColor: colors.brand, borderColor: colors.brand },
   actEmoji: { fontSize: 14 },
   actLabel: {
     color: colors.onSurfaceSecondary,
@@ -637,7 +668,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   dotActive: {
-    backgroundColor: colors.brand,
+    backgroundColor: isGlass ? withAlpha(colors.brand, 20) : colors.brand,
     borderColor: colors.brand,
   },
   mealSection: { gap: 6 },
@@ -653,7 +684,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  mealChipActive: { backgroundColor: colors.brand, borderColor: colors.brand },
+  mealChipActive: isGlass
+    ? { backgroundColor: withAlpha(colors.brand, 20), borderColor: withAlpha(colors.brand, 50) }
+    : { backgroundColor: colors.brand, borderColor: colors.brand },
   mealChipEmoji: { fontSize: 13 },
   mealChipText: {
     color: colors.onSurface,
@@ -703,7 +736,7 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: radius.md,
     alignItems: "center",
-    backgroundColor: colors.brand,
+    backgroundColor: isGlass ? withAlpha(colors.brand, 20) : colors.brand,
   },
   modalBtnText: { color: "#fff", fontWeight: "800", letterSpacing: 0.8 },
   modalBtnGhost: {
@@ -715,4 +748,5 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   modalBtnGhostText: { color: colors.onSurfaceSecondary, fontWeight: "800" },
-});
+  });
+}

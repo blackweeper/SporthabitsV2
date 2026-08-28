@@ -1,7 +1,10 @@
 import { useMemo, useState } from "react";
 import { View, Text, StyleSheet, Modal, Pressable, TextInput, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing, withAlpha } from "@/src/theme";
+import { coloredShadow, spacing, withAlpha } from "@/src/theme";
+import { useTheme } from "@/src/themes";
+import { Theme } from "@/src/themes/types";
+import GlassCard from "@/src/components/ui/GlassCard";
 import { ExerciseRecord } from "@/src/utils/exercise-records";
 import { normalize, similarity } from "@/src/utils/exercise-library-merge";
 import { matchScoreBand } from "@/src/utils/exercise-matching";
@@ -11,11 +14,11 @@ import { EXERCISE_EQUIPMENT_LABEL, ExerciseEquipment } from "@/src/utils/exercis
 
 const CATEGORY_OPTIONS = Object.keys(EXERCISE_RECORD_CATEGORY_LABEL) as ExerciseRecordCategory[];
 
-function bandColor(band: ReturnType<typeof matchScoreBand>): string {
-  if (band.color === "success") return colors.success;
-  if (band.color === "warning") return colors.warning;
-  if (band.color === "info") return colors.info;
-  return colors.onSurfaceTertiary;
+function bandColor(theme: Theme, band: ReturnType<typeof matchScoreBand>): string {
+  if (band.color === "success") return theme.colors.success;
+  if (band.color === "warning") return theme.colors.warning;
+  if (band.color === "info") return theme.colors.info;
+  return theme.colors.onSurfaceTertiary;
 }
 
 /**
@@ -39,6 +42,7 @@ export default function ExerciseLinkModal({
   onPickRecord: (record: ExerciseRecord) => void;
   onCreateRecord: (nameFr: string, category: ExerciseRecordCategory, equipment: ExerciseEquipment | null) => void;
 }) {
+  const { theme } = useTheme();
   const [query, setQuery] = useState(rawName);
   const [category, setCategory] = useState<ExerciseRecordCategory>(() => guessCategory(rawName));
   const [equipment, setEquipment] = useState<ExerciseEquipment | null>(() => guessEquipment(rawName));
@@ -55,94 +59,150 @@ export default function ExerciseLinkModal({
 
   return (
     <Modal visible animationType="slide" transparent onRequestClose={onClose}>
-      <KeyboardAvoidingView style={styles.modalBackdrop} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+      <KeyboardAvoidingView
+        style={[styles.modalBackdrop, { backgroundColor: theme.colors.overlay }]}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
-        <View style={styles.modalSheet}>
-          <View style={styles.modalHandle} />
-          <Text style={styles.modalTitle}>Lier «{rawName}»</Text>
+        <GlassCard
+          level="elevated"
+          style={[
+            styles.modalSheet,
+            { borderTopLeftRadius: theme.radius.lg, borderTopRightRadius: theme.radius.lg },
+            theme.card.mode !== "glass" && { backgroundColor: theme.colors.surfaceSecondary },
+          ]}
+        >
+          <View style={[styles.modalHandle, { backgroundColor: theme.colors.border }]} />
+          <Text style={[styles.modalTitle, { color: theme.colors.onSurface }]}>Lier «{rawName}»</Text>
           <TextInput
             testID="exercise-link-search-input"
-            style={styles.modalInput}
+            style={[
+              styles.modalInput,
+              {
+                backgroundColor: theme.colors.surfaceTertiary,
+                borderRadius: theme.radius.md,
+                color: theme.colors.onSurface,
+                borderColor: theme.colors.border,
+              },
+            ]}
             value={query}
             onChangeText={setQuery}
             placeholder="Nom de l'exercice"
-            placeholderTextColor={colors.onSurfaceTertiary}
+            placeholderTextColor={theme.colors.onSurfaceTertiary}
             autoFocus
           />
           <ScrollView style={{ maxHeight: 220 }} keyboardShouldPersistTaps="handled">
             {results.map(({ record, score }) => {
               const band = matchScoreBand(score);
-              const color = bandColor(band);
+              const color = bandColor(theme, band);
               return (
                 <Pressable
                   key={record.id}
                   testID={`exercise-link-pick-${record.id}`}
-                  style={styles.modalRow}
+                  style={[styles.modalRow, { borderBottomColor: theme.colors.border }]}
                   onPress={() => onPickRecord(record)}
                 >
-                  <Text style={styles.modalRowName} numberOfLines={1}>
+                  <Text style={[styles.modalRowName, { color: theme.colors.onSurface }]} numberOfLines={1}>
                     {record.nameFr}
                   </Text>
-                  <View style={[styles.scoreBadge, { backgroundColor: withAlpha(color, 18) }]}>
+                  <View
+                    style={[
+                      styles.scoreBadge,
+                      { borderRadius: theme.radius.pill, backgroundColor: withAlpha(color, 18) },
+                    ]}
+                  >
                     <Text style={[styles.scoreBadgeText, { color }]}>{Math.round(score * 100)}%</Text>
                   </View>
                 </Pressable>
               );
             })}
             {results.length === 0 && (
-              <Text style={styles.modalEmpty}>Aucun résultat — crée-le directement.</Text>
+              <Text style={[styles.modalEmpty, { color: theme.colors.onSurfaceTertiary }]}>
+                Aucun résultat — crée-le directement.
+              </Text>
             )}
           </ScrollView>
 
-          <Text style={styles.modalSectionLabel}>Nouvel exercice — catégorie</Text>
+          <Text style={[styles.modalSectionLabel, { color: theme.colors.onSurfaceTertiary }]}>
+            Nouvel exercice — catégorie
+          </Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryRow}>
-            {CATEGORY_OPTIONS.map((c) => (
-              <Pressable
-                key={c}
-                testID={`exercise-link-category-${c}`}
-                style={[styles.categoryChip, c === category && styles.categoryChipActive]}
-                onPress={() => setCategory(c)}
-              >
-                <Text style={[styles.categoryChipText, c === category && styles.categoryChipTextActive]}>
-                  {EXERCISE_RECORD_CATEGORY_LABEL[c]}
-                </Text>
-              </Pressable>
-            ))}
+            {CATEGORY_OPTIONS.map((c) => {
+              const active = c === category;
+              return (
+                <Pressable
+                  key={c}
+                  testID={`exercise-link-category-${c}`}
+                  style={[
+                    styles.categoryChip,
+                    {
+                      borderRadius: theme.radius.pill,
+                      backgroundColor: active ? theme.colors.brand : theme.colors.surfaceTertiary,
+                      borderColor: active ? theme.colors.brand : theme.colors.border,
+                    },
+                  ]}
+                  onPress={() => setCategory(c)}
+                >
+                  <Text
+                    style={[
+                      styles.categoryChipText,
+                      { color: active ? "#fff" : theme.colors.onSurfaceSecondary },
+                    ]}
+                  >
+                    {EXERCISE_RECORD_CATEGORY_LABEL[c]}
+                  </Text>
+                </Pressable>
+              );
+            })}
           </ScrollView>
 
           {equipment && (
-            <View style={styles.equipmentHint}>
-              <Ionicons name="construct-outline" size={12} color={colors.onSurfaceSecondary} />
-              <Text style={styles.equipmentHintText}>
+            <View style={[styles.equipmentHint, { backgroundColor: theme.colors.surfaceTertiary, borderRadius: theme.radius.md }]}>
+              <Ionicons name="construct-outline" size={12} color={theme.colors.onSurfaceSecondary} />
+              <Text style={[styles.equipmentHintText, { color: theme.colors.onSurfaceSecondary }]}>
                 Équipement détecté : {EXERCISE_EQUIPMENT_LABEL[equipment]}
               </Text>
               <Pressable testID="exercise-link-equipment-clear" onPress={() => setEquipment(null)} hitSlop={8}>
-                <Ionicons name="close-circle" size={14} color={colors.onSurfaceTertiary} />
+                <Ionicons name="close-circle" size={14} color={theme.colors.onSurfaceTertiary} />
               </Pressable>
             </View>
           )}
 
           <Pressable
             testID="exercise-link-create"
-            style={[styles.modalCreateBtn, !query.trim() && { opacity: 0.5 }]}
+            style={[
+              styles.modalCreateBtn,
+              { borderRadius: theme.radius.md },
+              theme.card.mode === "glass"
+                ? [
+                    { backgroundColor: withAlpha(theme.colors.brand, 18), borderWidth: 1, borderColor: withAlpha(theme.colors.brand, 50) },
+                    coloredShadow(theme.colors.brand, { offsetY: 0, opacity: 0.3, radius: 10, elevation: 3 }),
+                  ]
+                : { backgroundColor: theme.colors.brand },
+              !query.trim() && { opacity: 0.5 },
+            ]}
             disabled={!query.trim()}
             onPress={() => onCreateRecord(query.trim(), category, equipment)}
           >
-            <Ionicons name="add-circle" size={16} color="#fff" />
-            <Text style={styles.modalCreateBtnText}>Créer «{query.trim()}»</Text>
+            <Ionicons name="add-circle" size={16} color={theme.card.mode === "glass" ? theme.colors.brand : "#fff"} />
+            <Text
+              style={[
+                styles.modalCreateBtnText,
+                theme.card.mode === "glass" && { color: theme.colors.brand },
+              ]}
+            >
+              Créer «{query.trim()}»
+            </Text>
           </Pressable>
-        </View>
+        </GlassCard>
       </KeyboardAvoidingView>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  modalBackdrop: { flex: 1, justifyContent: "flex-end", backgroundColor: colors.overlay },
+  modalBackdrop: { flex: 1, justifyContent: "flex-end" },
   modalSheet: {
-    backgroundColor: colors.surfaceSecondary,
-    borderTopLeftRadius: radius.lg,
-    borderTopRightRadius: radius.lg,
     padding: spacing.lg,
     gap: spacing.sm,
   },
@@ -150,18 +210,13 @@ const styles = StyleSheet.create({
     width: 48,
     height: 5,
     borderRadius: 3,
-    backgroundColor: colors.border,
     alignSelf: "center",
     marginBottom: spacing.sm,
   },
-  modalTitle: { color: colors.onSurface, fontWeight: "800", fontSize: 15 },
+  modalTitle: { fontWeight: "800", fontSize: 15 },
   modalInput: {
-    backgroundColor: colors.surfaceTertiary,
-    borderRadius: radius.md,
     padding: spacing.md,
-    color: colors.onSurface,
     borderWidth: 1,
-    borderColor: colors.border,
     fontSize: 14,
   },
   modalRow: {
@@ -170,14 +225,12 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
   },
-  modalRowName: { flex: 1, color: colors.onSurface, fontSize: 13, fontWeight: "600" },
-  scoreBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: radius.pill },
+  modalRowName: { flex: 1, fontSize: 13, fontWeight: "600" },
+  scoreBadge: { paddingHorizontal: 8, paddingVertical: 3 },
   scoreBadgeText: { fontSize: 10, fontWeight: "800" },
-  modalEmpty: { color: colors.onSurfaceTertiary, fontSize: 12, textAlign: "center", padding: spacing.md },
+  modalEmpty: { fontSize: 12, textAlign: "center", padding: spacing.md },
   modalSectionLabel: {
-    color: colors.onSurfaceTertiary,
     fontSize: 10,
     fontWeight: "800",
     letterSpacing: 0.6,
@@ -187,31 +240,22 @@ const styles = StyleSheet.create({
   categoryChip: {
     paddingHorizontal: 12,
     paddingVertical: 7,
-    borderRadius: radius.pill,
-    backgroundColor: colors.surfaceTertiary,
     borderWidth: 1,
-    borderColor: colors.border,
   },
-  categoryChipActive: { backgroundColor: colors.brand, borderColor: colors.brand },
-  categoryChipText: { color: colors.onSurfaceSecondary, fontSize: 11, fontWeight: "700" },
-  categoryChipTextActive: { color: "#fff" },
+  categoryChipText: { fontSize: 11, fontWeight: "700" },
   equipmentHint: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    backgroundColor: colors.surfaceTertiary,
-    borderRadius: radius.md,
     paddingHorizontal: 10,
     paddingVertical: 7,
   },
-  equipmentHintText: { flex: 1, color: colors.onSurfaceSecondary, fontSize: 11, fontWeight: "600" },
+  equipmentHintText: { flex: 1, fontSize: 11, fontWeight: "600" },
   modalCreateBtn: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 8,
-    backgroundColor: colors.brand,
-    borderRadius: radius.md,
     padding: spacing.md,
     marginTop: spacing.sm,
   },

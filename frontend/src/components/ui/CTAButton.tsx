@@ -1,6 +1,7 @@
 import { StyleSheet, Text } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing } from "@/src/theme";
+import { spacing } from "@/src/theme";
+import { useTheme } from "@/src/themes";
 import PressableScale from "./PressableScale";
 
 /**
@@ -11,7 +12,7 @@ import PressableScale from "./PressableScale";
 export default function CTAButton({
   label,
   variant,
-  tint = colors.brand,
+  tint,
   textColor,
   icon,
   onPress,
@@ -28,15 +29,20 @@ export default function CTAButton({
   onPress: () => void;
   testID?: string;
 }) {
+  const { theme } = useTheme();
+  const resolvedTint = tint ?? theme.colors.brand;
   const isPrimary = variant === "primary";
-  const fg = isPrimary ? textColor ?? "#fff" : tint;
+  const fg = isPrimary ? textColor ?? "#fff" : resolvedTint;
   return (
     <PressableScale
       testID={testID}
       onPress={onPress}
       style={[
         styles.base,
-        isPrimary ? { backgroundColor: tint } : { borderWidth: 1.5, borderColor: tint },
+        { borderRadius: theme.radius.md },
+        isPrimary
+          ? { backgroundColor: resolvedTint }
+          : { borderWidth: 1.5, borderColor: resolvedTint },
       ]}
     >
       {icon && <Ionicons name={icon} size={16} color={fg} />}
@@ -53,7 +59,6 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.lg,
-    borderRadius: radius.md,
   },
   text: { fontWeight: "800", fontSize: 13 },
 });

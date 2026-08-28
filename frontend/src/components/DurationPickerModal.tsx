@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { View, Text, StyleSheet, Pressable, Modal } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing } from "@/src/theme";
+import { coloredShadow, spacing, withAlpha } from "@/src/theme";
+import { useTheme } from "@/src/themes";
+import GlassCard from "@/src/components/ui/GlassCard";
 
 function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n));
@@ -29,6 +31,7 @@ export default function DurationPickerModal({
   presetsSeconds?: number[];
   maxMinutes?: number;
 }) {
+  const { theme } = useTheme();
   const [minutes, setMinutes] = useState(Math.floor(valueSeconds / 60));
   const [seconds, setSeconds] = useState(valueSeconds % 60);
 
@@ -66,13 +69,20 @@ export default function DurationPickerModal({
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.backdrop}>
         <Pressable style={{ flex: 1 }} onPress={onClose} />
-        <View style={styles.card}>
-          <Text style={styles.title}>{title}</Text>
+        <GlassCard
+          level="elevated"
+          style={[
+            styles.card,
+            { borderRadius: theme.radius.lg },
+            theme.card.mode !== "glass" && { backgroundColor: theme.colors.surfaceSecondary, borderColor: theme.colors.border },
+          ]}
+        >
+          <Text style={[styles.title, { color: theme.colors.onSurface }]}>{title}</Text>
 
           <View style={styles.wheelsRow}>
-            <Wheel label="MIN" value={minutes} onBump={bumpMinutes} />
-            <Text style={styles.colon}>:</Text>
-            <Wheel label="SEC" value={seconds} onBump={bumpSeconds} step={15} />
+            <Wheel label="MIN" value={minutes} onBump={bumpMinutes} accentColor={theme.colors.brand} valueColor={theme.colors.onSurface} labelColor={theme.colors.onSurfaceTertiary} />
+            <Text style={[styles.colon, { color: theme.colors.onSurfaceTertiary }]}>:</Text>
+            <Wheel label="SEC" value={seconds} onBump={bumpSeconds} step={15} accentColor={theme.colors.brand} valueColor={theme.colors.onSurface} labelColor={theme.colors.onSurfaceTertiary} />
           </View>
 
           <View style={styles.presetsRow}>
@@ -80,10 +90,17 @@ export default function DurationPickerModal({
               <Pressable
                 key={p}
                 testID={`duration-preset-${p}`}
-                style={styles.presetChip}
+                style={[
+                  styles.presetChip,
+                  {
+                    borderRadius: theme.radius.pill,
+                    backgroundColor: theme.colors.surfaceTertiary,
+                    borderColor: theme.colors.border,
+                  },
+                ]}
                 onPress={() => applyPreset(p)}
               >
-                <Text style={styles.presetChipText}>{formatShort(p)}</Text>
+                <Text style={[styles.presetChipText, { color: theme.colors.onSurface }]}>{formatShort(p)}</Text>
               </Pressable>
             ))}
           </View>
@@ -91,20 +108,36 @@ export default function DurationPickerModal({
           <View style={styles.actionsRow}>
             <Pressable
               testID="duration-cancel"
-              style={styles.btnGhost}
+              style={[styles.btnGhost, { borderRadius: theme.radius.md, borderColor: theme.colors.border }]}
               onPress={onClose}
             >
-              <Text style={styles.btnGhostText}>Annuler</Text>
+              <Text style={[styles.btnGhostText, { color: theme.colors.onSurfaceSecondary }]}>Annuler</Text>
             </Pressable>
             <Pressable
               testID="duration-confirm"
-              style={styles.btnPrimary}
+              style={[
+                styles.btnPrimary,
+                { borderRadius: theme.radius.md },
+                theme.card.mode === "glass"
+                  ? [
+                      { backgroundColor: withAlpha(theme.colors.brand, 18), borderWidth: 1, borderColor: withAlpha(theme.colors.brand, 50) },
+                      coloredShadow(theme.colors.brand, { offsetY: 0, opacity: 0.3, radius: 10, elevation: 3 }),
+                    ]
+                  : { backgroundColor: theme.colors.brand },
+              ]}
               onPress={confirm}
             >
-              <Text style={styles.btnPrimaryText}>Valider</Text>
+              <Text
+                style={[
+                  styles.btnPrimaryText,
+                  theme.card.mode === "glass" && { color: theme.colors.brand },
+                ]}
+              >
+                Valider
+              </Text>
             </Pressable>
           </View>
-        </View>
+        </GlassCard>
         <Pressable style={{ flex: 1 }} onPress={onClose} />
       </View>
     </Modal>
@@ -116,11 +149,17 @@ function Wheel({
   value,
   onBump,
   step = 1,
+  accentColor,
+  valueColor,
+  labelColor,
 }: {
   label: string;
   value: number;
   onBump: (delta: number) => void;
   step?: number;
+  accentColor: string;
+  valueColor: string;
+  labelColor: string;
 }) {
   return (
     <View style={styles.wheel}>
@@ -130,18 +169,18 @@ function Wheel({
         onPress={() => onBump(step)}
         hitSlop={8}
       >
-        <Ionicons name="chevron-up" size={20} color={colors.brand} />
+        <Ionicons name="chevron-up" size={20} color={accentColor} />
       </Pressable>
-      <Text style={styles.wheelValue}>{String(value).padStart(2, "0")}</Text>
+      <Text style={[styles.wheelValue, { color: valueColor }]}>{String(value).padStart(2, "0")}</Text>
       <Pressable
         testID={`wheel-${label}-down`}
         style={styles.wheelBtn}
         onPress={() => onBump(-step)}
         hitSlop={8}
       >
-        <Ionicons name="chevron-down" size={20} color={colors.brand} />
+        <Ionicons name="chevron-down" size={20} color={accentColor} />
       </Pressable>
-      <Text style={styles.wheelLabel}>{label}</Text>
+      <Text style={[styles.wheelLabel, { color: labelColor }]}>{label}</Text>
     </View>
   );
 }
@@ -161,15 +200,11 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
   },
   card: {
-    backgroundColor: colors.surfaceSecondary,
-    borderRadius: radius.lg,
     borderWidth: 1,
-    borderColor: colors.border,
     padding: spacing.lg,
     gap: spacing.md,
   },
   title: {
-    color: colors.onSurface,
     fontWeight: "800",
     fontSize: 15,
     textAlign: "center",
@@ -183,21 +218,18 @@ const styles = StyleSheet.create({
   wheel: { alignItems: "center", gap: 2 },
   wheelBtn: { padding: 4 },
   wheelValue: {
-    color: colors.onSurface,
     fontSize: 40,
     fontWeight: "800",
     minWidth: 64,
     textAlign: "center",
   },
   wheelLabel: {
-    color: colors.onSurfaceTertiary,
     fontSize: 10,
     fontWeight: "700",
     letterSpacing: 1,
     marginTop: 2,
   },
   colon: {
-    color: colors.onSurfaceTertiary,
     fontSize: 32,
     fontWeight: "800",
     marginTop: -14,
@@ -211,13 +243,9 @@ const styles = StyleSheet.create({
   presetChip: {
     paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: radius.pill,
-    backgroundColor: colors.surfaceTertiary,
     borderWidth: 1,
-    borderColor: colors.border,
   },
   presetChipText: {
-    color: colors.onSurface,
     fontWeight: "700",
     fontSize: 12,
   },
@@ -229,18 +257,14 @@ const styles = StyleSheet.create({
   btnGhost: {
     flex: 1,
     padding: 14,
-    borderRadius: radius.md,
     alignItems: "center",
     borderWidth: 1,
-    borderColor: colors.border,
   },
-  btnGhostText: { color: colors.onSurfaceSecondary, fontWeight: "800" },
+  btnGhostText: { fontWeight: "800" },
   btnPrimary: {
     flex: 1,
     padding: 14,
-    borderRadius: radius.md,
     alignItems: "center",
-    backgroundColor: colors.brand,
   },
   btnPrimaryText: { color: "#fff", fontWeight: "800" },
 });

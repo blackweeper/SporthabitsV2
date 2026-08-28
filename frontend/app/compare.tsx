@@ -12,10 +12,15 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, radius, spacing } from "@/src/theme";
+import { spacing, withAlpha } from "@/src/theme";
+import { Theme, useTheme } from "@/src/themes";
+import ThemedBackground from "@/src/themes/ThemedBackground";
+import GlassCard from "@/src/components/ui/GlassCard";
 import { getMeasurements, Measurement } from "@/src/utils/gym-storage";
 
 export default function CompareScreen() {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   const router = useRouter();
   const [all, setAll] = useState<Measurement[]>([]);
   const [beforeId, setBeforeId] = useState<string | null>(null);
@@ -69,14 +74,22 @@ export default function CompareScreen() {
   }, [before, after]);
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+    <View style={{ flex: 1 }}>
+      <ThemedBackground />
+      <SafeAreaView
+        style={[
+          styles.container,
+          theme.background.mode === "gradient" ? { backgroundColor: "transparent" } : { backgroundColor: theme.colors.surface },
+        ]}
+        edges={["top", "bottom"]}
+      >
       <View style={styles.header}>
         <Pressable
           testID="close-compare"
           onPress={() => router.back()}
           hitSlop={12}
         >
-          <Ionicons name="chevron-back" size={24} color={colors.onSurface} />
+          <Ionicons name="chevron-back" size={24} color={theme.colors.onSurface} />
         </Pressable>
         <Text style={styles.title}>Avant / Après</Text>
         <Pressable
@@ -89,7 +102,7 @@ export default function CompareScreen() {
             name="swap-horizontal"
             size={22}
             color={
-              before && after ? colors.brand : colors.onSurfaceTertiary
+              before && after ? theme.colors.brand : theme.colors.onSurfaceTertiary
             }
           />
         </Pressable>
@@ -97,7 +110,7 @@ export default function CompareScreen() {
 
       {all.length < 1 ? (
         <View style={styles.empty}>
-          <Ionicons name="images" size={40} color={colors.onSurfaceTertiary} />
+          <Ionicons name="images" size={40} color={theme.colors.onSurfaceTertiary} />
           <Text style={styles.emptyText}>
             Ajoute au moins une mesure avec photo dans l&apos;onglet Corps.
           </Text>
@@ -120,7 +133,7 @@ export default function CompareScreen() {
               <Ionicons
                 name="swap-horizontal"
                 size={13}
-                color={mode === "compare" ? "#fff" : colors.onSurfaceTertiary}
+                color={mode === "compare" ? "#fff" : theme.colors.onSurfaceTertiary}
               />
               <Text
                 style={[
@@ -142,7 +155,7 @@ export default function CompareScreen() {
               <Ionicons
                 name="grid"
                 size={13}
-                color={mode === "gallery" ? "#fff" : colors.onSurfaceTertiary}
+                color={mode === "gallery" ? "#fff" : theme.colors.onSurfaceTertiary}
               />
               <Text
                 style={[
@@ -159,7 +172,7 @@ export default function CompareScreen() {
             <GalleryView measurements={all} />
           ) : all.length < 2 ? (
             <View style={styles.empty}>
-              <Ionicons name="images" size={40} color={colors.onSurfaceTertiary} />
+              <Ionicons name="images" size={40} color={theme.colors.onSurfaceTertiary} />
               <Text style={styles.emptyText}>
                 Ajoute au moins 2 mesures avec photo pour comparer.
               </Text>
@@ -193,7 +206,7 @@ export default function CompareScreen() {
           {before && after && (
             <View style={styles.deltaCard}>
               <View style={styles.deltaHeader}>
-                <Ionicons name="calendar" size={14} color={colors.brand} />
+                <Ionicons name="calendar" size={14} color={theme.colors.brand} />
                 <Text style={styles.deltaHeaderText}>
                   {daysBetween} jour{daysBetween > 1 ? "s" : ""} d&apos;écart
                 </Text>
@@ -247,7 +260,10 @@ export default function CompareScreen() {
       >
         <View style={styles.pickerBackdrop}>
           <Pressable style={{ flex: 1 }} onPress={() => setPicker(null)} />
-          <View style={styles.pickerSheet}>
+          <GlassCard
+            level="elevated"
+            style={[styles.pickerSheet, theme.card.mode !== "glass" && { backgroundColor: theme.colors.surfaceSecondary }]}
+          >
             <View style={styles.sheetHandle} />
             <Text style={styles.pickerTitle}>
               Choisir la photo {picker === "before" ? "AVANT" : "APRÈS"}
@@ -288,14 +304,17 @@ export default function CompareScreen() {
                 );
               })}
             </ScrollView>
-          </View>
+          </GlassCard>
         </View>
       </Modal>
-    </SafeAreaView>
+      </SafeAreaView>
+    </View>
   );
 }
 
 function GalleryView({ measurements }: { measurements: Measurement[] }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   // Sort chronologically ASCending — oldest first
   const chrono = [...measurements].sort(
     (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
@@ -345,6 +364,8 @@ function PhotoColumn({
   onPick: () => void;
   testIDPrefix: string;
 }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   return (
     <View style={styles.photoCol}>
       <Text style={styles.photoLabel}>{label}</Text>
@@ -352,12 +373,12 @@ function PhotoColumn({
         <Ionicons
           name="calendar"
           size={11}
-          color={measurement ? colors.brand : colors.onSurfaceTertiary}
+          color={measurement ? theme.colors.brand : theme.colors.onSurfaceTertiary}
         />
         <Text
           style={[
             styles.photoDateAboveText,
-            !measurement && { color: colors.onSurfaceTertiary },
+            !measurement && { color: theme.colors.onSurfaceTertiary },
           ]}
         >
           {measurement ? formatShort(measurement.date) : "—"}
@@ -380,7 +401,7 @@ function PhotoColumn({
             <Ionicons
               name="add-circle"
               size={30}
-              color={colors.onSurfaceTertiary}
+              color={theme.colors.onSurfaceTertiary}
             />
             <Text style={styles.photoEmptyText}>Choisir</Text>
           </View>
@@ -412,16 +433,18 @@ function DeltaRow({
   lowerBetter?: boolean;
   testID?: string;
 }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
   if (a == null || b == null) return null;
   const diff = b - a;
   const positive = diff > 0;
   const isImprovement = lowerBetter ? diff < 0 : diff > 0;
   const color =
     diff === 0
-      ? colors.onSurfaceTertiary
+      ? theme.colors.onSurfaceTertiary
       : isImprovement
-        ? colors.success
-        : colors.error;
+        ? theme.colors.success
+        : theme.colors.error;
   return (
     <View style={styles.deltaRow} testID={testID}>
       <Text style={styles.deltaLabel}>{label}</Text>
@@ -433,7 +456,7 @@ function DeltaRow({
         <Ionicons
           name="arrow-forward"
           size={12}
-          color={colors.onSurfaceTertiary}
+          color={theme.colors.onSurfaceTertiary}
         />
         <Text style={styles.deltaVal}>
           {b}
@@ -471,7 +494,10 @@ function formatShort(iso: string) {
 
 const PHOTO_H = Math.round(Dimensions.get("window").height * 0.42);
 
-const styles = StyleSheet.create({
+function buildStyles(theme: Theme) {
+  const { colors, radius } = theme;
+  const isGlass = theme.card.mode === "glass";
+  return StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.surface },
   header: {
     flexDirection: "row",
@@ -514,7 +540,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: radius.pill,
   },
-  modeBtnActive: { backgroundColor: colors.brand },
+  modeBtnActive: isGlass ? { backgroundColor: withAlpha(colors.brand, 22) } : { backgroundColor: colors.brand },
   modeBtnText: {
     color: colors.onSurfaceTertiary,
     fontSize: 12,
@@ -631,7 +657,7 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: colors.brand,
+    backgroundColor: isGlass ? withAlpha(colors.brand, 20) : colors.brand,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -766,4 +792,5 @@ const styles = StyleSheet.create({
     fontSize: 11,
     textAlign: "center",
   },
-});
+  });
+}
