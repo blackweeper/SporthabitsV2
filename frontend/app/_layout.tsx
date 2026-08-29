@@ -125,9 +125,26 @@ export default function RootLayout() {
   // `scroll`) ; réinitialiser son `scrollLeft` dès qu'il dérive est donc
   // sans risque pour les vrais rangs défilants de l'app (ScrollView
   // horizontal, `overflow-x:auto`), jamais concernés par ce correctif.
+  //
+  // Deuxième manifestation du MÊME mécanisme, confirmée en direct dans les
+  // écrans Programme (Semaine → Séance → Exercice) : le `scrollIntoView`
+  // remonte parfois jusqu'à la FENÊTRE elle-même (`e.target === document`),
+  // qui n'a pourtant pas de `.scrollLeft` d'élément DOM classique — le garde
+  // ci-dessus ne le détectait donc jamais (`typeof el.scrollLeft !== "number"`
+  // sur un `Document` retourne toujours vrai, sortie anticipée silencieuse).
+  // `body{overflow:hidden}` (voir `#expo-reset` injecté par Expo) signifie que
+  // TOUT scroll de fenêtre est par construction un artefact, jamais une vraie
+  // fonctionnalité — reproduit : `window.scrollY` dérivait à 390px après une
+  // transition Séance→Exercice, poussant tout le contenu vers le bas et
+  // laissant un bandeau vide, lu comme "carte illisible/floue" par
+  // l'utilisateur alors qu'aucun flou CSS n'est en cause.
   useEffect(() => {
     if (Platform.OS !== "web") return;
     const handleScroll = (e: Event) => {
+      if (e.target === document) {
+        if (window.scrollY !== 0 || window.scrollX !== 0) window.scrollTo(0, 0);
+        return;
+      }
       const el = e.target as HTMLElement;
       if (!el || typeof el.scrollLeft !== "number" || el.scrollLeft === 0) return;
       if (window.getComputedStyle(el).overflowX === "hidden") {

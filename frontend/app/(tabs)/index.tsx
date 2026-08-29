@@ -75,13 +75,13 @@ import {
   getDismissedReminderKeys,
 } from "@/src/utils/reminders-due";
 import {
-  getImportedSleepHoursForDate,
   getImportedStepsForDate,
+  getLatestSleepHours,
   getRecentDailyAverage,
   localDateYYYYMMDD,
   SLEEP_METRIC_NAMES,
+  sleepHoursFromRaw,
   subscribeHealthDataChanged,
-  unitsToHoursMultiplier,
 } from "@/src/utils/health-data-storage";
 import MultiRingGauge, { innerContentDiameter } from "@/src/components/ui/MultiRingGauge";
 import HabitProgressRow from "@/src/components/dashboard/HabitProgressRow";
@@ -188,10 +188,25 @@ export default function TodayScreen() {
     setActives(resolved);
     setWellnessLogs(await getWellnessLogs());
     const stepsToday = await getImportedStepsForDate(localDateYYYYMMDD());
-    const sleepToday = await getImportedSleepHoursForDate(localDateYYYYMMDD());
+    // `getLatestSleepHours()` — jamais `getImportedSleepHoursForDate(today)`
+    // directement — même lecteur que l'écran Santé (voir
+    // `useHealthDashboardData.ts`) : Dashboard et Santé doivent toujours
+    // afficher la même valeur pour la même nuit, jamais deux calculs
+    // divergents pour le même concept.
+    const latestSleep = await getLatestSleepHours();
+    const sleepToday = latestSleep?.hours ?? 0;
     setImportedStepsToday(stepsToday);
     setImportedSleepHoursToday(sleepToday);
-    setSleepAvg7d(await getRecentDailyAverage(SLEEP_METRIC_NAMES, 7, localDateYYYYMMDD(), "sum", unitsToHoursMultiplier));
+    setSleepAvg7d(
+      await getRecentDailyAverage(
+        SLEEP_METRIC_NAMES,
+        7,
+        latestSleep?.dateYYYYMMDD ?? localDateYYYYMMDD(),
+        "sum",
+        undefined,
+        sleepHoursFromRaw,
+      ),
+    );
     if (__DEV__) console.log(`[Dashboard] health data received: steps=${stepsToday}, sleepHours=${sleepToday}`);
     setCalendarEvents(await getCalendarEvents());
     setReminders(await getReminders());
@@ -233,7 +248,7 @@ export default function TodayScreen() {
     // l'est de Greenwich, dont la France).
     return subscribeHealthDataChanged(() => {
       getImportedStepsForDate(localDateYYYYMMDD()).then(setImportedStepsToday);
-      getImportedSleepHoursForDate(localDateYYYYMMDD()).then(setImportedSleepHoursToday);
+      getLatestSleepHours().then((s) => setImportedSleepHoursToday(s?.hours ?? 0));
     });
   }, []);
 

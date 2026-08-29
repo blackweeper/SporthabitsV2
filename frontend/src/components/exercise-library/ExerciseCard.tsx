@@ -5,7 +5,6 @@ import { shadow, withAlpha } from "@/src/theme";
 import { useTheme } from "@/src/themes";
 import { EXERCISE_CATEGORY_COLOR } from "@/src/utils/exercise-category";
 import { iconEmojiForExercise } from "@/src/data/exercise-icons";
-import { MUSCLE_GROUPS } from "@/src/utils/muscle-groups";
 import { EXERCISE_DIFFICULTY_COLOR, EXERCISE_DIFFICULTY_LABEL } from "@/src/utils/exercise-difficulty";
 import { ExerciseLibraryItem } from "@/src/hooks/useExerciseLibraryItems";
 import { useExerciseMediaSources } from "@/src/hooks/useExerciseMedia";
@@ -37,9 +36,6 @@ export default function ExerciseCard({
 }) {
   const { theme } = useTheme();
   const color = EXERCISE_CATEGORY_COLOR[item.category];
-  const primaryMuscle = item.muscleGroups?.[0]
-    ? MUSCLE_GROUPS.find((m) => m.key === item.muscleGroups![0])
-    : undefined;
   // Chaque carte résout ses deux médias en parallèle (illustration/GIF)
   // plutôt que de dépendre d'un champ précalculé — voir useExerciseMedia.ts.
   // Photo par défaut : illustration IronFlow en priorité, sinon bascule
@@ -138,33 +134,6 @@ export default function ExerciseCard({
       <Text style={[styles.name, { color: theme.colors.onSurface }]} numberOfLines={1}>
         {item.name}
       </Text>
-
-      <View style={styles.metaRow}>
-        {primaryMuscle && (
-          <View
-            style={[
-              styles.metaChip,
-              { borderRadius: theme.radius.pill, backgroundColor: theme.colors.surfaceTertiary },
-            ]}
-          >
-            <Text style={[styles.metaChipText, { color: theme.colors.onSurfaceTertiary }]} numberOfLines={1}>
-              {primaryMuscle.label}
-            </Text>
-          </View>
-        )}
-        {item.equipment && (
-          <View
-            style={[
-              styles.metaChip,
-              { borderRadius: theme.radius.pill, backgroundColor: theme.colors.surfaceTertiary },
-            ]}
-          >
-            <Text style={[styles.metaChipText, { color: theme.colors.onSurfaceTertiary }]} numberOfLines={1}>
-              {item.equipment}
-            </Text>
-          </View>
-        )}
-      </View>
     </PressableScale>
   );
 }
@@ -232,18 +201,5 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     fontSize: 12,
     lineHeight: 15,
-  },
-  metaRow: { flexDirection: "row", alignItems: "center", gap: 4 },
-  metaChip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 3,
-    paddingHorizontal: 5,
-    paddingVertical: 2,
-    flexShrink: 1,
-  },
-  metaChipText: {
-    fontSize: 8.5,
-    fontWeight: "700",
   },
 });

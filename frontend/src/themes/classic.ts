@@ -73,10 +73,13 @@ export const classicTheme: Theme = {
       energy: "#FFC400",
       achievement: "#FF7A4D",
       danger: "#FF1744",
-      // Ambre flamme — distinct de `warning`/`energy` (#FFC400) pour que
-      // l'identité WOD ne dépende jamais d'une future retouche du jaune
-      // d'avertissement, tout en restant dans la même famille chaude.
-      workout: "#FFB300",
+      // Framboise/magenta — délibérément hors de la famille chaude
+      // rouge/orange/jaune déjà saturée par `strength`/`energy`/`achievement`/
+      // `danger` : un ancien choix ambré (#FFB300) restait quasi indissociable
+      // de `energy`/`warning` (#FFC400) au premier coup d'œil, exactement ce
+      // que l'identité WOD doit éviter. Premium, immédiatement identifiable,
+      // jamais confondu avec une couleur d'erreur/avertissement/calories.
+      workout: "#DB2777",
     },
   },
   // Rayons alignés sur Sunset — le layout (dont les rayons de coin) est

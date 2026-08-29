@@ -18,6 +18,20 @@ export type HealthMetricSample = {
   raw?: Record<string, unknown>;
 };
 
+/** `sleep_analysis` (Health Auto Export réel, confirmé sur un vrai payload)
+ * n'utilise PAS `qty` (toujours `null`) — la durée et le détail par stade
+ * vivent entièrement dans `raw` : `totalSleep`/`inBed`/`deep`/`core` (léger)/
+ * `rem`/`awake` (en heures), `sleepStart`/`sleepEnd`/`inBedStart`/`inBedEnd`
+ * (horodatages). Sans ce lecteur dédié, `getImportedSleepHoursForDate` (qui
+ * ne lit que `qty`) calcule silencieusement 0h pour CHAQUE nuit réelle —
+ * bug confirmé en direct sur de vraies données, pas une supposition. Retourne
+ * `null` quand `raw.totalSleep` est absent plutôt que 0 (donnée vraiment
+ * absente ≠ 0, voir la règle du brief). */
+function sleepHoursFromRaw(raw: Record<string, unknown> | undefined): number | null {
+  const v = raw?.totalSleep;
+  return typeof v === "number" ? v : null;
+}
+
 export type HealthWorkoutEntry = {
   name: string;
   start: string;
@@ -214,6 +228,73 @@ function unitsToKmMultiplier(units: string | null): number {
   return 1; // "km"/inconnu → suppose déjà en km
 }
 
+/** Health Auto Export envoie `active_energy`/`basal_energy_burned` en `kJ`
+ * (confirmé sur un vrai payload : `units: "kJ"`) — jamais converti jusqu'ici,
+ * ce qui aurait affiché un nombre ~4,184× trop grand si jamais libellé
+ * "kcal" dans l'UI. 1 kcal = 4.184 kJ. */
+function unitsToKcalMultiplier(units: string | null): number {
+  if (!units) return 1; // suppose déjà en kcal si l'unité est absente
+  const u = units.toLowerCase();
+  if (u === "kj" || u.includes("kilojoule")) return 1 / 4.184;
+  if (u === "j" || u === "joule" || u.includes("joule")) return 1 / 4184;
+  return 1; // "kcal"/"cal"/inconnu → suppose déjà en kcal
+}
+
+/** Détail réel des stades de sommeil pour une nuit — voir `sleepHoursFromRaw` :
+ * `sleep_analysis` porte ces champs (heures) et horodatages directement dans
+ * `raw` sur un vrai payload Health Auto Export. Toute valeur absente reste
+ * `null` plutôt que 0 — jamais fabriquée. */
+export type SleepStageDetail = {
+  totalSleepHours: number | null;
+  inBedHours: number | null;
+  deepHours: number | null;
+  coreHours: number | null; // "sommeil léger" (core, terminologie Apple)
+  remHours: number | null;
+  awakeHours: number | null;
+  sleepStart: string | null;
+  sleepEnd: string | null;
+  inBedStart: string | null;
+  inBedEnd: string | null;
+};
+
+function numOrNull(v: unknown): number | null {
+  return typeof v === "number" ? v : null;
+}
+function strOrNull(v: unknown): string | null {
+  return typeof v === "string" ? v : null;
+}
+
+export function sleepStageDetailFromRaw(raw: Record<string, unknown> | undefined): SleepStageDetail {
+  return {
+    totalSleepHours: numOrNull(raw?.totalSleep),
+    inBedHours: numOrNull(raw?.inBed),
+    deepHours: numOrNull(raw?.deep),
+    coreHours: numOrNull(raw?.core),
+    remHours: numOrNull(raw?.rem),
+    awakeHours: numOrNull(raw?.awake),
+    sleepStart: strOrNull(raw?.sleepStart),
+    sleepEnd: strOrNull(raw?.sleepEnd),
+    inBedStart: strOrNull(raw?.inBedStart),
+    inBedEnd: strOrNull(raw?.inBedEnd),
+  };
+}
+
+/** Détail de sommeil le plus récent — même logique jour/veille que
+ * `getLatestSleepHours` (voir son commentaire : `sleep_analysis` est daté du
+ * soir du coucher, pas du réveil). */
+export async function getLatestSleepStageDetail(): Promise<{ detail: SleepStageDetail; dateYYYYMMDD: string } | null> {
+  const metrics = await getHealthMetrics();
+  const today = localDateYYYYMMDD();
+  const yesterday = localDateYYYYMMDD(new Date(Date.now() - 86400000));
+  for (const dateYYYYMMDD of [today, yesterday]) {
+    const sample = metrics.find(
+      (m) => SLEEP_METRIC_NAMES.has(normalizeMetricName(m.name)) && m.date.startsWith(dateYYYYMMDD),
+    );
+    if (sample) return { detail: sleepStageDetailFromRaw(sample.raw), dateYYYYMMDD };
+  }
+  return null;
+}
+
 function unitsToMinutesMultiplier(units: string | null): number {
   if (!units) return 1; // suppose déjà en minutes si l'unité est absente
   const u = units.toLowerCase();
@@ -245,7 +326,7 @@ export async function getImportedActiveCaloriesForDate(dateYYYYMMDD: string): Pr
   for (const m of metrics) {
     if (!ACTIVE_ENERGY_METRIC_NAMES.has(normalizeMetricName(m.name))) continue;
     if (!m.date.startsWith(dateYYYYMMDD)) continue;
-    total += m.qty ?? 0;
+    total += (m.qty ?? 0) * unitsToKcalMultiplier(m.units);
   }
   return total;
 }
@@ -279,6 +360,11 @@ export async function getDailyMetricSeries(
   aggregation: "avg" | "sum" = "avg",
   unitsConvert?: (units: string | null) => number,
   includeReferenceDate: boolean = true,
+  /** Extraction de valeur alternative à `m.qty` — nécessaire pour
+   * `sleep_analysis` (voir `sleepHoursFromRaw`), dont `qty` est toujours
+   * `null` sur un vrai payload Health Auto Export ; la vraie durée vit dans
+   * `raw.totalSleep`. `undefined` = comportement historique (`m.qty`). */
+  valueExtractor?: (m: HealthMetricSample) => number | null,
 ): Promise<DailyMetricPoint[]> {
   const metrics = await getHealthMetrics();
   const ref = new Date(`${referenceDateYYYYMMDD}T00:00:00Z`).getTime();
@@ -286,14 +372,15 @@ export async function getDailyMetricSeries(
   const byDate = new Map<string, number[]>();
   for (const m of metrics) {
     if (!names.has(normalizeMetricName(m.name))) continue;
-    if (m.qty == null) continue;
+    const rawValue = valueExtractor ? valueExtractor(m) : m.qty;
+    if (rawValue == null) continue;
     const dateStr = m.date.slice(0, 10);
     const t = new Date(`${dateStr}T00:00:00Z`).getTime();
     if (t < minTime || t > ref) continue;
     if (!includeReferenceDate && t === ref) continue;
     const mult = unitsConvert ? unitsConvert(m.units) : 1;
     const arr = byDate.get(dateStr) ?? [];
-    arr.push((m.qty ?? 0) * mult);
+    arr.push(rawValue * mult);
     byDate.set(dateStr, arr);
   }
   const result: DailyMetricPoint[] = [];
@@ -318,8 +405,17 @@ export async function getRecentDailyAverage(
   referenceDateYYYYMMDD: string,
   aggregation: "avg" | "sum" = "avg",
   unitsConvert?: (units: string | null) => number,
+  valueExtractor?: (m: HealthMetricSample) => number | null,
 ): Promise<number | null> {
-  const series = await getDailyMetricSeries(names, days, referenceDateYYYYMMDD, aggregation, unitsConvert, false);
+  const series = await getDailyMetricSeries(
+    names,
+    days,
+    referenceDateYYYYMMDD,
+    aggregation,
+    unitsConvert,
+    false,
+    valueExtractor,
+  );
   if (series.length === 0) return null;
   return series.reduce((s, p) => s + p.value, 0) / series.length;
 }
@@ -334,6 +430,13 @@ export async function getImportedSleepHoursForDate(dateYYYYMMDD: string): Promis
   for (const m of metrics) {
     if (!SLEEP_METRIC_NAMES.has(normalizeMetricName(m.name))) continue;
     if (!m.date.startsWith(dateYYYYMMDD)) continue;
+    const fromRaw = sleepHoursFromRaw(m.raw);
+    if (fromRaw != null) {
+      total += fromRaw;
+      continue;
+    }
+    // Repli historique — au cas où une variante de Health Auto Export
+    // enverrait un jour la durée directement dans `qty`.
     total += (m.qty ?? 0) * unitsToHoursMultiplier(m.units);
   }
   return total;
@@ -422,6 +525,9 @@ export {
   ACTIVE_ENERGY_METRIC_NAMES,
   STEP_METRIC_NAMES,
   normalizeMetricName,
+  unitsToKcalMultiplier,
+  unitsToKmMultiplier,
+  sleepHoursFromRaw,
 };
 
 /** Fusionne de nouveaux échantillons, dédupliqués par (name, date) — le serveur

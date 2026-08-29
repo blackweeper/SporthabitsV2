@@ -10,7 +10,7 @@ import HealthTrendChart from "./HealthTrendChart";
 import {
   getDailyMetricSeries,
   localDateYYYYMMDD,
-  unitsToHoursMultiplier,
+  sleepHoursFromRaw,
   HRV_METRIC_NAMES,
   RESPIRATORY_RATE_METRIC_NAMES,
   RESTING_HR_METRIC_NAMES,
@@ -155,7 +155,7 @@ export default function HealthMetricGrid({
     const today = localDateYYYYMMDD();
     switch (key) {
       case "sleep":
-        return getDailyMetricSeries(SLEEP_METRIC_NAMES, days, today, "sum", unitsToHoursMultiplier, true);
+        return getDailyMetricSeries(SLEEP_METRIC_NAMES, days, today, "sum", undefined, true, sleepHoursFromRaw);
       case "hrv":
         return getDailyMetricSeries(HRV_METRIC_NAMES, days, today, "avg", undefined, true);
       case "restingHr":

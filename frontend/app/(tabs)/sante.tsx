@@ -107,7 +107,7 @@ export default function SanteScreen() {
           <TodayActivityCard
             steps={health.steps}
             distanceKm={health.distanceKm}
-            exerciseMinutes={health.exerciseMinutes}
+            activeCalories={health.activeCalories}
             sleepHours={health.sleepHours}
             lastSyncedAt={health.lastSyncedAt}
           />

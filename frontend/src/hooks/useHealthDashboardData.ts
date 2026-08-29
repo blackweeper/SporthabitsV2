@@ -1,16 +1,16 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   getHealthSyncState,
+  getImportedActiveCaloriesForDate,
   getImportedDistanceKmForDate,
-  getImportedExerciseMinutesForDate,
   getImportedStepsForDate,
   getLatestMetricSample,
   getLatestSleepHours,
   getRecentDailyAverage,
   getRecentMetricAverage,
   localDateYYYYMMDD,
+  sleepHoursFromRaw,
   subscribeHealthDataChanged,
-  unitsToHoursMultiplier,
   HRV_METRIC_NAMES,
   RESPIRATORY_RATE_METRIC_NAMES,
   RESTING_HR_METRIC_NAMES,
@@ -34,7 +34,7 @@ export type HealthDashboardData = {
   spo2Avg7d: number | null;
   steps: number;
   distanceKm: number;
-  exerciseMinutes: number;
+  activeCalories: number;
   lastSyncedAt: string | null;
 };
 
@@ -53,7 +53,7 @@ const EMPTY: HealthDashboardData = {
   spo2Avg7d: null,
   steps: 0,
   distanceKm: 0,
-  exerciseMinutes: 0,
+  activeCalories: 0,
   lastSyncedAt: null,
 };
 
@@ -90,11 +90,11 @@ export function useHealthDashboardData() {
       spo2Avg7d,
       steps,
       distanceKm,
-      exerciseMinutes,
+      activeCalories,
       syncState,
     ] = await Promise.all([
       latestSleep
-        ? getRecentDailyAverage(SLEEP_METRIC_NAMES, 7, latestSleep.dateYYYYMMDD, "sum", unitsToHoursMultiplier)
+        ? getRecentDailyAverage(SLEEP_METRIC_NAMES, 7, latestSleep.dateYYYYMMDD, "sum", undefined, sleepHoursFromRaw)
         : Promise.resolve(null),
       getLatestMetricSample(HRV_METRIC_NAMES),
       getRecentMetricAverage(HRV_METRIC_NAMES, 7, today),
@@ -106,7 +106,7 @@ export function useHealthDashboardData() {
       getRecentMetricAverage(SPO2_METRIC_NAMES, 7, today),
       getImportedStepsForDate(today),
       getImportedDistanceKmForDate(today),
-      getImportedExerciseMinutesForDate(today),
+      getImportedActiveCaloriesForDate(today),
       getHealthSyncState(),
     ]);
 
@@ -140,7 +140,7 @@ export function useHealthDashboardData() {
       spo2Avg7d: spo2Avg,
       steps,
       distanceKm,
-      exerciseMinutes,
+      activeCalories,
       lastSyncedAt: syncState.lastSyncedAt,
     });
   }, []);
