@@ -7,9 +7,12 @@ import { spacing } from "@/src/theme";
 import { useTheme } from "@/src/themes";
 import { RingColor } from "@/src/themes/types";
 import ThemedBackground from "@/src/themes/ThemedBackground";
+import GlassCard from "@/src/components/ui/GlassCard";
 import HealthTrendChart from "@/src/components/health/HealthTrendChart";
 import { HealthMetricSample, localDateYYYYMMDD, sleepStageDetailFromRaw } from "@/src/utils/health-data-storage";
 import {
+  computeMetricKpis,
+  computeYearlyDailyAverages,
   formatHealthMetricValue,
   isHealthMetricKey,
   loadHealthMetricRawSamples,
@@ -17,7 +20,11 @@ import {
   valueOfSample,
   HEALTH_METRIC_LABEL,
   HealthMetricKey,
+  MetricKpis,
+  YearlyAverage,
 } from "@/src/utils/health-metric-config";
+
+const SUM_METRIC_KEYS: HealthMetricKey[] = ["steps", "walkingDistance", "activeCalories", "sleep"];
 
 function formatHoursMinutes(hours: number | null): string | null {
   if (hours == null) return null;
@@ -32,42 +39,35 @@ function formatTimeOnly(dateStr: string): string {
   return d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
 }
 
-function formatSampleDate(dateStr: string): string {
-  // Health Auto Export envoie soit une date pure ("2026-08-27"), soit un
-  // horodatage complet ("2026-08-27 10:33:00 +0200") — les deux se parsent
-  // correctement via `Date`, seul le format d'affichage change selon la
-  // présence d'une heure.
-  const hasTime = dateStr.includes(":");
-  const d = new Date(dateStr.replace(" ", "T"));
-  if (isNaN(d.getTime())) return dateStr;
-  return d.toLocaleString("fr-FR", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    ...(hasTime ? { hour: "2-digit", minute: "2-digit" } : {}),
-  });
-}
-
 /**
  * Vue détaillée d'un indicateur Santé — accessible depuis la liste
- * "Récupération" (`HealthMetricGrid`, lien "Voir toutes les données" sous
- * le graphique déjà déplié). Reprend le même graphique d'évolution
- * (`HealthTrendChart`, composant partagé, aucune logique dupliquée) puis
- * liste TOUS les échantillons individuellement reçus via Health Auto
- * Export pour cette métrique — au-delà de ce que le graphique résume par
- * jour. Jamais de donnée inventée : une liste vide s'affiche honnêtement
- * si rien n'a encore été importé.
+ * "Récupération" (`HealthMetricGrid`) et les tuiles Pas/Distance/Calories
+ * actives du Dashboard/Santé. Fiche premium (KPI + graphique + comparaison
+ * annuelle si pertinente) plutôt qu'un listing technique des échantillons
+ * importés — ce listing brut reste accessible via Réglages → Santé →
+ * Diagnostic santé, jamais dans l'expérience normale. Jamais de donnée
+ * inventée : un KPI sans donnée réelle affiche "—", pas un 0.
  */
 export default function HealthMetricDetailScreen() {
   const { theme } = useTheme();
   const router = useRouter();
   const { key: rawKey } = useLocalSearchParams<{ key: string }>();
   const key: HealthMetricKey | null = isHealthMetricKey(rawKey) ? rawKey : null;
-  const [samples, setSamples] = useState<HealthMetricSample[]>([]);
+  const [latest, setLatest] = useState<HealthMetricSample | null>(null);
+  const [kpis, setKpis] = useState<MetricKpis | null>(null);
+  const [yearly, setYearly] = useState<YearlyAverage[]>([]);
 
   const reload = useCallback(async () => {
     if (!key) return;
-    setSamples(await loadHealthMetricRawSamples(key));
+    const today = localDateYYYYMMDD();
+    const [samples, k, y] = await Promise.all([
+      loadHealthMetricRawSamples(key),
+      computeMetricKpis(key, 7, today),
+      SUM_METRIC_KEYS.includes(key) ? computeYearlyDailyAverages(key) : Promise.resolve([]),
+    ]);
+    setLatest(samples[0] ?? null);
+    setKpis(k);
+    setYearly(y);
   }, [key]);
 
   useFocusEffect(
@@ -97,10 +97,32 @@ export default function HealthMetricDetailScreen() {
     respiratoryRate: theme.colors.progress,
     spo2: theme.colors.info,
   };
-  const latest = samples[0] ?? null;
-  const latestValue = latest ? valueOfSample(key, latest) : null;
   const sleepStages = key === "sleep" && latest ? sleepStageDetailFromRaw(latest.raw) : null;
   const today = localDateYYYYMMDD();
+
+  // Trois KPI par fiche, choisis selon ce qui est réellement lisible pour
+  // cette métrique — jamais les mêmes 3 partout : un total hebdomadaire a du
+  // sens pour Pas/Distance/Calories, pas pour le Sommeil (moyenne + meilleure
+  // nuit) ni pour les vitaux ponctuels (VFC/FC repos/Respiration/SpO2).
+  const kpiCards: { label: string; value: number | null }[] = kpis
+    ? key === "sleep"
+      ? [
+          { label: "Aujourd'hui", value: kpis.today },
+          { label: "Moyenne (7j)", value: kpis.average },
+          { label: "Meilleure nuit", value: kpis.best },
+        ]
+      : SUM_METRIC_KEYS.includes(key)
+        ? [
+            { label: "Aujourd'hui", value: kpis.today },
+            { label: "Cette semaine", value: kpis.total },
+            { label: "Moyenne / jour", value: kpis.average },
+          ]
+        : [
+            { label: "Aujourd'hui", value: kpis.today },
+            { label: "Moyenne (7j)", value: kpis.average },
+            { label: "Meilleure", value: kpis.best },
+          ]
+    : [];
 
   return (
     <View style={{ flex: 1 }}>
@@ -121,14 +143,24 @@ export default function HealthMetricDetailScreen() {
         </View>
 
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-          <View>
-            <Text style={[styles.currentValue, { color: theme.colors.onSurface }]}>
-              {latestValue != null ? formatHealthMetricValue(key, latestValue) : "—"}
+          {kpis === null ? (
+            <Text style={[styles.empty, { color: theme.colors.onSurfaceTertiary }]}>Chargement…</Text>
+          ) : kpiCards.every((c) => c.value == null) ? (
+            <Text style={[styles.empty, { color: theme.colors.onSurfaceTertiary }]}>
+              Aucune donnée disponible pour l&apos;instant.
             </Text>
-            <Text style={[styles.currentLabel, { color: theme.colors.onSurfaceTertiary }]}>
-              {latest ? `Dernière donnée · ${formatSampleDate(latest.date)}` : "Aucune donnée importée pour l'instant"}
-            </Text>
-          </View>
+          ) : (
+            <View style={styles.kpiRow}>
+              {kpiCards.map((c) => (
+                <GlassCard key={c.label} level="subtle" style={styles.kpiCard}>
+                  <Text style={[styles.kpiValue, { color: theme.colors.onSurface }]}>
+                    {c.value != null ? formatHealthMetricValue(key, c.value) : "—"}
+                  </Text>
+                  <Text style={[styles.kpiLabel, { color: theme.colors.onSurfaceTertiary }]}>{c.label}</Text>
+                </GlassCard>
+              ))}
+            </View>
+          )}
 
           {sleepStages && (sleepStages.deepHours != null || sleepStages.remHours != null || sleepStages.coreHours != null) && (
             <View style={[styles.stagesCard, { borderColor: theme.colors.divider }]}>
@@ -178,30 +210,47 @@ export default function HealthMetricDetailScreen() {
             </View>
           )}
 
-          <HealthTrendChart color={colorByKey[key]} loadSeries={(days) => loadHealthMetricSeries(key, days, today)} indent={false} />
+          <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>ÉVOLUTION</Text>
+          <HealthTrendChart
+            color={colorByKey[key]}
+            loadSeries={(days) => loadHealthMetricSeries(key, days, today)}
+            indent={false}
+            periods={["week", "30d", "6m", "1y"]}
+            defaultPeriod="week"
+          />
 
-          <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
-            Toutes les données importées {samples.length > 0 ? `(${samples.length})` : ""}
-          </Text>
-          {samples.length === 0 ? (
-            <Text style={[styles.empty, { color: theme.colors.onSurfaceTertiary }]}>
-              Rien n&apos;a encore été reçu pour cet indicateur via Health Auto Export.
-            </Text>
-          ) : (
-            samples.map((s, i) => {
-              const v = valueOfSample(key, s);
-              return (
-                <View
-                  key={`${s.date}-${i}`}
-                  style={[styles.sampleRow, i > 0 && { borderTopColor: theme.colors.divider, borderTopWidth: StyleSheet.hairlineWidth }]}
-                >
-                  <Text style={[styles.sampleDate, { color: theme.colors.onSurfaceSecondary }]}>{formatSampleDate(s.date)}</Text>
-                  <Text style={[styles.sampleValue, { color: theme.colors.onSurface }]}>
-                    {v != null ? formatHealthMetricValue(key, v) : "—"}
-                  </Text>
-                </View>
-              );
-            })
+          {yearly.length >= 2 && (
+            <>
+              <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>COMPARAISON ANNUELLE</Text>
+              <GlassCard level="subtle" style={styles.yearlyCard}>
+                {yearly.map((y, i) => {
+                  const prev = yearly[i + 1];
+                  const pct = prev ? Math.round(((y.dailyAverage - prev.dailyAverage) / prev.dailyAverage) * 100) : null;
+                  return (
+                    <View
+                      key={y.year}
+                      style={[styles.yearlyRow, i > 0 && { borderTopColor: theme.colors.divider, borderTopWidth: StyleSheet.hairlineWidth }]}
+                    >
+                      <Text style={[styles.yearlyYear, { color: theme.colors.onSurface }]}>{y.year}</Text>
+                      <Text style={[styles.yearlyValue, { color: theme.colors.onSurface }]}>
+                        {formatHealthMetricValue(key, y.dailyAverage)}/j
+                      </Text>
+                      {pct != null && (
+                        <Text
+                          style={[
+                            styles.yearlyDelta,
+                            { color: pct >= 0 ? theme.colors.success : theme.colors.error },
+                          ]}
+                        >
+                          {pct >= 0 ? "+" : ""}
+                          {pct}%
+                        </Text>
+                      )}
+                    </View>
+                  );
+                })}
+              </GlassCard>
+            </>
           )}
         </ScrollView>
       </SafeAreaView>
@@ -221,8 +270,10 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 16, fontWeight: "800" },
   scroll: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xl3, gap: spacing.lg },
-  currentValue: { fontSize: 36, fontWeight: "800" },
-  currentLabel: { fontSize: 12, marginTop: 2 },
+  kpiRow: { flexDirection: "row", gap: spacing.sm },
+  kpiCard: { flex: 1, padding: spacing.md, alignItems: "flex-start", gap: 2 },
+  kpiValue: { fontSize: 20, fontWeight: "800" },
+  kpiLabel: { fontSize: 11, letterSpacing: 0.2 },
   stagesCard: {
     borderWidth: StyleSheet.hairlineWidth,
     borderRadius: 16,
@@ -236,9 +287,11 @@ const styles = StyleSheet.create({
   stageItem: { minWidth: 64 },
   stageValue: { fontSize: 15, fontWeight: "800" },
   stageLabel: { fontSize: 10, fontWeight: "700", letterSpacing: 0.3, marginTop: 1 },
-  sectionTitle: { fontSize: 14, fontWeight: "800", letterSpacing: 1 },
+  sectionTitle: { fontSize: 12, fontWeight: "800", letterSpacing: 1 },
   empty: { fontSize: 13, fontStyle: "italic" },
-  sampleRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 10 },
-  sampleDate: { fontSize: 12.5, fontWeight: "600" },
-  sampleValue: { fontSize: 13.5, fontWeight: "800" },
+  yearlyCard: { padding: spacing.md },
+  yearlyRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, paddingVertical: 10 },
+  yearlyYear: { flex: 1, fontSize: 14, fontWeight: "800" },
+  yearlyValue: { fontSize: 13, fontWeight: "700" },
+  yearlyDelta: { fontSize: 12, fontWeight: "800", minWidth: 50, textAlign: "right" },
 });

@@ -197,6 +197,29 @@ export default function RootLayout() {
         // l'origine force ce recalage.
         document.documentElement.style.removeProperty("--app-vh");
         window.scrollTo(0, 0);
+        // Bug trouvé en relisant ce correctif : le commentaire ci-dessus
+        // diagnostiquait déjà `visualViewport.offsetLeft/offsetTop` comme la
+        // vraie cause du décalage horizontal+vertical persistant, mais
+        // aucune ligne ne le corrigeait réellement — seule la hauteur
+        // (`vv.height`) était traitée. Un `offsetLeft`/`offsetTop` non nul
+        // une fois le clavier fermé signifie que Safari n'a pas repris
+        // `scale:1` (le vrai mécanisme du "reste décalé") ; `window.scrollTo`
+        // seul n'influence pas ce zoom. Reforcer brièvement le contenu du
+        // `<meta name=viewport>` (retrait puis remise), technique connue
+        // pour forcer iOS Safari à recalculer le viewport visuel, est le
+        // seul levier restant côté page — jamais appliqué en dehors de ce
+        // cas précis (clavier qui vient de se fermer avec un offset résiduel).
+        if (vv.offsetLeft !== 0 || vv.offsetTop !== 0) {
+          const meta = document.querySelector('meta[name="viewport"]');
+          const content = meta?.getAttribute("content");
+          if (meta && content) {
+            meta.setAttribute("content", `${content}, shrink-to-fit=yes`);
+            requestAnimationFrame(() => {
+              meta.setAttribute("content", content);
+              window.scrollTo(0, 0);
+            });
+          }
+        }
       }
       keyboardWasOpen = keyboardOpen;
     };

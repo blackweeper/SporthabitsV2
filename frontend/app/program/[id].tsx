@@ -5,6 +5,7 @@ import {
   StyleSheet,
   ScrollView,
   Pressable,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
@@ -242,9 +243,16 @@ export default function ProgramDetailScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={[styles.hero, { borderLeftColor: program.color }]}>
-          <View style={[styles.emojiBox, { backgroundColor: withAlpha(program.color, 19) }]}>
-            <Ionicons name={programIconFor(program.coverEmoji)} size={36} color={program.color} />
-          </View>
+          {program.coverPhotoBase64 ? (
+            <Image
+              source={{ uri: `data:image/jpeg;base64,${program.coverPhotoBase64}` }}
+              style={[styles.emojiBox, { borderRadius: theme.radius.md }]}
+            />
+          ) : (
+            <View style={[styles.emojiBox, { backgroundColor: withAlpha(program.color, 19) }]}>
+              <Ionicons name={programIconFor(program.coverEmoji)} size={36} color={program.color} />
+            </View>
+          )}
           <View style={styles.heroTags}>
             <View style={[styles.tag, { backgroundColor: program.color }]}>
               <Text style={styles.tagText}>{LEVEL_LABEL[program.level]}</Text>

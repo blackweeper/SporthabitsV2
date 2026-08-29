@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { View, Text, StyleSheet, Pressable } from "react-native";
+import { View, Text, StyleSheet, Pressable, Image } from "react-native";
 import { useFocusEffect } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { coloredShadow, shadow, spacing, withAlpha } from "@/src/theme";
@@ -217,6 +217,7 @@ function ProgramCard({
     <Pressable testID={`program-card-${program.id}`} onPress={onPress}>
       <GlassCard
         level="card"
+        blur={!onDelete}
         style={[
           styles.card,
           { borderRadius: theme.radius.md, borderLeftColor: program.color },
@@ -228,9 +229,16 @@ function ProgramCard({
           },
         ]}
       >
-      <View style={[styles.coverEmoji, { borderRadius: theme.radius.md, backgroundColor: withAlpha(program.color, 13) }]}>
-        <Ionicons name={programIconFor(program.coverEmoji)} size={26} color={program.color} />
-      </View>
+      {program.coverPhotoBase64 ? (
+        <Image
+          source={{ uri: `data:image/jpeg;base64,${program.coverPhotoBase64}` }}
+          style={[styles.coverEmoji, { borderRadius: theme.radius.md }]}
+        />
+      ) : (
+        <View style={[styles.coverEmoji, { borderRadius: theme.radius.md, backgroundColor: withAlpha(program.color, 13) }]}>
+          <Ionicons name={programIconFor(program.coverEmoji)} size={26} color={program.color} />
+        </View>
+      )}
       <View style={{ flex: 1, gap: 4 }}>
         <View style={styles.tagRow}>
           {recommended && (

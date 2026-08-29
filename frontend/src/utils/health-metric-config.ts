@@ -134,7 +134,13 @@ export async function loadHealthMetricSeries(
 ): Promise<DailyMetricPoint[]> {
   const names = ALIAS_SETS[key];
   if (key === "sleep") {
-    return getDailyMetricSeries(names, days, referenceDateYYYYMMDD, "sum", undefined, true, sleepHoursFromRaw);
+    // Bug trouvé en vérifiant cette même fiche en direct : `valueExtractor`
+    // reçoit l'échantillon ENTIER (voir la signature de `getDailyMetricSeries`),
+    // pas son `.raw` — passer `sleepHoursFromRaw` telle quelle (qui attend
+    // `raw` directement) faisait échouer `raw?.totalSleep` silencieusement
+    // sur CHAQUE échantillon (undefined.totalSleep → toujours `null`),
+    // vidant le graphique Sommeil sans jamais planter ni logguer d'erreur.
+    return getDailyMetricSeries(names, days, referenceDateYYYYMMDD, "sum", undefined, true, (m) => sleepHoursFromRaw(m.raw));
   }
   const series = await getDailyMetricSeries(
     names,
@@ -167,4 +173,76 @@ const ALL_KEYS: HealthMetricKey[] = [
 
 export function isHealthMetricKey(v: string | undefined): v is HealthMetricKey {
   return !!v && (ALL_KEYS as string[]).includes(v);
+}
+
+export type MetricKpis = {
+  today: number | null;
+  average: number | null;
+  best: number | null;
+  /** Somme des valeurs de la fenêtre — pertinent pour Pas/Distance/Calories
+   * actives ("Cette semaine : 62 430 pas"), sans objet pour une moyenne
+   * ponctuelle (VFC/FC repos/Respiration/SpO2) mais toujours calculé : c'est
+   * à l'écran de décider quel sous-ensemble de KPI afficher par métrique. */
+  total: number | null;
+};
+
+/** KPI d'une fiche métrique — "aujourd'hui"/"moyenne"/"meilleur"/"total" sur
+ * la fenêtre demandée, calculés à partir de la même série que le graphique
+ * (`loadHealthMetricSeries`), un seul fetch, jamais un second calcul. Une
+ * valeur `null` (donnée absente) reste `null` — jamais un 0 fabriqué. */
+export async function computeMetricKpis(
+  key: HealthMetricKey,
+  days: number,
+  referenceDateYYYYMMDD: string,
+): Promise<MetricKpis> {
+  const series = await loadHealthMetricSeries(key, days, referenceDateYYYYMMDD);
+  if (series.length === 0) return { today: null, average: null, best: null, total: null };
+  const todayPoint = series.find((p) => p.date === referenceDateYYYYMMDD);
+  const values = series.map((p) => p.value);
+  const total = values.reduce((a, b) => a + b, 0);
+  const average = total / values.length;
+  const best = Math.max(...values);
+  return { today: todayPoint ? todayPoint.value : null, average, best, total };
+}
+
+export type YearlyAverage = { year: number; dailyAverage: number; daysWithData: number };
+
+// En dessous de ce nombre de jours réellement importés dans une année, une
+// "moyenne quotidienne annuelle" serait trompeuse (ex. 3 jours de données en
+// janvier ne représentent pas l'année) — cette année est alors exclue de la
+// comparaison plutôt que d'afficher un chiffre non représentatif.
+const MIN_DAYS_FOR_YEAR_COMPARISON = 14;
+
+/** Moyenne quotidienne réelle par année civile, uniquement pour les
+ * métriques "sum" (pas/distance/calories/sommeil — une moyenne quotidienne
+ * n'a pas de sens pour VFC/FC repos/Respiration/SpO2, déjà des moyennes
+ * ponctuelles). Une année avec moins de `MIN_DAYS_FOR_YEAR_COMPARISON` jours
+ * de données réelles est exclue — jamais de comparaison fabriquée sur une
+ * fraction non représentative de l'année. Recalcule depuis les échantillons
+ * bruts (une seule fois, agrégés par jour puis par année) — aucune deuxième
+ * source de vérité, `getRawSamplesForMetric` est déjà utilisé ailleurs dans
+ * ce fichier pour la liste détaillée. */
+export async function computeYearlyDailyAverages(key: HealthMetricKey): Promise<YearlyAverage[]> {
+  if (AGGREGATION[key] !== "sum") return [];
+  const samples = await getRawSamplesForMetric(ALIAS_SETS[key]);
+  const convert = unitsConvertFor(key);
+  const perYear = new Map<number, Map<string, number>>();
+  for (const s of samples) {
+    const value = key === "sleep" ? sleepHoursFromRaw(s.raw) : s.qty;
+    if (value == null) continue;
+    const dateStr = s.date.slice(0, 10);
+    const year = parseInt(dateStr.slice(0, 4), 10);
+    if (!Number.isFinite(year)) continue;
+    const mult = convert ? convert(s.units) : 1;
+    const byDate = perYear.get(year) ?? new Map<string, number>();
+    byDate.set(dateStr, (byDate.get(dateStr) ?? 0) + value * mult);
+    perYear.set(year, byDate);
+  }
+  const result: YearlyAverage[] = [];
+  for (const [year, byDate] of perYear.entries()) {
+    if (byDate.size < MIN_DAYS_FOR_YEAR_COMPARISON) continue;
+    const total = Array.from(byDate.values()).reduce((a, b) => a + b, 0);
+    result.push({ year, dailyAverage: total / byDate.size, daysWithData: byDate.size });
+  }
+  return result.sort((a, b) => b.year - a.year);
 }

@@ -198,7 +198,11 @@ const HEART_RATE_METRIC_NAMES = new Set(["heartrate", "heartrateaverage"]);
 // plus de `distance_walking_running` (total quotidien déjà agrégé) — ce
 // dernier seul est utilisé ici pour ne jamais compter la distance en double.
 const RESPIRATORY_RATE_METRIC_NAMES = new Set(["respiratoryrate"]);
-const SPO2_METRIC_NAMES = new Set(["oxygensaturation", "bloodoxygen", "spo2"]);
+// "blood_oxygen_saturation" confirmé sur un vrai payload (source Zepp,
+// vérifié en direct en IndexedDB) — absent jusqu'ici, faisait échouer tout
+// mapping SpO2 malgré une donnée réellement importée (widget bloqué sur
+// "Non disponible" avec un échantillon présent en stockage).
+const SPO2_METRIC_NAMES = new Set(["oxygensaturation", "bloodoxygensaturation", "bloodoxygen", "spo2"]);
 const DISTANCE_METRIC_NAMES = new Set(["distancewalkingrunning", "distance", "walkingrunningdistance"]);
 const EXERCISE_TIME_METRIC_NAMES = new Set(["appleexercisetime", "exercisetime", "exerciseminutes"]);
 // Énergie active (calories brûlées mesurées par l'Apple Watch/l'iPhone) —

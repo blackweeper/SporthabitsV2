@@ -155,7 +155,9 @@ export default function HealthMetricGrid({
     const today = localDateYYYYMMDD();
     switch (key) {
       case "sleep":
-        return getDailyMetricSeries(SLEEP_METRIC_NAMES, days, today, "sum", undefined, true, sleepHoursFromRaw);
+        // `valueExtractor` reçoit l'échantillon entier, pas `.raw` — voir le
+        // commentaire détaillé dans `health-metric-config.ts`.
+        return getDailyMetricSeries(SLEEP_METRIC_NAMES, days, today, "sum", undefined, true, (m) => sleepHoursFromRaw(m.raw));
       case "hrv":
         return getDailyMetricSeries(HRV_METRIC_NAMES, days, today, "avg", undefined, true);
       case "restingHr":

@@ -10,10 +10,13 @@ import {
   Platform,
   Alert,
   Modal,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
+import * as ImageManipulator from "expo-image-manipulator";
 import { spacing, withAlpha } from "@/src/theme";
 import { Theme, useTheme } from "@/src/themes";
 import ThemedBackground from "@/src/themes/ThemedBackground";
@@ -187,6 +190,11 @@ export default function CustomProgramEditor() {
   // — absent jusqu'ici dans cet écran, ajouté pour la parité de liaison
   // bibliothèque entre les deux éditeurs.
   const [linkingExercise, setLinkingExercise] = useState<{ sessionIdx: number; exIdx: number } | null>(null);
+  // "Semaine" = un bloc de 7 jours consécutifs (jour 1-7, 8-14, ...) — une
+  // notion purement de présentation/action, `Program.days` reste un tableau
+  // plat (aucun changement de schéma). `duplicateSourceWeek` pilote la
+  // feuille de choix de la semaine cible.
+  const [duplicateSourceWeek, setDuplicateSourceWeek] = useState<number | null>(null);
   /** Même rôle que dans `plan/[id].tsx` : exercice dont le champ nom a le
    * focus, pour afficher les suggestions live même quand l'exercice est
    * DÉJÀ lié (sinon remplacer le texte d'un exercice pré-lié ne déclenche
@@ -485,6 +493,60 @@ export default function CustomProgramEditor() {
     if (selectedDay > target) setSelectedDay(target);
   };
 
+  /** Copie les 7 jours de `sourceWeek` (0-based) vers `targetWeek` (0-based),
+   * en clonant chaque jour/séance/exercice en profondeur — modifier ensuite
+   * la charge d'un exercice dans la semaine copiée ne doit JAMAIS affecter
+   * l'original (voir la règle explicite du brief : jamais de référence
+   * mutable partagée). Étend `durationDays`/`days` si la semaine cible
+   * dépasse la longueur actuelle du programme (ex. "copier vers une nouvelle
+   * semaine"). */
+  const duplicateWeek = (sourceWeek: number, targetWeek: number) => {
+    if (!program) return;
+    const sourceStart = sourceWeek * 7;
+    const targetStart = targetWeek * 7;
+    const neededLength = Math.max(program.days.length, targetStart + 7);
+    const days = [...program.days];
+    while (days.length < neededLength) days.push(emptyDay());
+    for (let i = 0; i < 7; i++) {
+      const source = days[sourceStart + i];
+      if (!source) continue;
+      days[targetStart + i] = JSON.parse(JSON.stringify(source));
+    }
+    setProgram({ ...program, durationDays: Math.max(program.durationDays, days.length), days });
+    setDuplicateSourceWeek(null);
+  };
+
+  /** Même pattern que `ExercisePicturePicker` (déjà utilisé ailleurs dans ce
+   * fichier pour les exercices) : permission → sélection → redimensionnement
+   * léger → base64. Priorité absolue sur `coverEmoji` une fois présente ;
+   * aucune image = repli emoji inchangé (voir le rendu ailleurs dans l'app,
+   * `programIconFor`/`coverEmoji`, jamais modifié pour les programmes
+   * existants sans photo). */
+  const pickProgramCover = async () => {
+    if (!program) return;
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) {
+      Alert.alert("Permission requise", "Autorise l'accès aux photos pour choisir une image.");
+      return;
+    }
+    const res = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      quality: 0.85,
+    });
+    if (res.canceled || !res.assets?.length) return;
+    try {
+      const m = await ImageManipulator.manipulateAsync(
+        res.assets[0].uri,
+        [{ resize: { width: 400 } }],
+        { compress: 0.6, format: ImageManipulator.SaveFormat.JPEG, base64: true },
+      );
+      if (m.base64) setProgram({ ...program, coverPhotoBase64: m.base64 });
+    } catch {
+      Alert.alert("Erreur", "Impossible de traiter cette image.");
+    }
+  };
+
   const save = async () => {
     if (!program) return;
     if (!program.title.trim()) {
@@ -649,9 +711,38 @@ export default function CustomProgramEditor() {
             })}
           </View>
 
+          <Text style={styles.label}>Miniature du programme</Text>
+          <View style={styles.coverRow}>
+            {program.coverPhotoBase64 ? (
+              <Image
+                source={{ uri: `data:image/jpeg;base64,${program.coverPhotoBase64}` }}
+                style={[styles.coverPreview, { borderRadius: theme.radius.md }]}
+              />
+            ) : null}
+            <Pressable testID="cp-cover-pick" style={styles.coverBtn} onPress={pickProgramCover}>
+              <Ionicons name="image-outline" size={16} color={theme.colors.brand} />
+              <Text style={[styles.coverBtnText, { color: theme.colors.brand }]}>
+                {program.coverPhotoBase64 ? "Remplacer l'image" : "Ajouter une image"}
+              </Text>
+            </Pressable>
+            {program.coverPhotoBase64 && (
+              <Pressable
+                testID="cp-cover-remove"
+                style={styles.coverBtn}
+                onPress={() => setProgram({ ...program, coverPhotoBase64: null })}
+              >
+                <Ionicons name="trash-outline" size={16} color={theme.colors.error} />
+                <Text style={[styles.coverBtnText, { color: theme.colors.error }]}>Supprimer</Text>
+              </Pressable>
+            )}
+          </View>
+          {!program.coverPhotoBase64 && (
+            <Text style={styles.coverHint}>Sans image, l&apos;icône ci-dessous reste utilisée.</Text>
+          )}
+
           <View style={styles.row}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.label}>Icône</Text>
+              <Text style={styles.label}>Icône (repli si aucune image)</Text>
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -758,6 +849,19 @@ export default function CustomProgramEditor() {
               );
             })}
           </ScrollView>
+
+          {program.durationDays > 7 && (
+            <Pressable
+              testID="duplicate-week-open"
+              style={styles.duplicateWeekBtn}
+              onPress={() => setDuplicateSourceWeek(Math.floor((selectedDay - 1) / 7))}
+            >
+              <Ionicons name="copy-outline" size={16} color={program.color} />
+              <Text style={[styles.duplicateWeekBtnText, { color: program.color }]}>
+                DUPLIQUER LA SEMAINE {Math.floor((selectedDay - 1) / 7) + 1}
+              </Text>
+            </Pressable>
+          )}
 
           {/* Selected day editor */}
           {currentDay ? (
@@ -1093,6 +1197,54 @@ export default function CustomProgramEditor() {
             await linkExerciseToRecord(linkingExercise.sessionIdx, linkingExercise.exIdx, nameFr, record);
           }}
         />
+      )}
+      {duplicateSourceWeek != null && (
+        <Modal visible transparent animationType="slide" onRequestClose={() => setDuplicateSourceWeek(null)}>
+          <View style={styles.sheetBackdrop}>
+            <Pressable style={{ flex: 1 }} onPress={() => setDuplicateSourceWeek(null)} />
+            <GlassCard level="elevated" style={styles.sheet}>
+              <View style={styles.sheetHandle} />
+              <Text style={styles.sheetTitle}>Dupliquer la semaine {duplicateSourceWeek + 1}</Text>
+              <Text style={styles.sheetHelp}>
+                Copie les exercices, séries et répétitions de cette semaine vers une autre — chaque semaine reste
+                ensuite indépendante, modifier l&apos;une ne change pas l&apos;autre.
+              </Text>
+              <ScrollView style={{ maxHeight: 400 }}>
+                {Array.from({ length: Math.ceil(program.durationDays / 7) }, (_, w) => w)
+                  .filter((w) => w !== duplicateSourceWeek)
+                  .map((w) => (
+                    <Pressable
+                      key={w}
+                      testID={`duplicate-week-target-${w + 1}`}
+                      style={styles.planCard}
+                      onPress={() => duplicateWeek(duplicateSourceWeek, w)}
+                    >
+                      <View style={[styles.planIcon, { backgroundColor: withAlpha(program.color, 25) }]}>
+                        <Ionicons name="calendar" size={18} color={program.color} />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.planTitle}>Semaine {w + 1}</Text>
+                      </View>
+                      <Ionicons name="chevron-forward" size={18} color={theme.colors.onSurfaceTertiary} />
+                    </Pressable>
+                  ))}
+                <Pressable
+                  testID="duplicate-week-target-new"
+                  style={styles.planCard}
+                  onPress={() => duplicateWeek(duplicateSourceWeek, Math.ceil(program.durationDays / 7))}
+                >
+                  <View style={[styles.planIcon, { backgroundColor: withAlpha(program.color, 25) }]}>
+                    <Ionicons name="add" size={18} color={program.color} />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.planTitle}>Nouvelle semaine {Math.ceil(program.durationDays / 7) + 1}</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={18} color={theme.colors.onSurfaceTertiary} />
+                </Pressable>
+              </ScrollView>
+            </GlassCard>
+          </View>
+        </Modal>
       )}
       {ConfirmModal}
       </SafeAreaView>
@@ -1922,6 +2074,24 @@ function buildStyles(theme: Theme) {
     minWidth: 40,
     textAlign: "center",
   },
+  duplicateWeekBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    marginTop: spacing.sm,
+    paddingVertical: 10,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderStyle: "dashed",
+    borderColor: colors.border,
+  },
+  duplicateWeekBtnText: { fontSize: 12, fontWeight: "800", letterSpacing: 0.4 },
+  coverRow: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: spacing.sm },
+  coverPreview: { width: 56, height: 56, backgroundColor: colors.surfaceTertiary },
+  coverBtn: { flexDirection: "row", alignItems: "center", gap: 6, paddingVertical: 8, paddingHorizontal: 4 },
+  coverBtnText: { fontSize: 12, fontWeight: "800" },
+  coverHint: { color: colors.onSurfaceTertiary, fontSize: 11, marginTop: 4 },
   dayPickerRow: {
     paddingVertical: spacing.sm,
     gap: 6,

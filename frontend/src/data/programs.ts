@@ -60,6 +60,10 @@ export type Program = {
    * exclure un programme, seulement pour trier par pertinence. */
   goalTag?: ProgramGoal;
   coverEmoji: string;
+  /** Miniature personnalisée (JPEG base64, ~400px) — prioritaire sur
+   * `coverEmoji` quand présente. Additive : absente pour tout programme créé
+   * avant cette passe, qui continue d'afficher son emoji normalement. */
+  coverPhotoBase64?: string | null;
   color: string;
   days: ProgramDay[];
   isCustom?: boolean;

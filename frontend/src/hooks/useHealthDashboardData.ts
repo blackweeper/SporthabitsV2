@@ -94,7 +94,7 @@ export function useHealthDashboardData() {
       syncState,
     ] = await Promise.all([
       latestSleep
-        ? getRecentDailyAverage(SLEEP_METRIC_NAMES, 7, latestSleep.dateYYYYMMDD, "sum", undefined, sleepHoursFromRaw)
+        ? getRecentDailyAverage(SLEEP_METRIC_NAMES, 7, latestSleep.dateYYYYMMDD, "sum", undefined, (m) => sleepHoursFromRaw(m.raw))
         : Promise.resolve(null),
       getLatestMetricSample(HRV_METRIC_NAMES),
       getRecentMetricAverage(HRV_METRIC_NAMES, 7, today),

@@ -33,6 +33,8 @@ import ThemedBackground from "@/src/themes/ThemedBackground";
 import Card from "@/src/components/ui/Card";
 import GlassCard from "@/src/components/ui/GlassCard";
 import PressableScale from "@/src/components/ui/PressableScale";
+import ExerciseThumbnail from "@/src/components/ExerciseThumbnail";
+import { getExerciseRecords, ExerciseRecord } from "@/src/utils/exercise-records";
 import {
   EXERCISE_CATEGORY_COLOR,
   EXERCISE_CATEGORY_ICON,
@@ -253,12 +255,14 @@ function ExercisesView({
   const [overrides, setOverridesState] = useState<Record<string, ExerciseCategory>>({});
   const [expanded, setExpanded] = useState<string | null>(null);
   const [wodPlans, setWodPlans] = useState<Plan[]>([]);
+  const [records, setRecords] = useState<ExerciseRecord[]>([]);
 
   useFocusEffect(
     useCallback(() => {
       (async () => {
         setOverridesState(await getOverrides());
         setWodPlans(await getPlans());
+        setRecords(await getExerciseRecords());
       })();
     }, []),
   );
@@ -451,7 +455,6 @@ function ExercisesView({
         </View>
       ) : (
         filtered.map((e, i) => {
-          const color = EXERCISE_CATEGORY_COLOR[e.category];
           const isOpen = expanded === e.name;
           const weightPRs = e.prs.filter((p) => (p.type ?? "weight") === "weight");
           const bestWeight = weightPRs.slice().sort((a, b) => estimatedOneRM(b) - estimatedOneRM(a))[0];
@@ -483,9 +486,7 @@ function ExercisesView({
                   onPress={() => setExpanded(isOpen ? null : e.name)}
                   style={styles.recordHead}
                 >
-                  <View style={[styles.exIconBox, { backgroundColor: withAlpha(color, 15) }]}>
-                    <Ionicons name={EXERCISE_CATEGORY_ICON[e.category]} size={16} color={color} />
-                  </View>
+                  <ExerciseThumbnail name={e.name} records={records} size={40} />
                   <View style={{ flex: 1 }}>
                     <Text style={[styles.recordName, { color: theme.colors.onSurface }]} numberOfLines={1}>
                       {e.name}
@@ -1192,6 +1193,7 @@ function RecordRow({
       <PressableScale testID={`record-row-${pr.id}-body`} onPress={() => router.push(`/pr/${pr.id}` as any)}>
         <GlassCard
           level="subtle"
+          blur={false}
           accent={accent ? theme.colors.brand : undefined}
           style={[
             styles.recordRow,
@@ -1945,13 +1947,6 @@ export const styles = StyleSheet.create({
     fontSize: 13,
   },
   exerciseCard: { flexDirection: "row", alignItems: "center", gap: spacing.md },
-  exIconBox: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-  },
   exName: {
     fontWeight: "800",
     fontSize: 14,

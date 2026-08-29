@@ -6,17 +6,18 @@ import { useTheme } from "@/src/themes";
 import { RingColor } from "@/src/themes/types";
 import { DailyMetricPoint } from "@/src/utils/health-data-storage";
 
-export type TrendPeriodKey = "today" | "week" | "30d" | "3m" | "1y";
+export type TrendPeriodKey = "today" | "week" | "30d" | "3m" | "6m" | "1y";
 
-const PERIOD_DAYS: Record<TrendPeriodKey, number> = { today: 1, week: 7, "30d": 30, "3m": 90, "1y": 365 };
+const PERIOD_DAYS: Record<TrendPeriodKey, number> = { today: 1, week: 7, "30d": 30, "3m": 90, "6m": 182, "1y": 365 };
 const PERIOD_LABEL: Record<TrendPeriodKey, string> = {
   today: "Jour",
   week: "7 j",
   "30d": "30 j",
   "3m": "3 mois",
+  "6m": "6 mois",
   "1y": "1 an",
 };
-const PERIODS: TrendPeriodKey[] = ["today", "week", "30d", "3m", "1y"];
+const DEFAULT_PERIODS: TrendPeriodKey[] = ["today", "week", "30d", "3m", "1y"];
 
 function shortDate(dateStr: string): string {
   const d = new Date(`${dateStr}T00:00:00Z`);
@@ -38,6 +39,8 @@ export default function HealthTrendChart({
   color,
   loadSeries,
   indent = true,
+  periods = DEFAULT_PERIODS,
+  defaultPeriod = "week",
 }: {
   color: RingColor;
   loadSeries: (days: number) => Promise<DailyMetricPoint[]>;
@@ -45,9 +48,15 @@ export default function HealthTrendChart({
    * `HealthMetricGrid`) — désactivé (`false`) pour un usage plein largeur,
    * ex. la vue détaillée `/health-metric/[key]`. */
   indent?: boolean;
+  /** Sous-ensemble de périodes à proposer (défaut : les 5 historiques,
+   * `today` inclus) — la vue détaillée `/health-metric/[key]` n'affiche que
+   * `week/30d/6m/1y` ("Semaine/Mois/6 mois/Année"), sans dupliquer le
+   * composant. */
+  periods?: TrendPeriodKey[];
+  defaultPeriod?: TrendPeriodKey;
 }) {
   const { theme } = useTheme();
-  const [period, setPeriod] = useState<TrendPeriodKey>("week");
+  const [period, setPeriod] = useState<TrendPeriodKey>(defaultPeriod);
   const [points, setPoints] = useState<DailyMetricPoint[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -72,7 +81,7 @@ export default function HealthTrendChart({
   return (
     <View style={[styles.wrap, !indent && { paddingLeft: 0 }]}>
       <View style={styles.periodRow}>
-        {PERIODS.map((p) => {
+        {periods.map((p) => {
           const active = p === period;
           return (
             <Pressable key={p} testID={`health-period-${p}`} onPress={() => setPeriod(p)} style={styles.periodChip}>

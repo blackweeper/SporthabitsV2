@@ -202,7 +202,10 @@ export default function TodayScreen() {
         latestSleep?.dateYYYYMMDD ?? localDateYYYYMMDD(),
         "sum",
         undefined,
-        sleepHoursFromRaw,
+        // `valueExtractor` reçoit l'échantillon entier, pas `.raw` — voir le
+        // commentaire détaillé dans `health-metric-config.ts` (même bug
+        // trouvé et corrigé à 3 endroits dans la même passe).
+        (m) => sleepHoursFromRaw(m.raw),
       ),
     );
     if (__DEV__) console.log(`[Dashboard] health data received: steps=${stepsToday}, sleepHours=${sleepToday}`);

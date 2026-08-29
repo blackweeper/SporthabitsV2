@@ -18,15 +18,20 @@ import * as Sharing from "expo-sharing";
 import { spacing, withAlpha } from "@/src/theme";
 import { Theme, useTheme } from "@/src/themes";
 import ThemedBackground from "@/src/themes/ThemedBackground";
+import GlassCard from "@/src/components/ui/GlassCard";
+import ExerciseThumbnail from "@/src/components/ExerciseThumbnail";
 import { useConfirmDialog } from "@/src/hooks/use-confirm-dialog";
 import {
   deleteSession,
   getPlans,
   getSession,
   Plan,
+  SessionExerciseLog,
   WorkoutSession,
 } from "@/src/utils/gym-storage";
+import { getExerciseRecords, ExerciseRecord } from "@/src/utils/exercise-records";
 import { resolveSessionWodIdentity, SessionWodIdentity } from "@/src/utils/training-overview";
+import { normalizeWodResult } from "@/src/utils/wod-result-normalizer";
 
 export default function SessionDetailScreen() {
   const { theme } = useTheme();
@@ -35,13 +40,15 @@ export default function SessionDetailScreen() {
   const router = useRouter();
   const [session, setSession] = useState<WorkoutSession | null>(null);
   const [wodIdentity, setWodIdentity] = useState<SessionWodIdentity | null>(null);
+  const [records, setRecords] = useState<ExerciseRecord[]>([]);
   const shareCardRef = useRef<View>(null);
   const { confirm, ConfirmModal } = useConfirmDialog();
 
   useEffect(() => {
     (async () => {
-      const [s, plans] = await Promise.all([getSession(id!), getPlans()]);
+      const [s, plans, recs] = await Promise.all([getSession(id!), getPlans(), getExerciseRecords()]);
       setSession(s);
+      setRecords(recs);
       if (s) {
         const wodPlansById = new Map<string, Plan>();
         for (const p of plans) if (p.wodSource) wodPlansById.set(p.id, p);
@@ -231,66 +238,9 @@ export default function SessionDetailScreen() {
 
         {/* Exercises */}
         <Text style={styles.sectionTitle}>Exercices</Text>
-        {session.exercises.map((ex, i) => {
-          const done = ex.sets.filter((s) => s.completed).length;
-          return (
-            <View key={i} style={styles.exCard}>
-              <View style={styles.exHead}>
-                <View style={styles.exIdxBox}>
-                  <Text style={styles.exIdx}>{i + 1}</Text>
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.exName}>{ex.name}</Text>
-                  <Text style={styles.exMode}>
-                    {ex.mode.toUpperCase()} · {done}/{ex.sets.length}{" "}
-                    {ex.mode === "amrap"
-                      ? "AMRAP"
-                      : ex.mode === "emom"
-                        ? "rounds"
-                        : "séries"}
-                  </Text>
-                </View>
-              </View>
-              {ex.mode === "reps" && (
-                <View style={styles.setList}>
-                  {ex.sets.map((s, j) => (
-                    <View
-                      key={j}
-                      style={[styles.setPill, s.completed && styles.setPillDone]}
-                    >
-                      <Text
-                        style={[
-                          styles.setPillText,
-                          s.completed && { color: "#fff" },
-                        ]}
-                      >
-                        S{j + 1} · {s.reps}
-                        {s.weight ? ` × ${s.weight}` : ""}
-                      </Text>
-                    </View>
-                  ))}
-                </View>
-              )}
-              {ex.mode === "time" && (
-                <Text style={styles.exSummary}>
-                  {done} × {formatDur(ex.targetDurationSeconds ?? 0)}
-                </Text>
-              )}
-              {ex.mode === "emom" && (
-                <Text style={styles.exSummary}>
-                  {done}/{ex.sets.length} rounds ·{" "}
-                  {formatDur(ex.targetDurationSeconds ?? 60)} par round
-                </Text>
-              )}
-              {ex.mode === "amrap" && (
-                <Text style={styles.exSummary}>
-                  {ex.sets[0]?.reps ?? "0"} tours en{" "}
-                  {formatDur(ex.targetDurationSeconds ?? 0)}
-                </Text>
-              )}
-            </View>
-          );
-        })}
+        {session.exercises.map((ex, i) => (
+          <ExerciseLogCard key={i} log={ex} records={records} theme={theme} />
+        ))}
 
         <Pressable
           testID="open-journal"
@@ -341,10 +291,97 @@ function SubKpi({ label, value }: { label: string; value: string }) {
   const { theme } = useTheme();
   const styles = useMemo(() => buildStyles(theme), [theme]);
   return (
-    <View style={styles.subKpi}>
+    <GlassCard level="subtle" style={styles.subKpi}>
       <Text style={styles.subKpiValue}>{value}</Text>
       <Text style={styles.subKpiLabel}>{label}</Text>
-    </View>
+    </GlassCard>
+  );
+}
+
+/** Une carte par exercice de la séance. Un WOD composite ("5 Tractions →
+ * 10 Pompes → 15 Squats") est décomposé en mouvements réels via
+ * `normalizeWodResult` (déjà la source de vérité du badge "6 TOURS" du
+ * héros) — total par mouvement = reps/tour × tours complétés, jamais
+ * fabriqué. Chaque mouvement récupère sa miniature depuis la bibliothèque
+ * (même resolver que le reste de l'app), aucun stockage supplémentaire. */
+function ExerciseLogCard({
+  log,
+  records,
+  theme,
+}: {
+  log: SessionExerciseLog;
+  records: ExerciseRecord[];
+  theme: Theme;
+}) {
+  const styles = useMemo(() => buildStyles(theme), [theme]);
+  const done = log.sets.filter((s) => s.completed).length;
+  const normalized = normalizeWodResult(log);
+
+  if (normalized) {
+    return (
+      <GlassCard level="subtle" style={styles.exCard}>
+        <Text style={styles.exName}>{log.name}</Text>
+        <Text style={styles.exMode}>
+          {log.mode.toUpperCase()} · {normalized.roundsCompleted} tours
+        </Text>
+        <View style={styles.movementList}>
+          {normalized.exercises.map((m) => (
+            <View key={m.name} style={styles.movementRow}>
+              <ExerciseThumbnail name={m.name} records={records} size={40} />
+              <View style={{ flex: 1 }}>
+                <Text style={styles.movementName}>{m.name}</Text>
+                <Text style={styles.movementSub}>
+                  {m.repsPerRound} × {normalized.roundsCompleted} tours
+                </Text>
+              </View>
+              <Text style={styles.movementTotal}>{m.repsPerRound * normalized.roundsCompleted}</Text>
+            </View>
+          ))}
+        </View>
+      </GlassCard>
+    );
+  }
+
+  return (
+    <GlassCard level="subtle" style={styles.exCard}>
+      <View style={styles.exHead}>
+        <ExerciseThumbnail name={log.name} records={records} exerciseRecordId={log.libraryExerciseId} size={40} />
+        <View style={{ flex: 1 }}>
+          <Text style={styles.exName}>{log.name}</Text>
+          <Text style={styles.exMode}>
+            {log.mode.toUpperCase()} · {done}/{log.sets.length}{" "}
+            {log.mode === "amrap" ? "AMRAP" : log.mode === "emom" ? "rounds" : "séries"}
+          </Text>
+        </View>
+      </View>
+      {log.mode === "reps" && (
+        <View style={styles.setList}>
+          {log.sets.map((s, j) => (
+            <View key={j} style={[styles.setPill, s.completed && styles.setPillDone]}>
+              <Text style={[styles.setPillText, s.completed && { color: "#fff" }]}>
+                S{j + 1} · {s.reps}
+                {s.weight ? ` × ${s.weight}` : ""}
+              </Text>
+            </View>
+          ))}
+        </View>
+      )}
+      {log.mode === "time" && (
+        <Text style={styles.exSummary}>
+          {done} × {formatDur(log.targetDurationSeconds ?? 0)}
+        </Text>
+      )}
+      {log.mode === "emom" && (
+        <Text style={styles.exSummary}>
+          {done}/{log.sets.length} rounds · {formatDur(log.targetDurationSeconds ?? 60)} par round
+        </Text>
+      )}
+      {log.mode === "amrap" && (
+        <Text style={styles.exSummary}>
+          {log.sets[0]?.reps ?? "0"} tours en {formatDur(log.targetDurationSeconds ?? 0)}
+        </Text>
+      )}
+    </GlassCard>
   );
 }
 
@@ -463,11 +500,8 @@ function buildStyles(theme: Theme) {
   },
   subKpi: {
     flex: 1,
-    backgroundColor: colors.surfaceSecondary,
     padding: spacing.lg,
     borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
   },
   subKpiValue: { color: colors.onSurface, fontSize: 18, fontWeight: "800" },
   subKpiLabel: {
@@ -484,23 +518,11 @@ function buildStyles(theme: Theme) {
     marginBottom: 4,
   },
   exCard: {
-    backgroundColor: colors.surfaceSecondary,
     padding: spacing.md,
     borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
     gap: spacing.sm,
   },
   exHead: { flexDirection: "row", gap: spacing.md, alignItems: "center" },
-  exIdxBox: {
-    width: 30,
-    height: 30,
-    borderRadius: 8,
-    backgroundColor: colors.brandTertiary,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  exIdx: { color: colors.brandSecondary, fontWeight: "800" },
   exName: { color: colors.onSurface, fontWeight: "700", fontSize: 14 },
   exMode: {
     color: colors.onSurfaceTertiary,
@@ -509,6 +531,11 @@ function buildStyles(theme: Theme) {
     marginTop: 2,
   },
   exSummary: { color: colors.brand, fontWeight: "700", fontSize: 13 },
+  movementList: { gap: spacing.sm, marginTop: 2 },
+  movementRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+  movementName: { color: colors.onSurface, fontWeight: "700", fontSize: 13 },
+  movementSub: { color: colors.onSurfaceTertiary, fontSize: 11, marginTop: 1 },
+  movementTotal: { color: colors.brand, fontWeight: "800", fontSize: 16 },
   setList: { flexDirection: "row", flexWrap: "wrap", gap: 6 },
   setPill: {
     backgroundColor: colors.surfaceTertiary,

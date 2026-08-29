@@ -4,6 +4,7 @@ import {
   Text,
   StyleSheet,
   ScrollView,
+  Image,
 } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -328,14 +329,21 @@ function ProgramHeroCard({
         onPress={onPress}
       >
         <View style={styles.heroProgHead}>
-          <View
-            style={[
-              styles.heroProgEmoji,
-              { borderRadius: theme.radius.md, backgroundColor: withAlpha(program.color, 19) },
-            ]}
-          >
-            <Ionicons name={programIconFor(program.coverEmoji)} size={30} color={program.color} />
-          </View>
+          {program.coverPhotoBase64 ? (
+            <Image
+              source={{ uri: `data:image/jpeg;base64,${program.coverPhotoBase64}` }}
+              style={[styles.heroProgEmoji, { borderRadius: theme.radius.md }]}
+            />
+          ) : (
+            <View
+              style={[
+                styles.heroProgEmoji,
+                { borderRadius: theme.radius.md, backgroundColor: withAlpha(program.color, 19) },
+              ]}
+            >
+              <Ionicons name={programIconFor(program.coverEmoji)} size={30} color={program.color} />
+            </View>
+          )}
           <View style={{ flex: 1 }}>
             <Text style={[styles.heroProgTitle, { color: theme.colors.onSurface }]} numberOfLines={1}>
               {program.title}
@@ -796,6 +804,7 @@ function SwipeableSessionRow({
       <PressableScale testID={`session-item-${s.id}`} onPress={onPress}>
         <GlassCard
           level="subtle"
+          blur={false}
           style={[
             styles.sessionCard,
             { borderRadius: theme.radius.lg, borderLeftColor: accent },
@@ -1294,6 +1303,7 @@ function WodRow({
       <PressableScale testID={`wod-item-${p.id}`} onPress={onPress}>
         <GlassCard
           level="subtle"
+          blur={false}
           style={[
             styles.planCard,
             { borderRadius: theme.radius.lg },
@@ -1377,6 +1387,7 @@ function SwipeablePlanRow({
       <PressableScale testID={`plan-item-${p.id}`} onPress={onPress}>
         <GlassCard
           level="subtle"
+          blur={false}
           style={[
             styles.planCard,
             { borderRadius: theme.radius.lg },
