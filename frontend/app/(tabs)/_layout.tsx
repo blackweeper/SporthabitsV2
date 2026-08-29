@@ -3,9 +3,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { View, Pressable, StyleSheet } from "react-native";
 import { useState } from "react";
 import { BlurView } from "expo-blur";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Animated, { FadeIn } from "react-native-reanimated";
-import { coloredShadow, radius, spacing, withAlpha } from "@/src/theme";
+import { coloredShadow } from "@/src/theme";
 import { useTheme } from "@/src/themes";
 import QuickAddModal from "@/src/components/QuickAddModal";
 import { SUNSET_BAR_HEIGHT, SUNSET_BAR_MARGIN } from "@/src/utils/tab-bar-metrics";
@@ -15,59 +13,29 @@ import { SUNSET_BAR_HEIGHT, SUNSET_BAR_MARGIN } from "@/src/utils/tab-bar-metric
 // ci-dessous.
 const TAB_ICON_SIZE = 20;
 
-/** Icône seule sous Sunset — le libellé y est rendu par le mécanisme natif
- * de react-navigation (`tabBarShowLabel:true` dans `screenOptions`), PAS ici.
+/** Icône seule — le libellé est rendu par le mécanisme natif de
+ * react-navigation (`tabBarShowLabel:true` dans `screenOptions`), PAS ici.
  * Constat fait par inspection DOM : un `tabBarIcon` personnalisé est toujours
  * enveloppé par la librairie dans un slot à TAILLE FIXE (`TabBarIcon.tsx`,
  * `wrapperUikit: {width, height}` constants, non extensible même avec
  * `flex:1` côté appelant) — y combiner icône+libellé écrase le texte dans ce
  * petit slot et le décentre verticalement dans la pilule. Laisser
  * react-navigation empiler lui-même icône (slot fixe) + libellé (hauteur
- * libre, `renderLabel`/`styles.labelBeneath`) est le seul chemin qui rend
- * correctement. Sous Classique, la pilule (icône + libellé seulement sur
- * l'onglet actif, fond teinté) reste inchangée — comportement déjà correct
- * avec cette identique contrainte, jamais un problème car son libellé est
- * conditionnel/discret, pas la cause du bug rapporté. */
+ * libre) est le seul chemin qui rend correctement — commun aux deux thèmes. */
 function TabIcon({
   name,
-  label,
-  focused,
   color,
-  sunset,
 }: {
   name: keyof typeof Ionicons.glyphMap;
-  label: string;
-  focused: boolean;
   color: string;
-  sunset: boolean;
 }) {
-  if (sunset) {
-    return <Ionicons name={name} color={color} size={TAB_ICON_SIZE} />;
-  }
-  return (
-    <View style={[styles.pill, focused && { backgroundColor: withAlpha(color, 16) }]}>
-      <Ionicons name={name} color={color} size={TAB_ICON_SIZE} />
-      {focused && (
-        <Animated.Text
-          entering={FadeIn.duration(150)}
-          style={[styles.pillLabel, { color }]}
-          numberOfLines={1}
-        >
-          {label}
-        </Animated.Text>
-      )}
-    </View>
-  );
+  return <Ionicons name={name} color={color} size={TAB_ICON_SIZE} />;
 }
 
 export default function TabsLayout() {
   const router = useRouter();
   const [addOpen, setAddOpen] = useState(false);
   const { theme } = useTheme();
-  const insets = useSafeAreaInsets();
-  const isGlass = theme.card.mode === "glass";
-  const isSunset = theme.id === "sunset";
-
   return (
     // Fond de secours opaque uni (jamais le dégradé — voir `ThemedBackground.tsx`
     // pour pourquoi un fond partagé unique ici casse l'empilement zIndex des
@@ -78,93 +46,69 @@ export default function TabsLayout() {
       <Tabs
         screenOptions={{
           headerShown: false,
-          // Classique : libellé géré à la main dans `TabIcon` (visible
-          // seulement sur l'onglet actif) — natif désactivé. Sunset :
-          // libellé natif de react-navigation activé et toujours visible
-          // (`renderLabel`/`styles.labelBeneath`), seul mécanisme qui
-          // n'écrase pas le texte dans le slot à taille fixe réservé à
-          // `tabBarIcon` (voir le commentaire sur `TabIcon`).
-          tabBarShowLabel: isSunset,
-          tabBarLabelStyle: isSunset ? styles.sunsetLabel : undefined,
-          // Le fond de scène par défaut de React Navigation est neutralisé
-          // (voir `NAVIGATION_THEME` dans `app/_layout.tsx`). Onglets non
-          // migrés (Entraînements/Bibliothèque/...) : chaque écran garde son
-          // propre fond opaque (`colors.surface`) qui masque naturellement
-          // le dégradé partagé, comme prévu.
-          // Le home indicator ne doit jamais recouvrir les onglets — mais sans
-          // jamais transformer `insets.bottom` en espace vide sous l'app (bug
-          // constaté sur iPhone : bande noire sous l'app + barre pas vraiment
-          // au bord). Sous Sunset, la pilule flottante garde sa marge fixe
+          // Libellé natif de react-navigation, toujours visible — seul
+          // mécanisme qui n'écrase pas le texte dans le slot à taille fixe
+          // réservé à `tabBarIcon` (voir le commentaire sur `TabIcon`).
+          // Commun aux deux thèmes.
+          tabBarShowLabel: true,
+          tabBarLabelStyle: styles.tabLabel,
+          // Barre flottante en pilule (glass), commune aux deux thèmes —
+          // seule la teinte (`theme.colors.borderStrong`/`theme.card.tint`)
+          // change. Le home indicator ne doit jamais recouvrir les onglets —
+          // mais sans jamais transformer `insets.bottom` en espace vide sous
+          // l'app (bug constaté sur iPhone : bande noire sous l'app + barre
+          // pas vraiment au bord) : la pilule flottante garde sa marge fixe
           // (`SUNSET_BAR_MARGIN`, jamais `+ insets.bottom` — la pousser plus
           // haut n'aide pas et agrandit la zone qui doit rester peinte par le
           // fond de l'app, voir le fix `min-height:100dvh` dans
-          // `scripts/patch-web-build.js`). Sous Classique, la barre est en
-          // flux normal (pas de `position:absolute`, contrairement à Sunset)
-          // donc `insets.bottom` DOIT agrandir sa boîte (hauteur + padding)
-          // pour que son propre fond — qui remplit déjà toute sa boîte —
-          // s'étende correctement derrière le Home Indicator ; les icônes
-          // restent centrées dans les 72px d'origine grâce au `paddingTop`
-          // inchangé.
-          tabBarStyle: isSunset
-            ? {
-                position: "absolute",
-                left: SUNSET_BAR_MARGIN,
-                right: SUNSET_BAR_MARGIN,
-                bottom: SUNSET_BAR_MARGIN,
-                height: SUNSET_BAR_HEIGHT,
-                borderRadius: theme.radius.pill,
-                borderWidth: StyleSheet.hairlineWidth,
-                borderColor: theme.colors.borderStrong,
-                backgroundColor: "transparent",
-                overflow: "hidden",
-                elevation: 8,
-                paddingBottom: 0,
-                paddingTop: 0,
-              }
-            : {
-                backgroundColor: theme.card.mode === "glass" ? theme.card.tint : theme.colors.surfaceSecondary,
-                borderTopColor: isGlass ? theme.colors.borderStrong : theme.colors.border,
-                borderTopWidth: isGlass ? StyleSheet.hairlineWidth : 1,
-                height: 72 + insets.bottom,
-                paddingBottom: 10 + insets.bottom,
-                paddingTop: 8,
-              },
-          // Fond flouté "liquid glass" de la barre — seulement sous Sunset ;
-          // `undefined` ailleurs laisse `tabBarStyle.backgroundColor` gérer
-          // le fond (comportement Classique inchangé).
-          tabBarBackground: isSunset
-            ? () => (
-                <View style={StyleSheet.absoluteFillObject}>
-                  <BlurView
-                    intensity={theme.card.mode === "glass" ? theme.card.blurIntensity : 0}
-                    tint="dark"
-                    style={StyleSheet.absoluteFillObject}
-                  />
-                  <View
-                    style={[
-                      StyleSheet.absoluteFillObject,
-                      { backgroundColor: theme.card.mode === "glass" ? theme.card.tint : theme.colors.surfaceSecondary },
-                    ]}
-                  />
-                </View>
-              )
-            : undefined,
-          // Sunset (Glacier Aurora) : icônes blanches par défaut, Glacier
-          // Blue (accent du thème) sur l'onglet actif — pas de fond de
-          // pilule par onglet (le libellé permanent joue déjà ce rôle).
-          // Classique : inchangé.
+          // `scripts/patch-web-build.js`).
+          tabBarStyle: {
+            position: "absolute",
+            left: SUNSET_BAR_MARGIN,
+            right: SUNSET_BAR_MARGIN,
+            bottom: SUNSET_BAR_MARGIN,
+            height: SUNSET_BAR_HEIGHT,
+            borderRadius: theme.radius.pill,
+            borderWidth: StyleSheet.hairlineWidth,
+            borderColor: theme.colors.borderStrong,
+            backgroundColor: "transparent",
+            overflow: "hidden",
+            elevation: 8,
+            paddingBottom: 0,
+            paddingTop: 0,
+          },
+          // Fond flouté "Liquid Glass" de la barre — commun aux deux thèmes,
+          // seule la teinte du verre (`theme.card.tint`) change.
+          tabBarBackground: () => (
+            <View style={StyleSheet.absoluteFillObject}>
+              <BlurView
+                intensity={theme.card.mode === "glass" ? theme.card.blurIntensity : 0}
+                tint="dark"
+                style={StyleSheet.absoluteFillObject}
+              />
+              <View
+                style={[
+                  StyleSheet.absoluteFillObject,
+                  { backgroundColor: theme.card.mode === "glass" ? theme.card.tint : theme.colors.surfaceSecondary },
+                ]}
+              />
+            </View>
+          ),
+          // Icônes blanches par défaut, couleur d'accent du thème sur
+          // l'onglet actif — pas de fond de pilule par onglet (le libellé
+          // permanent joue déjà ce rôle). `onSurface` vaut #FFFFFF dans les
+          // deux thèmes (voir `classic.ts`/`sunset.ts`) : un vrai token,
+          // jamais une couleur en dur.
           tabBarActiveTintColor: theme.colors.brand,
-          tabBarInactiveTintColor: isSunset ? "#FFFFFF" : theme.colors.onSurfaceTertiary,
-          tabBarItemStyle: isSunset ? { justifyContent: "center", alignItems: "center" } : undefined,
+          tabBarInactiveTintColor: theme.colors.onSurface,
+          tabBarItemStyle: { justifyContent: "center", alignItems: "center" },
         }}
       >
         <Tabs.Screen
           name="index"
           options={{
             title: "Aujourd'hui",
-            tabBarIcon: ({ color, focused }) => (
-              <TabIcon name="today" label="Aujourd'hui" focused={focused} color={color} sunset={isSunset} />
-            ),
+            tabBarIcon: ({ color }) => <TabIcon name="today" color={color} />,
             tabBarButtonTestID: "tab-today",
           }}
         />
@@ -172,9 +116,7 @@ export default function TabsLayout() {
           name="training"
           options={{
             title: "Entraînements",
-            tabBarIcon: ({ color, focused }) => (
-              <TabIcon name="barbell" label="Entraînements" focused={focused} color={color} sunset={isSunset} />
-            ),
+            tabBarIcon: ({ color }) => <TabIcon name="barbell" color={color} />,
             tabBarButtonTestID: "tab-training",
           }}
         />
@@ -182,9 +124,7 @@ export default function TabsLayout() {
           name="library"
           options={{
             title: "Bibliothèque",
-            tabBarIcon: ({ color, focused }) => (
-              <TabIcon name="library" label="Bibliothèque" focused={focused} color={color} sunset={isSunset} />
-            ),
+            tabBarIcon: ({ color }) => <TabIcon name="library" color={color} />,
             tabBarButtonTestID: "tab-library",
           }}
         />
@@ -192,9 +132,7 @@ export default function TabsLayout() {
           name="sante"
           options={{
             title: "Santé",
-            tabBarIcon: ({ color, focused }) => (
-              <TabIcon name="heart" label="Santé" focused={focused} color={color} sunset={isSunset} />
-            ),
+            tabBarIcon: ({ color }) => <TabIcon name="heart" color={color} />,
             tabBarButtonTestID: "tab-sante",
           }}
         />
@@ -203,9 +141,7 @@ export default function TabsLayout() {
           options={{
             title: "Performance",
             tabBarLabel: "Performance",
-            tabBarIcon: ({ color, focused }) => (
-              <TabIcon name="trending-up" label="Performance" focused={focused} color={color} sunset={isSunset} />
-            ),
+            tabBarIcon: ({ color }) => <TabIcon name="trending-up" color={color} />,
             tabBarButtonTestID: "tab-progression",
           }}
         />
@@ -233,12 +169,7 @@ export default function TabsLayout() {
           espacement égal entre les onglets restants). */}
       <View
         pointerEvents="box-none"
-        style={[
-          styles.fabWrap,
-          isSunset
-            ? { bottom: SUNSET_BAR_MARGIN + SUNSET_BAR_HEIGHT + 14 }
-            : { bottom: 82 + insets.bottom },
-        ]}
+        style={[styles.fabWrap, { bottom: SUNSET_BAR_MARGIN + SUNSET_BAR_HEIGHT + 14 }]}
       >
         <Pressable
           testID="tab-add"
@@ -270,24 +201,13 @@ export default function TabsLayout() {
 }
 
 const styles = StyleSheet.create({
-  pill: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 6,
-    borderRadius: radius.pill,
-  },
-  pillLabel: { fontSize: 11, fontWeight: "800" },
-  sunsetLabel: { fontSize: 9.5, fontWeight: "700" },
+  tabLabel: { fontSize: 9.5, fontWeight: "700" },
   fabWrap: {
-    // Reste au-dessus de la barre (72px de haut sous Classique — offset
-    // Sunset appliqué séparément, voir l'appel ci-dessus) sans jamais
-    // recouvrir un onglet.
+    // La position réelle (au-dessus de la pilule flottante) est appliquée
+    // à l'appel — `bottom` ici n'est qu'un repli avant le premier calcul.
     position: "absolute",
     left: 0,
     right: 0,
-    bottom: 82,
     alignItems: "center",
     zIndex: 20,
   },

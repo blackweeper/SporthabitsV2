@@ -6,6 +6,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { spacing, withAlpha } from "@/src/theme";
 import { Theme, useTheme } from "@/src/themes";
 import ThemedBackground from "@/src/themes/ThemedBackground";
+import GlassCard from "@/src/components/ui/GlassCard";
 import { getAppSettings } from "@/src/utils/app-settings";
 import { HealthSyncPhase, HEALTH_SYNC_INTERVAL_MS, useHealthSync } from "@/src/hooks/useHealthSync";
 import {
@@ -359,9 +360,14 @@ function Section({ title, theme, children }: { title: string; theme: Theme; chil
   return (
     <View style={{ gap: 6 }}>
       <Text style={[localStyles.sectionLabel, { color: theme.colors.onSurfaceTertiary }]}>{title}</Text>
-      <View style={[localStyles.card, { backgroundColor: theme.colors.surfaceSecondary, borderColor: theme.colors.border, borderRadius: theme.radius.md }]}>
+      <GlassCard
+        style={[
+          localStyles.card,
+          theme.card.mode === "flat" && { backgroundColor: theme.colors.surfaceSecondary, borderColor: theme.colors.border, borderWidth: 1, borderRadius: theme.radius.md },
+        ]}
+      >
         {children}
-      </View>
+      </GlassCard>
     </View>
   );
 }

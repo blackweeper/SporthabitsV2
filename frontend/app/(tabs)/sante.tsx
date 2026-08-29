@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { View, Text, ScrollView, StyleSheet } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 import { spacing } from "@/src/theme";
 import { useTheme } from "@/src/themes";
@@ -28,7 +28,6 @@ import MeasurementsCard from "@/src/components/health/MeasurementsCard";
 export default function SanteScreen() {
   const { theme } = useTheme();
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const health = useHealthDashboardData();
   const [measurements, setMeasurements] = useState<Measurement[]>([]);
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -63,14 +62,13 @@ export default function SanteScreen() {
           style={{ flex: 1 }}
           contentContainerStyle={[
             styles.scroll,
-            // Sous Sunset, la barre d'onglets flotte en `position:"absolute"`
-            // par-dessus le contenu (voir `_layout.tsx`) — sans ce padding
-            // supplémentaire, le dernier élément (bouton "Ajouter une
-            // mesure") reste caché derrière elle même une fois le scroll
-            // arrivé à sa position maximale réelle (pas un vrai blocage du
-            // scroll, mais perçu comme tel). Classique n'a pas ce problème
-            // (barre non flottante, déjà prise en compte par la navigation).
-            theme.background.mode === "gradient" && { paddingBottom: tabBarSafeBottomOffset(true, insets.bottom) + spacing.xl },
+            // La barre d'onglets flotte en `position:"absolute"` par-dessus
+            // le contenu (voir `_layout.tsx`, commune aux deux thèmes) —
+            // sans ce padding supplémentaire, le dernier élément (bouton
+            // "Ajouter une mesure") reste caché derrière elle même une fois
+            // le scroll arrivé à sa position maximale réelle (pas un vrai
+            // blocage du scroll, mais perçu comme tel).
+            { paddingBottom: tabBarSafeBottomOffset() + spacing.xl },
           ]}
           showsVerticalScrollIndicator={false}
         >

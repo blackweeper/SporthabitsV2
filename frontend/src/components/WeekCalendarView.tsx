@@ -1,4 +1,4 @@
-import { ReactNode, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { View, Text, StyleSheet, Pressable, PanResponder } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { radius, spacing } from "@/src/theme";
@@ -46,15 +46,15 @@ function toDateStr(d: Date): string {
  * Vue semaine — 7 jours en cercles (jour courant mis en avant, jours passés
  * colorés selon complétion via le même `pickColor` que la vue mois), avec le
  * détail du jour sélectionné juste en dessous. Navigation par chevrons
- * (comme le reste de l'app) pour tous les thèmes ; sous Sunset, un geste de
- * swipe horizontal s'ajoute (n'importe quel geste `dx` suffisant sur la
- * rangée de jours change de semaine), et le cadre/carte disparaît pour
- * laisser les jours flotter directement sur le dégradé de fond — météo et
- * légende de couleurs sont fusionnées en une seule ligne sans cadre, rendue
- * par l'appelant (`index.tsx`) juste au-dessus de ce composant, pas ici.
- * Le détail du jour sélectionné (`detailWrap` ci-dessous) utilise `GlassCard`
- * sous Sunset, cohérent avec le reste du Dashboard. Sous Classique, le rendu
- * reste strictement identique à avant l'introduction du thème Sunset.
+ * (comme le reste de l'app) + un geste de swipe horizontal (n'importe quel
+ * geste `dx` suffisant sur la rangée de jours change de semaine) ; le
+ * cadre/carte disparaît pour laisser les jours flotter directement sur le
+ * dégradé de fond — météo et légende de couleurs sont fusionnées en une
+ * seule ligne sans cadre, rendue par l'appelant (`index.tsx`) juste au-dessus
+ * de ce composant, pas ici. Le détail du jour sélectionné (`detailWrap`
+ * ci-dessous) utilise `GlassCard`, cohérent avec le reste du Dashboard.
+ * Commun aux deux thèmes — seule la palette (`theme.colors`/`theme.glass`)
+ * change.
  */
 export default function WeekCalendarView({
   sessions,
@@ -62,7 +62,6 @@ export default function WeekCalendarView({
   onSelectDate,
   getEventsForDate,
   onAddEvent,
-  headerRight,
   scheduleColorForDate,
   testIDPrefix = "week-cal",
 }: {
@@ -71,17 +70,12 @@ export default function WeekCalendarView({
   onSelectDate: (dateStr: string) => void;
   getEventsForDate: (dateStr: string) => DayEntry[];
   onAddEvent: (dateStr: string) => void;
-  /** Affiché à côté du libellé de semaine sous Classique ; repositionné sous
-   * la rangée de jours sous Sunset (la légende, elle, est rendue par
-   * l'appelant au-dessus de tout le composant — voir `index.tsx`). */
-  headerRight?: ReactNode;
   /** Coloration par séance PRÉVUE — appliquée uniquement à aujourd'hui/futur
    * (les jours passés gardent `pickColor`, par séance complétée). */
   scheduleColorForDate?: (dateStr: string) => DayScheduleKind;
   testIDPrefix?: string;
 }) {
   const { theme } = useTheme();
-  const isSunset = theme.id === "sunset";
   const [weekOffset, setWeekOffset] = useState(0);
   const [detailExpanded, setDetailExpanded] = useState(false);
 
@@ -94,11 +88,10 @@ export default function WeekCalendarView({
   const goToWeek = (delta: number) =>
     setWeekOffset((o) => Math.max(-Infinity, Math.min(o + delta, MAX_FORWARD_WEEKS)));
 
-  // Swipe horizontal (Sunset uniquement) — un simple seuil de distance sur
-  // relâchement, pas de suivi visuel du doigt : cohérent avec le reste de
-  // l'app (aucune autre surface ne fait de drag suivi en direct), et évite
-  // toute dépendance supplémentaire à react-native-gesture-handler pour un
-  // geste aussi simple.
+  // Swipe horizontal — un simple seuil de distance sur relâchement, pas de
+  // suivi visuel du doigt : cohérent avec le reste de l'app (aucune autre
+  // surface ne fait de drag suivi en direct), et évite toute dépendance
+  // supplémentaire à react-native-gesture-handler pour un geste aussi simple.
   const panResponder = useMemo(
     () =>
       PanResponder.create({
@@ -138,12 +131,7 @@ export default function WeekCalendarView({
   const entries = getEventsForDate(selectedDate);
 
   return (
-    <View
-      style={[
-        isSunset ? styles.wrapSunset : styles.wrap,
-        !isSunset && { backgroundColor: theme.colors.surfaceSecondary, borderColor: theme.colors.border },
-      ]}
-    >
+    <View style={styles.wrap}>
       <View style={styles.headerRow}>
         <PressableScale
           testID={`${testIDPrefix}-prev`}
@@ -154,7 +142,6 @@ export default function WeekCalendarView({
         </PressableScale>
         <View style={styles.headerCenter}>
           <Text style={[styles.weekLabel, { color: theme.colors.onSurface }]}>{weekLabel}</Text>
-          {!isSunset && headerRight}
         </View>
         <PressableScale
           testID={`${testIDPrefix}-next`}
@@ -170,7 +157,7 @@ export default function WeekCalendarView({
         </PressableScale>
       </View>
 
-      <View style={styles.daysRow} {...(isSunset ? panResponder.panHandlers : {})}>
+      <View style={styles.daysRow} {...panResponder.panHandlers}>
         {days.map((d, i) => {
           const isToday = d.dateStr === todayStr;
           const isSelected = d.dateStr === selectedDate;
@@ -232,21 +219,13 @@ export default function WeekCalendarView({
       </PressableScale>
 
       {detailExpanded && (
-        // `GlassCard` plutôt qu'un simple `View` : sous Sunset, ce bloc
-        // devient un vrai verre (coins arrondis, flou, translucidité)
-        // cohérent avec le reste du Dashboard — et surtout, TOUT contenu
-        // futur ajouté ici (children de ce composant) hérite automatiquement
-        // du même traitement puisqu'il vit à l'intérieur de cette carte,
-        // sans avoir à re-styler chaque nouvel élément un par un. Sous
-        // Classique, rendu inchangé (passe-plat, bordure haute neutre).
-        <GlassCard
-          level="card"
-          style={[
-            styles.detailWrap,
-            !isSunset && { borderTopWidth: 1, borderTopColor: theme.colors.border },
-            isSunset && { padding: spacing.md, marginTop: 2 },
-          ]}
-        >
+        // `GlassCard` plutôt qu'un simple `View` : ce bloc devient un vrai
+        // verre (coins arrondis, flou, translucidité) cohérent avec le reste
+        // du Dashboard — et surtout, TOUT contenu futur ajouté ici (children
+        // de ce composant) hérite automatiquement du même traitement puisqu'il
+        // vit à l'intérieur de cette carte, sans avoir à re-styler chaque
+        // nouvel élément un par un.
+        <GlassCard level="card" style={[styles.detailWrap, { padding: spacing.md, marginTop: 2 }]}>
           <View style={styles.detailHeadRow}>
             <Text style={[styles.detailTitle, { color: theme.colors.onSurface }]}>
               {formatSelectedDate(selectedDate)}
@@ -271,7 +250,7 @@ export default function WeekCalendarView({
                 style={[
                   styles.detailRow,
                   {
-                    backgroundColor: isSunset ? theme.glass.subtle.tint : theme.colors.surfaceTertiary,
+                    backgroundColor: theme.glass.subtle.tint,
                     borderColor: theme.colors.border,
                   },
                 ]}
@@ -318,16 +297,9 @@ function formatSelectedDate(dateStr: string): string {
 }
 
 const styles = StyleSheet.create({
+  // Pas de cadre/carte — les jours flottent directement sur le dégradé de
+  // fond partagé (`ThemedBackground`), juste un peu de padding pour respirer.
   wrap: {
-    borderRadius: radius.md,
-    borderWidth: 1,
-    padding: spacing.md,
-    gap: spacing.md,
-  },
-  // Sunset : plus de cadre/carte — les jours flottent directement sur le
-  // dégradé de fond partagé (`ThemedBackground`), juste un peu de padding
-  // pour respirer.
-  wrapSunset: {
     paddingHorizontal: spacing.xs,
     gap: spacing.md,
   },

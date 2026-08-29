@@ -278,19 +278,6 @@ export default function TodayScreen() {
   const heroAggregateScore = computeDailyAggregateScore(heroRingPercents);
   const sleepDeltaMinutes = sleepAvg7d != null ? Math.round((importedSleepHoursToday - sleepAvg7d) * 60) : 0;
 
-  const primary = actives[0];
-  const dayIndex = primary
-    ? currentDayIndex(primary.active, primary.program.durationDays)
-    : null;
-  const totalDays = primary?.program.durationDays ?? null;
-  // "Mon prochain entraînement" doit être nommé, pas juste "démarrer la
-  // séance" générique — on sait déjà quel jour du programme actif on est.
-  const todayProgramDay =
-    primary && dayIndex ? primary.program.days[dayIndex - 1] : null;
-  const isRestDay = todayProgramDay?.rest ?? false;
-  const nextSessionTitle =
-    todayProgramDay && !isRestDay ? todayProgramDay.sessions[0]?.title : null;
-
   const greetingHour = new Date().getHours();
   const greeting =
     greetingHour < 12 ? "Bonjour" : greetingHour < 18 ? "Salut" : "Bonsoir";
@@ -535,30 +522,26 @@ export default function TodayScreen() {
     load();
   };
 
-  // Eau + habitudes personnalisées — calculé une seule fois, rendu soit DANS
-  // le héros (Sunset, voir point 5 du brief) soit dans son propre bloc
-  // (Classique, inchangé) selon le thème actif. Le bouton "Nouvelle
-  // habitude" n'est PAS inclus ici — Sunset ne l'affiche plus du tout
-  // (l'ajout se fait depuis les réglages), Classique le rend séparément
-  // juste après ce fragment.
+  // Eau + habitudes personnalisées — calculé une seule fois, rendu DANS le
+  // héros (voir §6 du brief : layout commun aux deux thèmes). `bare` retire
+  // le chrome de carte de `HabitProgressRow` puisqu'elle vit déjà à
+  // l'intérieur de la `GlassCard` héros — toujours vrai désormais.
   const habitRows = (
     <>
-      {theme.id === "sunset" ? (
-        <Animated.View entering={FadeInDown.delay(80).duration(motion.base)}>
-          <HabitProgressRow
-            testID="widget-calories-nutrition"
-            icon="nutrition"
-            color={solidRingColor(theme.colors.metricColors.caloriesBurn)}
-            label="Calories ingérées"
-            value={wellness?.calories_kcal ?? 0}
-            target={profile?.calories_target_kcal || DEFAULT_CALORIES_TARGET_KCAL}
-            unit="kcal"
-            onPress={() => setQuantityModal({ which: "calories", mode: "set" })}
-            onQuickAdd={() => setQuantityModal({ which: "calories", mode: "add" })}
-            bare={theme.id === "sunset"}
-          />
-        </Animated.View>
-      ) : null}
+      <Animated.View entering={FadeInDown.delay(80).duration(motion.base)}>
+        <HabitProgressRow
+          testID="widget-calories-nutrition"
+          icon="nutrition"
+          color={solidRingColor(theme.colors.metricColors.caloriesBurn)}
+          label="Calories ingérées"
+          value={wellness?.calories_kcal ?? 0}
+          target={profile?.calories_target_kcal || DEFAULT_CALORIES_TARGET_KCAL}
+          unit="kcal"
+          onPress={() => setQuantityModal({ which: "calories", mode: "set" })}
+          onQuickAdd={() => setQuantityModal({ which: "calories", mode: "add" })}
+          bare
+        />
+      </Animated.View>
       <Animated.View entering={FadeInDown.delay(90).duration(motion.base)}>
         <HabitProgressRow
           testID="widget-water"
@@ -570,7 +553,7 @@ export default function TodayScreen() {
           unit="ml"
           onPress={() => setQuantityModal({ which: "water", mode: "set" })}
           onQuickAdd={() => bumpWellness("water_ml", 250)}
-          bare={theme.id === "sunset"}
+          bare
         />
       </Animated.View>
       {/* Habits — excludes kinds already covered by the Calories / Pas /
@@ -622,7 +605,7 @@ export default function TodayScreen() {
                 }
                 quickAddIcon={isTimed ? "play" : isCheckbox ? "checkmark" : "add"}
                 onLongPress={onOpen}
-                bare={theme.id === "sunset"}
+                bare
               />
             </Animated.View>
           );
@@ -653,63 +636,46 @@ export default function TodayScreen() {
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
       >
-        {theme.id === "sunset" ? (
-          // Header Sunset : avatar + salutation (remplace le titre
-          // "Calendrier" et le bloc IRONFLOW/salutation/date classique, qui
-          // devient redondant) + icône réglages, tous deux vers l'onglet
-          // Profil.
-          <View style={styles.sunsetTopHeader}>
-            <PressableScale
-              testID="sunset-header-avatar"
-              style={styles.sunsetHeaderLeft}
-              onPress={() => router.push("/profile" as any)}
-            >
-              <View style={styles.sunsetAvatarCircle}>
-                {profile?.photoBase64 ? (
-                  <Image
-                    source={{ uri: `data:image/jpeg;base64,${profile.photoBase64}` }}
-                    style={styles.sunsetAvatarImg}
-                  />
-                ) : (
-                  <Ionicons name="person" size={18} color={theme.colors.onSurfaceSecondary} />
-                )}
-              </View>
-              <Text style={[styles.sunsetHeaderGreeting, { color: theme.colors.onSurface }]} numberOfLines={1}>
-                {greeting}{name ? `, ${name}` : ""}
-              </Text>
-            </PressableScale>
-            <View style={styles.sunsetHeaderActions}>
-              <Pressable testID="header-radio" hitSlop={10} onPress={() => router.push("/radio" as any)}>
-                <Ionicons name="radio-outline" size={22} color={theme.colors.onSurface} />
-              </Pressable>
-              <Pressable
-                testID="sunset-header-settings"
-                hitSlop={10}
-                onPress={() => router.push("/profile-tab" as any)}
-              >
-                <Ionicons name="settings-outline" size={22} color={theme.colors.onSurface} />
-              </Pressable>
+        {/* Header — avatar + salutation + icônes réglages/radio, commun aux
+            deux thèmes (voir le brief : un seul Design System, seule la
+            palette change). */}
+        <View style={styles.sunsetTopHeader}>
+          <PressableScale
+            testID="sunset-header-avatar"
+            style={styles.sunsetHeaderLeft}
+            onPress={() => router.push("/profile" as any)}
+          >
+            <View style={styles.sunsetAvatarCircle}>
+              {profile?.photoBase64 ? (
+                <Image
+                  source={{ uri: `data:image/jpeg;base64,${profile.photoBase64}` }}
+                  style={styles.sunsetAvatarImg}
+                />
+              ) : (
+                <Ionicons name="person" size={18} color={theme.colors.onSurfaceSecondary} />
+              )}
             </View>
-          </View>
-        ) : (
-          <View style={styles.calHeaderRow}>
-            <Text style={styles.sectionTitle}>Calendrier</Text>
+            <Text style={[styles.sunsetHeaderGreeting, { color: theme.colors.onSurface }]} numberOfLines={1}>
+              {greeting}{name ? `, ${name}` : ""}
+            </Text>
+          </PressableScale>
+          <View style={styles.sunsetHeaderActions}>
+            <Pressable testID="header-radio" hitSlop={10} onPress={() => router.push("/radio" as any)}>
+              <Ionicons name="radio-outline" size={22} color={theme.colors.onSurface} />
+            </Pressable>
             <Pressable
-              testID="cal-add-event"
-              onPress={() => router.push(`/calendar-event/new?date=${today}` as any)}
-              hitSlop={8}
+              testID="sunset-header-settings"
+              hitSlop={10}
+              onPress={() => router.push("/profile-tab" as any)}
             >
-              <Ionicons name="add-circle" size={20} color={theme.colors.brand} />
+              <Ionicons name="settings-outline" size={22} color={theme.colors.onSurface} />
             </Pressable>
           </View>
-        )}
+        </View>
 
         {/* Météo + légende des couleurs du calendrier — fusionnées en une
-            seule ligne compacte, sans cadre, flottant sur le fond comme le
-            reste du calendrier (Sunset uniquement ; Classique n'a jamais eu
-            cette ligne — sa météo reste affichée dans l'en-tête du
-            calendrier, voir `headerRight` passé à `WeekCalendarView`). */}
-        {theme.id === "sunset" && effectiveCalendarView === "week" && (
+            seule ligne compacte, sans cadre, flottant sur le fond. */}
+        {effectiveCalendarView === "week" && (
           <View style={styles.calendarLegendRow}>
             {weather && <WeatherChip data={weather} />}
             <View style={styles.calendarLegendGroup}>
@@ -746,7 +712,6 @@ export default function TodayScreen() {
             onSelectDate={setSelectedWeekDate}
             getEventsForDate={eventsForDate}
             onAddEvent={(dateStr) => router.push(`/calendar-event/new?date=${dateStr}` as any)}
-            headerRight={weather ? <WeatherChip data={weather} /> : undefined}
             scheduleColorForDate={(dateStr) => scheduleKindForDate(dateStr, { actives, calendarEvents })}
           />
         ) : (
@@ -757,51 +722,6 @@ export default function TodayScreen() {
             events={calDayEvents}
             onDayPress={setDayModalDate}
           />
-        )}
-
-        {/* Header — bloc IRONFLOW/salutation/date/badge programme (Classique
-            uniquement ; sous Sunset, redondant avec le nouveau header en
-            tête d'écran, entièrement retiré). */}
-        {theme.id !== "sunset" && (
-          <View style={styles.classicHeaderActions}>
-            <Pressable testID="header-radio" hitSlop={10} onPress={() => router.push("/radio" as any)}>
-              <Ionicons name="radio-outline" size={20} color={theme.colors.onSurfaceSecondary} />
-            </Pressable>
-            <Pressable testID="header-settings" hitSlop={10} onPress={() => router.push("/profile-tab" as any)}>
-              <Ionicons name="settings-outline" size={20} color={theme.colors.onSurfaceSecondary} />
-            </Pressable>
-          </View>
-        )}
-        {theme.id !== "sunset" && (
-          <View style={styles.header}>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.brand}>IRONFLOW</Text>
-              <Text style={styles.greeting}>
-                {greeting}{name ? `, ${name}` : ""} 👋
-              </Text>
-              <Text style={styles.date}>{formatFullDate()}</Text>
-            </View>
-            {dayIndex && totalDays && primary ? (
-              <PressableScale
-                testID="dashboard-program-badge"
-                style={styles.dayBadge}
-                onPress={() => router.push(`/program/${primary.program.id}`)}
-              >
-                {isRestDay ? (
-                  <View style={styles.dayRestRow}>
-                    <Ionicons name="moon" size={14} color={theme.colors.progress} />
-                    <Text style={styles.dayRestLabel}>REPOS</Text>
-                  </View>
-                ) : (
-                  <>
-                    <Text style={styles.dayLabel}>JOUR</Text>
-                    <AnimatedNumber value={dayIndex} style={styles.dayValue} />
-                    <Text style={styles.daySub}>/ {totalDays}</Text>
-                  </>
-                )}
-              </PressableScale>
-            ) : null}
-          </View>
         )}
 
         {/* Reminders due now — in-app only, no OS push */}
@@ -829,16 +749,17 @@ export default function TodayScreen() {
           </PressableScale>
         ))}
 
-        {theme.id === "sunset" ? (
+        {(
           <>
-            {/* Héros Sunset — 4 anneaux distincts (calories brûlées/pas/
-                temps d'entraînement/score, retour sur la simplification à un
-                seul anneau), message de motivation + ligne contextuelle
-                santé à côté, ligne "Aujourd'hui" en badges icône+chiffre,
-                PUIS les habitudes (Eau + persos) DANS la même carte — plus
-                de bloc séparé, plus de bouton "Nouvelle habitude" (ajout
-                déplacé dans les réglages). Plus de CTA "Démarrer une séance"
-                à cet endroit (voir la grille de cartes programme/WOD). */}
+            {/* Héros — 4 anneaux distincts (calories brûlées/pas/temps
+                d'entraînement/sommeil), message de motivation + ligne
+                contextuelle santé à côté, ligne "Aujourd'hui" en badges
+                icône+chiffre, PUIS les habitudes (Eau + persos) DANS la même
+                carte — pas de bloc séparé, pas de bouton "Nouvelle
+                habitude" (déjà accessible via le FAB/réglages). Pas de CTA
+                "Démarrer une séance" à cet endroit (voir la grille de
+                cartes programme/WOD juste après) — commun aux deux thèmes,
+                seule la palette (`theme.colors`) change. */}
             <GlassCard style={styles.sunsetHeroCard} testID="ironflow-score-card-glass">
               <PressableScale
                 testID="ironflow-score-card"
@@ -941,239 +862,16 @@ export default function TodayScreen() {
               <View style={styles.sunsetHabitsInCard}>{habitRows}</View>
             </GlassCard>
           </>
-        ) : (
-          <>
-            {/* Motivation — contextual to today's progress */}
-            <View style={styles.motivationCard}>
-              <Ionicons name="sparkles" size={13} color={theme.colors.brand} />
-              <Text style={[styles.motivationText, { color: theme.colors.onSurfaceSecondary }]}>{motivation}</Text>
-            </View>
-
-            {/* Résumé santé + recommandation d'intensité — autonome, masqué tant
-                qu'aucune donnée santé n'est importée. */}
-            <HealthRecommendationCard />
-
-            {/* Héros — module unique : Score + statut séance + CTA, plutôt que
-                trois cartes séparées de poids égal. Point focal réel de l'écran
-                (anneau agrandi), esprit Oura/Whoop. `GlassCard` en mode "flat"
-                est un pur passe-plat — rendu inchangé. */}
-            <View style={styles.heroCard}>
-              <GlassCard style={[styles.heroScoreRow, theme.card.mode === "glass" && styles.heroScoreRowGlass]}>
-                <PressableScale
-                  testID="ironflow-score-card"
-                  style={styles.heroScoreRowInner}
-                  onPress={() => router.push("/day-detail" as any)}
-                >
-                  <MultiRingGauge
-                    size={156}
-                    strokeWidth={10}
-                    gap={4}
-                    ringFill={theme.ringFill}
-                    rings={[
-                      { pct: heroRingPercents[0] / 100, color: theme.colors.metricColors.caloriesBurn },
-                      { pct: heroRingPercents[1] / 100, color: theme.colors.metricColors.steps },
-                      { pct: heroRingPercents[2] / 100, color: theme.colors.metricColors.training },
-                      { pct: heroRingPercents[3] / 100, color: theme.colors.metricColors.sleep },
-                    ]}
-                  >
-                    <StatHero
-                      value={heroAggregateScore}
-                      unit="%"
-                      size="lg"
-                      fitDiameter={innerContentDiameter(156, 10, 4, 4)}
-                    />
-                  </MultiRingGauge>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.scoreLabel}>SOMMEIL</Text>
-                  <AnimatedNumber
-                    value={importedSleepHoursToday}
-                    formatter={(n) => formatSleepDuration(n)}
-                    style={styles.scoreValue}
-                  />
-                  {sleepDeltaMinutes !== 0 && (
-                    <View style={styles.scoreDeltaRow}>
-                      <Ionicons
-                        name={sleepDeltaMinutes > 0 ? "arrow-up" : "arrow-down"}
-                        size={12}
-                        color={sleepDeltaMinutes > 0 ? theme.colors.success : theme.colors.error}
-                      />
-                      <Text
-                        style={[
-                          styles.scoreDeltaText,
-                          { color: sleepDeltaMinutes > 0 ? theme.colors.success : theme.colors.error },
-                        ]}
-                      >
-                        {sleepDeltaMinutes > 0 ? "+" : ""}
-                        {sleepDeltaMinutes} min vs moyenne
-                      </Text>
-                    </View>
-                  )}
-                </View>
-                </PressableScale>
-              </GlassCard>
-
-              {/* Le CTA porte lui-même le statut de la séance du jour — plus
-                  besoin d'une carte "Séance" séparée juste pour l'afficher.
-                  Quand un programme actif existe, il nomme la séance du jour
-                  (« mon prochain entraînement ») plutôt qu'un libellé générique ;
-                  un jour de repos programmé se présente différemment d'une
-                  action à faire. */}
-              <PressableScale
-                testID="start-session"
-                style={[
-                  styles.mainCta,
-                  !workoutDoneToday &&
-                    !isRestDay &&
-                    (theme.card.mode === "glass"
-                      ? [
-                          {
-                            backgroundColor: withAlpha(theme.colors.brand, 18),
-                            borderWidth: 1,
-                            borderColor: withAlpha(theme.colors.brand, 50),
-                          },
-                          coloredShadow(theme.colors.brand, { offsetY: 0, opacity: 0.3, radius: 10, elevation: 3 }),
-                        ]
-                      : { backgroundColor: theme.colors.brand }),
-                  workoutDoneToday && styles.mainCtaDone,
-                  !workoutDoneToday && isRestDay && styles.mainCtaRest,
-                ]}
-                onPress={() => router.push(workoutDoneToday ? "/training" : "/plans")}
-              >
-                <Ionicons
-                  name={
-                    workoutDoneToday
-                      ? "checkmark-circle"
-                      : isRestDay
-                        ? "moon"
-                        : "flame"
-                  }
-                  size={20}
-                  color={
-                    workoutDoneToday
-                      ? theme.colors.success
-                      : isRestDay
-                        ? theme.colors.progressSecondary
-                        : theme.card.mode === "glass"
-                          ? theme.colors.brand
-                          : "#fff"
-                  }
-                />
-                <Text
-                  style={[
-                    styles.mainCtaText,
-                    workoutDoneToday && styles.mainCtaTextDone,
-                    !workoutDoneToday && isRestDay && styles.mainCtaTextRest,
-                  ]}
-                  numberOfLines={1}
-                >
-                  {workoutDoneToday
-                    ? "SÉANCE TERMINÉE"
-                    : isRestDay
-                      ? "JOUR DE REPOS"
-                      : nextSessionTitle
-                        ? `DÉMARRER : ${nextSessionTitle.toUpperCase()}`
-                        : "DÉMARRER LA SÉANCE"}
-                </Text>
-              </PressableScale>
-              {actives.length === 0 && (
-                <Text style={styles.heroEmptyHint}>
-                  Choisis un programme pour commencer ton parcours
-                </Text>
-              )}
-            </View>
-
-            {/* Aujourd'hui — anneaux compacts pour Eau/Calories/Pas (remplace 3
-                cartes pleine largeur empilées) : plus glanceable, esprit
-                Oura/Whoop. Le statut "Séance" vit désormais dans le CTA du
-                héros ci-dessus, plus besoin d'une ligne dédiée ici. */}
-            <View style={styles.widgetsHead}>
-              <Text style={styles.sectionTitle}>Aujourd&apos;hui</Text>
-            </View>
-            {/* Anneaux permanents : Calories (apport)/Pas/Sommeil — l'Eau et les
-                habitudes personnalisées vivent désormais dans la liste compacte
-                juste en dessous (voir `HabitProgressRow`), pas ici en anneau. */}
-            <View style={styles.todayGrid}>
-              <Animated.View
-                style={styles.todayTile}
-                entering={FadeInDown.delay(0).duration(motion.base)}
-              >
-                <RingChip
-                  testID="widget-calories"
-                  icon="nutrition"
-                  color={theme.colors.metricColors.caloriesBurn}
-                  ringFill={theme.ringFill}
-                  label="Calories"
-                  value={wellness?.calories_kcal ?? 0}
-                  target={profile?.calories_target_kcal || DEFAULT_CALORIES_TARGET_KCAL}
-                  onPress={() => setQuantityModal({ which: "calories", mode: "set" })}
-                />
-              </Animated.View>
-              <Animated.View
-                style={styles.todayTile}
-                entering={FadeInDown.delay(30).duration(motion.base)}
-              >
-                <RingChip
-                  testID="widget-steps"
-                  icon="footsteps"
-                  color={theme.colors.metricColors.steps}
-                  ringFill={theme.ringFill}
-                  label="Pas"
-                  value={(wellness?.steps ?? 0) + importedStepsToday}
-                  target={profile?.steps_target || DEFAULT_STEPS_TARGET}
-                  onPress={() => setQuantityModal({ which: "steps", mode: "set" })}
-                  onQuickAdd={() => bumpWellness("steps", 1000)}
-                />
-              </Animated.View>
-              <Animated.View
-                style={styles.todayTile}
-                entering={FadeInDown.delay(60).duration(motion.base)}
-              >
-                <RingChip
-                  testID="widget-sleep"
-                  icon="moon"
-                  color={theme.colors.metricColors.sleep}
-                  ringFill={theme.ringFill}
-                  label="Sommeil"
-                  value={importedSleepHoursToday}
-                  target={profile?.sleep_target_hours || DEFAULT_SLEEP_TARGET_HOURS}
-                  onPress={() => router.push("/health-sync-settings" as any)}
-                />
-              </Animated.View>
-            </View>
-          </>
-        )}
-
-        {/* Habitudes en liste compacte — Eau (décision produit : ligne plutôt
-            qu'anneau, comme toute habitude personnalisée) + les habitudes de
-            l'utilisateur, sur le modèle du widget hydratation actuel (tap
-            pour éditer, "+" pour un ajout rapide) mais en liste. Sous
-            Sunset, ce contenu vit désormais DANS la carte héros (voir
-            `{habitRows}` plus haut) — ce bloc séparé, avec son bouton
-            "Nouvelle habitude", ne s'affiche donc que sous Classique. */}
-        {theme.id !== "sunset" && (
-          <View style={styles.habitList}>
-            {habitRows}
-            {/* Add habit */}
-            <PressableScale
-              testID="add-habit-widget"
-              style={styles.addHabitRow}
-              onPress={() => router.push("/habit/new" as any)}
-            >
-              <Ionicons name="add" size={18} color={theme.colors.brand} />
-              <Text style={styles.addHabitRowLabel}>Nouvelle habitude</Text>
-            </PressableScale>
-          </View>
         )}
 
         {/* Programmes actifs — un widget par programme (jusqu'à 2 en
             parallèle), toujours affiché s'il y en a au moins un : chacun
             lance directement sa séance du jour via `launchProgramDay`, même
             mécanisme que l'onglet Entraînements (pas de réimplémentation).
-            Sous Sunset : grille de cartes "Ginásio/Cardio" (icône colorée
-            en haut, titre, sous-texte, flèche) regroupant programmes actifs
-            ET le WOD aléatoire dans le même format visuel — remplace la
-            rangée `progMini` + le widget plein-largeur séparé. */}
-        {theme.id === "sunset" ? (
+            Grille de cartes (icône colorée en haut, titre, sous-texte,
+            flèche) regroupant programmes actifs ET le WOD aléatoire dans le
+            même format visuel — commune aux deux thèmes. */}
+        {(
           <View style={styles.sunsetProgramsGrid}>
             {actives.map(({ active, program }) => {
               const di = currentDayIndex(active, program.durationDays);
@@ -1198,86 +896,9 @@ export default function TodayScreen() {
             })}
             <RandomWodWidget style={styles.sunsetProgramCard} />
           </View>
-        ) : (
-          actives.length > 0 && (
-            <>
-              <Text style={styles.sectionTitle}>Programmes actifs</Text>
-              <View style={styles.programsRow}>
-                {actives.map(({ active, program }) => {
-                  const di = currentDayIndex(active, program.durationDays);
-                  const totalSess = program.days.reduce(
-                    (a, d) => a + (d.rest ? 0 : d.sessions.length),
-                    0,
-                  );
-                  const done = active.completedSessions.length;
-                  const pct = totalSess ? done / totalSess : 0;
-                  const todayDay = program.days[di - 1];
-                  const todaySession = todayDay && !todayDay.rest ? todayDay.sessions[0] : null;
-                  return (
-                    <GlassCard
-                      key={program.id}
-                      style={[styles.progMini, { borderLeftColor: program.color }]}
-                    >
-                      <PressableScale
-                        testID={`active-program-${program.id}`}
-                        onPress={() => router.push(`/program/${program.id}`)}
-                      >
-                        <View style={styles.progMiniHead}>
-                          <Ionicons
-                            name={programIconFor(program.coverEmoji)}
-                            size={22}
-                            color={program.color}
-                          />
-                          <View style={{ flex: 1 }}>
-                            <Text
-                              style={[styles.progMiniTitle, { color: theme.colors.onSurface }]}
-                              numberOfLines={1}
-                            >
-                              {program.title}
-                            </Text>
-                            <Text style={[styles.progMiniMeta, { color: theme.colors.onSurfaceTertiary }]}>
-                              Jour {di}/{program.durationDays} · {done}/{totalSess}{" "}
-                              séances
-                            </Text>
-                          </View>
-                        </View>
-                        <View style={[styles.progMiniTrack, { backgroundColor: theme.colors.surfaceTertiary }]}>
-                          <View
-                            style={[
-                              styles.progMiniFill,
-                              {
-                                width: `${pct * 100}%`,
-                                backgroundColor: program.color,
-                              },
-                            ]}
-                          />
-                        </View>
-                      </PressableScale>
-                      {todaySession && (
-                        <PressableScale
-                          testID={`active-program-${program.id}-launch`}
-                          style={[styles.progMiniLaunch, { backgroundColor: withAlpha(program.color, 18) }]}
-                          onPress={() => launchProgramDay(program, active, di, todayDay, 0, todaySession, router)}
-                        >
-                          <Ionicons name="play" size={13} color={program.color} />
-                          <Text
-                            style={[styles.progMiniLaunchText, { color: program.color }]}
-                            numberOfLines={1}
-                          >
-                            LANCER : {todaySession.title.toUpperCase()}
-                          </Text>
-                        </PressableScale>
-                      )}
-                    </GlassCard>
-                  );
-                })}
-              </View>
-            </>
-          )
         )}
 
-        {theme.id !== "sunset" && <RandomWodWidget />}
-        {theme.id === "sunset" && actives.length === 0 && (
+        {actives.length === 0 && (
           <Text style={[styles.heroEmptyHint, { color: theme.colors.onSurfaceTertiary }]}>
             Choisis un programme pour commencer ton parcours
           </Text>
@@ -1316,7 +937,7 @@ export default function TodayScreen() {
             ? theme.colors.info
             : quantityModal?.which === "calories"
             ? solidRingColor(theme.colors.metricColors.caloriesBurn)
-            : "#10B981"
+            : solidRingColor(theme.colors.metricColors.steps)
         }
         // Les raccourcis existent toujours à l'identique (mêmes handlers) —
         // déplacés depuis les anciennes cartes pleine largeur vers l'intérieur
@@ -1863,7 +1484,6 @@ function buildStyles(theme: Theme) {
         marginTop: spacing.sm,
       },
   dayModalAddText: { color: isGlass ? colors.brand : "#fff", fontWeight: "800", letterSpacing: 0.5 },
-  // --- Sunset uniquement (voir conditionnels `theme.id === "sunset"`) ---
   calendarLegendRow: {
     flexDirection: "row",
     flexWrap: "wrap",

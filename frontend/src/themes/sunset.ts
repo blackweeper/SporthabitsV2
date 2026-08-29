@@ -131,4 +131,15 @@ export const sunsetTheme: Theme = {
     elevated: { tint: "rgba(200,220,255,0.09)", blurIntensity: 40 },
   },
   ringFill: { type: "spring", damping: 14, stiffness: 120 },
+  // "IronFlow Aurora" — valeurs reprises telles quelles de l'ancien
+  // `AuroraBackground.AURORA_PALETTE` (désormais générique, voir ce
+  // fichier) : rendu byte-identique à avant l'introduction du token.
+  aurora: {
+    base: "#05070B",
+    deepGradientTop: "#071426",
+    glowPrimary: "#4DA3FF",
+    glowPrimaryDim: "#1769D2",
+    glowSecondary: "#39206B",
+    glowTertiary: "#075A6B",
+  },
 };

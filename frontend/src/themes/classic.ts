@@ -1,10 +1,22 @@
 import { Theme } from "./types";
 
 /**
- * Thème "Classique" — recopie exacte des valeurs de `src/theme.ts` (jamais
- * modifié). Garantit que le Dashboard/`/day-detail`/la barre d'onglets
- * rendent de façon byte-identique à avant l'introduction du système de
- * thèmes tant que ce thème est sélectionné (défaut).
+ * Thème "Classique" — même Design System IronFlow que "Glacier Aurora"
+ * (Liquid Glass, fond d'ambiance généré, anneaux en dégradé à remplissage
+ * spring, rayons/glass à 3 paliers) mais avec l'identité colorimétrique
+ * Classique d'origine (orange/rouge, surfaces neutres) plutôt que la
+ * palette glacier/bleu de Sunset. Un changement de thème ne doit changer
+ * QUE ceci — jamais la disposition, jamais le composant utilisé (voir
+ * `app/(tabs)/index.tsx` et les autres écrans : plus aucune branche
+ * `theme.id === "sunset"` de mise en page, uniquement des valeurs de
+ * token qui diffèrent).
+ *
+ * Toute valeur ci-dessous qui n'est PAS une couleur (radius, ringFill,
+ * structure glass à 3 paliers) est volontairement alignée sur Sunset —
+ * c'est la même règle "le layout est commun" appliquée aux tokens
+ * structurels. Seules les couleurs restent celles de l'identité Classique
+ * (`brand`/`success`/`warning`/`error`/`info`/`progress`, `data.*`,
+ * `metricColors.*` inchangés dans leur teinte).
  */
 export const classicTheme: Theme = {
   id: "classic",
@@ -15,8 +27,13 @@ export const classicTheme: Theme = {
     surfaceSecondary: "#1A1A1A",
     surfaceTertiary: "#242424",
     onSurface: "#FFFFFF",
-    onSurfaceSecondary: "#E0E0E0",
-    onSurfaceTertiary: "#9A9A9A",
+    // Blanc translucide (même structure que Sunset) plutôt qu'un gris
+    // opaque — cohérent avec le fond d'ambiance/glass désormais commun aux
+    // deux thèmes ; sur une base aussi sombre, le rendu perçu est
+    // pratiquement identique aux anciens gris (#E0E0E0/#9A9A9A), donc aucune
+    // perte de lisibilité.
+    onSurfaceSecondary: "rgba(255,255,255,0.68)",
+    onSurfaceTertiary: "rgba(255,255,255,0.44)",
     brand: "#FF3D00",
     brandSecondary: "#FF7A4D",
     brandTertiary: "#4D1200",
@@ -28,24 +45,26 @@ export const classicTheme: Theme = {
     progress: "#8B5CF6",
     progressSecondary: "#C4B5FD",
     progressTertiary: "#2E1F52",
-    border: "#2A2A2A",
-    borderStrong: "#3A3A3A",
-    divider: "#1E1E1E",
+    // Bordures translucides (structure Liquid Glass commune) plutôt
+    // qu'opaques — même alpha que Sunset, teinte neutre (pas de dominante
+    // bleue) pour rester dans l'identité Classique.
+    border: "rgba(255,255,255,0.12)",
+    borderStrong: "rgba(255,255,255,0.18)",
+    divider: "rgba(255,255,255,0.08)",
     overlay: "rgba(0,0,0,0.6)",
-    // Même valeur que l'actuel `colors.surfaceTertiary` codé en dur dans
-    // `MultiRingGauge.tsx` — rendu byte-identique à avant.
-    ringTrack: "#242424",
+    // Piste translucide (laisse deviner le fond/glass derrière) — même
+    // valeur que Sunset, un track d'anneau est un élément neutre, pas une
+    // couleur d'identité.
+    ringTrack: "rgba(255,255,255,0.20)",
+    // Dégradés 2 tons (même structure que Sunset) construits UNIQUEMENT à
+    // partir des teintes Classique déjà existantes — aucune nouvelle
+    // couleur introduite, juste le même traitement "riche" que Sunset.
     metricColors: {
-      // Orange assombri sur demande explicite (remplace `#F97316`).
-      caloriesBurn: "#B45309",
-      steps: "#10B981",
-      sleep: "#8B5CF6",
-      training: "#10B981",
+      caloriesBurn: ["#D97706", "#B45309"],
+      steps: ["#34D399", "#10B981"],
+      sleep: ["#A78BFA", "#8B5CF6"],
+      training: ["#6EE7A8", "#10B981"],
     },
-    // Alias vers les hex déjà existants ci-dessus — aucun nouveau ton
-    // introduit pour Classique, juste un nom sémantique par catégorie de
-    // donnée pour que les graphiques puissent s'y référer sans dépendre de
-    // `brand`/`progress` directement.
     data: {
       strength: "#FF3D00",
       cardio: "#3B82F6",
@@ -56,17 +75,35 @@ export const classicTheme: Theme = {
       danger: "#FF1744",
     },
   },
-  radius: { sm: 6, md: 12, lg: 20, pill: 999 },
+  // Rayons alignés sur Sunset — le layout (dont les rayons de coin) est
+  // commun aux deux thèmes, seule la couleur doit varier.
+  radius: { sm: 8, md: 16, lg: 26, pill: 999 },
   spacing: { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xl2: 32, xl3: 48 },
-  background: { mode: "flat" },
-  card: { mode: "flat" },
-  // Jamais lu (GlassCard/GlassChip court-circuitent sur `card.mode==="flat"`
-  // avant d'atteindre `glass`) — présent uniquement pour satisfaire le type
-  // `Theme`. Valeurs sans effet, donc sans risque si jamais lues par erreur.
-  glass: {
-    subtle: { tint: "#1A1A1A", blurIntensity: 0 },
-    card: { tint: "#1A1A1A", blurIntensity: 0 },
-    elevated: { tint: "#242424", blurIntensity: 0 },
+  background: {
+    mode: "gradient",
+    colors: ["#0C0906", "#2B0F03", "#1E1030", "#0C0906"],
+    locations: [0, 0.35, 0.7, 1],
   },
-  ringFill: { type: "timing", duration: 500 },
+  // Verre "Liquid Glass" Classique — teinte chaude très légèrement ambrée
+  // (au lieu du blanc-bleuté de Sunset), même structure/opacité/flou.
+  card: { mode: "glass", tint: "rgba(255,205,170,0.05)", blurIntensity: 30 },
+  glass: {
+    subtle: { tint: "rgba(255,190,150,0.032)", blurIntensity: 16 },
+    card: { tint: "rgba(255,205,170,0.05)", blurIntensity: 30 },
+    elevated: { tint: "rgba(255,215,185,0.08)", blurIntensity: 40 },
+  },
+  ringFill: { type: "spring", damping: 14, stiffness: 120 },
+  // "IronFlow Ember" — même structure que "IronFlow Aurora" (base + 3
+  // zones de lumière diffuse + flou + vignette, voir `AuroraBackground.tsx`),
+  // construite exclusivement à partir des teintes Classique déjà existantes
+  // (brand/brandSecondary/progress/caloriesBurn) : aucune nouvelle couleur
+  // introduite pour ce nouvel élément visuel.
+  aurora: {
+    base: "#0C0906",
+    deepGradientTop: "#2B0F03",
+    glowPrimary: "#FF7A4D",
+    glowPrimaryDim: "#FF3D00",
+    glowSecondary: "#8B5CF6",
+    glowTertiary: "#B45309",
+  },
 };

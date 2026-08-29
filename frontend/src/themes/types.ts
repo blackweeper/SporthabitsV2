@@ -108,6 +108,19 @@ export type RingFillConfig =
   | { type: "timing"; duration: number }
   | { type: "spring"; damping: number; stiffness: number };
 
+/** Palette du fond d'ambiance généré en code (`AuroraBackground.tsx`) —
+ * base quasi-noire + 3 zones de lumière diffuse (voir ce fichier pour la
+ * structure exacte, commune aux deux thèmes). Chaque thème fournit ses
+ * propres teintes ; la géométrie/le flou/la vignette restent identiques. */
+export type AuroraPalette = {
+  base: string;
+  deepGradientTop: string;
+  glowPrimary: string;
+  glowPrimaryDim: string;
+  glowSecondary: string;
+  glowTertiary: string;
+};
+
 export type Theme = {
   id: string;
   label: string;
@@ -120,4 +133,5 @@ export type Theme = {
   card: ThemeCard;
   glass: ThemeGlass;
   ringFill: RingFillConfig;
+  aurora: AuroraPalette;
 };

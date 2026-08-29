@@ -27,10 +27,7 @@ export default function MiniRadioPlayer() {
   if (!station) return null;
 
   const inTabs = segments[0] === "(tabs)";
-  const isSunset = theme.id === "sunset";
-  const bottom = inTabs
-    ? tabBarSafeBottomOffset(isSunset, insets.bottom) + (isSunset ? spacing.sm : spacing.xs)
-    : insets.bottom + spacing.sm;
+  const bottom = inTabs ? tabBarSafeBottomOffset() + spacing.sm : insets.bottom + spacing.sm;
 
   const isPlaying = status === "playing";
   const isConnecting = status === "connecting";

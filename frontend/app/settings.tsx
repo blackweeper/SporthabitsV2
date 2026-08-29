@@ -256,16 +256,16 @@ export default function SettingsScreen() {
           </Card>
         </PressableScale>
 
-        {/* Fond d'écran personnalisé — Sunset uniquement (Classique n'a pas
-            de dégradé, rien à personnaliser). L'image active est résolue
-            par `ThemeProvider`/`ThemedBackground`, pas ici — ce bloc ne fait
-            que piloter le stockage (`wallpaper-storage.ts`) et déclenche
-            `refreshWallpaper()` pour que le Dashboard reflète le choix
-            immédiatement. */}
-        {themeId === "sunset" && (
+        {/* Fond d'écran personnalisé — commun aux deux thèmes (les deux ont
+            désormais un fond en dégradé, voir `classic.ts`/`sunset.ts`).
+            L'image active est résolue par `ThemeProvider`/`ThemedBackground`,
+            pas ici — ce bloc ne fait que piloter le stockage
+            (`wallpaper-storage.ts`) et déclenche `refreshWallpaper()` pour
+            que le Dashboard reflète le choix immédiatement. */}
+        {(
           <>
             <Text style={[styles.sectionLabel, { marginTop: spacing.lg }]}>FOND D&apos;ÉCRAN</Text>
-            <Text style={styles.sectionHint}>Personnalise le fond du Dashboard (thème Sunset)</Text>
+            <Text style={styles.sectionHint}>Personnalise le fond du Dashboard</Text>
 
             <PressableScale
               testID="wallpaper-add"
@@ -300,7 +300,7 @@ export default function SettingsScreen() {
                   </View>
                 )}
                 <Text style={styles.wallpaperTileLabel} numberOfLines={1}>
-                  IronFlow Aurora
+                  {themeId === "sunset" ? "IronFlow Aurora" : "IronFlow Ember"}
                 </Text>
               </PressableScale>
 

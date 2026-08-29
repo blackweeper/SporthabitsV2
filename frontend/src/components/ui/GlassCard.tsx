@@ -6,29 +6,26 @@ import { coloredShadow, shadow, withAlpha } from "@/src/theme";
 import { GlassLevel, useTheme } from "@/src/themes";
 
 /**
- * Remplacement direct des `View`+styles ad hoc des cartes de l'app.
- * Mode "flat" (Classique) : pur passe-plat — le `style` de l'appelant
- * (fond/bordure/radius déjà définis là-bas) s'applique tel quel, rendu
- * byte-identique à avant l'introduction du système de thèmes. Mode "glass"
- * (Sunset) : flou (`expo-blur`, déjà dépendance) + teinte semi-transparente
- * + radius généreux + ombre + reflet supérieur discret — le `style` de
+ * Remplacement direct des `View`+styles ad hoc des cartes de l'app —
+ * l'unique implémentation Liquid Glass, commune aux deux thèmes (voir
+ * `classic.ts`/`sunset.ts`, tous deux `card.mode === "glass"` désormais) :
+ * flou (`expo-blur`) + teinte semi-transparente + radius généreux + ombre +
+ * reflet supérieur discret, chaque valeur venant de `theme.glass`/
+ * `theme.colors` — jamais un `if (theme.id === ...)` ici. Le `style` de
  * l'appelant reste appliqué pour la mise en page (padding/gap/bordure
  * d'accent type `borderLeftColor`), seules les propriétés de fond/bordure
- * générale/radius sont reprises.
+ * générale/radius sont reprises. `card.mode === "flat"` (repli défensif,
+ * aucun thème livré ne l'utilise aujourd'hui) reste un pur passe-plat.
  *
- * `level` (Sunset uniquement, défaut `"card"`) : palier de profondeur du
- * système Liquid Glass — voir `GlassLevel` dans `src/themes/types.ts`.
- * `"subtle"` pour une zone secondaire/ligne de liste, `"card"` pour une
- * carte de contenu normale, `"elevated"` pour l'élément le plus important
- * d'un écran (à combiner avec `<Card elevated>` pour l'ombre assortie).
+ * `level` (défaut `"card"`) : palier de profondeur du système Liquid Glass —
+ * voir `GlassLevel` dans `src/themes/types.ts`. `"subtle"` pour une zone
+ * secondaire/ligne de liste, `"card"` pour une carte de contenu normale,
+ * `"elevated"` pour l'élément le plus important d'un écran (à combiner avec
+ * `<Card elevated>` pour l'ombre assortie).
  *
  * `accent` (optionnel, additif) : couleur de mise en avant pour les niveaux
  * "actif"/"important" du système Liquid Glass — bordure teintée + lueur
- * douce de cette couleur, à la place de la bordure neutre par défaut. En
- * mode "flat" (Classique), se réduit à une simple bordure de cette couleur
- * (pas de lueur/flou — cohérent avec un thème plat) : même résultat visuel
- * qu'un appelant qui aurait ajouté `{ borderColor: accent }` lui-même, pour
- * qu'un même call site fonctionne identiquement dans les deux thèmes.
+ * douce de cette couleur, à la place de la bordure neutre par défaut.
  * Réservé aux éléments qui doivent vraiment ressortir (élément sélectionné,
  * record personnel, objectif atteint) — jamais une carte ordinaire.
  */
@@ -95,12 +92,12 @@ export default function GlassCard({
         ]}
       />
       {/* Reflet supérieur — presque imperceptible, juste assez pour lire
-          "verre" plutôt que "panneau teinté". Teinte légèrement froide
-          (bleu très désaturé) plutôt que blanc pur, cohérent avec l'idée
-          d'une lumière glacière qui vient d'en haut. Jamais un dégradé
-          marqué. */}
+          "verre" plutôt que "panneau teinté". Blanc neutre désaturé (pas de
+          dominante de teinte) pour rester cohérent que le thème actif soit
+          froid (Glacier Aurora) ou chaud (Classique/Ember) — jamais un
+          dégradé marqué. */}
       <LinearGradient
-        colors={["rgba(210,230,255,0.16)", "rgba(210,230,255,0)"]}
+        colors={["rgba(255,255,255,0.14)", "rgba(255,255,255,0)"]}
         style={styles.highlight}
         pointerEvents="none"
       />
