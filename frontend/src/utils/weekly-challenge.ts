@@ -1,6 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { PersonalRecord, WorkoutSession } from '@/src/utils/gym-storage';
 import { awardXPOnce, isoWeekMonday } from '@/src/utils/xp';
+import { localDateYYYYMMDD } from '@/src/utils/health-data-storage';
+import { HEALTH_METRIC_REGISTRY, HealthMetricKey } from '@/src/utils/health-metric-registry';
 
 /**
  * Défi de la semaine — un seul objectif hebdomadaire, choisi et dimensionné
@@ -19,7 +21,15 @@ import { awardXPOnce, isoWeekMonday } from '@/src/utils/xp';
 
 const WEEKLY_CHALLENGE_KEY = '@ironflow/weeklyChallenge';
 
-export type WeeklyChallengeType = 'sessions_count' | 'new_pr' | 'volume_kg' | 'distance_km';
+/**
+ * `health_metric` est un type GÉNÉRIQUE — un seul cas de switch pour toute
+ * métrique santé présente dans `HEALTH_METRIC_REGISTRY` (voir
+ * `health-metric-registry.ts`), pas un type par métrique. Ajouter un futur
+ * défi "5 km parcourus" ou "500 kcal actives" ne demande qu'une nouvelle
+ * entrée dans `HEALTH_CHALLENGE_TEMPLATES` ci-dessous, jamais un nouveau cas
+ * de switch dans ce fichier ni dans `progression.tsx`.
+ */
+export type WeeklyChallengeType = 'sessions_count' | 'new_pr' | 'volume_kg' | 'distance_km' | 'health_metric';
 
 export type WeeklyChallengeDef = {
   weekKey: string; // lundi de la semaine ISO concernée (YYYY-MM-DD)
@@ -28,11 +38,32 @@ export type WeeklyChallengeDef = {
   xp: number;
   title: string;
   unit: string;
+  /** Présent uniquement quand `type === 'health_metric'` — quelle métrique du registre ce défi suit. */
+  metricKey?: HealthMetricKey;
 };
 
 export const WEEKLY_CHALLENGE_XP = 150;
 
 const CANONICAL_TYPES: WeeklyChallengeType[] = ['sessions_count', 'new_pr', 'volume_kg', 'distance_km'];
+
+/**
+ * Gabarits des défis basés sur une métrique santé — un objectif FIXE (pas
+ * dérivé d'une moyenne, contrairement aux défis séances/volume/distance,
+ * faute d'un historique de référence établi pour ces métriques). Un seul
+ * défi actif pour l'instant (pas), les autres exemples du brief (distance,
+ * course, calories, sommeil) s'ajoutent ici sans toucher au reste du fichier
+ * une fois qu'un lecteur fiable existe dans le registre pour chacun.
+ */
+const HEALTH_CHALLENGE_TEMPLATES: Partial<Record<HealthMetricKey, { title: string; target: number }>> = {
+  steps: { title: '10 000 PAS', target: 10000 },
+};
+
+/** Identifiant stable du défi hebdomadaire dans le journal XP — un seul
+ * défi actif par semaine ISO, quel que soit son type, donc un seul id
+ * possible par semaine (voir `awardXPOnce`, idempotent par id). */
+export function weeklyChallengeLedgerId(weekKey: string): string {
+  return `challenge:weekly:${weekKey}`;
+}
 
 function hashString(s: string): number {
   let h = 0;
@@ -87,25 +118,44 @@ function recentWeeklyAverage(
   return total / weeks.length;
 }
 
-function buildChallenge(type: WeeklyChallengeType, weekKey: string, sessions: WorkoutSession[]): WeeklyChallengeDef {
+type ChallengeChoice = { type: WeeklyChallengeType; metricKey?: HealthMetricKey };
+
+function buildChallenge(choice: ChallengeChoice, weekKey: string, sessions: WorkoutSession[]): WeeklyChallengeDef {
+  if (choice.type === 'health_metric' && choice.metricKey) {
+    const template = HEALTH_CHALLENGE_TEMPLATES[choice.metricKey];
+    const metricDef = HEALTH_METRIC_REGISTRY[choice.metricKey];
+    if (template && metricDef) {
+      return {
+        weekKey,
+        type: 'health_metric',
+        metricKey: choice.metricKey,
+        target: template.target,
+        xp: WEEKLY_CHALLENGE_XP,
+        title: template.title,
+        unit: metricDef.unit,
+      };
+    }
+  }
+
   const avgSessions = recentWeeklyAverage(sessions, weekKey, 4, (ws) => ws.length);
   const avgVolume = recentWeeklyAverage(sessions, weekKey, 4, weeklyVolumeKg);
   const avgDistance = recentWeeklyAverage(sessions, weekKey, 4, weeklyDistanceKm);
 
-  switch (type) {
-    case 'sessions_count': {
-      const target = avgSessions < 2 ? 2 : avgSessions < 4 ? 3 : avgSessions < 6 ? 5 : 6;
-      return { weekKey, type, target, xp: WEEKLY_CHALLENGE_XP, title: `${target} séances cette semaine`, unit: 'séance' };
-    }
+  switch (choice.type) {
     case 'new_pr':
-      return { weekKey, type, target: 1, xp: WEEKLY_CHALLENGE_XP, title: 'Un nouveau record cette semaine', unit: 'record' };
+      return { weekKey, type: 'new_pr', target: 1, xp: WEEKLY_CHALLENGE_XP, title: 'Un nouveau record cette semaine', unit: 'record' };
     case 'volume_kg': {
       const target = avgVolume > 0 ? niceRound(avgVolume * 1.15, 250, 500) : 2000;
-      return { weekKey, type, target, xp: WEEKLY_CHALLENGE_XP, title: `${target.toLocaleString('fr-FR')} kg soulevés`, unit: 'kg' };
+      return { weekKey, type: 'volume_kg', target, xp: WEEKLY_CHALLENGE_XP, title: `${target.toLocaleString('fr-FR')} kg soulevés`, unit: 'kg' };
     }
     case 'distance_km': {
       const target = avgDistance > 0 ? niceRound(avgDistance * 1.15, 1, 5) : 5;
-      return { weekKey, type, target, xp: WEEKLY_CHALLENGE_XP, title: `${target} km parcourus`, unit: 'km' };
+      return { weekKey, type: 'distance_km', target, xp: WEEKLY_CHALLENGE_XP, title: `${target} km parcourus`, unit: 'km' };
+    }
+    case 'sessions_count':
+    default: {
+      const target = avgSessions < 2 ? 2 : avgSessions < 4 ? 3 : avgSessions < 6 ? 5 : 6;
+      return { weekKey, type: 'sessions_count', target, xp: WEEKLY_CHALLENGE_XP, title: `${target} séances cette semaine`, unit: 'séance' };
     }
   }
 }
@@ -114,18 +164,22 @@ function buildChallenge(type: WeeklyChallengeType, weekKey: string, sessions: Wo
  * le même type de défi (aucun aléatoire réel, un simple hash de la clé de
  * semaine). Seuls les types que l'utilisateur peut honnêtement honorer sont
  * éligibles (`volume_kg`/`distance_km` exigent un historique réel de
- * musculation/cardio — jamais un défi que l'app ne peut pas mesurer pour ce
- * profil précis). */
-function chooseType(weekKey: string, sessions: WorkoutSession[]): WeeklyChallengeType {
+ * musculation/cardio, un défi `health_metric` exige qu'au moins un
+ * échantillon de cette métrique ait déjà été importé — jamais un défi que
+ * l'app ne peut pas honnêtement mesurer pour ce profil précis). */
+function chooseType(weekKey: string, sessions: WorkoutSession[], healthEligibleKeys: HealthMetricKey[]): ChallengeChoice {
   const hasVolumeHistory = sessions.some((s) => weeklyVolumeKg([s]) > 0);
   const hasDistanceHistory = sessions.some((s) => (s.cardio_metrics?.distance_m ?? 0) > 0);
-  const eligible = CANONICAL_TYPES.filter((t) => {
+  const pool: ChallengeChoice[] = CANONICAL_TYPES.filter((t) => {
     if (t === 'volume_kg') return hasVolumeHistory;
     if (t === 'distance_km') return hasDistanceHistory;
     return true; // sessions_count / new_pr toujours honorables
-  });
-  const pool = eligible.length > 0 ? eligible : (['sessions_count'] as WeeklyChallengeType[]);
-  return pool[hashString(weekKey) % pool.length];
+  }).map((t) => ({ type: t }));
+  for (const metricKey of healthEligibleKeys) {
+    if (HEALTH_CHALLENGE_TEMPLATES[metricKey]) pool.push({ type: 'health_metric', metricKey });
+  }
+  const finalPool = pool.length > 0 ? pool : [{ type: 'sessions_count' as const }];
+  return finalPool[hashString(weekKey) % finalPool.length];
 }
 
 async function readStoredChallenge(): Promise<WeeklyChallengeDef | null> {
@@ -146,21 +200,37 @@ export async function getOrCreateWeeklyChallenge(sessions: WorkoutSession[]): Pr
   const weekKey = isoWeekMonday(new Date().toISOString());
   const stored = await readStoredChallenge();
   if (stored && stored.weekKey === weekKey) return stored;
-  const type = chooseType(weekKey, sessions);
-  const def = buildChallenge(type, weekKey, sessions);
+
+  const healthEligibleKeys: HealthMetricKey[] = [];
+  for (const key of Object.keys(HEALTH_CHALLENGE_TEMPLATES) as HealthMetricKey[]) {
+    const metricDef = HEALTH_METRIC_REGISTRY[key];
+    if (metricDef && (await metricDef.hasAnyData())) healthEligibleKeys.push(key);
+  }
+
+  const choice = chooseType(weekKey, sessions, healthEligibleKeys);
+  const def = buildChallenge(choice, weekKey, sessions);
   await AsyncStorage.setItem(WEEKLY_CHALLENGE_KEY, JSON.stringify(def));
   return def;
 }
 
 /** Progression EN DIRECT du défi, recalculée à chaque appel à partir des
- * séances/records réels de la semaine concernée — jamais une valeur stockée
- * au moment de la création du défi (voir le principe "définition + état
- * courant de l'app = progression courante" demandé). */
-export function computeWeeklyChallengeProgress(
+ * séances/records/données santé réelles — jamais une valeur stockée au
+ * moment de la création du défi (voir le principe "définition + état
+ * courant de l'app = progression courante" demandé). Un défi `health_metric`
+ * suit TOUJOURS la valeur du jour LOCAL en cours (même fonction que le
+ * Dashboard, voir `health-metric-registry.ts`) — pas un cumul hebdomadaire :
+ * c'est ce qui permet à "aujourd'hui" de coïncider exactement entre le
+ * Dashboard et le Défi (voir §13 du brief). */
+export async function computeWeeklyChallengeProgress(
   def: WeeklyChallengeDef,
   sessions: WorkoutSession[],
   prs: PersonalRecord[],
-): number {
+): Promise<number> {
+  if (def.type === 'health_metric' && def.metricKey) {
+    const metricDef = HEALTH_METRIC_REGISTRY[def.metricKey];
+    if (!metricDef) return 0;
+    return metricDef.getValueForDate(localDateYYYYMMDD());
+  }
   const weekSessions = sessions.filter((s) => isoWeekMonday(s.startedAt) === def.weekKey);
   switch (def.type) {
     case 'sessions_count':
@@ -171,11 +241,22 @@ export function computeWeeklyChallengeProgress(
       return Math.round(weeklyVolumeKg(weekSessions));
     case 'distance_km':
       return Math.round(weeklyDistanceKm(weekSessions) * 10) / 10;
+    default:
+      return 0;
   }
 }
 
-export function formatWeeklyChallengeValue(type: WeeklyChallengeType, value: number): string {
-  switch (type) {
+/** Valeur réelle formatée — jamais plafonnée au `target` (voir §9 du brief :
+ * un dépassement doit rester lisible, ex. "12 000 pas", pas être tronqué à
+ * "10 000"). C'est la barre de progression (toujours `Math.min(1, ...)`,
+ * calculée par l'appelant) qui reste visuellement bornée à 100 %, pas cette
+ * valeur. */
+export function formatWeeklyChallengeValue(def: WeeklyChallengeDef, value: number): string {
+  if (def.type === 'health_metric' && def.metricKey) {
+    const metricDef = HEALTH_METRIC_REGISTRY[def.metricKey];
+    return metricDef ? metricDef.formatValue(value) : String(Math.round(value));
+  }
+  switch (def.type) {
     case 'sessions_count':
     case 'new_pr':
       return String(Math.round(value));
@@ -183,17 +264,21 @@ export function formatWeeklyChallengeValue(type: WeeklyChallengeType, value: num
       return `${Math.round(value).toLocaleString('fr-FR')} kg`;
     case 'distance_km':
       return `${value.toLocaleString('fr-FR', { maximumFractionDigits: 1 })} km`;
+    default:
+      return String(Math.round(value));
   }
 }
 
-/** Crédite l'XP du défi hebdomadaire — idempotent (id = `challenge:weekly:
- * {weekKey}`, voir `awardXPOnce`) : ne credite jamais deux fois le même
- * défi, quel que soit le nombre de fois où cette fonction est rappelée
- * (reload, navigation répétée, re-synchronisation...). */
+/** Crédite l'XP du défi hebdomadaire — idempotent (id =
+ * `weeklyChallengeLedgerId(weekKey)`, voir `awardXPOnce`) : ne credite
+ * jamais deux fois le même défi, quel que soit le nombre de fois où cette
+ * fonction est rappelée (reload, navigation répétée, re-synchronisation
+ * Health Auto Export plusieurs fois par jour...). Un seul id possible par
+ * semaine ISO, quel que soit le type de défi actif cette semaine-là. */
 export async function awardWeeklyChallengeXPIfComplete(def: WeeklyChallengeDef, progress: number): Promise<boolean> {
   if (progress < def.target) return false;
   const { awarded } = await awardXPOnce({
-    id: `challenge:weekly:${def.weekKey}`,
+    id: weeklyChallengeLedgerId(def.weekKey),
     type: 'challenge',
     amount: def.xp,
     label: 'Défi de la semaine terminé',
@@ -203,8 +288,8 @@ export async function awardWeeklyChallengeXPIfComplete(def: WeeklyChallengeDef, 
   return awarded;
 }
 
-export function weeklyUnitLabel(type: WeeklyChallengeType, n: number): string {
-  switch (type) {
+export function weeklyUnitLabel(def: WeeklyChallengeDef, n: number): string {
+  switch (def.type) {
     case 'sessions_count':
       return n > 1 ? 'séances' : 'séance';
     case 'new_pr':
@@ -213,6 +298,8 @@ export function weeklyUnitLabel(type: WeeklyChallengeType, n: number): string {
       return 'kg';
     case 'distance_km':
       return 'km';
+    default:
+      return def.unit;
   }
 }
 
@@ -220,14 +307,14 @@ export function weeklyUnitLabel(type: WeeklyChallengeType, n: number): string {
  * information (début, mi-parcours, fin proche), jamais une phrase générée
  * pour occuper l'espace à chaque pourcentage (voir §10 du brief). `null` =
  * ne rien afficher de plus que les chiffres, déjà visibles par ailleurs. */
-export function weeklyStageMessage(type: WeeklyChallengeType, progress: number, target: number): string | null {
-  const pct = target > 0 ? progress / target : 0;
+export function weeklyStageMessage(def: WeeklyChallengeDef, progress: number): string | null {
+  const pct = def.target > 0 ? progress / def.target : 0;
   if (pct >= 1) return null;
   if (pct < 0.05) return 'Le défi commence.';
   if (pct >= 0.45 && pct < 0.6) return 'Tu es à mi-chemin.';
   if (pct >= 0.75) {
-    const remaining = Math.max(0, Math.round((target - progress) * 10) / 10);
-    return `Plus que ${formatWeeklyChallengeValue(type, remaining)}.`;
+    const remaining = Math.max(0, Math.round((def.target - progress) * 10) / 10);
+    return `Plus que ${formatWeeklyChallengeValue(def, remaining)}.`;
   }
   return null;
 }

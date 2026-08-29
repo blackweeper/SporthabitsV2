@@ -15,6 +15,18 @@ import {
  */
 export type HealthSyncPhase = "idle" | "syncing" | "error" | "done";
 
+/**
+ * Fréquence de la synchro automatique en arrière-plan (`app/_layout.tsx`) —
+ * exportée ici plutôt que dupliquée en constante magique dans `_layout.tsx`
+ * ET dans le panneau de diagnostic (`health-debug.tsx`, qui l'affiche pour
+ * expliquer honnêtement ce qui est réellement automatique). Volontairement
+ * modeste (pas de polling à la seconde/minute) : IronFlow ne fait que
+ * RÉCUPÉRER ce que Health Auto Export a déjà envoyé — il ne déclenche jamais
+ * un nouvel export côté iOS, donc interroger plus souvent n'apporterait rien
+ * tant que HAE lui-même n'a rien de neuf à donner.
+ */
+export const HEALTH_SYNC_INTERVAL_MS = 15 * 60 * 1000;
+
 type MetricsApiItem = {
   metric_name: string;
   units: string | null;
@@ -81,10 +93,17 @@ export function useHealthSync() {
       const cleanBase = baseUrl.replace(/\/+$/, "");
       const state = await getHealthSyncState();
 
+      if (__DEV__) console.log(`[HealthSync] starting sync against ${cleanBase}`);
+
       const [metricsPage, workoutsPage] = await Promise.all([
         fetchAllPages<MetricsApiItem>(`${cleanBase}/api/health-import/metrics`, token, state.metricsCursor),
         fetchAllPages<WorkoutsApiItem>(`${cleanBase}/api/health-import/workouts`, token, state.workoutsCursor),
       ]);
+      if (__DEV__) {
+        console.log(
+          `[HealthSync] fetched ${metricsPage.items.length} metric page item(s), ${workoutsPage.items.length} workout page item(s)`,
+        );
+      }
 
       const metricsAdded = await mergeHealthMetrics(
         metricsPage.items.map((m) => ({
@@ -115,7 +134,9 @@ export function useHealthSync() {
       setLastResult({ metricsAdded, workoutsAdded });
       setPhase("done");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur de synchronisation.");
+      const message = err instanceof Error ? err.message : "Erreur de synchronisation.";
+      if (__DEV__) console.warn(`[HealthSync] sync failed: ${message}`);
+      setError(message);
       setPhase("error");
     }
   }, []);

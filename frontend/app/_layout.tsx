@@ -12,7 +12,7 @@ import { backfillPersonalLibrary } from "@/src/utils/exercise-library-backfill";
 import { seedCoreLibraryIfNeeded } from "@/src/utils/exercise-library-bootstrap";
 import { seedStarterProgramsIfNeeded } from "@/src/utils/program-bootstrap";
 import { seedWodLibraryIfNeeded } from "@/src/utils/wod-bootstrap";
-import { useHealthSync } from "@/src/hooks/useHealthSync";
+import { HEALTH_SYNC_INTERVAL_MS, useHealthSync } from "@/src/hooks/useHealthSync";
 import { ThemeProvider } from "@/src/themes";
 import { RadioPlayerProvider } from "@/src/hooks/useRadioPlayer";
 import MiniRadioPlayer from "@/src/components/radio/MiniRadioPlayer";
@@ -87,16 +87,27 @@ export default function RootLayout() {
   }, []);
 
   // Import santé (Health Auto Export) — synchronisation silencieuse : une
-  // fois au lancement, puis toutes les 15 minutes tant que l'app reste
-  // ouverte (pas de vraie exécution en arrière-plan possible sur le web sans
-  // Service Worker, hors périmètre ici — ceci couvre "à l'ouverture" et
-  // "pendant que l'app est utilisée"). Aucun état de `useHealthSync` n'est
-  // lu ici : si l'URL/le token ne sont pas configurés, `sync()` échoue en
-  // interne avant toute requête réseau (voir useHealthSync.ts) — totalement
-  // silencieux, jamais de spinner ni d'erreur visible.
+  // fois au lancement, puis toutes les `HEALTH_SYNC_INTERVAL_MS` (15 min)
+  // tant que l'app reste ouverte (pas de vraie exécution en arrière-plan
+  // possible sur le web sans Service Worker, hors périmètre ici — ceci
+  // couvre "à l'ouverture" et "pendant que l'app est utilisée"). Aucun état
+  // de `useHealthSync` n'est lu ici : si l'URL/le token ne sont pas
+  // configurés, `sync()` échoue en interne avant toute requête réseau (voir
+  // useHealthSync.ts) — totalement silencieux, jamais de spinner ni
+  // d'erreur visible.
+  //
+  // IMPORTANT — ce que ceci automatise et ce qu'il n'automatise PAS :
+  // cette boucle fait uniquement "récupérer ce que Health Auto Export a déjà
+  // envoyé au backend". Elle ne déclenche JAMAIS un nouvel export côté iOS —
+  // ça reste entièrement la responsabilité de l'automation Health Auto
+  // Export elle-même (déclenchée par HAE en arrière-plan si son automation
+  // est configurée ainsi, ou manuellement par l'utilisateur dans l'app HAE).
+  // Voir le panneau Réglages > Santé > Diagnostic santé, qui distingue
+  // explicitement "dernier export reçu par le backend" (dépend de HAE/iOS)
+  // de "dernière récupération par IronFlow" (ce que cette boucle fait).
   useEffect(() => {
     syncHealthData();
-    const interval = setInterval(syncHealthData, 15 * 60 * 1000);
+    const interval = setInterval(syncHealthData, HEALTH_SYNC_INTERVAL_MS);
     return () => clearInterval(interval);
   }, [syncHealthData]);
 
@@ -149,6 +160,7 @@ export default function RootLayout() {
           <Stack.Screen name="exercise-library-settings" />
           <Stack.Screen name="exercise-library-update" />
           <Stack.Screen name="health-sync-settings" />
+          <Stack.Screen name="health-debug" options={MODAL_SCREEN_OPTIONS} />
           <Stack.Screen name="health-metric/[key]" options={MODAL_SCREEN_OPTIONS} />
           <Stack.Screen name="day-detail" options={MODAL_SCREEN_OPTIONS} />
           <Stack.Screen name="stats" options={MODAL_SCREEN_OPTIONS} />

@@ -1,4 +1,4 @@
-import { ReactNode, useState, useCallback } from "react";
+import { ReactNode, useState, useCallback, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -20,6 +20,7 @@ import Animated, {
   useAnimatedStyle,
   useReducedMotion,
   useSharedValue,
+  withSequence,
   withSpring,
   withTiming,
   ZoomIn,
@@ -60,10 +61,11 @@ import {
   daysRemainingInWeek,
   formatWeeklyChallengeValue,
   getOrCreateWeeklyChallenge,
+  weeklyChallengeLedgerId,
   weeklyStageMessage,
-  weeklyUnitLabel,
   WeeklyChallengeDef,
 } from "@/src/utils/weekly-challenge";
+import { subscribeHealthDataChanged } from "@/src/utils/health-data-storage";
 import {
   deleteMeasurement,
   deletePR,
@@ -1406,59 +1408,77 @@ function DefisView() {
   const { theme } = useTheme();
   const [weekly, setWeekly] = useState<WeeklyChallengeDef | null>(null);
   const [weeklyProgress, setWeeklyProgress] = useState(0);
+  const [weeklyCompleted, setWeeklyCompleted] = useState(false);
   const [active, setActive] = useState<Achievement[]>([]);
   const [upcoming, setUpcoming] = useState<Achievement[]>([]);
   const [history, setHistory] = useState<XPLedgerEntry[]>([]);
   const [hasAnySession, setHasAnySession] = useState(true);
 
+  const load = useCallback(async () => {
+    const [sessions, prs, measurements] = await Promise.all([
+      getSessions(),
+      getPRs(),
+      getMeasurements(),
+    ]);
+    setHasAnySession(sessions.length > 0);
+    const achievements = computeAchievements({ sessions, prs, measurements });
+    await syncXPLedger({ sessions, prs, achievements });
+
+    const def = await getOrCreateWeeklyChallenge(sessions);
+    const progress = await computeWeeklyChallengeProgress(def, sessions, prs);
+    await awardWeeklyChallengeXPIfComplete(def, progress);
+    setWeekly(def);
+    setWeeklyProgress(progress);
+
+    const notUnlocked = achievements.filter((a) => !a.unlocked);
+    setActive(
+      notUnlocked
+        .filter((a) => a.progress > 0)
+        .sort((a, b) => b.progress / b.target - a.progress / a.target)
+        .slice(0, 4),
+    );
+    setUpcoming(
+      notUnlocked
+        .filter((a) => a.progress === 0)
+        .sort((a, b) => a.target - b.target)
+        .slice(0, 3),
+    );
+
+    // État "terminé" lu depuis le journal XP (pas depuis `progress >= target`
+    // en direct) : un défi santé suit la valeur du jour, qui redescend à 0 le
+    // lendemain — sans ce garde-fou, "Terminé" disparaîtrait le jour suivant
+    // alors que l'XP a bien été créditée une seule fois pour de bon (§8/§11).
+    const ledger = await getXPLedger();
+    setWeeklyCompleted(ledger.some((e) => e.id === weeklyChallengeLedgerId(def.weekKey)));
+    setHistory(
+      ledger
+        .filter((e) => e.type === "achievement" || e.type === "challenge")
+        .sort((a, b) => (a.date < b.date ? 1 : -1))
+        .slice(0, 10),
+    );
+  }, []);
+
   useFocusEffect(
     useCallback(() => {
-      (async () => {
-        const [sessions, prs, measurements] = await Promise.all([
-          getSessions(),
-          getPRs(),
-          getMeasurements(),
-        ]);
-        setHasAnySession(sessions.length > 0);
-        const achievements = computeAchievements({ sessions, prs, measurements });
-        await syncXPLedger({ sessions, prs, achievements });
-
-        const def = await getOrCreateWeeklyChallenge(sessions);
-        const progress = computeWeeklyChallengeProgress(def, sessions, prs);
-        await awardWeeklyChallengeXPIfComplete(def, progress);
-        setWeekly(def);
-        setWeeklyProgress(progress);
-
-        const notUnlocked = achievements.filter((a) => !a.unlocked);
-        setActive(
-          notUnlocked
-            .filter((a) => a.progress > 0)
-            .sort((a, b) => b.progress / b.target - a.progress / a.target)
-            .slice(0, 4),
-        );
-        setUpcoming(
-          notUnlocked
-            .filter((a) => a.progress === 0)
-            .sort((a, b) => a.target - b.target)
-            .slice(0, 3),
-        );
-
-        const ledger = await getXPLedger();
-        setHistory(
-          ledger
-            .filter((e) => e.type === "achievement" || e.type === "challenge")
-            .sort((a, b) => (a.date < b.date ? 1 : -1))
-            .slice(0, 10),
-        );
-      })();
-    }, []),
+      load();
+    }, [load]),
   );
+
+  // Rafraîchit le défi dès qu'une synchro Health Auto Export apporte de
+  // nouvelles données (même signal que le Dashboard, `notifyHealthDataChanged`
+  // dans `health-data-storage.ts`) — un défi santé doit évoluer sans que
+  // l'utilisateur ait besoin de changer d'onglet puis d'y revenir (§6/§14).
+  useEffect(() => {
+    return subscribeHealthDataChanged(() => {
+      load();
+    });
+  }, [load]);
 
   if (!weekly) return null;
 
   return (
     <View style={{ gap: spacing.md }}>
-      <WeeklyChallengeHero def={weekly} progress={weeklyProgress} theme={theme} />
+      <WeeklyChallengeHero def={weekly} progress={weeklyProgress} completed={weeklyCompleted} theme={theme} />
 
       <Card title="Défis actifs" icon="flame">
         {active.length === 0 ? (
@@ -1513,54 +1533,84 @@ function DefisView() {
   );
 }
 
-function WeeklyChallengeHero({ def, progress, theme }: { def: WeeklyChallengeDef; progress: number; theme: Theme }) {
-  const done = progress >= def.target;
-  const accent = done ? theme.colors.success : theme.colors.data.performance;
+function WeeklyChallengeHero({
+  def,
+  progress,
+  completed,
+  theme,
+}: {
+  def: WeeklyChallengeDef;
+  progress: number;
+  completed: boolean;
+  theme: Theme;
+}) {
+  const accent = completed ? theme.colors.success : theme.colors.data.performance;
   const pct = def.target > 0 ? Math.min(1, progress / def.target) : 0;
-  const message = done ? null : weeklyStageMessage(def.type, progress, def.target);
+  const overshoot = progress > def.target;
+  const message = completed ? null : weeklyStageMessage(def, progress);
   const daysLeft = daysRemainingInWeek(def.weekKey);
 
+  // Petit pulse au moment précis où le défi passe à "terminé" — jamais à
+  // chaque render (voir §8/§18 : une animation ponctuelle et discrète, pas
+  // un effet permanent). `wasCompleted` retient l'état précédent entre deux
+  // rendus pour détecter la transition false → true.
+  const scale = useSharedValue(1);
+  const wasCompleted = useRef(completed);
+  useEffect(() => {
+    if (completed && !wasCompleted.current) {
+      scale.value = withSequence(withSpring(1.04, { damping: 9, stiffness: 180 }), withSpring(1, { damping: 12 }));
+    }
+    wasCompleted.current = completed;
+  }, [completed, scale]);
+  const animatedCardStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+
   return (
-    <GlassCard
-      level="elevated"
-      style={[styles.levelHero, { borderRadius: theme.radius.lg, backgroundColor: theme.colors.surfaceSecondary, borderColor: theme.colors.border }]}
-    >
-      <LinearGradient
-        colors={[withAlpha(accent, done ? 22 : 10 + pct * 16), "transparent"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={StyleSheet.absoluteFillObject}
-      />
-      <View style={styles.weeklyHeroHead}>
-        <Text style={[styles.levelHeroEyebrow, { color: theme.colors.onSurfaceTertiary }]}>
-          {done ? "✓ DÉFI DE LA SEMAINE TERMINÉ" : "DÉFI DE LA SEMAINE"}
-        </Text>
-        {!done && (
-          <Text style={[styles.weeklyDaysLeft, { color: theme.colors.onSurfaceTertiary }]}>
-            {daysLeft} j restant{daysLeft > 1 ? "s" : ""}
+    <Animated.View style={animatedCardStyle}>
+      <GlassCard
+        level="elevated"
+        style={[styles.levelHero, { borderRadius: theme.radius.lg, backgroundColor: theme.colors.surfaceSecondary, borderColor: theme.colors.border }]}
+      >
+        <LinearGradient
+          colors={[withAlpha(accent, completed ? 22 : 10 + pct * 16), "transparent"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={StyleSheet.absoluteFillObject}
+        />
+        <View style={styles.weeklyHeroHead}>
+          <Text style={[styles.levelHeroEyebrow, { color: theme.colors.onSurfaceTertiary }]}>
+            {completed ? "✓ DÉFI DE LA SEMAINE TERMINÉ" : "DÉFI DE LA SEMAINE"}
           </Text>
-        )}
-      </View>
-      <Text style={[styles.levelHeroRank, { color: accent, fontSize: 22 }]} numberOfLines={2}>
-        {def.title}
-      </Text>
-      <View style={{ marginTop: spacing.md }}>
-        <XPBar progress={pct} color={accent} trackColor={theme.colors.surfaceTertiary} height={12} />
-        <View style={styles.weeklyValueRow}>
-          <Text style={[styles.levelHeroCaption, { color: theme.colors.onSurface }]}>
-            {formatWeeklyChallengeValue(def.type, progress)} / {formatWeeklyChallengeValue(def.type, def.target)}
-          </Text>
-          <Text style={[styles.weeklyPct, { color: accent }]}>{Math.round(pct * 100)}%</Text>
+          {!completed && (
+            <Text style={[styles.weeklyDaysLeft, { color: theme.colors.onSurfaceTertiary }]}>
+              {daysLeft} j restant{daysLeft > 1 ? "s" : ""}
+            </Text>
+          )}
         </View>
-        <Text style={[styles.levelHeroSub, { color: theme.colors.onSurfaceTertiary }]}>
-          {done ? "Défi terminé. Nouveau défi lundi." : message ?? " "}
+        <Text style={[styles.levelHeroRank, { color: accent, fontSize: 22 }]} numberOfLines={2}>
+          {def.title}
         </Text>
-        <View style={styles.weeklyXpRow}>
-          <Ionicons name={done ? "checkmark-circle" : "flash"} size={13} color={accent} />
-          <Text style={[styles.weeklyXpText, { color: accent }]}>+{def.xp} XP</Text>
+        <View style={{ marginTop: spacing.md }}>
+          <XPBar progress={pct} color={accent} trackColor={theme.colors.surfaceTertiary} height={12} />
+          <View style={styles.weeklyValueRow}>
+            <Text style={[styles.levelHeroCaption, { color: theme.colors.onSurface }]}>
+              {formatWeeklyChallengeValue(def, progress)} / {formatWeeklyChallengeValue(def, def.target)}
+            </Text>
+            <Text style={[styles.weeklyPct, { color: accent }]}>{Math.round(pct * 100)}%</Text>
+          </View>
+          <Text style={[styles.levelHeroSub, { color: theme.colors.onSurfaceTertiary }]}>
+            {completed
+              ? overshoot
+                ? `Objectif dépassé — ${formatWeeklyChallengeValue(def, progress)} réalisés. Nouveau défi lundi.`
+                : "Défi terminé. Nouveau défi lundi."
+              : message ?? " "}
+          </Text>
+          <View style={styles.weeklyXpRow}>
+            <Ionicons name={completed ? "checkmark-circle" : "flash"} size={13} color={accent} />
+            <Text style={[styles.weeklyXpText, { color: accent }]}>+{def.xp} XP</Text>
+          </View>
         </View>
-      </View>
-    </GlassCard>
+      </GlassCard>
+    </Animated.View>
   );
 }
 

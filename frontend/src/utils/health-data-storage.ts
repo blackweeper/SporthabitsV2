@@ -44,12 +44,25 @@ const SYNC_STATE_KEY = "@ironflow/healthSyncState";
 // chose (jusqu'à 60s de retard avec l'intervalle existant du Dashboard).
 const listeners = new Set<() => void>();
 
+// Horodatage de la dernière fusion ayant réellement modifié le stockage
+// local — distinct de `HealthSyncState.lastSyncedAt` (mis à jour même quand
+// une synchro ne rapporte rien de neuf). Sert de diagnostic : si ce
+// timestamp n'avance jamais malgré des synchros régulières, le problème est
+// en amont (rien de nouveau côté backend, ou la synchro échoue avant même
+// d'atteindre la fusion) — voir `HealthDataDebugScreen`.
+let lastChangeAt: string | null = null;
+
+export function getLastHealthDataChangeAt(): string | null {
+  return lastChangeAt;
+}
+
 export function subscribeHealthDataChanged(callback: () => void): () => void {
   listeners.add(callback);
   return () => listeners.delete(callback);
 }
 
 function notifyHealthDataChanged(): void {
+  lastChangeAt = new Date().toISOString();
   listeners.forEach((cb) => cb());
 }
 
@@ -129,6 +142,10 @@ export async function getImportedStepsForDate(dateYYYYMMDD: string): Promise<num
     if (!m.date.startsWith(dateYYYYMMDD)) continue;
     total += m.qty ?? 0;
   }
+  if (__DEV__) {
+    console.log(`[HealthData] querying date: ${dateYYYYMMDD}`);
+    console.log(`[HealthData] steps today: ${total} (${metrics.length} samples in local storage)`);
+  }
   return total;
 }
 
@@ -170,6 +187,16 @@ const RESPIRATORY_RATE_METRIC_NAMES = new Set(["respiratoryrate"]);
 const SPO2_METRIC_NAMES = new Set(["oxygensaturation", "bloodoxygen", "spo2"]);
 const DISTANCE_METRIC_NAMES = new Set(["distancewalkingrunning", "distance", "walkingrunningdistance"]);
 const EXERCISE_TIME_METRIC_NAMES = new Set(["appleexercisetime", "exercisetime", "exerciseminutes"]);
+// Énergie active (calories brûlées mesurées par l'Apple Watch/l'iPhone) —
+// identifiant HealthKit `active_energy`/`ActiveEnergyBurned`. Volontairement
+// exposée séparément du widget "Calories" du Dashboard (celui-ci reste basé
+// sur les séances IronFlow elles-mêmes, une source déjà cohérente avec
+// Niveau/Défis — voir §19 du brief : une seule source de vérité par concept,
+// pas question de faire cohabiter deux définitions différentes de "calories
+// brûlées" sur le même widget). Utilisée pour l'instant uniquement par le
+// panneau de diagnostic (`HealthDataDebugScreen`) et disponible pour un futur
+// widget dédié si besoin.
+const ACTIVE_ENERGY_METRIC_NAMES = new Set(["activeenergyburned", "activeenergy", "activecalories"]);
 
 export function unitsToHoursMultiplier(units: string | null): number {
   if (!units) return 1; // suppose déjà en heures si l'unité est absente
@@ -204,6 +231,21 @@ export async function getImportedDistanceKmForDate(dateYYYYMMDD: string): Promis
     if (!DISTANCE_METRIC_NAMES.has(normalizeMetricName(m.name))) continue;
     if (!m.date.startsWith(dateYYYYMMDD)) continue;
     total += (m.qty ?? 0) * unitsToKmMultiplier(m.units);
+  }
+  return total;
+}
+
+/** Même patron pour l'énergie active (kcal) du jour — voir le commentaire
+ * sur `ACTIVE_ENERGY_METRIC_NAMES` : n'alimente pas le widget "Calories" du
+ * Dashboard (qui reste basé sur les séances IronFlow), disponible pour le
+ * panneau de diagnostic santé et un futur usage dédié. */
+export async function getImportedActiveCaloriesForDate(dateYYYYMMDD: string): Promise<number> {
+  const metrics = await getHealthMetrics();
+  let total = 0;
+  for (const m of metrics) {
+    if (!ACTIVE_ENERGY_METRIC_NAMES.has(normalizeMetricName(m.name))) continue;
+    if (!m.date.startsWith(dateYYYYMMDD)) continue;
+    total += m.qty ?? 0;
   }
   return total;
 }
@@ -377,6 +419,8 @@ export {
   SPO2_METRIC_NAMES,
   DISTANCE_METRIC_NAMES,
   EXERCISE_TIME_METRIC_NAMES,
+  ACTIVE_ENERGY_METRIC_NAMES,
+  STEP_METRIC_NAMES,
   normalizeMetricName,
 };
 
@@ -394,6 +438,10 @@ export async function mergeHealthMetrics(incoming: HealthMetricSample[]): Promis
   }
   const merged = Array.from(byKey.values()).sort((a, b) => a.date.localeCompare(b.date));
   await bigStoreSet(METRICS_KEY, JSON.stringify(merged));
+  // Compteurs uniquement — jamais de valeur de santé individuelle en clair
+  // dans les logs (voir §23 du brief sécurité). `__DEV__` : silencieux en
+  // production, visible pendant le diagnostic/`expo start`.
+  if (__DEV__) console.log(`[HealthData] samples persisted locally: +${added} new, ${merged.length} total`);
   notifyHealthDataChanged();
   return added;
 }

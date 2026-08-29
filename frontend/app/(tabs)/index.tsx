@@ -187,9 +187,12 @@ export default function TodayScreen() {
     }
     setActives(resolved);
     setWellnessLogs(await getWellnessLogs());
-    setImportedStepsToday(await getImportedStepsForDate(localDateYYYYMMDD()));
-    setImportedSleepHoursToday(await getImportedSleepHoursForDate(localDateYYYYMMDD()));
+    const stepsToday = await getImportedStepsForDate(localDateYYYYMMDD());
+    const sleepToday = await getImportedSleepHoursForDate(localDateYYYYMMDD());
+    setImportedStepsToday(stepsToday);
+    setImportedSleepHoursToday(sleepToday);
     setSleepAvg7d(await getRecentDailyAverage(SLEEP_METRIC_NAMES, 7, localDateYYYYMMDD(), "sum", unitsToHoursMultiplier));
+    if (__DEV__) console.log(`[Dashboard] health data received: steps=${stepsToday}, sleepHours=${sleepToday}`);
     setCalendarEvents(await getCalendarEvents());
     setReminders(await getReminders());
     setDismissedReminders(await getDismissedReminderKeys());
@@ -222,9 +225,15 @@ export default function TodayScreen() {
   // le widget Pas resterait périmé jusqu'au prochain intervalle de 60s
   // ci-dessus. Rafraîchit uniquement les pas importés, pas tout `load()`.
   useEffect(() => {
+    // `localDateYYYYMMDD()` — pas `todayYYYYMMDD()` (UTC, `gym-storage.ts`) —
+    // pour rester cohérent avec `load()` juste au-dessus : Health Auto
+    // Export date ses échantillons en heure locale de l'iPhone, donc les
+    // deux doivent utiliser la même notion de "aujourd'hui" ou risquent de
+    // se contredire pendant les heures qui suivent minuit local (fuseaux à
+    // l'est de Greenwich, dont la France).
     return subscribeHealthDataChanged(() => {
-      getImportedStepsForDate(todayYYYYMMDD()).then(setImportedStepsToday);
-      getImportedSleepHoursForDate(todayYYYYMMDD()).then(setImportedSleepHoursToday);
+      getImportedStepsForDate(localDateYYYYMMDD()).then(setImportedStepsToday);
+      getImportedSleepHoursForDate(localDateYYYYMMDD()).then(setImportedSleepHoursToday);
     });
   }, []);
 
