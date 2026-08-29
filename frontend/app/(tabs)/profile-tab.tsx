@@ -14,8 +14,6 @@ import { useTheme } from "@/src/themes";
 import ThemedBackground from "@/src/themes/ThemedBackground";
 import {
   getGoals,
-  getHabitLogs,
-  getHabits,
   getMeasurements,
   getPRs,
   getProfile,
@@ -23,7 +21,7 @@ import {
   UserProfile,
 } from "@/src/utils/gym-storage";
 import { getLibraryMeta } from "@/src/utils/exercise-records";
-import { computeXPState, XPState } from "@/src/utils/xp";
+import { computeLevelState, LevelState, syncXPLedger } from "@/src/utils/xp";
 import { computeAdvancedStats } from "@/src/utils/stats";
 import { computeAchievements } from "@/src/utils/achievements";
 import Card from "@/src/components/ui/Card";
@@ -35,7 +33,7 @@ export default function ProfileTab() {
   const router = useRouter();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [librarySubtitle, setLibrarySubtitle] = useState("Chargement…");
-  const [xpState, setXpState] = useState<XPState | null>(null);
+  const [levelState, setLevelState] = useState<LevelState | null>(null);
   const [activeGoalsCount, setActiveGoalsCount] = useState(0);
   const [currentStreakDays, setCurrentStreakDays] = useState(0);
   const [bestStreakDays, setBestStreakDays] = useState(0);
@@ -46,15 +44,12 @@ export default function ProfileTab() {
     useCallback(() => {
       (async () => {
         setProfile(await getProfile());
-        const [sessions, habits, habitLogs, prs, goals, measurements] = await Promise.all([
+        const [sessions, prs, goals, measurements] = await Promise.all([
           getSessions(),
-          getHabits(),
-          getHabitLogs(),
           getPRs(),
           getGoals(),
           getMeasurements(),
         ]);
-        setXpState(computeXPState({ sessions, habits, habitLogs, prs }));
         setActiveGoalsCount(goals.filter((g) => !g.achievedAt).length);
         const stats = computeAdvancedStats(sessions);
         setCurrentStreakDays(stats.currentStreakDays);
@@ -62,6 +57,8 @@ export default function ProfileTab() {
         const achievementsList = computeAchievements({ sessions, prs, measurements });
         setUnlockedAchievements(achievementsList.filter((a) => a.unlocked).length);
         setTotalAchievements(achievementsList.length);
+        const ledger = await syncXPLedger({ sessions, prs, achievements: achievementsList });
+        setLevelState(computeLevelState(ledger.reduce((sum, e) => sum + e.amount, 0)));
         const meta = await getLibraryMeta();
         const dateStr = meta.lastUpdatedAt
           ? new Date(meta.lastUpdatedAt).toLocaleDateString("fr-FR", {
@@ -135,11 +132,11 @@ export default function ProfileTab() {
             cockpit quotidien) : visible dès l'ouverture, pas seulement à un
             tap de distance. Composant partagé avec le Dashboard le cas
             échéant, pour un rendu identique partout où il apparaît. */}
-        {xpState && (
+        {levelState && (
           <View style={styles.cockpitSpacing}>
             <CockpitCard
               testID="profile-cockpit-card"
-              xpState={xpState}
+              levelState={levelState}
               currentStreakDays={currentStreakDays}
               bestStreakDays={bestStreakDays}
               unlockedAchievements={unlockedAchievements}

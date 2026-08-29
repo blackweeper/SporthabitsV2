@@ -12,7 +12,18 @@ import { useConfirmDialog } from "@/src/hooks/use-confirm-dialog";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import { LinearGradient } from "expo-linear-gradient";
+import Animated, {
+  Easing,
+  FadeIn,
+  FadeInDown,
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withSpring,
+  withTiming,
+  ZoomIn,
+} from "react-native-reanimated";
 import { LineChart } from "react-native-gifted-charts";
 import { coloredShadow, motion, spacing, withAlpha } from "@/src/theme";
 import { useTheme } from "@/src/themes";
@@ -30,23 +41,37 @@ import {
   resolveCategory,
 } from "@/src/utils/exercise-category";
 import {
-  BADGES,
-  computeXPState,
-  MAX_LEVEL,
+  checkLevelUp,
+  computeLevelState,
+  getXPLedger,
+  LevelState,
+  RANKS,
+  rankForLevel,
+  syncXPLedger,
   xpForLevel,
+  XP_PER_ACHIEVEMENT,
+  XPEventType,
+  XPLedgerEntry,
 } from "@/src/utils/xp";
+import { rankAccentColor } from "@/src/utils/rank-colors";
+import {
+  awardWeeklyChallengeXPIfComplete,
+  computeWeeklyChallengeProgress,
+  daysRemainingInWeek,
+  formatWeeklyChallengeValue,
+  getOrCreateWeeklyChallenge,
+  weeklyStageMessage,
+  weeklyUnitLabel,
+  WeeklyChallengeDef,
+} from "@/src/utils/weekly-challenge";
 import {
   deleteMeasurement,
   deletePR,
   getGoals,
-  getHabits,
-  getHabitLogs,
   getMeasurements,
   getPRs,
   getSessions,
   Goal,
-  Habit,
-  HabitLog,
   PersonalRecord,
   WorkoutSession,
 } from "@/src/utils/gym-storage";
@@ -93,8 +118,6 @@ export default function ProgressionHub() {
   );
   const [sessions, setSessions] = useState<WorkoutSession[]>([]);
   const [prs, setPRs] = useState<PersonalRecord[]>([]);
-  const [habits, setHabits] = useState<Habit[]>([]);
-  const [logs, setLogs] = useState<HabitLog[]>([]);
   const [goals, setGoals] = useState<Goal[]>([]);
 
   // Re-sync the active tab whenever we're pushed here with a `?tab=...`
@@ -107,17 +130,9 @@ export default function ProgressionHub() {
   );
 
   const reload = useCallback(async () => {
-    const [s, p, h, hl, g] = await Promise.all([
-      getSessions(),
-      getPRs(),
-      getHabits(),
-      getHabitLogs(),
-      getGoals(),
-    ]);
+    const [s, p, g] = await Promise.all([getSessions(), getPRs(), getGoals()]);
     setSessions(s);
     setPRs(p);
-    setHabits(h);
-    setLogs(hl);
     setGoals(g);
   }, []);
 
@@ -196,9 +211,7 @@ export default function ProgressionHub() {
         {tab === "exercises" && (
           <ExercisesView sessions={sessions} prs={prs} highlights={highlights} router={router} onChanged={reload} />
         )}
-        {tab === "level" && (
-          <LevelView sessions={sessions} habits={habits} habitLogs={logs} prs={prs} />
-        )}
+        {tab === "level" && <LevelView />}
         {tab === "defis" && <DefisView />}
       </ScrollView>
       </SafeAreaView>
@@ -316,15 +329,6 @@ function ExercisesView({
           {all.length} exercice{all.length > 1 ? "s" : ""} pratiqué{all.length > 1 ? "s" : ""}
         </Text>
       )}
-
-      <Pressable
-        testID="new-record-btn"
-        style={[styles.ctaFull, { borderRadius: theme.radius.md }, ctaGlassStyle(theme)]}
-        onPress={() => router.push("/pr/new")}
-      >
-        <Ionicons name="add-circle" size={18} color={ctaGlassColor(theme)} />
-        <Text style={[styles.ctaFullText, { color: ctaGlassColor(theme) }]}>NOUVEAU RECORD</Text>
-      </Pressable>
 
       <ScrollView
         horizontal
@@ -474,209 +478,395 @@ function ExercisesView({
   );
 }
 
-function LevelView({
-  sessions,
-  habits,
-  habitLogs,
-  prs,
-}: {
-  sessions: WorkoutSession[];
-  habits: Habit[];
-  habitLogs: HabitLog[];
-  prs: PersonalRecord[];
-}) {
+/**
+ * NIVEAU — la carrière sportive IRONFLOW de l'utilisateur. Écran
+ * entièrement autonome (charge lui-même séances/records/mesures/défis,
+ * comme `DefisView`) plutôt que de dépendre des props de `ProgressionHub` :
+ * `syncXPLedger` doit tourner à chaque focus pour détecter et créditer les
+ * nouveaux événements, ce qui en fait naturellement le propriétaire de son
+ * propre chargement de données.
+ *
+ * Boucle affichée : NIVEAU (hero) → pourquoi il a bougé (progression
+ * récente) → où j'en suis cette semaine → ce qu'il reste à atteindre
+ * (prochain palier) → d'où je viens (jalons déjà franchis). Une animation
+ * de montée de niveau/rang vient ponctuer les vraies progressions, jamais
+ * l'historique rétroactif du premier chargement.
+ */
+function LevelView() {
   const { theme } = useTheme();
-  const xp = computeXPState({ sessions, habits, habitLogs, prs });
-  const totalXPForMax = xpForLevel(MAX_LEVEL);
-  const overallPct = Math.min(1, xp.xp / totalXPForMax);
-  const nextThreshold = xpForLevel(xp.level + 1);
-  const currentThreshold = xpForLevel(xp.level);
-  const isMax = xp.level >= MAX_LEVEL;
+  const [levelState, setLevelState] = useState<LevelState | null>(null);
+  const [ledger, setLedger] = useState<XPLedgerEntry[]>([]);
+  const [levelUp, setLevelUp] = useState<{ from: number; to: number } | null>(null);
 
-  // Upcoming levels list: next 10 (or up to max)
-  const upcoming: { level: number; xpTotal: number; xpDelta: number; badge?: any }[] = [];
-  const from = xp.level + 1;
-  const to = Math.min(MAX_LEVEL, from + 9);
-  for (let lvl = from; lvl <= to; lvl++) {
-    const total = xpForLevel(lvl);
-    const prev = xpForLevel(lvl - 1);
-    upcoming.push({
-      level: lvl,
-      xpTotal: total,
-      xpDelta: total - prev,
-      badge: BADGES.find((b) => b.level === lvl),
-    });
+  useFocusEffect(
+    useCallback(() => {
+      (async () => {
+        const [sessions, prs, measurements] = await Promise.all([
+          getSessions(),
+          getPRs(),
+          getMeasurements(),
+        ]);
+        const achievements = computeAchievements({ sessions, prs, measurements });
+        const newLedger = await syncXPLedger({ sessions, prs, achievements });
+        const totalXP = newLedger.reduce((sum, e) => sum + e.amount, 0);
+        const state = computeLevelState(totalXP);
+        const up = await checkLevelUp(state.level);
+        setLedger(newLedger);
+        setLevelState(state);
+        if (up) setLevelUp(up);
+      })();
+    }, []),
+  );
+
+  if (!levelState) return null;
+
+  const accent = rankAccentColor(theme, levelState.rank.rank.colorKey);
+  const recent = ledger
+    .slice()
+    .sort((a, b) => (a.date < b.date ? 1 : -1))
+    .slice(0, 5);
+
+  const now = Date.now();
+  const monday = new Date(now - ((new Date().getDay() + 6) % 7) * 86400000);
+  monday.setHours(0, 0, 0, 0);
+  const weekEntries = ledger.filter((e) => new Date(e.date).getTime() >= monday.getTime());
+  const weekXP = weekEntries.reduce((sum, e) => sum + e.amount, 0);
+  const weekSessions = weekEntries.filter((e) => e.type === 'session').length;
+  const weekPRs = weekEntries.filter((e) => e.type === 'pr').length;
+  const weekAchievements = weekEntries.filter((e) => e.type === 'achievement').length;
+
+  // "Meilleure semaine depuis N semaines" — uniquement si les données le
+  // confirment réellement (jamais de phrase fabriquée, voir §10 du brief).
+  let weekSentence: string | null = null;
+  if (weekXP > 0) {
+    const weekOf = (d: Date) => {
+      const m = new Date(d);
+      m.setDate(m.getDate() - ((m.getDay() + 6) % 7));
+      m.setHours(0, 0, 0, 0);
+      return m.getTime();
+    };
+    const byWeek = new Map<number, number>();
+    for (const e of ledger) {
+      const wk = weekOf(new Date(e.date));
+      byWeek.set(wk, (byWeek.get(wk) ?? 0) + e.amount);
+    }
+    const priorWeeks = Array.from(byWeek.entries())
+      .filter(([wk]) => wk < monday.getTime())
+      .sort((a, b) => b[0] - a[0]);
+    let weeksBack = 0;
+    let isBest = true;
+    for (const [, xp] of priorWeeks) {
+      weeksBack++;
+      if (xp >= weekXP) {
+        isBest = false;
+        break;
+      }
+      if (weeksBack >= 12) break; // pas besoin de remonter indéfiniment
+    }
+    if (isBest && weeksBack >= 1) {
+      weekSentence = `Ta meilleure semaine depuis ${weeksBack} semaine${weeksBack > 1 ? 's' : ''}.`;
+    }
   }
 
   return (
     <View style={{ gap: spacing.md }}>
-      {/* Hero — Card elevated (même traitement que le module héros du
-          Dashboard) : jusqu'ici un View brut sans ombre malgré le
-          commentaire plus bas prétendant une parité visuelle. */}
-      <Card elevated style={[styles.levelHero, { borderRadius: theme.radius.md, backgroundColor: theme.colors.progress }]}>
-        <View style={styles.levelHeroLeft}>
-          <View style={[styles.levelBigBadge, { backgroundColor: theme.colors.onSurface }]}>
-            <Text style={[styles.levelBigNum, { color: theme.colors.progress }]}>{xp.level}</Text>
-            <Text style={[styles.levelBigLbl, { color: theme.colors.progress }]}>NIVEAU</Text>
-          </View>
-        </View>
-        <View style={{ flex: 1 }}>
-          <Text style={[styles.levelXPLabel, { color: theme.colors.onSurface }]}>XP TOTAL</Text>
-          <Text style={[styles.levelXPValue, { color: theme.colors.onSurface }]}>
-            {xp.xp}
-          </Text>
-          {isMax ? (
-            <Text style={[styles.levelHint, { color: theme.colors.onSurface }]}>
-              🏆 Niveau maximum atteint !
-            </Text>
-          ) : (
-            <Text style={[styles.levelHint, { color: theme.colors.onSurface }]}>
-              {xp.xpToNext} XP → N{xp.level + 1}
-            </Text>
-          )}
-        </View>
-      </Card>
+      <LevelHeroCard levelState={levelState} accent={accent} />
 
-      {/* Progress toward next level */}
-      {!isMax && (
-        <View style={styles.levelProgressBox}>
-          <View style={styles.levelProgressHead}>
-            <Text style={[styles.levelProgressText, { color: theme.colors.onSurface }]}>
-              N{xp.level}
-              <Text style={{ color: theme.colors.onSurfaceTertiary }}> ({currentThreshold})</Text>
-            </Text>
-            <Text style={[styles.levelProgressPct, { color: theme.colors.progress }]}>
-              {Math.round(xp.progress * 100)}%
-            </Text>
-            <Text style={[styles.levelProgressText, { color: theme.colors.onSurface }]}>
-              N{xp.level + 1}
-              <Text style={{ color: theme.colors.onSurfaceTertiary }}> ({nextThreshold})</Text>
-            </Text>
-          </View>
-          <View style={[styles.levelBigBar, { backgroundColor: theme.colors.surfaceTertiary }]}>
-            <View
-              style={[
-                styles.levelBigFill,
-                { width: `${xp.progress * 100}%`, backgroundColor: theme.colors.progress },
-              ]}
-            />
-          </View>
-        </View>
-      )}
-
-      {/* Overall progress toward MAX_LEVEL */}
-      <Card
-        style={[
-          styles.overallCard,
-          { backgroundColor: theme.colors.progressTertiary, borderColor: withAlpha(theme.colors.progress, 31.5) },
-        ]}
-      >
-        <View style={styles.overallHead}>
-          <Ionicons name="trophy" size={14} color={theme.colors.progress} />
-          <Text style={[styles.overallLabel, { color: theme.colors.onSurfaceTertiary }]}>PROGRESSION GLOBALE</Text>
-          <Text style={[styles.overallPct, { color: theme.colors.onSurface }]}>
-            {Math.round(overallPct * 100)}%
-          </Text>
-        </View>
-        <View style={[styles.overallBar, { backgroundColor: theme.colors.surfaceTertiary }]}>
-          <View
-            style={[
-              styles.overallFill,
-              { width: `${overallPct * 100}%`, backgroundColor: theme.colors.progress },
-            ]}
-          />
-        </View>
-        <Text style={[styles.overallHint, { color: theme.colors.onSurfaceTertiary }]}>
-          Niveau {xp.level} / {MAX_LEVEL} · {xp.xp} XP / {totalXPForMax} XP
-        </Text>
-      </Card>
-
-      {/* XP sources */}
-      <Card style={styles.sourcesCard}>
-        <Text style={[styles.sourcesTitle, { color: theme.colors.onSurface }]}>Comment gagner de l&apos;XP</Text>
-        <SourceRow icon="barbell" label="Séance terminée" xp="+50" />
-        <SourceRow icon="trophy" label="Nouveau record" xp="+100" />
-        <SourceRow icon="checkbox" label="Habitude complétée du jour" xp="+10" />
-        <SourceRow icon="flame" label="Journée active (séance)" xp="+5" />
-      </Card>
-
-      {/* Upcoming levels */}
-      {upcoming.length > 0 && (
-        <>
-          <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>Prochains niveaux</Text>
-          {upcoming.map((u) => (
-            <Card
-              key={u.level}
-              style={[
-                styles.upNext,
-                u.badge && { borderLeftColor: u.badge.color, borderLeftWidth: 4 },
-              ]}
-              testID={`upcoming-${u.level}`}
-            >
-              <View style={[styles.upBadge, { backgroundColor: theme.colors.surfaceTertiary }]}>
-                <Text style={[styles.upBadgeNum, { color: theme.colors.onSurface }]}>{u.level}</Text>
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.upTitle, { color: theme.colors.onSurface }]}>
-                  Niveau {u.level}
-                  {u.badge ? ` · ${u.badge.emoji} ${u.badge.title}` : ""}
-                </Text>
-                <Text style={[styles.upSub, { color: theme.colors.onSurfaceTertiary }]}>
-                  {u.xpTotal} XP total · +{u.xpDelta} XP à gagner
-                </Text>
-              </View>
-              {u.badge && (
-                <View
-                  style={[
-                    styles.upBadgeChip,
-                    { backgroundColor: withAlpha(u.badge.color, 19), borderColor: u.badge.color },
-                  ]}
-                >
-                  <Text style={styles.upBadgeChipEmoji}>{u.badge.emoji}</Text>
-                </View>
-              )}
-            </Card>
-          ))}
-        </>
-      )}
-
-      {/* Unlocked badges */}
-      {xp.unlockedBadges.length > 0 && (
-        <>
-          <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>Badges débloqués</Text>
-          <View style={styles.badgesGrid}>
-            {xp.unlockedBadges.map((b) => (
-              <View
-                key={b.level}
-                style={[
-                  styles.bigBadgeItem,
-                  { borderRadius: theme.radius.md, borderColor: b.color, backgroundColor: withAlpha(b.color, 12.5) },
-                ]}
-              >
-                <Text style={{ fontSize: 26 }}>{b.emoji}</Text>
-                <Text style={[styles.bigBadgeTitle, { color: theme.colors.onSurface }]} numberOfLines={1}>
-                  {b.title}
-                </Text>
-                <Text style={[styles.bigBadgeLvl, { color: theme.colors.onSurfaceTertiary }]}>N{b.level}</Text>
-              </View>
+      {recent.length > 0 && (
+        <Card title="Progression récente" icon="flash">
+          <View style={{ gap: spacing.xs }}>
+            {recent.map((e, i) => (
+              <EnterItem key={e.id} index={i}>
+                <RecentXPRow entry={e} />
+              </EnterItem>
             ))}
           </View>
-        </>
+        </Card>
+      )}
+
+      <Card title="Cette semaine" icon="calendar">
+        <View style={styles.weekStatsRow}>
+          <WeekStat value={`+${weekXP}`} label="XP" color={accent} />
+          <WeekStat value={String(weekSessions)} label={weekSessions > 1 ? 'séances' : 'séance'} />
+          <WeekStat value={String(weekPRs)} label="PR" />
+          <WeekStat value={String(weekAchievements)} label={weekAchievements > 1 ? 'défis' : 'défi'} />
+        </View>
+        {weekSentence && (
+          <Text style={[styles.weekSentence, { color: theme.colors.onSurfaceSecondary }]}>{weekSentence}</Text>
+        )}
+      </Card>
+
+      <NextMilestoneCard levelState={levelState} theme={theme} />
+
+      <MilestoneTimeline currentLevel={levelState.level} theme={theme} />
+
+      {levelUp && (
+        <LevelUpOverlay
+          from={levelUp.from}
+          to={levelUp.to}
+          onDismiss={() => setLevelUp(null)}
+        />
       )}
     </View>
   );
 }
 
-function SourceRow({ icon, label, xp }: { icon: any; label: string; xp: string }) {
+/** Barre de progression horizontale animée — même technique que
+ * `MultiRingGauge` (un `useSharedValue` par instance, `ringFill` du thème
+ * pour choisir timing/spring), généralisée à une largeur en % plutôt qu'un
+ * `strokeDashoffset` SVG. */
+function XPBar({ progress, color, trackColor, height = 10 }: { progress: number; color: string; trackColor: string; height?: number }) {
+  const { theme } = useTheme();
+  const fill = useSharedValue(0);
+  const reducedMotion = useReducedMotion();
+
+  useAnimatedStyleSync(fill, progress, theme.ringFill, reducedMotion);
+
+  const animatedStyle = useAnimatedStyle(() => ({ width: `${fill.value * 100}%` }));
+
+  return (
+    <View style={[styles.xpBarTrack, { height, borderRadius: height / 2, backgroundColor: trackColor }]}>
+      <Animated.View style={[styles.xpBarFill, { height, borderRadius: height / 2, backgroundColor: color }, animatedStyle]} />
+    </View>
+  );
+}
+
+/** Petit hook maison (pas un vrai hook réutilisable ailleurs, juste pour
+ * garder `XPBar` lisible) qui pousse `progress` dans le shared value dès
+ * qu'il change, en respectant `reduceMotion` (saut direct, sans animation,
+ * quand le système le demande). */
+function useAnimatedStyleSync(
+  shared: ReturnType<typeof useSharedValue<number>>,
+  target: number,
+  ringFill: Theme['ringFill'],
+  reducedMotion: boolean,
+) {
+  const t = Math.max(0, Math.min(1, target));
+  if (reducedMotion) {
+    shared.value = t;
+    return;
+  }
+  shared.value =
+    ringFill.type === 'spring'
+      ? withSpring(t, { damping: ringFill.damping, stiffness: ringFill.stiffness })
+      : withTiming(t, { duration: ringFill.duration, easing: Easing.out(Easing.cubic) });
+}
+
+function LevelHeroCard({ levelState, accent }: { levelState: LevelState; accent: string }) {
   const { theme } = useTheme();
   return (
-    <View style={styles.sourceRow}>
-      <View style={[styles.sourceIcon, { backgroundColor: theme.colors.brandTertiary }]}>
-        <Ionicons name={icon} size={13} color={theme.colors.brand} />
+    <GlassCard
+      level="elevated"
+      style={[
+        styles.levelHero,
+        { borderRadius: theme.radius.lg, backgroundColor: theme.colors.surfaceSecondary, borderColor: theme.colors.border },
+      ]}
+    >
+      <LinearGradient
+        colors={[withAlpha(accent, 16), 'transparent']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFillObject}
+      />
+      <Text style={[styles.levelHeroEyebrow, { color: theme.colors.onSurfaceTertiary }]}>NIVEAU {levelState.level}</Text>
+      <Text style={[styles.levelHeroRank, { color: accent }]} numberOfLines={1}>
+        {levelState.rank.label}
+      </Text>
+      <View style={{ marginTop: spacing.md }}>
+        <XPBar progress={levelState.progress} color={accent} trackColor={theme.colors.surfaceTertiary} />
+        <Text style={[styles.levelHeroCaption, { color: theme.colors.onSurface }]}>
+          {levelState.isMaxLevel ? (
+            'Niveau maximum atteint'
+          ) : (
+            <>
+              <Text style={{ fontWeight: '800' }}>{Math.round(levelState.xpIntoLevel)}</Text> / {levelState.xpForThisLevel} XP
+            </>
+          )}
+        </Text>
+        {!levelState.isMaxLevel && (
+          <Text style={[styles.levelHeroSub, { color: theme.colors.onSurfaceTertiary }]}>
+            Encore {levelState.xpToNext} XP pour le niveau {levelState.level + 1}
+          </Text>
+        )}
       </View>
-      <Text style={[styles.sourceLabel, { color: theme.colors.onSurface }]}>{label}</Text>
-      <Text style={[styles.sourceXP, { color: theme.colors.brand }]}>{xp}</Text>
+    </GlassCard>
+  );
+}
+
+const XP_EVENT_ICON: Record<XPEventType, keyof typeof Ionicons.glyphMap> = {
+  session: 'barbell',
+  pr: 'trophy',
+  regularity: 'flame',
+  achievement: 'ribbon',
+  challenge: 'flag',
+};
+
+function RecentXPRow({ entry }: { entry: XPLedgerEntry }) {
+  const { theme } = useTheme();
+  const colorByType: Record<XPEventType, string> = {
+    session: theme.colors.brand,
+    pr: theme.colors.data.achievement,
+    regularity: theme.colors.data.energy,
+    achievement: theme.colors.data.success,
+    challenge: theme.colors.data.performance,
+  };
+  const color = colorByType[entry.type];
+  return (
+    <View style={styles.recentXPRow}>
+      <View style={[styles.recentXPIcon, { backgroundColor: withAlpha(color, 15) }]}>
+        <Ionicons name={XP_EVENT_ICON[entry.type]} size={14} color={color} />
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={[styles.recentXPLabel, { color: theme.colors.onSurface }]} numberOfLines={1}>
+          {entry.label}
+        </Text>
+        {entry.detail && (
+          <Text style={[styles.recentXPDetail, { color: theme.colors.onSurfaceTertiary }]} numberOfLines={1}>
+            {entry.detail}
+          </Text>
+        )}
+      </View>
+      <Text style={[styles.recentXPAmount, { color }]}>+{entry.amount} XP</Text>
     </View>
+  );
+}
+
+function WeekStat({ value, label, color }: { value: string; label: string; color?: string }) {
+  const { theme } = useTheme();
+  return (
+    <View style={styles.weekStat}>
+      <Text style={[styles.weekStatValue, { color: color ?? theme.colors.onSurface }]}>{value}</Text>
+      <Text style={[styles.weekStatLabel, { color: theme.colors.onSurfaceTertiary }]}>{label}</Text>
+    </View>
+  );
+}
+
+function NextMilestoneCard({ levelState, theme }: { levelState: LevelState; theme: Theme }) {
+  if (!levelState.milestone) {
+    return (
+      <Card title="Prochain palier" icon="flag">
+        <Text style={{ color: theme.colors.onSurfaceSecondary, fontSize: 13 }}>
+          Tu as atteint IRONFLOW, le rang le plus élevé. Il n&apos;y a rien au-dessus.
+        </Text>
+      </Card>
+    );
+  }
+  const milestoneRank = rankForLevel(levelState.milestone.level);
+  const accent = rankAccentColor(theme, milestoneRank.rank.colorKey);
+  return (
+    <Card title="Prochain palier" icon="flag">
+      <View style={styles.milestoneRow}>
+        <View style={[styles.milestoneChip, { backgroundColor: withAlpha(accent, 15), borderColor: withAlpha(accent, 40) }]}>
+          <Text style={[styles.milestoneChipText, { color: accent }]}>{levelState.milestone.label}</Text>
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.milestoneLevel, { color: theme.colors.onSurface }]}>
+            Niveau {levelState.milestone.level}
+          </Text>
+          <Text style={[styles.milestoneXp, { color: theme.colors.onSurfaceTertiary }]}>
+            {levelState.milestone.xpNeeded} XP restants
+          </Text>
+        </View>
+      </View>
+    </Card>
+  );
+}
+
+/** Jalons = le premier niveau de chaque rang IRONFLOW (voir `RANKS`) —
+ * jamais tous les niveaux, seulement les vraies étapes de carrière. */
+function MilestoneTimeline({ currentLevel, theme }: { currentLevel: number; theme: Theme }) {
+  return (
+    <Card title="Ta carrière IRONFLOW" icon="trending-up" collapsible defaultCollapsed>
+      <View>
+        {RANKS.map((r, i) => {
+          const reached = currentLevel >= r.minLevel;
+          const accent = rankAccentColor(theme, r.colorKey);
+          return (
+            <View key={r.key} style={styles.timelineRow}>
+              <View style={styles.timelineMarkerCol}>
+                <View
+                  style={[
+                    styles.timelineDot,
+                    {
+                      backgroundColor: reached ? accent : theme.colors.surfaceTertiary,
+                      borderColor: reached ? accent : theme.colors.border,
+                    },
+                  ]}
+                />
+                {i < RANKS.length - 1 && (
+                  <View style={[styles.timelineLine, { backgroundColor: reached ? withAlpha(accent, 40) : theme.colors.border }]} />
+                )}
+              </View>
+              <View style={{ flex: 1, paddingBottom: spacing.md }}>
+                <Text
+                  style={[
+                    styles.timelineRankLabel,
+                    { color: reached ? theme.colors.onSurface : theme.colors.onSurfaceTertiary },
+                  ]}
+                >
+                  {r.name}
+                </Text>
+                <Text style={[styles.timelineLevelLabel, { color: theme.colors.onSurfaceTertiary }]}>
+                  Niveau {r.minLevel} · {xpForLevel(r.minLevel)} XP
+                </Text>
+              </View>
+              {reached && <Ionicons name="checkmark-circle" size={18} color={accent} />}
+            </View>
+          );
+        })}
+      </View>
+    </Card>
+  );
+}
+
+/**
+ * Animation de montée de niveau/rang — modal plein écran sobre (pas de
+ * confettis), respecte `reduceMotion` (apparition directe, sans zoom/fade).
+ * Le rang est comparé avant/après pour savoir si on doit marquer le moment
+ * comme un simple niveau supérieur ou un vrai changement de rang (traitement
+ * plus marqué).
+ */
+function LevelUpOverlay({ from, to, onDismiss }: { from: number; to: number; onDismiss: () => void }) {
+  const { theme } = useTheme();
+  const reducedMotion = useReducedMotion();
+  const fromRank = rankForLevel(from);
+  const toRank = rankForLevel(to);
+  const isRankUp = fromRank.label !== toRank.label;
+  const accent = rankAccentColor(theme, toRank.rank.colorKey);
+  const EnterAnim = reducedMotion ? FadeIn.duration(1) : ZoomIn.duration(420).easing(Easing.out(Easing.back(1.2)));
+
+  return (
+    <Modal visible transparent animationType="fade" onRequestClose={onDismiss}>
+      <Pressable style={[styles.levelUpBackdrop, { backgroundColor: 'rgba(0,0,0,0.75)' }]} onPress={onDismiss}>
+        <Animated.View entering={EnterAnim} style={[styles.levelUpCard, { backgroundColor: theme.colors.surfaceSecondary, borderColor: withAlpha(accent, 50) }]}>
+          <LinearGradient
+            colors={[withAlpha(accent, 22), 'transparent']}
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 1 }}
+            style={StyleSheet.absoluteFillObject}
+          />
+          <Ionicons name={isRankUp ? 'ribbon' : 'trending-up'} size={34} color={accent} />
+          <Text style={[styles.levelUpTitle, { color: theme.colors.onSurfaceTertiary }]}>
+            {isRankUp ? 'NOUVEAU RANG' : 'NIVEAU SUPÉRIEUR'}
+          </Text>
+          {isRankUp ? (
+            <Text style={[styles.levelUpBig, { color: accent }]} numberOfLines={1}>
+              {fromRank.label} → {toRank.label}
+            </Text>
+          ) : (
+            <Text style={[styles.levelUpBig, { color: accent }]}>
+              {from} → {to}
+            </Text>
+          )}
+          <Text style={[styles.levelUpSub, { color: theme.colors.onSurfaceSecondary }]}>
+            Niveau {to} · {toRank.label}
+          </Text>
+          <Pressable testID="level-up-dismiss" style={[styles.levelUpBtn, { backgroundColor: accent }]} onPress={onDismiss}>
+            <Text style={styles.levelUpBtnText}>CONTINUER</Text>
+          </Pressable>
+        </Animated.View>
+      </Pressable>
+    </Modal>
   );
 }
 
@@ -1204,29 +1394,22 @@ export function formatDateShort(iso: string) {
   });
 }
 
-const DEFI_CATEGORIES: { key: Achievement["category"] | "all"; label: string }[] = [
-  { key: "all", label: "Tous" },
-  { key: "debut", label: "Séances" },
-  { key: "volume", label: "Volume" },
-  { key: "cardio", label: "Cardio" },
-  { key: "streak", label: "Streak" },
-  { key: "discipline", label: "Discipline" },
-  { key: "record", label: "Records" },
-  { key: "special", label: "Spécial" },
-];
-
 /**
- * DÉFIS — migration de l'ancien écran "Succès" (accessible depuis Profil),
- * fonctionnalité et logique inchangées (`computeAchievements`, 29 succès) :
- * seule la présentation change (vit maintenant en tant que sous-onglet de
- * Performance plutôt qu'un écran modal séparé, donc plus de header/back
- * propre à cet écran).
+ * DÉFIS — "ce que je cherche à accomplir", pas une collection de badges.
+ * Écran autonome (comme `LevelView`) : charge ses propres données à chaque
+ * focus, génère/relit le défi de la semaine, recalcule sa progression en
+ * direct, et synchronise le même journal XP que Niveau (`syncXPLedger` +
+ * `awardWeeklyChallengeXPIfComplete`) — aucune logique parallèle, la même
+ * source de vérité que le reste de l'app.
  */
 function DefisView() {
   const { theme } = useTheme();
-  const [items, setItems] = useState<Achievement[]>([]);
-  const [cat, setCat] = useState<Achievement["category"] | "all">("all");
-  const isGlass = theme.card.mode === "glass";
+  const [weekly, setWeekly] = useState<WeeklyChallengeDef | null>(null);
+  const [weeklyProgress, setWeeklyProgress] = useState(0);
+  const [active, setActive] = useState<Achievement[]>([]);
+  const [upcoming, setUpcoming] = useState<Achievement[]>([]);
+  const [history, setHistory] = useState<XPLedgerEntry[]>([]);
+  const [hasAnySession, setHasAnySession] = useState(true);
 
   useFocusEffect(
     useCallback(() => {
@@ -1236,157 +1419,209 @@ function DefisView() {
           getPRs(),
           getMeasurements(),
         ]);
-        setItems(computeAchievements({ sessions, prs, measurements }));
+        setHasAnySession(sessions.length > 0);
+        const achievements = computeAchievements({ sessions, prs, measurements });
+        await syncXPLedger({ sessions, prs, achievements });
+
+        const def = await getOrCreateWeeklyChallenge(sessions);
+        const progress = computeWeeklyChallengeProgress(def, sessions, prs);
+        await awardWeeklyChallengeXPIfComplete(def, progress);
+        setWeekly(def);
+        setWeeklyProgress(progress);
+
+        const notUnlocked = achievements.filter((a) => !a.unlocked);
+        setActive(
+          notUnlocked
+            .filter((a) => a.progress > 0)
+            .sort((a, b) => b.progress / b.target - a.progress / a.target)
+            .slice(0, 4),
+        );
+        setUpcoming(
+          notUnlocked
+            .filter((a) => a.progress === 0)
+            .sort((a, b) => a.target - b.target)
+            .slice(0, 3),
+        );
+
+        const ledger = await getXPLedger();
+        setHistory(
+          ledger
+            .filter((e) => e.type === "achievement" || e.type === "challenge")
+            .sort((a, b) => (a.date < b.date ? 1 : -1))
+            .slice(0, 10),
+        );
       })();
     }, []),
   );
 
-  const filtered = cat === "all" ? items : items.filter((i) => i.category === cat);
-  const unlocked = items.filter((i) => i.unlocked).length;
+  if (!weekly) return null;
 
   return (
-    <>
-      <View
-        style={[
-          styles.defisSummary,
-          { backgroundColor: theme.colors.surfaceSecondary, borderRadius: theme.radius.md, borderColor: theme.colors.border },
-        ]}
-      >
-        <View style={styles.defisSummaryLeft}>
-          <Text style={[styles.defisSummaryTitle, { color: theme.colors.onSurface }]}>Progression</Text>
-          <Text style={[styles.defisSummarySub, { color: theme.colors.onSurfaceTertiary }]}>
-            {unlocked}/{items.length} défis débloqués
-          </Text>
-        </View>
-        <View
-          style={[
-            styles.defisSummaryBadge,
-            { borderRadius: theme.radius.md, backgroundColor: isGlass ? withAlpha(theme.colors.brand, 20) : theme.colors.brand },
-          ]}
-        >
-          <Text style={styles.defisSummaryBadgeText}>
-            {Math.round((unlocked / Math.max(1, items.length)) * 100)}%
-          </Text>
-        </View>
-      </View>
+    <View style={{ gap: spacing.md }}>
+      <WeeklyChallengeHero def={weekly} progress={weeklyProgress} theme={theme} />
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.defisCatRow}>
-        {DEFI_CATEGORIES.map((c) => {
-          const active = cat === c.key;
-          return (
-            <Pressable
-              key={c.key}
-              testID={`defi-cat-${c.key}`}
-              style={[
-                styles.defisCatChip,
-                {
-                  borderRadius: theme.radius.pill,
-                  backgroundColor: active ? (isGlass ? withAlpha(theme.colors.brand, 20) : theme.colors.brand) : theme.colors.surfaceSecondary,
-                  borderColor: active ? theme.colors.brand : theme.colors.border,
-                },
-              ]}
-              onPress={() => setCat(c.key)}
-            >
-              <Text
-                style={[
-                  styles.defisCatChipText,
-                  { color: active ? (isGlass ? theme.colors.brand : "#fff") : theme.colors.onSurfaceTertiary },
-                ]}
-              >
-                {c.label}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </ScrollView>
+      <Card title="Défis actifs" icon="flame">
+        {active.length === 0 ? (
+          <Text style={{ color: theme.colors.onSurfaceSecondary, fontSize: 13 }}>
+            {hasAnySession
+              ? "Continue à t'entraîner pour faire progresser de nouveaux défis."
+              : "Commence à t'entraîner pour débloquer tes premiers défis."}
+          </Text>
+        ) : (
+          <View style={{ gap: spacing.sm }}>
+            {active.map((a, i) => (
+              <EnterItem key={a.id} index={i}>
+                <AchievementProgressRow achievement={a} theme={theme} />
+              </EnterItem>
+            ))}
+          </View>
+        )}
+      </Card>
 
-      <View style={styles.defisGrid}>
-        {filtered.map((a, i) => (
-          <EnterItem key={a.id} index={i}>
-            <View
-              testID={`defi-${a.id}`}
-              style={[
-                styles.defisCard,
-                { borderRadius: theme.radius.md, backgroundColor: theme.colors.surfaceSecondary, borderColor: theme.colors.border },
-                a.unlocked && { borderColor: theme.colors.success, backgroundColor: withAlpha(theme.colors.success, 12) },
-              ]}
-            >
-              <Text style={[styles.defisEmoji, !a.unlocked && { opacity: 0.35 }]}>{a.emoji}</Text>
-              <Text
-                style={[styles.defisCardTitle, { color: a.unlocked ? theme.colors.onSurface : theme.colors.onSurfaceTertiary }]}
-                numberOfLines={2}
-              >
-                {a.title}
-              </Text>
-              <Text style={[styles.defisCardDesc, { color: theme.colors.onSurfaceTertiary }]} numberOfLines={2}>
-                {a.description}
-              </Text>
-              <View style={[styles.defisProgressTrack, { backgroundColor: theme.colors.surfaceTertiary }]}>
-                <View
-                  style={[
-                    styles.defisProgressFill,
-                    {
-                      width: `${Math.min(100, (a.progress / a.target) * 100)}%`,
-                      backgroundColor: a.unlocked ? theme.colors.success : theme.colors.brand,
-                    },
-                  ]}
-                />
-              </View>
-              <Text style={[styles.defisProgressLabel, { color: theme.colors.onSurfaceTertiary }]}>
-                {a.progressLabel}
-              </Text>
-              {a.unlocked && (
-                <View style={[styles.defisUnlockedTag, { backgroundColor: theme.colors.success }]}>
-                  <Ionicons name="checkmark" size={10} color="#fff" />
-                  <Text style={styles.defisUnlockedTagText}>DÉBLOQUÉ</Text>
+      {upcoming.length > 0 && (
+        <Card title="À relever" icon="lock-closed" collapsible defaultCollapsed>
+          <View style={{ gap: spacing.xs }}>
+            {upcoming.map((a) => (
+              <View key={a.id} style={styles.upcomingRow}>
+                <Text style={styles.upcomingEmoji}>{a.emoji}</Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.upcomingTitle, { color: theme.colors.onSurface }]} numberOfLines={1}>
+                    {a.title}
+                  </Text>
+                  <Text style={[styles.upcomingTarget, { color: theme.colors.onSurfaceTertiary }]}>
+                    Objectif : {a.progressLabel?.split("/")[1]?.trim() ?? a.target}
+                  </Text>
                 </View>
-              )}
-            </View>
-          </EnterItem>
-        ))}
+              </View>
+            ))}
+          </View>
+        </Card>
+      )}
+
+      {history.length > 0 && (
+        <Card title="Historique" icon="time" collapsible defaultCollapsed>
+          <View style={{ gap: 2 }}>
+            {history.map((e, i) => (
+              <EnterItem key={e.id} index={i}>
+                <HistoryRow entry={e} theme={theme} />
+              </EnterItem>
+            ))}
+          </View>
+        </Card>
+      )}
+    </View>
+  );
+}
+
+function WeeklyChallengeHero({ def, progress, theme }: { def: WeeklyChallengeDef; progress: number; theme: Theme }) {
+  const done = progress >= def.target;
+  const accent = done ? theme.colors.success : theme.colors.data.performance;
+  const pct = def.target > 0 ? Math.min(1, progress / def.target) : 0;
+  const message = done ? null : weeklyStageMessage(def.type, progress, def.target);
+  const daysLeft = daysRemainingInWeek(def.weekKey);
+
+  return (
+    <GlassCard
+      level="elevated"
+      style={[styles.levelHero, { borderRadius: theme.radius.lg, backgroundColor: theme.colors.surfaceSecondary, borderColor: theme.colors.border }]}
+    >
+      <LinearGradient
+        colors={[withAlpha(accent, done ? 22 : 10 + pct * 16), "transparent"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={StyleSheet.absoluteFillObject}
+      />
+      <View style={styles.weeklyHeroHead}>
+        <Text style={[styles.levelHeroEyebrow, { color: theme.colors.onSurfaceTertiary }]}>
+          {done ? "✓ DÉFI DE LA SEMAINE TERMINÉ" : "DÉFI DE LA SEMAINE"}
+        </Text>
+        {!done && (
+          <Text style={[styles.weeklyDaysLeft, { color: theme.colors.onSurfaceTertiary }]}>
+            {daysLeft} j restant{daysLeft > 1 ? "s" : ""}
+          </Text>
+        )}
       </View>
-    </>
+      <Text style={[styles.levelHeroRank, { color: accent, fontSize: 22 }]} numberOfLines={2}>
+        {def.title}
+      </Text>
+      <View style={{ marginTop: spacing.md }}>
+        <XPBar progress={pct} color={accent} trackColor={theme.colors.surfaceTertiary} height={12} />
+        <View style={styles.weeklyValueRow}>
+          <Text style={[styles.levelHeroCaption, { color: theme.colors.onSurface }]}>
+            {formatWeeklyChallengeValue(def.type, progress)} / {formatWeeklyChallengeValue(def.type, def.target)}
+          </Text>
+          <Text style={[styles.weeklyPct, { color: accent }]}>{Math.round(pct * 100)}%</Text>
+        </View>
+        <Text style={[styles.levelHeroSub, { color: theme.colors.onSurfaceTertiary }]}>
+          {done ? "Défi terminé. Nouveau défi lundi." : message ?? " "}
+        </Text>
+        <View style={styles.weeklyXpRow}>
+          <Ionicons name={done ? "checkmark-circle" : "flash"} size={13} color={accent} />
+          <Text style={[styles.weeklyXpText, { color: accent }]}>+{def.xp} XP</Text>
+        </View>
+      </View>
+    </GlassCard>
+  );
+}
+
+function AchievementProgressRow({ achievement, theme }: { achievement: Achievement; theme: Theme }) {
+  const pct = achievement.target > 0 ? Math.min(1, achievement.progress / achievement.target) : 0;
+  return (
+    <View>
+      <View style={styles.achievementRowHead}>
+        <Text style={styles.upcomingEmoji}>{achievement.emoji}</Text>
+        <Text style={[styles.upcomingTitle, { color: theme.colors.onSurface, flex: 1 }]} numberOfLines={1}>
+          {achievement.title}
+        </Text>
+        <Text style={[styles.recentXPAmount, { color: theme.colors.data.achievement }]}>+{XP_PER_ACHIEVEMENT} XP</Text>
+      </View>
+      <View style={{ marginTop: 4 }}>
+        <XPBar progress={pct} color={theme.colors.data.achievement} trackColor={theme.colors.surfaceTertiary} height={6} />
+        <Text style={[styles.upcomingTarget, { color: theme.colors.onSurfaceTertiary, marginTop: 3 }]}>
+          {achievement.progressLabel}
+        </Text>
+      </View>
+    </View>
+  );
+}
+
+function HistoryRow({ entry, theme }: { entry: XPLedgerEntry; theme: Theme }) {
+  const color = entry.type === "challenge" ? theme.colors.data.performance : theme.colors.data.achievement;
+  const d = new Date(entry.date);
+  const dateLabel = isNaN(d.getTime())
+    ? ""
+    : d.toLocaleDateString("fr-FR", { day: "2-digit", month: "short" });
+  return (
+    <View style={styles.recentXPRow}>
+      <View style={[styles.recentXPIcon, { backgroundColor: withAlpha(color, 15) }]}>
+        <Ionicons name="checkmark" size={13} color={color} />
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={[styles.recentXPLabel, { color: theme.colors.onSurface }]} numberOfLines={1}>
+          {entry.detail ?? entry.label}
+        </Text>
+        <Text style={[styles.recentXPDetail, { color: theme.colors.onSurfaceTertiary }]}>{dateLabel}</Text>
+      </View>
+      <Text style={[styles.recentXPAmount, { color }]}>+{entry.amount} XP</Text>
+    </View>
   );
 }
 
 export const styles = StyleSheet.create({
   container: { flex: 1 },
   exercisesSummary: { fontSize: 12.5, fontWeight: "700", marginBottom: -4 },
-  defisSummary: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
-    padding: spacing.md,
-    borderWidth: 1,
-  },
-  defisSummaryLeft: { flex: 1 },
-  defisSummaryTitle: { fontSize: 15, fontWeight: "800" },
-  defisSummarySub: { fontSize: 12, marginTop: 2 },
-  defisSummaryBadge: { paddingHorizontal: 14, paddingVertical: 8 },
-  defisSummaryBadgeText: { color: "#fff", fontWeight: "800", fontSize: 15 },
-  defisCatRow: { gap: 6, paddingBottom: spacing.sm },
-  defisCatChip: { paddingHorizontal: 12, paddingVertical: 6, borderWidth: 1 },
-  defisCatChipText: { fontSize: 11, fontWeight: "700" },
-  defisGrid: { flexDirection: "row", flexWrap: "wrap", gap: spacing.md },
-  defisCard: { width: "48%", borderWidth: 1, padding: spacing.md, gap: 6, position: "relative" },
-  defisEmoji: { fontSize: 32 },
-  defisCardTitle: { fontWeight: "800", fontSize: 13 },
-  defisCardDesc: { fontSize: 11, lineHeight: 14, minHeight: 28 },
-  defisProgressTrack: { height: 4, borderRadius: 2, overflow: "hidden", marginTop: 4 },
-  defisProgressFill: { height: "100%" },
-  defisProgressLabel: { fontSize: 10, fontWeight: "600" },
-  defisUnlockedTag: {
-    position: "absolute",
-    top: 8,
-    right: 8,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 2,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  defisUnlockedTagText: { color: "#fff", fontSize: 8, fontWeight: "800", letterSpacing: 0.4 },
+  // ---------- DÉFIS ----------
+  weeklyHeroHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  weeklyDaysLeft: { fontSize: 11, fontWeight: "700" },
+  weeklyValueRow: { flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", marginTop: 8 },
+  weeklyPct: { fontSize: 15, fontWeight: "800" },
+  weeklyXpRow: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 10 },
+  weeklyXpText: { fontSize: 12.5, fontWeight: "800" },
+  achievementRowHead: { flexDirection: "row", alignItems: "center", gap: 8 },
+  upcomingRow: { flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 4 },
+  upcomingEmoji: { fontSize: 16 },
+  upcomingTitle: { fontSize: 13, fontWeight: "700" },
+  upcomingTarget: { fontSize: 11 },
   header: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
@@ -1890,195 +2125,55 @@ export const styles = StyleSheet.create({
     fontWeight: "700",
     flex: 1,
   },
-  // Niveau/XP est de la "progression" (même famille que le Score/XP du
-  // Dashboard) — violet, pas l'orange réservé aux actions.
+  // ---------- NIVEAU (carrière IRONFLOW) ----------
   levelHero: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
     padding: spacing.lg,
-  },
-  levelHeroLeft: {
-    alignItems: "center",
-  },
-  levelBigBadge: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 4,
-    borderColor: "#ffffff40",
-  },
-  levelBigNum: { fontSize: 32, fontWeight: "800" },
-  levelBigLbl: {
-    fontSize: 9,
-    fontWeight: "800",
-    letterSpacing: 0.8,
-  },
-  levelXPLabel: {
-    fontSize: 10,
-    fontWeight: "800",
-    letterSpacing: 0.8,
-    opacity: 0.9,
-  },
-  levelXPValue: {
-    fontSize: 32,
-    fontWeight: "800",
-    marginTop: 4,
-  },
-  levelHint: {
-    fontSize: 12,
-    opacity: 0.9,
-    marginTop: 2,
-    fontWeight: "700",
-  },
-  levelProgressBox: {
     borderWidth: 1,
-    padding: spacing.md,
-    gap: 8,
-  },
-  levelProgressHead: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  levelProgressText: {
-    fontSize: 12,
-    fontWeight: "800",
-  },
-  levelProgressPct: {
-    fontSize: 15,
-    fontWeight: "800",
-  },
-  levelBigBar: {
-    height: 10,
-    borderRadius: 5,
     overflow: "hidden",
   },
-  levelBigFill: {
-    height: "100%",
-    borderRadius: 5,
-  },
-  // Fond/bordure violets propres à cette carte (délibérément différents du
-  // Card partagé par défaut) — d'où les overrides malgré le composant Card.
-  overallCard: {
-    gap: 8,
-  },
-  overallHead: {
-    flexDirection: "row",
+  levelHeroEyebrow: { fontSize: 11, fontWeight: "800", letterSpacing: 1.2 },
+  levelHeroRank: { fontSize: 30, fontWeight: "800", letterSpacing: 0.4, marginTop: 2 },
+  levelHeroCaption: { fontSize: 13, fontWeight: "700", marginTop: 8 },
+  levelHeroSub: { fontSize: 12, marginTop: 3 },
+  xpBarTrack: { width: "100%", overflow: "hidden" },
+  xpBarFill: { position: "absolute", left: 0, top: 0 },
+  recentXPRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, paddingVertical: 6 },
+  recentXPIcon: { width: 28, height: 28, borderRadius: 14, alignItems: "center", justifyContent: "center" },
+  recentXPLabel: { fontSize: 13, fontWeight: "700" },
+  recentXPDetail: { fontSize: 11, marginTop: 1 },
+  recentXPAmount: { fontSize: 13, fontWeight: "800" },
+  weekStatsRow: { flexDirection: "row" },
+  weekStat: { flex: 1, alignItems: "center", gap: 2 },
+  weekStatValue: { fontSize: 18, fontWeight: "800" },
+  weekStatLabel: { fontSize: 10.5, fontWeight: "700" },
+  weekSentence: { fontSize: 12.5, fontStyle: "italic", marginTop: spacing.sm, textAlign: "center" },
+  milestoneRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+  milestoneChip: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 12, borderWidth: 1 },
+  milestoneChipText: { fontSize: 13, fontWeight: "800" },
+  milestoneLevel: { fontSize: 14, fontWeight: "800" },
+  milestoneXp: { fontSize: 12, marginTop: 2 },
+  timelineRow: { flexDirection: "row", alignItems: "flex-start", gap: spacing.sm },
+  timelineMarkerCol: { alignItems: "center", width: 16 },
+  timelineDot: { width: 14, height: 14, borderRadius: 7, borderWidth: 2, marginTop: 2 },
+  timelineLine: { width: 2, flex: 1, marginTop: 2, minHeight: 24 },
+  timelineRankLabel: { fontSize: 13.5, fontWeight: "800", letterSpacing: 0.3 },
+  timelineLevelLabel: { fontSize: 11.5, marginTop: 1 },
+  levelUpBackdrop: { flex: 1, alignItems: "center", justifyContent: "center", padding: spacing.xl },
+  levelUpCard: {
+    width: "100%",
+    maxWidth: 340,
+    borderRadius: 24,
+    borderWidth: 1,
+    padding: spacing.xl,
     alignItems: "center",
     gap: 6,
-  },
-  // progressSecondary : progress tombe à 3.5:1 sur le fond progressTertiary
-  // de cette carte (vérifié) — sous le seuil AA pour du texte de cette
-  // taille. progressSecondary passe à 7.9:1.
-  overallLabel: {
-    flex: 1,
-    fontSize: 11,
-    fontWeight: "800",
-    letterSpacing: 0.6,
-  },
-  overallPct: {
-    fontSize: 15,
-    fontWeight: "800",
-  },
-  overallBar: {
-    height: 6,
-    borderRadius: 3,
     overflow: "hidden",
   },
-  overallFill: {
-    height: "100%",
-    borderRadius: 3,
-  },
-  overallHint: {
-    fontSize: 11,
-    fontWeight: "700",
-  },
-  sourcesCard: { gap: 8 },
-  sourcesTitle: {
-    fontSize: 13,
-    fontWeight: "800",
-    letterSpacing: 0.3,
-    marginBottom: 4,
-  },
-  sourceRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-    paddingVertical: 6,
-  },
-  sourceIcon: {
-    width: 26,
-    height: 26,
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  sourceLabel: {
-    flex: 1,
-    fontSize: 12,
-    fontWeight: "700",
-  },
-  sourceXP: {
-    fontSize: 13,
-    fontWeight: "800",
-    letterSpacing: 0.5,
-  },
-  upNext: { flexDirection: "row", alignItems: "center", gap: spacing.sm, marginBottom: 6 },
-  upBadge: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-  },
-  upBadgeNum: {
-    fontSize: 12,
-    fontWeight: "800",
-  },
-  upTitle: {
-    fontSize: 13,
-    fontWeight: "800",
-  },
-  upSub: {
-    fontSize: 11,
-    marginTop: 2,
-    fontWeight: "600",
-  },
-  upBadgeChip: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-  },
-  upBadgeChipEmoji: { fontSize: 16 },
-  badgesGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  bigBadgeItem: {
-    width: "48%",
-    padding: spacing.md,
-    borderWidth: 1,
-    alignItems: "center",
-    gap: 4,
-  },
-  bigBadgeTitle: {
-    fontSize: 12,
-    fontWeight: "800",
-    marginTop: 4,
-    textAlign: "center",
-  },
-  bigBadgeLvl: {
-    fontSize: 11,
-    fontWeight: "700",
-  },
+  levelUpTitle: { fontSize: 12, fontWeight: "800", letterSpacing: 1.4, marginTop: 4 },
+  levelUpBig: { fontSize: 30, fontWeight: "800" },
+  levelUpSub: { fontSize: 13, fontWeight: "700", marginBottom: 8 },
+  levelUpBtn: { paddingHorizontal: 28, paddingVertical: 12, borderRadius: 999, marginTop: 8 },
+  levelUpBtnText: { color: "#fff", fontSize: 13, fontWeight: "800", letterSpacing: 0.6 },
   empty: {
     alignItems: "center",
     padding: spacing.xl,

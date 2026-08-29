@@ -3,7 +3,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { spacing, shadow } from "@/src/theme";
 import { useTheme } from "@/src/themes";
-import { XPState } from "@/src/utils/xp";
+import { LevelState } from "@/src/utils/xp";
+import { rankAccentColor } from "@/src/utils/rank-colors";
 import { progressionHref } from "@/src/utils/progression-nav";
 import AnimatedNumber from "@/src/components/ui/AnimatedNumber";
 import PressableScale from "@/src/components/ui/PressableScale";
@@ -17,7 +18,7 @@ import GlassCard from "@/src/components/ui/GlassCard";
  * besoin, tout autre écran qui voudrait le même résumé.
  */
 export default function CockpitCard({
-  xpState,
+  levelState,
   currentStreakDays,
   bestStreakDays,
   unlockedAchievements,
@@ -25,7 +26,7 @@ export default function CockpitCard({
   onPress,
   testID,
 }: {
-  xpState: XPState;
+  levelState: LevelState;
   currentStreakDays: number;
   bestStreakDays: number;
   unlockedAchievements: number;
@@ -35,6 +36,7 @@ export default function CockpitCard({
 }) {
   const { theme } = useTheme();
   const router = useRouter();
+  const accent = rankAccentColor(theme, levelState.rank.rank.colorKey);
 
   const content = (
     <GlassCard
@@ -50,26 +52,25 @@ export default function CockpitCard({
       ]}
     >
       <View style={styles.cockpitTop}>
-        <View style={[styles.cockpitLevelBadge, { backgroundColor: theme.colors.progress }]}>
-          <Text style={styles.cockpitLevelBadgeNum}>{xpState.level}</Text>
+        <View style={[styles.cockpitLevelBadge, { backgroundColor: accent }]}>
+          <Text style={styles.cockpitLevelBadgeNum}>{levelState.level}</Text>
         </View>
         <View style={{ flex: 1 }}>
           <Text style={[styles.cockpitLevelLabel, { color: theme.colors.onSurfaceTertiary }]}>
-            NIVEAU {xpState.level}
+            NIVEAU {levelState.level} · {levelState.rank.label}
           </Text>
           <View style={[styles.cockpitXpBar, { backgroundColor: theme.colors.surfaceTertiary }]}>
             <View
               style={[
                 styles.cockpitXpFill,
-                { width: `${xpState.progress * 100}%`, backgroundColor: theme.colors.progress },
+                { width: `${levelState.progress * 100}%`, backgroundColor: accent },
               ]}
             />
           </View>
           <Text style={[styles.cockpitXpCaption, { color: theme.colors.onSurface }]}>
-            {xpState.xpToNext} XP → N{xpState.level + 1}
-            {xpState.nextBadge
-              ? ` · Prochain badge : ${xpState.nextBadge.emoji} ${xpState.nextBadge.title}`
-              : ""}
+            {levelState.isMaxLevel
+              ? "Niveau maximum atteint"
+              : `${levelState.xpToNext} XP → niveau ${levelState.level + 1}`}
           </Text>
         </View>
       </View>
