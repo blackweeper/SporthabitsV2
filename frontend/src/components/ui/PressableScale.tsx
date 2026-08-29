@@ -45,6 +45,16 @@ const PressableScale = forwardRef<View, PressableProps & {
 
   const handlePressOut = (e: GestureResponderEvent) => {
     scale.value = withTiming(1, { duration: motion.fast });
+    // Web (react-native-web) : le `Pressable` sous-jacent garde le focus
+    // clavier après un relâchement — dans un rang défilant horizontalement
+    // (chips de catégorie, onglets segmentés), le navigateur déclenche alors
+    // son propre `scrollIntoView` sur cet élément focus, qui peut cibler le
+    // mauvais ancêtre défilable et décaler tout le contenu monté juste après
+    // (bug confirmé en direct : image/texte rendus hors cadre après un
+    // changement d'onglet). Un `blur()` explicite ici retire le focus sans
+    // rien changer au comportement — la navigation clavier via Tab refocalise
+    // normalement l'élément suivant de toute façon.
+    (e?.target as unknown as { blur?: () => void } | null)?.blur?.();
     onPressOut?.(e);
   };
 

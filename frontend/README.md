@@ -25,6 +25,22 @@ In the output, you'll find options to open the app in a
 
 You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
 
+## Build web (PWA)
+
+`npm run build:web` est la SEULE méthode officielle pour régénérer `dist/` :
+
+```bash
+npm run build:web
+```
+
+Ce script enchaîne trois étapes obligatoires :
+
+1. `expo export -p web` — export statique.
+2. `scripts/patch-web-build.js` — injecte les corrections PWA nécessaires (`viewport-fit=cover`, fond global `html/body`, `min-height: 100dvh` sur `html/body/#root`, manifest + meta Apple, enregistrement du service worker).
+3. `scripts/verify-web-build.js` — vérifie que `dist/index.html` contient bien ces corrections et **échoue** sinon.
+
+**Ne jamais lancer `npx expo export -p web` seul** pour produire un `dist/` destiné à être commité/déployé : l'étape 2 ne s'exécuterait pas, et le build réintroduirait silencieusement le bug de bande blanche déjà rencontré en production sur PWA plein écran iOS (aucune erreur d'export ne le signale — seul `verify-web-build.js`, via `npm run build:web`, le détecte).
+
 ## Get a fresh project
 
 When you're ready, run:

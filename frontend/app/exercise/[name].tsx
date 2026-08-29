@@ -25,6 +25,7 @@ import {
   WorkoutSession,
 } from "@/src/utils/gym-storage";
 import { listAllExercises } from "@/src/utils/exercise-detail";
+import { expandWorkoutSessionsForExerciseStats } from "@/src/utils/wod-result-normalizer";
 import {
   buildSeries,
   computeCategoryStats,
@@ -62,7 +63,10 @@ export default function ExerciseDetailScreen() {
   useFocusEffect(
     useCallback(() => {
       (async () => {
-        const s = await getSessions();
+        // Un AMRAP/For Time composite ne doit jamais apparaître comme son
+        // propre pseudo-exercice ni fausser un "meilleur set" — voir
+        // `expandWorkoutSessionsForExerciseStats`.
+        const s = expandWorkoutSessionsForExerciseStats(await getSessions());
         setSessions(s);
         setPRs(await getPRs());
         if (decoded) {
@@ -414,28 +418,52 @@ function CategoryKPIs({
     );
   } else if (category === "musculation" && catStats.kind === "musculation") {
     const s = catStats.stats;
-    kpis.push(
-      { icon: "barbell", value: `${s.maxWeightKg} kg`, label: "Charge max" },
-      {
-        icon: "trophy",
-        value: `${(s.totalVolumeKg / 1000).toFixed(1)} t`,
-        label: "Volume total",
-      },
-      {
-        icon: "flash",
-        value: s.bestSet
-          ? `${s.bestSet.weight}×${s.bestSet.reps}`
-          : "—",
-        label: "Meilleur set",
-      },
-      {
-        icon: "trending-up",
-        value: s.progressionPct
-          ? `${s.progressionPct >= 0 ? "+" : ""}${s.progressionPct}%`
-          : "—",
-        label: "Progression",
-      },
-    );
+    // Exercice au poids du corps (jamais de charge/volume) — typiquement un
+    // mouvement issu d'un AMRAP/For Time (voir `wod-result-normalizer.ts`) :
+    // "Charge max"/"Volume total" resteraient à 0, remplacés par "Reps
+    // totales" (somme réelle) + "Meilleur set" en reps seules, jamais une
+    // fausse charge à 0 kg.
+    const isBodyweight = s.maxWeightKg === 0 && s.totalVolumeKg === 0 && s.totalReps > 0;
+    if (isBodyweight) {
+      kpis.push(
+        { icon: "repeat", value: String(s.totalReps), label: "Reps totales" },
+        {
+          icon: "flash",
+          value: s.bestSet ? `${s.bestSet.reps} reps` : "—",
+          label: "Meilleur set",
+        },
+        {
+          icon: "trending-up",
+          value: s.progressionPct
+            ? `${s.progressionPct >= 0 ? "+" : ""}${s.progressionPct}%`
+            : "—",
+          label: "Progression",
+        },
+      );
+    } else {
+      kpis.push(
+        { icon: "barbell", value: `${s.maxWeightKg} kg`, label: "Charge max" },
+        {
+          icon: "trophy",
+          value: `${(s.totalVolumeKg / 1000).toFixed(1)} t`,
+          label: "Volume total",
+        },
+        {
+          icon: "flash",
+          value: s.bestSet
+            ? `${s.bestSet.weight}×${s.bestSet.reps}`
+            : "—",
+          label: "Meilleur set",
+        },
+        {
+          icon: "trending-up",
+          value: s.progressionPct
+            ? `${s.progressionPct >= 0 ? "+" : ""}${s.progressionPct}%`
+            : "—",
+          label: "Progression",
+        },
+      );
+    }
   } else if (category === "mobility" && catStats.kind === "mobility") {
     const s = catStats.stats;
     kpis.push(

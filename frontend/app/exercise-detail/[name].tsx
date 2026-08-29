@@ -35,6 +35,7 @@ import {
 } from "@/src/utils/gym-storage";
 import { computeExerciseDetail } from "@/src/utils/exercise-detail";
 import { computeExerciseProgress } from "@/src/utils/exercise-progress";
+import { expandWorkoutSessionsForExerciseStats } from "@/src/utils/wod-result-normalizer";
 import { findExerciseUsage } from "@/src/utils/exercise-usage";
 import { useExerciseLibraryItems } from "@/src/hooks/useExerciseLibraryItems";
 import { ExerciseRecord, getExerciseRecords, isCoreVisible } from "@/src/utils/exercise-records";
@@ -141,9 +142,15 @@ export default function ExerciseDetailFiche() {
     () => (item?.customId ? customExercises.find((c) => c.id === item.customId) : undefined),
     [item, customExercises],
   );
+  // Un AMRAP/For Time composite ne doit jamais compter comme son propre
+  // pseudo-exercice — voir `expandWorkoutSessionsForExerciseStats`.
+  const expandedSessions = useMemo(
+    () => expandWorkoutSessionsForExerciseStats(sessions),
+    [sessions],
+  );
   const detail = useMemo(
-    () => computeExerciseDetail(decoded, sessions, prs),
-    [decoded, sessions, prs],
+    () => computeExerciseDetail(decoded, expandedSessions, prs),
+    [decoded, expandedSessions, prs],
   );
   // Phase B5 display-priority rule: prefer IronFlow's own enriched French
   // content over the raw WorkoutX-derived fields on `ExerciseRecord` — see
@@ -156,10 +163,10 @@ export default function ExerciseDetailFiche() {
     if (!item) return null;
     return computeExerciseProgress(
       libraryRecord ? { id: libraryRecord.id, nameFr: item.name, nameEn: libraryRecord.nameEn } : item.name,
-      sessions,
+      expandedSessions,
       prs,
     );
-  }, [item, libraryRecord, sessions, prs]);
+  }, [item, libraryRecord, expandedSessions, prs]);
 
   const usage = useMemo(() => {
     if (!item) return [];

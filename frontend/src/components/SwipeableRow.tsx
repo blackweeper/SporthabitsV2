@@ -1,4 +1,4 @@
-import { ReactNode, useRef } from "react";
+import { ReactNode, useEffect, useRef } from "react";
 import { StyleSheet, StyleProp, Text, ViewStyle } from "react-native";
 import { RectButton } from "react-native-gesture-handler";
 import Swipeable from "react-native-gesture-handler/Swipeable";
@@ -36,6 +36,18 @@ export default function SwipeableRow({
   const swipeRef = useRef<Swipeable>(null);
   const { confirm, ConfirmModal } = useConfirmDialog();
   const { theme } = useTheme();
+
+  // `Swipeable` (react-native-gesture-handler) sur web : quand À LA FOIS
+  // `renderLeftActions` ET `renderRightActions` sont fournis, le composant
+  // se monte parfois déjà partiellement révélé (translation horizontale
+  // ~= la somme des deux largeurs d'action, jamais 0) au lieu de sa position
+  // de repos — bug confirmé en direct (ligne WOD décalée de ~196px = 96+96,
+  // largeur des deux `RectButton`, contenu/image invisibles car rendus hors
+  // du cadre visible). Un `close()` explicite juste après le montage force
+  // la vraie position de repos sans changer le comportement du geste.
+  useEffect(() => {
+    swipeRef.current?.close();
+  }, []);
 
   if (!onDelete && !onEdit) {
     return <>{children}</>;

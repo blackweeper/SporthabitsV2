@@ -73,6 +73,10 @@ export const classicTheme: Theme = {
       energy: "#FFC400",
       achievement: "#FF7A4D",
       danger: "#FF1744",
+      // Ambre flamme — distinct de `warning`/`energy` (#FFC400) pour que
+      // l'identité WOD ne dépende jamais d'une future retouche du jaune
+      // d'avertissement, tout en restant dans la même famille chaude.
+      workout: "#FFB300",
     },
   },
   // Rayons alignés sur Sunset — le layout (dont les rayons de coin) est

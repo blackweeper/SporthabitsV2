@@ -1,5 +1,12 @@
 #!/usr/bin/env node
 /**
+ * NE JAMAIS lancer "npx expo export -p web" seul pour produire `dist/` — ce
+ * script (et `verify-web-build.js` juste après) ne s'exécutent PAS
+ * automatiquement dans ce cas, et `dist/` réintroduit silencieusement le bug
+ * de bande blanche en PWA plein écran iOS (cause racine déjà rencontrée en
+ * production). La seule méthode officielle est `npm run build:web`
+ * (= export → ce patch → vérification), voir le README (§ Build web / PWA).
+ *
  * Injecte les balises PWA (manifest, viewport-fit=cover, meta Apple,
  * enregistrement du service worker) dans `dist/index.html` après
  * `expo export -p web`.

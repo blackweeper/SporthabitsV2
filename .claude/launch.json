@@ -12,6 +12,12 @@
       "runtimeExecutable": "npx",
       "runtimeArgs": ["http-server", "exercise-library", "-p", "8090", "--cors", "-c-1"],
       "port": 8090
+    },
+    {
+      "name": "frontend-dist-prod",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["http-server", "frontend/dist", "-p", "8099", "-c-1"],
+      "port": 8099
     }
   ]
 }

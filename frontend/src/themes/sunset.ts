@@ -97,6 +97,11 @@ export const sunsetTheme: Theme = {
       energy: "#FF9F43",
       achievement: "#FF5C8A",
       danger: "#FF453A",
+      // Corail ember — l'orange (`warning`/`energy`) est réservé aux
+      // Calories sous ce thème (voir règle directrice plus haut), donc
+      // l'identité WOD emprunte une teinte chaude voisine mais distincte,
+      // jamais confondue avec Calories ni avec `danger`.
+      workout: "#FF6B4A",
     },
   },
   radius: { sm: 8, md: 16, lg: 26, pill: 999 },

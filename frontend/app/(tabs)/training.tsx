@@ -1063,7 +1063,7 @@ function IntensityFlames({ level, size = 12 }: { level: number; size?: number })
   return (
     <View style={{ flexDirection: "row", gap: 1 }}>
       {Array.from({ length: level }).map((_, i) => (
-        <Ionicons key={i} name="flame" size={size} color={theme.colors.warning} />
+        <Ionicons key={i} name="flame" size={size} color={theme.colors.data.workout} />
       ))}
     </View>
   );
@@ -1118,15 +1118,15 @@ function WodLibraryView({
         style={[
           styles.randomWodBtn,
           { borderRadius: theme.radius.pill },
-          activeChipStyle(theme, true, theme.colors.surfaceSecondary, theme.colors.warning),
+          activeChipStyle(theme, true, theme.colors.surfaceSecondary, theme.colors.data.workout),
         ]}
         onPress={() => setRandomSheetOpen(true)}
       >
-        <Ionicons name="shuffle" size={16} color={activeChipColor(theme, true, "#fff", theme.colors.warning)} />
+        <Ionicons name="shuffle" size={16} color={activeChipColor(theme, true, "#fff", theme.colors.data.workout)} />
         <Text
           style={[
             styles.randomWodBtnText,
-            { color: activeChipColor(theme, true, "#fff", theme.colors.warning) },
+            { color: activeChipColor(theme, true, "#fff", theme.colors.data.workout) },
           ]}
         >
           WOD aléatoire
@@ -1244,15 +1244,14 @@ function WodLibraryView({
             {"  "}Glisse vers la gauche pour supprimer un WOD de ta liste
           </Text>
           {filtered.map((p, i) => (
-            <EnterItem key={p.id} index={i}>
-              <WodRow
-                plan={p}
-                records={records}
-                onPress={() => router.push(`/plan/${p.id}`)}
-                onStart={() => router.push(`/workout/${p.id}`)}
-                onDeleted={onDeleted}
-              />
-            </EnterItem>
+            <WodRow
+              key={p.id}
+              plan={p}
+              records={records}
+              onPress={() => router.push(`/plan/${p.id}`)}
+              onStart={() => router.push(`/workout/${p.id}`)}
+              onDeleted={onDeleted}
+            />
           ))}
         </>
       )}
@@ -1313,8 +1312,8 @@ function WodRow({
         )}
         <View style={{ flex: 1 }}>
           <View style={styles.planTagsRow}>
-            <View style={[styles.planTypeTag, { backgroundColor: withAlpha(theme.colors.warning, 15) }]}>
-              <Text style={[styles.planTypeText, { color: theme.colors.warning }]}>
+            <View style={[styles.planTypeTag, { backgroundColor: withAlpha(theme.colors.data.workout, 15) }]}>
+              <Text style={[styles.planTypeText, { color: theme.colors.data.workout }]}>
                 {WOD_COLLECTION_LABEL[wod.collection]}
               </Text>
             </View>
@@ -1328,12 +1327,12 @@ function WodRow({
           style={[
             styles.startBtn,
             { borderRadius: theme.radius.pill },
-            activeChipStyle(theme, true, theme.colors.surfaceSecondary, theme.colors.warning),
+            activeChipStyle(theme, true, theme.colors.surfaceSecondary, theme.colors.data.workout),
           ]}
           onPress={onStart}
         >
-          <Ionicons name="play" size={13} color={activeChipColor(theme, true, "#fff", theme.colors.warning)} />
-          <Text style={[styles.startBtnText, { color: activeChipColor(theme, true, "#fff", theme.colors.warning) }]}>
+          <Ionicons name="play" size={13} color={activeChipColor(theme, true, "#fff", theme.colors.data.workout)} />
+          <Text style={[styles.startBtnText, { color: activeChipColor(theme, true, "#fff", theme.colors.data.workout) }]}>
             Lancer
           </Text>
         </PressableScale>

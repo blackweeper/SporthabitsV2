@@ -145,6 +145,12 @@ export type MuscuStats = {
   maxWeightKg: number;
   totalVolumeKg: number;
   bestSet: { weight: number; reps: number } | null;
+  /** Somme des reps de tous les sets complétés — distinct de `bestSet.reps`
+   * (le max d'UN set) : un AMRAP de 6 tours à 5 reps/tour donne
+   * `totalReps=30` mais `bestSet.reps=5`, jamais l'inverse (voir
+   * `wod-result-normalizer.ts` — ne jamais laisser croire à un record de
+   * "30 reps" quand c'est un total cumulé). */
+  totalReps: number;
   progressionPct: number; // volume growth first vs last session
   sessions: number;
 };
@@ -255,6 +261,7 @@ export function computeCategoryStats(
   // Musculation
   let maxW = 0;
   let vol = 0;
+  let totalReps = 0;
   let bestSet: { weight: number; reps: number } | null = null;
   let firstVolumeDate: string | null = null;
   let firstVolumeVal = 0;
@@ -277,6 +284,7 @@ export function computeCategoryStats(
         const r = parseFloat((st.reps ?? '').replace(/[^0-9.]/g, '')) || 0;
         vol += w * r;
         dayVol += w * r;
+        totalReps += r;
         if (w > maxW) maxW = w;
         if (!bestSet || w * r > bestSet.weight * bestSet.reps) {
           bestSet = { weight: w, reps: r };
@@ -308,6 +316,7 @@ export function computeCategoryStats(
       maxWeightKg: maxW,
       totalVolumeKg: Math.round(vol),
       bestSet,
+      totalReps: Math.round(totalReps),
       progressionPct: Math.round(progression),
       sessions: sess,
     },
@@ -321,6 +330,7 @@ export type MetricKey =
   | 'volume'
   | 'max_weight'
   | 'max_reps'
+  | 'total_reps'
   // cardio
   | 'distance'
   | 'duration'
@@ -331,7 +341,8 @@ export type MetricKey =
 export const METRIC_LABEL: Record<MetricKey, string> = {
   volume: 'Volume (kg)',
   max_weight: 'Charge max (kg)',
-  max_reps: 'Reps max',
+  max_reps: 'Reps max (par set)',
+  total_reps: 'Reps totales',
   distance: 'Distance (m)',
   duration: 'Temps (min)',
   pace: 'Allure (s/km)',
@@ -339,7 +350,7 @@ export const METRIC_LABEL: Record<MetricKey, string> = {
 };
 
 export const METRICS_BY_CATEGORY: Record<ExerciseCategory, MetricKey[]> = {
-  musculation: ['volume', 'max_weight', 'max_reps'],
+  musculation: ['volume', 'max_weight', 'max_reps', 'total_reps'],
   cardio_machine: ['duration', 'distance', 'pace'],
   mobility: ['hold_time'],
 };
@@ -363,6 +374,7 @@ export function buildSeries(
     let dayVal = 0;
     let dayMax = 0;
     let dayMaxReps = 0;
+    let dayTotalReps = 0;
     let dayHold = 0;
     let dayDur = 0;
 
@@ -375,6 +387,7 @@ export function buildSeries(
         const w = parseFloat((st.weight ?? '').replace(',', '.')) || 0;
         const r = parseFloat((st.reps ?? '').replace(/[^0-9.]/g, '')) || 0;
         dayVal += w * r;
+        dayTotalReps += r;
         if (w > dayMax) dayMax = w;
         if (r > dayMaxReps) dayMaxReps = r;
         if (dur > 0) {
@@ -399,6 +412,8 @@ export function buildSeries(
         perDay[dateKey] = Math.max(perDay[dateKey] ?? 0, dayMax);
       else if (metric === 'max_reps')
         perDay[dateKey] = Math.max(perDay[dateKey] ?? 0, dayMaxReps);
+      else if (metric === 'total_reps')
+        perDay[dateKey] = (perDay[dateKey] ?? 0) + dayTotalReps;
     } else if (category === 'cardio_machine') {
       if (metric === 'duration') {
         perDay[dateKey] = Math.round((perDayDuration[dateKey] ?? 0) / 60);

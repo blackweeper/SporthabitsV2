@@ -9,7 +9,7 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "build:web": "expo export -p web && node scripts/patch-web-build.js",
+    "build:web": "expo export -p web && node scripts/patch-web-build.js && node scripts/verify-web-build.js",
     "lint": "expo lint"
   },
   "dependencies": {

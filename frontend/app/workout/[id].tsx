@@ -663,7 +663,7 @@ export default function WorkoutScreen() {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
           }}
         >
-          <Ionicons name="add" size={22} color={theme.card.mode === "glass" ? theme.colors.warning : "#fff"} />
+          <Ionicons name="add" size={22} color={theme.card.mode === "glass" ? theme.colors.data.workout : "#fff"} />
         </Pressable>
       </View>
     ) : liveOverlayVariant === "for_time" ? (
@@ -673,7 +673,7 @@ export default function WorkoutScreen() {
           style={[styles.roundBtn, styles.roundBtnPrimary]}
           onPress={decrementForTimeRounds}
         >
-          <Ionicons name="remove" size={22} color={theme.card.mode === "glass" ? theme.colors.warning : "#fff"} />
+          <Ionicons name="remove" size={22} color={theme.card.mode === "glass" ? theme.colors.data.workout : "#fff"} />
         </Pressable>
         <View style={styles.amrapRoundsBox}>
           <Text style={styles.amrapRoundsBig}>{forTimeRoundsRemaining}</Text>
@@ -1030,6 +1030,7 @@ export default function WorkoutScreen() {
               <ExerciseLiveOverlay
                 variant={liveOverlayVariant}
                 eyebrow={liveOverlayEyebrow}
+                accentColor={theme.colors.data.workout}
                 exerciseName={currentEx.name}
                 targetReps={currentEx.targetReps}
                 notes={currentEx.notes}
@@ -1467,11 +1468,11 @@ function buildStyles(theme: Theme) {
     justifyContent: "center",
   },
   roundBtnPrimary: isGlass
-    ? { backgroundColor: withAlpha(colors.warning, 22), borderColor: withAlpha(colors.warning, 55) }
-    : { backgroundColor: colors.warning, borderColor: colors.warning },
+    ? { backgroundColor: withAlpha(colors.data.workout, 22), borderColor: withAlpha(colors.data.workout, 55) }
+    : { backgroundColor: colors.data.workout, borderColor: colors.data.workout },
   amrapRoundsBox: { alignItems: "center", minWidth: 90 },
   amrapRoundsBig: {
-    color: colors.warning,
+    color: colors.data.workout,
     fontSize: 44,
     fontWeight: "800",
   },

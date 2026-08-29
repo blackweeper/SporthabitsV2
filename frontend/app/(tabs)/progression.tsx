@@ -71,16 +71,20 @@ import {
   deletePR,
   getGoals,
   getMeasurements,
+  getPlans,
   getPRs,
   getSessions,
   Goal,
   PersonalRecord,
+  Plan,
   WorkoutSession,
 } from "@/src/utils/gym-storage";
 import SwipeableRow from "@/src/components/SwipeableRow";
 import { computeAdvancedStats } from "@/src/utils/stats";
 import { computeHighlights, Highlight } from "@/src/utils/highlights";
 import { listAllExercises } from "@/src/utils/exercise-detail";
+import { expandWorkoutSessionsForExerciseStats } from "@/src/utils/wod-result-normalizer";
+import { computeAmrapWodHistory } from "@/src/utils/wod-history";
 import { Achievement, computeAchievements } from "@/src/utils/achievements";
 import { ProgressionTab } from "@/src/utils/progression-nav";
 
@@ -248,16 +252,25 @@ function ExercisesView({
   const [subTab, setSubTab] = useState<ExerciseCategory>("musculation");
   const [overrides, setOverridesState] = useState<Record<string, ExerciseCategory>>({});
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [wodPlans, setWodPlans] = useState<Plan[]>([]);
 
   useFocusEffect(
     useCallback(() => {
       (async () => {
         setOverridesState(await getOverrides());
+        setWodPlans(await getPlans());
       })();
     }, []),
   );
 
-  const doneExercises = listAllExercises(sessions);
+  // Progression par WOD nommé (Best/Dernier/Précédent) — jamais "as-tu fait
+  // un AMRAP", mais "as-tu progressé SUR CE WOD précis" (voir wod-history.ts).
+  const wodHistory = computeAmrapWodHistory(sessions, wodPlans);
+
+  // Expansion normalisée : un AMRAP/For Time composite ("5 Traction → 10
+  // Pompe → 15 Squats") ne doit jamais apparaître comme son propre
+  // pseudo-exercice — voir `expandWorkoutSessionsForExerciseStats`.
+  const doneExercises = listAllExercises(expandWorkoutSessionsForExerciseStats(sessions));
   const prsByExercise: Record<string, { name: string; prs: PersonalRecord[] }> = {};
   for (const pr of prs) {
     const key = pr.exerciseName.toLowerCase().trim();
@@ -322,6 +335,63 @@ function ExercisesView({
                 </Text>
               )}
             </View>
+          ))}
+        </ScrollView>
+      )}
+
+      {wodHistory.length > 0 && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.wodHistoryRow}
+        >
+          {wodHistory.map((w) => (
+            <Pressable
+              key={w.planId}
+              testID={`wod-history-${w.planId}`}
+              style={[
+                styles.wodHistoryCard,
+                {
+                  backgroundColor: withAlpha(theme.colors.data.workout, 10),
+                  borderColor: withAlpha(theme.colors.data.workout, 35),
+                  borderRadius: theme.radius.md,
+                },
+              ]}
+              onPress={() => router.push(`/plan/${w.planId}`)}
+            >
+              <Text style={[styles.wodHistoryTitle, { color: theme.colors.onSurface }]} numberOfLines={1}>
+                {w.planTitle.toUpperCase()}
+              </Text>
+              <Text style={[styles.wodHistoryFormat, { color: theme.colors.onSurfaceTertiary }]} numberOfLines={1}>
+                {w.format}
+              </Text>
+              <View style={styles.wodHistoryStatsRow}>
+                <View style={styles.wodHistoryStat}>
+                  <Text style={[styles.wodHistoryStatVal, { color: theme.colors.data.workout }]}>{w.best}</Text>
+                  <Text style={[styles.wodHistoryStatLbl, { color: theme.colors.onSurfaceTertiary }]}>Best</Text>
+                </View>
+                <View style={styles.wodHistoryStat}>
+                  <Text style={[styles.wodHistoryStatVal, { color: theme.colors.onSurface }]}>{w.last}</Text>
+                  <Text style={[styles.wodHistoryStatLbl, { color: theme.colors.onSurfaceTertiary }]}>Dernier</Text>
+                </View>
+                {w.progressDelta != null && (
+                  <View style={styles.wodHistoryStat}>
+                    <Text
+                      style={[
+                        styles.wodHistoryStatVal,
+                        { color: w.progressDelta >= 0 ? theme.colors.success : theme.colors.error },
+                      ]}
+                    >
+                      {w.progressDelta >= 0 ? "+" : ""}
+                      {w.progressDelta}
+                    </Text>
+                    <Text style={[styles.wodHistoryStatLbl, { color: theme.colors.onSurfaceTertiary }]}>
+                      vs précédent
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </Pressable>
           ))}
         </ScrollView>
       )}
@@ -1716,6 +1786,19 @@ export const styles = StyleSheet.create({
     marginTop: 2,
   },
   highlightSubtitle: { fontSize: 11, fontWeight: "600" },
+  wodHistoryRow: { gap: spacing.sm, paddingRight: spacing.md },
+  wodHistoryCard: {
+    width: 168,
+    borderWidth: 1,
+    padding: spacing.sm,
+    gap: 4,
+  },
+  wodHistoryTitle: { fontWeight: "800", fontSize: 13, letterSpacing: 0.3 },
+  wodHistoryFormat: { fontSize: 10.5, fontWeight: "600" },
+  wodHistoryStatsRow: { flexDirection: "row", gap: spacing.md, marginTop: 4 },
+  wodHistoryStat: { alignItems: "flex-start" },
+  wodHistoryStatVal: { fontWeight: "800", fontSize: 16 },
+  wodHistoryStatLbl: { fontSize: 9, fontWeight: "700", letterSpacing: 0.3 },
   overviewCard: { padding: spacing.lg, alignItems: "center", gap: spacing.md },
   // Même traitement que le Score du Dashboard (Phase 1) : le libellé reste
   // discret (gris), la mention qualitative ("Peut mieux faire"...) en violet.

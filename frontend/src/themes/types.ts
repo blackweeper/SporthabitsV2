@@ -33,6 +33,13 @@ export type DataColorSet = {
   energy: string;
   achievement: string;
   danger: string;
+  /** Identité visuelle unique du WOD (Workout of the Day) — badges
+   * d'intensité, bouton "Lancer"/"WOD aléatoire", carte WOD dans
+   * Entraînements/Dashboard/Performance. Un seul token pour tous ces
+   * endroits (au lieu de `warning`/`brand` mélangés selon l'écran) : évite
+   * qu'un même concept ("ceci est un WOD") porte une couleur différente
+   * selon où on le regarde. */
+  workout: string;
 };
 
 export type ThemeColors = {

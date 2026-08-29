@@ -1,7 +1,7 @@
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
-import { LogBox, StatusBar } from "react-native";
+import { LogBox, Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { DarkTheme, ThemeProvider as NavigationThemeProvider } from "@react-navigation/native";
@@ -14,6 +14,7 @@ import { seedStarterProgramsIfNeeded } from "@/src/utils/program-bootstrap";
 import { seedWodLibraryIfNeeded } from "@/src/utils/wod-bootstrap";
 import { HEALTH_SYNC_INTERVAL_MS, useHealthSync } from "@/src/hooks/useHealthSync";
 import { ThemeProvider } from "@/src/themes";
+import ThemedStatusBar from "@/src/themes/ThemedStatusBar";
 import { RadioPlayerProvider } from "@/src/hooks/useRadioPlayer";
 import MiniRadioPlayer from "@/src/components/radio/MiniRadioPlayer";
 
@@ -111,6 +112,32 @@ export default function RootLayout() {
     return () => clearInterval(interval);
   }, [syncHealthData]);
 
+  // Web — bug confirmé en direct : après un changement d'onglet (tap sur un
+  // chip/segment horizontalement scrollable), Chrome déclenche son
+  // `scrollIntoView` automatique sur l'élément focus et remonte la chaîne
+  // d'ancêtres jusqu'à en scroller un qui a `overflow:hidden` (confirmé par
+  // inspection DOM directe : la vue quasi-racine de l'app, `flex:1` +
+  // `overflow:hidden`, se retrouve avec un `scrollLeft` non nul alors
+  // qu'elle n'a jamais de barre de défilement ni de scroll utilisateur
+  // possible) — tout le contenu monté après ce point se retrouve rendu
+  // décalé/hors cadre. Un élément `overflow:hidden` n'est par définition
+  // jamais scrollable par l'utilisateur (contrairement à `overflow:auto`/
+  // `scroll`) ; réinitialiser son `scrollLeft` dès qu'il dérive est donc
+  // sans risque pour les vrais rangs défilants de l'app (ScrollView
+  // horizontal, `overflow-x:auto`), jamais concernés par ce correctif.
+  useEffect(() => {
+    if (Platform.OS !== "web") return;
+    const handleScroll = (e: Event) => {
+      const el = e.target as HTMLElement;
+      if (!el || typeof el.scrollLeft !== "number" || el.scrollLeft === 0) return;
+      if (window.getComputedStyle(el).overflowX === "hidden") {
+        el.scrollLeft = 0;
+      }
+    };
+    document.addEventListener("scroll", handleScroll, true);
+    return () => document.removeEventListener("scroll", handleScroll, true);
+  }, []);
+
   if (!loaded && !error) return null;
 
   return (
@@ -118,7 +145,7 @@ export default function RootLayout() {
       <ThemeProvider>
       <RadioPlayerProvider>
       <SafeAreaProvider>
-        <StatusBar barStyle="light-content" backgroundColor="#0E0E0E" />
+        <ThemedStatusBar />
         {/* Sans thème de navigation explicite, `@react-navigation` peint le
             fond de scène par défaut clair (`DefaultTheme`, rgb(242,242,242))
             sous chaque écran — invisible tant que chaque écran peint son

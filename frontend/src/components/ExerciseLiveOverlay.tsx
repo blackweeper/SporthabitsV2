@@ -18,6 +18,7 @@ import { ExerciseRecord } from "@/src/utils/exercise-records";
 export default function ExerciseLiveOverlay({
   variant,
   eyebrow,
+  accentColor,
   exerciseName,
   targetReps,
   notes,
@@ -32,6 +33,10 @@ export default function ExerciseLiveOverlay({
 }: {
   variant: "emom" | "amrap" | "for_time";
   eyebrow: string;
+  /** Couleur d'accent (timer, libellé, note) — fournie par l'appelant
+   * (`theme.colors.data.workout`, identité WOD partagée avec Entraînements/
+   * Dashboard) plutôt que codée en dur ici, même patron que `TimerCircle`. */
+  accentColor: string;
   exerciseName: string;
   targetReps?: string | null;
   notes?: string | null;
@@ -51,7 +56,7 @@ export default function ExerciseLiveOverlay({
 }) {
   return (
     <View style={styles.wrap} testID="exercise-live-overlay">
-      <Text style={styles.eyebrow}>{eyebrow}</Text>
+      <Text style={[styles.eyebrow, { color: accentColor }]}>{eyebrow}</Text>
 
       <Text style={styles.exerciseName} numberOfLines={2}>
         {exerciseName}
@@ -70,11 +75,11 @@ export default function ExerciseLiveOverlay({
         )
       )}
 
-      <TimerCircle remaining={remaining} total={Math.max(1, total)} color={colors.warning} />
+      <TimerCircle remaining={remaining} total={Math.max(1, total)} color={accentColor} />
 
       {!!notes && (
-        <View style={styles.notesBox}>
-          <Ionicons name="information-circle" size={14} color={colors.warning} />
+        <View style={[styles.notesBox, { backgroundColor: withAlpha(accentColor, 12) }]}>
+          <Ionicons name="information-circle" size={14} color={accentColor} />
           <Text style={styles.notesText}>{notes}</Text>
         </View>
       )}
@@ -101,7 +106,6 @@ const styles = StyleSheet.create({
   wrap: { alignItems: "center", gap: spacing.md },
   compositeThumbWrap: { width: "100%", paddingHorizontal: spacing.lg },
   eyebrow: {
-    color: colors.warning,
     fontWeight: "800",
     letterSpacing: 2,
     fontSize: 12,
@@ -129,7 +133,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-start",
     gap: 6,
-    backgroundColor: withAlpha(colors.warning, 12),
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     borderRadius: radius.md,

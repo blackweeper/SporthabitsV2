@@ -35,7 +35,7 @@ export default function RandomWodWidget({ style }: { style?: StyleProp<ViewStyle
     <ProgramActionCard
       testID="random-wod-widget"
       icon="shuffle"
-      iconColor={theme.colors.brand}
+      iconColor={theme.colors.data.workout}
       title="WOD aléatoire"
       subtitle={`${wodPlans.length} séance${wodPlans.length > 1 ? "s" : ""}`}
       onPress={onLaunch}
