@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, shrink-to-fit=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <title>frontend</title>
     <!-- The `react-native-web` recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element -->
     <style id="expo-reset">
@@ -23,37 +23,7 @@
         flex: 1;
       }
     </style>
-  <link rel="icon" href="/favicon.ico" />
-  <link rel="manifest" href="/manifest.json" />
-  <meta name="theme-color" content="#0E0E0E" />
-  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="IronFlow" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <style>
-    html, body { background-color: #0E0E0E; }
-    /* Le reset #expo-reset (généré par Expo, avant ce bloc) fixe html/body/#root
-       à "height: 100%". Sous Safari iOS en mode standalone (PWA installée) +
-       viewport-fit=cover, "100%"/"100vh" peut rester plus court que la
-       hauteur réelle de l'écran (l'espace derrière le Home Indicator n'est
-       pas toujours inclus) — c'est la cause exacte de la bande noire sous
-       l'app : le fond de la page (body, correctement noir) reste visible
-       sous le contenu React, qui s'arrête trop tôt. "100dvh" (dynamic
-       viewport height) mesure la VRAIE surface visible, Home Indicator
-       inclus. Ajouté en "min-height" (jamais en remplacement de "height")
-       pour ne jamais RÉDUIRE la hauteur sur les navigateurs qui calculent
-       déjà "100%" correctement — seulement l'agrandir si besoin. */
-    html, body, #root { min-height: 100dvh; }
-  </style>
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', function () {
-        navigator.serviceWorker.register('/sw.js').catch(function () {});
-      });
-    }
-  </script>
-</head>
+  <link rel="icon" href="/favicon.ico" /></head>
 
   <body>
     <!-- Use static rendering with Expo Router to support running without JavaScript. -->
@@ -62,6 +32,6 @@
     </noscript>
     <!-- The root element for your Expo app. -->
     <div id="root"></div>
-  <script src="/_expo/static/js/web/entry-d9851b1faf550c6bfb595c05db61adf9.js" defer></script>
+  <script src="/_expo/static/js/web/entry-4445a117ffd08e3edf62cf7f0df03ba0.js" defer></script>
 </body>
 </html>
