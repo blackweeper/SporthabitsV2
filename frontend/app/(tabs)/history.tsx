@@ -14,12 +14,28 @@ import { BarChart } from "react-native-gifted-charts";
 import { spacing, withAlpha } from "@/src/theme";
 import { Theme, useTheme } from "@/src/themes";
 import ThemedBackground from "@/src/themes/ThemedBackground";
+import GlassCard from "@/src/components/ui/GlassCard";
+import SegmentedTabRow from "@/src/components/ui/SegmentedTabRow";
 import {
   CARDIO_ACTIVITY_EMOJI,
   CARDIO_ACTIVITY_LABEL,
+  getPlans,
   getSessions,
+  Plan,
   WorkoutSession,
 } from "@/src/utils/gym-storage";
+import { computeAdvancedStats } from "@/src/utils/stats";
+import {
+  availableEvolutionMetrics,
+  computeEvolutionSeries,
+  computeWeekComparison,
+  EVOLUTION_METRIC_LABEL,
+  EVOLUTION_PERIOD_LABEL,
+  EvolutionMetric,
+  EvolutionPeriod,
+  resolveSessionWodIdentity,
+  SessionWodIdentity,
+} from "@/src/utils/training-overview";
 
 function formatDuration(sec: number) {
   const m = Math.floor(sec / 60);
@@ -27,6 +43,13 @@ function formatDuration(sec: number) {
   if (m === 0) return `${s}s`;
   if (s === 0) return `${m}m`;
   return `${m}m${s}s`;
+}
+
+function formatLongDuration(sec: number) {
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  if (h > 0) return `${h}h ${m}min`;
+  return `${m}min`;
 }
 
 function formatDate(iso: string) {
@@ -39,63 +62,55 @@ function formatDate(iso: string) {
   });
 }
 
+function formatDelta(pct: number | null): string {
+  if (pct === null) return "Pas encore de comparaison";
+  const sign = pct > 0 ? "+" : "";
+  return `${sign}${pct}% vs semaine dernière`;
+}
+
 export default function HistoryScreen() {
   const { theme } = useTheme();
   const styles = useMemo(() => buildStyles(theme), [theme]);
   const router = useRouter();
   const [sessions, setSessions] = useState<WorkoutSession[]>([]);
+  const [wodPlansById, setWodPlansById] = useState<Map<string, Plan>>(new Map());
   const [tab, setTab] = useState<"history" | "stats">("history");
+  const [period, setPeriod] = useState<EvolutionPeriod>("week");
+  const [metric, setMetric] = useState<EvolutionMetric>("sessions");
 
   useFocusEffect(
     useCallback(() => {
-      (async () => setSessions(await getSessions()))();
+      (async () => {
+        const [s, plans] = await Promise.all([getSessions(), getPlans()]);
+        setSessions(s);
+        const map = new Map<string, Plan>();
+        for (const p of plans) if (p.wodSource) map.set(p.id, p);
+        setWodPlansById(map);
+      })();
     }, []),
   );
 
-  const weekData = useMemo(() => {
-    // last 7 days
-    const days: { label: string; value: number }[] = [];
-    const now = new Date();
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date(now);
-      d.setDate(now.getDate() - i);
-      d.setHours(0, 0, 0, 0);
-      const next = new Date(d);
-      next.setDate(d.getDate() + 1);
-      const total =
-        sessions
-          .filter((s) => {
-            const t = new Date(s.startedAt).getTime();
-            return t >= d.getTime() && t < next.getTime();
-          })
-          .reduce((a, s) => a + s.durationSeconds, 0) / 60;
-      days.push({
-        label: ["D", "L", "M", "M", "J", "V", "S"][d.getDay()],
-        value: Math.round(total),
-      });
+  const wodIdentities = useMemo(() => {
+    const map = new Map<string, SessionWodIdentity>();
+    for (const s of sessions) {
+      const identity = resolveSessionWodIdentity(s, wodPlansById);
+      if (identity) map.set(s.id, identity);
     }
-    return days;
-  }, [sessions]);
+    return map;
+  }, [sessions, wodPlansById]);
 
-  const totals = useMemo(() => {
-    const total = sessions.length;
-    const totalMin = Math.round(
-      sessions.reduce((a, s) => a + s.durationSeconds, 0) / 60,
-    );
-    const totalRest = Math.round(
-      sessions.reduce((a, s) => a + s.totalRestSeconds, 0) / 60,
-    );
-    const totalCalories = sessions.reduce(
-      (a, s) => a + (s.caloriesBurned ?? 0),
-      0,
-    );
-    const avgDuration = total
-      ? Math.round(sessions.reduce((a, s) => a + s.durationSeconds, 0) / total / 60)
-      : 0;
-    return { total, totalMin, totalRest, avgDuration, totalCalories };
-  }, [sessions]);
+  const allTimeStats = useMemo(() => computeAdvancedStats(sessions), [sessions]);
+  const weekComparison = useMemo(() => computeWeekComparison(sessions), [sessions]);
 
-  const maxBar = Math.max(1, ...weekData.map((d) => d.value));
+  const evolutionMetrics = useMemo(() => availableEvolutionMetrics(sessions), [sessions]);
+  const activeMetric: EvolutionMetric = evolutionMetrics.includes(metric)
+    ? metric
+    : evolutionMetrics[0] ?? "sessions";
+  const evolutionSeries = useMemo(
+    () => computeEvolutionSeries(sessions, period, activeMetric),
+    [sessions, period, activeMetric],
+  );
+  const maxBar = Math.max(1, ...evolutionSeries.map((d) => d.value));
   const chartWidth = Dimensions.get("window").width - spacing.lg * 2 - 32;
 
   return (
@@ -109,33 +124,19 @@ export default function HistoryScreen() {
         edges={["top"]}
       >
       <View style={styles.header}>
-        <Text style={styles.title}>Historique</Text>
+        <Text style={styles.title}>Historique & Statistiques</Text>
       </View>
 
-      {/* Segmented control */}
-      <View style={styles.segment}>
-        <Pressable
-          testID="tab-history-seg"
-          style={[styles.segBtn, tab === "history" && styles.segBtnActive]}
-          onPress={() => setTab("history")}
-        >
-          <Text
-            style={[styles.segText, tab === "history" && styles.segTextActive]}
-          >
-            SÉANCES
-          </Text>
-        </Pressable>
-        <Pressable
-          testID="tab-stats-seg"
-          style={[styles.segBtn, tab === "stats" && styles.segBtnActive]}
-          onPress={() => setTab("stats")}
-        >
-          <Text
-            style={[styles.segText, tab === "stats" && styles.segTextActive]}
-          >
-            STATS
-          </Text>
-        </Pressable>
+      <View style={styles.segmentWrap}>
+        <SegmentedTabRow
+          testIDPrefix="tab"
+          options={[
+            { key: "history", label: "SÉANCES" },
+            { key: "stats", label: "STATS" },
+          ]}
+          value={tab}
+          onChange={setTab}
+        />
       </View>
 
       <ScrollView
@@ -156,87 +157,153 @@ export default function HistoryScreen() {
               </Text>
             </View>
           ) : (
-            sessions.map((s) => (
-              <Pressable
-                key={s.id}
-                style={styles.sessionCard}
-                testID={`session-${s.id}`}
-                onPress={() => router.push(`/session/${s.id}`)}
-              >
-                <View style={styles.sessionHeader}>
-                  <View style={styles.sessionTitleRow}>
-                    {s.cardio_activity ? (
-                      <Text style={styles.sessionEmoji}>
-                        {CARDIO_ACTIVITY_EMOJI[s.cardio_activity]}
+            sessions.map((s) => {
+              const wod = wodIdentities.get(s.id);
+              return (
+                <Pressable
+                  key={s.id}
+                  style={styles.sessionCard}
+                  testID={`session-${s.id}`}
+                  onPress={() => router.push(`/session/${s.id}`)}
+                >
+                  <View style={styles.sessionHeader}>
+                    <View style={styles.sessionTitleRow}>
+                      {s.cardio_activity ? (
+                        <Text style={styles.sessionEmoji}>
+                          {CARDIO_ACTIVITY_EMOJI[s.cardio_activity]}
+                        </Text>
+                      ) : s.planType === "stretch" ? (
+                        <Text style={styles.sessionEmoji}>🧘</Text>
+                      ) : wod ? (
+                        <Ionicons name="flame" size={16} color={theme.colors.data.workout} />
+                      ) : null}
+                      <Text style={styles.sessionTitle} numberOfLines={1}>
+                        {wod ? wod.title : s.planTitle}
                       </Text>
-                    ) : s.planType === "stretch" ? (
-                      <Text style={styles.sessionEmoji}>🧘</Text>
-                    ) : null}
-                    <Text style={styles.sessionTitle} numberOfLines={1}>
-                      {s.planTitle}
-                    </Text>
+                    </View>
+                    <Text style={styles.sessionDate}>{formatDate(s.startedAt)}</Text>
                   </View>
-                  <Text style={styles.sessionDate}>{formatDate(s.startedAt)}</Text>
-                </View>
-                {s.cardio_activity ? (
-                  <View style={styles.activityTag}>
-                    <Text style={styles.activityTagText}>
-                      {CARDIO_ACTIVITY_LABEL[s.cardio_activity]}
-                    </Text>
+                  {wod ? (
+                    <View style={[styles.activityTag, { backgroundColor: withAlpha(theme.colors.data.workout, 18) }]}>
+                      <Text style={[styles.activityTagText, { color: theme.colors.data.workout }]}>
+                        {wod.format.toUpperCase()}
+                        {wod.roundsCompleted != null ? ` · ${wod.roundsCompleted} TOURS` : ""}
+                      </Text>
+                    </View>
+                  ) : s.cardio_activity ? (
+                    <View style={styles.activityTag}>
+                      <Text style={styles.activityTagText}>
+                        {CARDIO_ACTIVITY_LABEL[s.cardio_activity]}
+                      </Text>
+                    </View>
+                  ) : null}
+                  <View style={styles.sessionStats}>
+                    <View style={styles.sessionStat}>
+                      <Ionicons name="time" size={14} color={theme.colors.brand} />
+                      <Text style={styles.sessionStatVal}>
+                        {formatDuration(s.durationSeconds)}
+                      </Text>
+                    </View>
+                    <View style={styles.sessionStat}>
+                      <Ionicons name="flame" size={14} color={theme.colors.brand} />
+                      <Text style={styles.sessionStatVal}>
+                        {s.caloriesBurned ?? 0} kcal
+                      </Text>
+                    </View>
+                    <View style={styles.sessionStat}>
+                      <Ionicons name="barbell" size={14} color={theme.colors.brand} />
+                      <Text style={styles.sessionStatVal}>
+                        {s.exercises.length} ex.
+                      </Text>
+                    </View>
                   </View>
-                ) : null}
-                <View style={styles.sessionStats}>
-                  <View style={styles.sessionStat}>
-                    <Ionicons name="time" size={14} color={theme.colors.brand} />
-                    <Text style={styles.sessionStatVal}>
-                      {formatDuration(s.durationSeconds)}
-                    </Text>
+                  <View style={styles.sessionFoot}>
+                    <Text style={styles.sessionMore}>Voir le résumé →</Text>
                   </View>
-                  <View style={styles.sessionStat}>
-                    <Ionicons name="flame" size={14} color={theme.colors.brand} />
-                    <Text style={styles.sessionStatVal}>
-                      {s.caloriesBurned ?? 0} kcal
-                    </Text>
-                  </View>
-                  <View style={styles.sessionStat}>
-                    <Ionicons name="barbell" size={14} color={theme.colors.brand} />
-                    <Text style={styles.sessionStatVal}>
-                      {s.exercises.length} ex.
-                    </Text>
-                  </View>
-                </View>
-                <View style={styles.sessionFoot}>
-                  <Text style={styles.sessionMore}>Voir le résumé →</Text>
-                </View>
-              </Pressable>
-            ))
+                </Pressable>
+              );
+            })
           )
         ) : (
           <>
-            {/* Totals */}
-            <View style={styles.statsGrid}>
-              <StatBox label="Séances" value={String(totals.total)} />
-              <StatBox
-                label="Calories brûlées"
-                value={`${totals.totalCalories}`}
+            {/* Cette semaine */}
+            <Text style={styles.sectionTitle}>CETTE SEMAINE</Text>
+            <View style={styles.weekGrid}>
+              <WeekStatBox
+                label="Séances"
+                value={String(weekComparison.thisWeek.totalSessions)}
+                delta={weekComparison.deltaSessionsPct}
               />
-              <StatBox label="Minutes totales" value={String(totals.totalMin)} />
-              <StatBox
-                label="Durée moyenne"
-                value={`${totals.avgDuration} min`}
+              <WeekStatBox
+                label="Temps d'entraînement"
+                value={formatLongDuration(weekComparison.thisWeek.totalDurationSec)}
+                delta={weekComparison.deltaDurationPct}
+              />
+              <WeekStatBox
+                label="Volume"
+                value={`${(weekComparison.thisWeek.totalVolumeKg / 1000).toFixed(1)} t`}
+                delta={weekComparison.deltaVolumePct}
+              />
+              <WeekStatBox
+                label="Calories"
+                value={`${weekComparison.thisWeek.totalCalories} kcal`}
+                delta={weekComparison.deltaCaloriesPct}
               />
             </View>
-            {/* Weekly chart */}
-            <View style={styles.chartCard}>
-              <Text style={styles.chartTitle}>Cette semaine (minutes)</Text>
+
+            {/* Depuis le début */}
+            <Text style={styles.sectionTitle}>DEPUIS LE DÉBUT</Text>
+            <GlassCard style={styles.totalsCard}>
+              <TotalRow icon="checkmark-done" label="Séances totales" value={String(allTimeStats.totalSessions)} />
+              <TotalRow icon="barbell" label="Volume total soulevé" value={`${(allTimeStats.totalVolumeKg / 1000).toFixed(1)} t`} />
+              <TotalRow icon="flame" label="Calories brûlées" value={`${allTimeStats.totalCalories} kcal`} />
+              <TotalRow icon="time" label="Temps total" value={formatLongDuration(allTimeStats.totalDurationSec)} />
+              <TotalRow icon="stopwatch" label="Durée moyenne" value={formatLongDuration(allTimeStats.avgDurationSec)} />
+              <TotalRow icon="layers" label="Exercices pratiqués" value={String(allTimeStats.distinctExercises)} />
+              {allTimeStats.cardioKmTotal > 0 && (
+                <TotalRow icon="earth" label="Distance cardio cumulée" value={`${allTimeStats.cardioKmTotal.toFixed(1)} km`} last />
+              )}
+            </GlassCard>
+
+            {/* Évolution */}
+            <Text style={styles.sectionTitle}>ÉVOLUTION</Text>
+            <GlassCard style={styles.chartCard}>
+              <View style={styles.periodRow}>
+                {(["week", "month", "6m", "year"] as EvolutionPeriod[]).map((p) => (
+                  <Pressable
+                    key={p}
+                    testID={`evolution-period-${p}`}
+                    style={[styles.periodChip, period === p && { backgroundColor: withAlpha(theme.colors.brand, 20) }]}
+                    onPress={() => setPeriod(p)}
+                  >
+                    <Text style={[styles.periodChipText, period === p && { color: theme.colors.brand }]}>
+                      {EVOLUTION_PERIOD_LABEL[p]}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+              <View style={styles.metricRow}>
+                {evolutionMetrics.map((m) => (
+                  <Pressable
+                    key={m}
+                    testID={`evolution-metric-${m}`}
+                    style={[styles.metricChip, activeMetric === m && { backgroundColor: withAlpha(theme.colors.brand, 20) }]}
+                    onPress={() => setMetric(m)}
+                  >
+                    <Text style={[styles.metricChipText, activeMetric === m && { color: theme.colors.brand }]}>
+                      {EVOLUTION_METRIC_LABEL[m]}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
               <BarChart
-                data={weekData.map((d) => ({
+                data={evolutionSeries.map((d) => ({
                   value: d.value,
                   label: d.label,
                   frontColor: theme.colors.brand,
                 }))}
-                barWidth={22}
-                spacing={14}
+                barWidth={period === "week" ? 22 : period === "month" ? 40 : 18}
+                spacing={period === "week" ? 14 : period === "month" ? 20 : 10}
                 barBorderRadius={4}
                 yAxisThickness={0}
                 xAxisThickness={0}
@@ -251,7 +318,7 @@ export default function HistoryScreen() {
                 width={chartWidth}
                 isAnimated
               />
-            </View>
+            </GlassCard>
           </>
         )}
         <View style={{ height: spacing.xl2 }} />
@@ -261,13 +328,34 @@ export default function HistoryScreen() {
   );
 }
 
-function StatBox({ label, value }: { label: string; value: string }) {
+function WeekStatBox({ label, value, delta }: { label: string; value: string; delta: number | null }) {
+  const { theme } = useTheme();
+  const styles = useMemo(() => buildStyles(theme), [theme]);
+  const positive = delta !== null && delta >= 0;
+  return (
+    <GlassCard style={styles.weekBox}>
+      <Text style={styles.weekBoxValue}>{value}</Text>
+      <Text style={styles.weekBoxLabel}>{label}</Text>
+      <Text
+        style={[
+          styles.weekBoxDelta,
+          delta !== null && { color: positive ? theme.colors.success : theme.colors.error },
+        ]}
+      >
+        {formatDelta(delta)}
+      </Text>
+    </GlassCard>
+  );
+}
+
+function TotalRow({ icon, label, value, last }: { icon: any; label: string; value: string; last?: boolean }) {
   const { theme } = useTheme();
   const styles = useMemo(() => buildStyles(theme), [theme]);
   return (
-    <View style={styles.statBox}>
-      <Text style={styles.statBoxValue}>{value}</Text>
-      <Text style={styles.statBoxLabel}>{label}</Text>
+    <View style={[styles.totalRow, !last && styles.totalRowBorder]}>
+      <Ionicons name={icon} size={16} color={theme.colors.brand} />
+      <Text style={styles.totalRowLabel}>{label}</Text>
+      <Text style={styles.totalRowValue}>{value}</Text>
     </View>
   );
 }
@@ -280,34 +368,12 @@ function buildStyles(theme: Theme) {
   header: {
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
-    borderBottomColor: colors.border,
-    borderBottomWidth: 1,
   },
-  title: { color: colors.onSurface, fontSize: 24, fontWeight: "800" },
-  segment: {
-    flexDirection: "row",
-    margin: spacing.lg,
-    backgroundColor: colors.surfaceSecondary,
-    padding: 4,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
+  title: { color: colors.onSurface, fontSize: 22, fontWeight: "800" },
+  segmentWrap: {
+    paddingHorizontal: spacing.lg,
   },
-  segBtn: {
-    flex: 1,
-    paddingVertical: 10,
-    alignItems: "center",
-    borderRadius: radius.sm,
-  },
-  segBtnActive: isGlass ? { backgroundColor: withAlpha(colors.brand, 22) } : { backgroundColor: colors.brand },
-  segText: {
-    color: colors.onSurfaceTertiary,
-    fontWeight: "700",
-    fontSize: 12,
-    letterSpacing: 1,
-  },
-  segTextActive: { color: "#fff" },
-  scroll: { paddingHorizontal: spacing.lg, gap: spacing.md },
+  scroll: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg, gap: spacing.md },
   empty: {
     alignItems: "center",
     padding: spacing.xl,
@@ -371,45 +437,97 @@ function buildStyles(theme: Theme) {
     letterSpacing: 0.5,
   },
 
-  statsGrid: {
+  sectionTitle: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 12,
+    fontWeight: "800",
+    letterSpacing: 1,
+    marginTop: spacing.sm,
+  },
+  weekGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: spacing.md,
-    marginBottom: spacing.md,
   },
-  statBox: {
-    backgroundColor: colors.surfaceSecondary,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.lg,
+  weekBox: {
     width: "48%",
+    padding: spacing.md,
+    gap: 4,
   },
-  statBoxValue: {
-    color: colors.brand,
-    fontSize: 28,
+  weekBoxValue: {
+    color: colors.onSurface,
+    fontSize: 22,
     fontWeight: "800",
   },
-  statBoxLabel: {
+  weekBoxLabel: {
     color: colors.onSurfaceTertiary,
     fontSize: 11,
-    marginTop: 4,
-    letterSpacing: 0.4,
+    letterSpacing: 0.3,
+  },
+  weekBoxDelta: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 11,
+    fontWeight: "700",
+    marginTop: 2,
+  },
+  totalsCard: {
+    padding: spacing.lg,
+  },
+  totalRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  totalRowBorder: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.divider,
+  },
+  totalRowLabel: {
+    flex: 1,
+    color: colors.onSurfaceSecondary,
+    fontSize: 13,
+  },
+  totalRowValue: {
+    color: colors.onSurface,
+    fontWeight: "800",
+    fontSize: 14,
   },
   chartCard: {
-    backgroundColor: colors.surfaceSecondary,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
     padding: spacing.lg,
-    marginTop: spacing.sm,
+    gap: spacing.md,
   },
-  chartTitle: {
-    color: colors.onSurface,
-    fontSize: 14,
+  periodRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+  },
+  periodChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: radius.pill,
+  },
+  periodChipText: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 11,
     fontWeight: "700",
-    marginBottom: spacing.lg,
-    letterSpacing: 0.5,
+    letterSpacing: 0.4,
+  },
+  metricRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+  },
+  metricChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: radius.pill,
+    backgroundColor: isGlass ? undefined : colors.surfaceTertiary,
+  },
+  metricChipText: {
+    color: colors.onSurfaceTertiary,
+    fontSize: 11,
+    fontWeight: "600",
   },
   });
 }

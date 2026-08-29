@@ -21,9 +21,12 @@ import ThemedBackground from "@/src/themes/ThemedBackground";
 import { useConfirmDialog } from "@/src/hooks/use-confirm-dialog";
 import {
   deleteSession,
+  getPlans,
   getSession,
+  Plan,
   WorkoutSession,
 } from "@/src/utils/gym-storage";
+import { resolveSessionWodIdentity, SessionWodIdentity } from "@/src/utils/training-overview";
 
 export default function SessionDetailScreen() {
   const { theme } = useTheme();
@@ -31,13 +34,19 @@ export default function SessionDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const [session, setSession] = useState<WorkoutSession | null>(null);
+  const [wodIdentity, setWodIdentity] = useState<SessionWodIdentity | null>(null);
   const shareCardRef = useRef<View>(null);
   const { confirm, ConfirmModal } = useConfirmDialog();
 
   useEffect(() => {
     (async () => {
-      const s = await getSession(id!);
+      const [s, plans] = await Promise.all([getSession(id!), getPlans()]);
       setSession(s);
+      if (s) {
+        const wodPlansById = new Map<string, Plan>();
+        for (const p of plans) if (p.wodSource) wodPlansById.set(p.id, p);
+        setWodIdentity(resolveSessionWodIdentity(s, wodPlansById));
+      }
     })();
   }, [id]);
 
@@ -61,6 +70,7 @@ export default function SessionDetailScreen() {
     (a, ex) => a + ex.sets.filter((s) => s.completed).length,
     0,
   );
+  const displayTitle = wodIdentity ? wodIdentity.title : session.planTitle;
 
   async function shareImage() {
     if (!session || !shareCardRef.current) return;
@@ -75,7 +85,7 @@ export default function SessionDetailScreen() {
       if (canShareFile) {
         await Sharing.shareAsync(uri, {
           mimeType: "image/png",
-          dialogTitle: `IronFlow — ${session.planTitle}`,
+          dialogTitle: `IronFlow — ${displayTitle}`,
         });
       } else {
         await shareText();
@@ -89,7 +99,7 @@ export default function SessionDetailScreen() {
   async function shareText() {
     if (!session) return;
     const lines: string[] = [];
-    lines.push(`🔥 IronFlow — ${session.planTitle}`);
+    lines.push(`🔥 IronFlow — ${displayTitle}`);
     lines.push("");
     lines.push(`⏱️  Durée : ${formatDur(session.durationSeconds)}`);
     lines.push(`💥  Effort : ${activeText}  ·  Pause : ${restText}`);
@@ -122,7 +132,7 @@ export default function SessionDetailScreen() {
     try {
       await Share.share({
         message: lines.join("\n"),
-        title: `IronFlow — ${session.planTitle}`,
+        title: `IronFlow — ${displayTitle}`,
       });
     } catch (e: any) {
       Alert.alert("Partage impossible", e.message ?? "");
@@ -180,9 +190,18 @@ export default function SessionDetailScreen() {
             </View>
             <Text style={styles.heroLabel}>SÉANCE TERMINÉE</Text>
             <Text style={styles.heroTitle} numberOfLines={2}>
-              {session.planTitle}
+              {wodIdentity ? wodIdentity.title : session.planTitle}
             </Text>
             <Text style={styles.heroDate}>{formatDate(session.startedAt)}</Text>
+            {wodIdentity && (
+              <View style={styles.wodBadge}>
+                <Ionicons name="flame" size={12} color="#fff" />
+                <Text style={styles.wodBadgeText}>
+                  {wodIdentity.format.toUpperCase()}
+                  {wodIdentity.roundsCompleted != null ? ` · ${wodIdentity.roundsCompleted} TOURS` : ""}
+                </Text>
+              </View>
+            )}
 
             <View style={styles.heroKpiRow}>
               <View style={styles.heroKpi}>
@@ -406,6 +425,18 @@ function buildStyles(theme: Theme) {
     marginTop: 4,
   },
   heroDate: { color: "#fff", opacity: 0.8, fontSize: 12, textTransform: "capitalize" },
+  wodBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    alignSelf: "flex-start",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: radius.pill,
+    backgroundColor: withAlpha("#FFFFFF", 20),
+    marginTop: 4,
+  },
+  wodBadgeText: { color: "#fff", fontSize: 10, fontWeight: "800", letterSpacing: 0.5 },
   heroKpiRow: {
     flexDirection: "row",
     marginTop: spacing.lg,

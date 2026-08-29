@@ -10,12 +10,6 @@ import AuroraBackground from "@/src/components/backgrounds/AuroraBackground";
 import PressableScale from "@/src/components/ui/PressableScale";
 import Card from "@/src/components/ui/Card";
 import { useConfirmDialog } from "@/src/hooks/use-confirm-dialog";
-import {
-  AppSettings,
-  CalendarViewMode,
-  getAppSettings,
-  saveAppSettings,
-} from "@/src/utils/app-settings";
 import { THEME_LIST, useTheme } from "@/src/themes";
 import { ThemeId } from "@/src/utils/theme-settings";
 import {
@@ -28,40 +22,15 @@ import {
 } from "@/src/utils/wallpaper-storage";
 import { pickAndAddWallpaper } from "@/src/utils/wallpaper-picker";
 
-const CALENDAR_OPTIONS: {
-  key: CalendarViewMode;
-  label: string;
-  icon: any;
-  hint: string;
-}[] = [
-  {
-    key: "week",
-    label: "Semaine",
-    icon: "today",
-    hint: "7 jours en cercles, détail du jour sélectionné en dessous",
-  },
-  {
-    key: "month",
-    label: "Mois",
-    icon: "calendar",
-    hint: "Grille mensuelle complète",
-  },
-];
-
 export default function SettingsScreen() {
   const { theme, themeId, setThemeId, refreshWallpaper } = useTheme();
   const styles = useMemo(() => buildStyles(theme), [theme]);
   const router = useRouter();
   const { confirm, ConfirmModal } = useConfirmDialog();
-  const [settings, setSettings] = useState<AppSettings | null>(null);
   const [wallpapers, setWallpapers] = useState<WallpaperMeta[]>([]);
   const [activeWallpaperId, setActiveWallpaperIdState] = useState<string | null>(null);
   const [thumbUris, setThumbUris] = useState<Record<string, string>>({});
   const [addingWallpaper, setAddingWallpaper] = useState(false);
-
-  useEffect(() => {
-    (async () => setSettings(await getAppSettings()))();
-  }, []);
 
   useEffect(() => {
     (async () => {
@@ -83,11 +52,6 @@ export default function SettingsScreen() {
       setThumbUris(Object.fromEntries(validEntries));
     })();
   }, [wallpapers]);
-
-  const setCalendarView = async (mode: CalendarViewMode) => {
-    setSettings((s) => (s ? { ...s, calendarView: mode } : s));
-    await saveAppSettings({ calendarView: mode });
-  };
 
   const handleAddWallpaper = async () => {
     setAddingWallpaper(true);
@@ -137,46 +101,18 @@ export default function SettingsScreen() {
         <PressableScale testID="settings-back" onPress={() => router.back()} hitSlop={12}>
           <Ionicons name="chevron-back" size={24} color={theme.colors.onSurface} />
         </PressableScale>
-        <Text style={styles.title}>Paramètres</Text>
+        <Text style={styles.title}>Apparence</Text>
         <View style={{ width: 24 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll}>
-        <Text style={styles.sectionLabel}>APPARENCE</Text>
-        <Text style={styles.sectionHint}>Calendrier du Dashboard</Text>
-        {CALENDAR_OPTIONS.map((opt) => {
-          const active = settings?.calendarView === opt.key;
-          return (
-            <PressableScale
-              key={opt.key}
-              testID={`settings-calendar-${opt.key}`}
-              onPress={() => setCalendarView(opt.key)}
-            >
-              <Card style={styles.optionRow} accent={active ? theme.colors.brand : undefined}>
-                <View style={[styles.optionIcon, active && styles.optionIconActive]}>
-                  <Ionicons
-                    name={opt.icon}
-                    size={18}
-                    color={active ? "#fff" : theme.colors.onSurfaceTertiary}
-                  />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.optionLabel}>{opt.label}</Text>
-                  <Text style={styles.optionHint}>{opt.hint}</Text>
-                </View>
-                {active && (
-                  <Ionicons name="checkmark-circle" size={20} color={theme.colors.brand} />
-                )}
-              </Card>
-            </PressableScale>
-          );
-        })}
-
         {/* Thème — Dashboard/`/day-detail`/barre d'onglets uniquement pour
             l'instant (voir `src/themes/`) ; le reste de l'app (dont cet
             écran Réglages lui-même) reste sur l'apparence Classique tant
-            qu'il n'est pas migré. */}
-        <Text style={[styles.sectionLabel, { marginTop: spacing.lg }]}>THÈME</Text>
+            qu'il n'est pas migré. Le fond d'écran personnalisé vit ici aussi
+            (troisième option de thème, à côté de Classique/Sunset) — un seul
+            endroit pour choisir "à quoi ressemble le Dashboard". */}
+        <Text style={styles.sectionLabel}>THÈME</Text>
         <Text style={styles.sectionHint}>Apparence du Dashboard — change immédiatement</Text>
         {THEME_LIST.map((t) => {
           const active = themeId === t.id;
@@ -197,34 +133,82 @@ export default function SettingsScreen() {
           );
         })}
 
-        <Text style={[styles.sectionLabel, { marginTop: spacing.lg }]}>JOURNAL</Text>
-        <Text style={styles.sectionHint}>
-          Anciennement dans Performance — déplacé ici, données et fonctionnalités inchangées
-        </Text>
-        <PressableScale testID="settings-journal" onPress={() => router.push("/journal-history" as any)}>
-          <Card style={styles.optionRow}>
-            <View style={styles.optionIcon}>
-              <Ionicons name="book" size={18} color={theme.colors.onSurfaceTertiary} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.optionLabel}>Journal</Text>
-              <Text style={styles.optionHint}>Note du jour et historique</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={theme.colors.onSurfaceTertiary} />
-          </Card>
+        {/* Fond d'écran personnalisé — troisième option de THÈME, à côté de
+            Classique/Sunset. Commun aux deux thèmes (les deux ont désormais
+            un fond en dégradé, voir `classic.ts`/`sunset.ts`). L'image
+            active est résolue par `ThemeProvider`/`ThemedBackground`, pas
+            ici — ce bloc ne fait que piloter le stockage
+            (`wallpaper-storage.ts`) et déclenche `refreshWallpaper()` pour
+            que le Dashboard reflète le choix immédiatement. */}
+        <Text style={styles.sectionHint}>Ou personnalise avec ta propre image</Text>
+
+        <PressableScale
+          testID="wallpaper-add"
+          style={styles.addWallpaperRow}
+          onPress={handleAddWallpaper}
+          disabled={addingWallpaper}
+        >
+          {addingWallpaper ? (
+            <ActivityIndicator color={theme.colors.brand} />
+          ) : (
+            <Ionicons name="add" size={18} color={theme.colors.brand} />
+          )}
+          <Text style={styles.addWallpaperLabel}>
+            {addingWallpaper ? "Import en cours…" : "Ajouter un fond d'écran"}
+          </Text>
         </PressableScale>
-        <PressableScale testID="settings-reminders" onPress={() => router.push("/reminders-list" as any)}>
-          <Card style={styles.optionRow}>
-            <View style={styles.optionIcon}>
-              <Ionicons name="alarm" size={18} color={theme.colors.onSurfaceTertiary} />
+
+        <View style={styles.wallpaperGrid}>
+          {/* Dégradé par défaut — toujours présent, permet de revenir en
+              arrière sans supprimer les images déjà ajoutées. */}
+          <PressableScale
+            testID="wallpaper-default"
+            style={styles.wallpaperTile}
+            onPress={() => handleSelectWallpaper(null)}
+          >
+            <View style={[styles.wallpaperTileImage, { overflow: "hidden" }]}>
+              <AuroraBackground />
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.optionLabel}>Rappels</Text>
-              <Text style={styles.optionHint}>Séances, hydratation, mesures…</Text>
+            {activeWallpaperId === null && (
+              <View style={styles.wallpaperCheckBadge}>
+                <Ionicons name="checkmark-circle" size={18} color={theme.colors.brand} />
+              </View>
+            )}
+            <Text style={styles.wallpaperTileLabel} numberOfLines={1}>
+              {themeId === "sunset" ? "IronFlow Aurora" : "IronFlow Ember"}
+            </Text>
+          </PressableScale>
+
+          {wallpapers.map((w) => (
+            <View key={w.id} style={styles.wallpaperTile}>
+              <PressableScale
+                testID={`wallpaper-${w.id}`}
+                onPress={() => handleSelectWallpaper(w.id)}
+              >
+                {thumbUris[w.id] ? (
+                  <Image source={{ uri: thumbUris[w.id] }} style={styles.wallpaperTileImage} />
+                ) : (
+                  <View style={[styles.wallpaperTileImage, styles.wallpaperTileLoading]}>
+                    <ActivityIndicator color={theme.colors.onSurfaceTertiary} size="small" />
+                  </View>
+                )}
+                {activeWallpaperId === w.id && (
+                  <View style={styles.wallpaperCheckBadge}>
+                    <Ionicons name="checkmark-circle" size={18} color={theme.colors.brand} />
+                  </View>
+                )}
+              </PressableScale>
+              <PressableScale
+                testID={`wallpaper-${w.id}-delete`}
+                style={styles.wallpaperDeleteBadge}
+                onPress={() => handleRemoveWallpaper(w.id)}
+                hitSlop={6}
+              >
+                <Ionicons name="trash" size={12} color="#fff" />
+              </PressableScale>
             </View>
-            <Ionicons name="chevron-forward" size={18} color={theme.colors.onSurfaceTertiary} />
-          </Card>
-        </PressableScale>
+          ))}
+        </View>
 
         <Text style={[styles.sectionLabel, { marginTop: spacing.lg }]}>SANTÉ</Text>
         <Text style={styles.sectionHint}>Diagnostic temporaire de l'import Health Auto Export</Text>
@@ -255,87 +239,6 @@ export default function SettingsScreen() {
             <Ionicons name="chevron-forward" size={18} color={theme.colors.onSurfaceTertiary} />
           </Card>
         </PressableScale>
-
-        {/* Fond d'écran personnalisé — commun aux deux thèmes (les deux ont
-            désormais un fond en dégradé, voir `classic.ts`/`sunset.ts`).
-            L'image active est résolue par `ThemeProvider`/`ThemedBackground`,
-            pas ici — ce bloc ne fait que piloter le stockage
-            (`wallpaper-storage.ts`) et déclenche `refreshWallpaper()` pour
-            que le Dashboard reflète le choix immédiatement. */}
-        {(
-          <>
-            <Text style={[styles.sectionLabel, { marginTop: spacing.lg }]}>FOND D&apos;ÉCRAN</Text>
-            <Text style={styles.sectionHint}>Personnalise le fond du Dashboard</Text>
-
-            <PressableScale
-              testID="wallpaper-add"
-              style={styles.addWallpaperRow}
-              onPress={handleAddWallpaper}
-              disabled={addingWallpaper}
-            >
-              {addingWallpaper ? (
-                <ActivityIndicator color={theme.colors.brand} />
-              ) : (
-                <Ionicons name="add" size={18} color={theme.colors.brand} />
-              )}
-              <Text style={styles.addWallpaperLabel}>
-                {addingWallpaper ? "Import en cours…" : "Ajouter un fond d'écran"}
-              </Text>
-            </PressableScale>
-
-            <View style={styles.wallpaperGrid}>
-              {/* Dégradé par défaut — toujours présent, permet de revenir en
-                  arrière sans supprimer les images déjà ajoutées. */}
-              <PressableScale
-                testID="wallpaper-default"
-                style={styles.wallpaperTile}
-                onPress={() => handleSelectWallpaper(null)}
-              >
-                <View style={[styles.wallpaperTileImage, { overflow: "hidden" }]}>
-                  <AuroraBackground />
-                </View>
-                {activeWallpaperId === null && (
-                  <View style={styles.wallpaperCheckBadge}>
-                    <Ionicons name="checkmark-circle" size={18} color={theme.colors.brand} />
-                  </View>
-                )}
-                <Text style={styles.wallpaperTileLabel} numberOfLines={1}>
-                  {themeId === "sunset" ? "IronFlow Aurora" : "IronFlow Ember"}
-                </Text>
-              </PressableScale>
-
-              {wallpapers.map((w) => (
-                <View key={w.id} style={styles.wallpaperTile}>
-                  <PressableScale
-                    testID={`wallpaper-${w.id}`}
-                    onPress={() => handleSelectWallpaper(w.id)}
-                  >
-                    {thumbUris[w.id] ? (
-                      <Image source={{ uri: thumbUris[w.id] }} style={styles.wallpaperTileImage} />
-                    ) : (
-                      <View style={[styles.wallpaperTileImage, styles.wallpaperTileLoading]}>
-                        <ActivityIndicator color={theme.colors.onSurfaceTertiary} size="small" />
-                      </View>
-                    )}
-                    {activeWallpaperId === w.id && (
-                      <View style={styles.wallpaperCheckBadge}>
-                        <Ionicons name="checkmark-circle" size={18} color={theme.colors.brand} />
-                      </View>
-                    )}
-                  </PressableScale>
-                  <PressableScale
-                    testID={`wallpaper-${w.id}-delete`}
-                    style={styles.wallpaperDeleteBadge}
-                    onPress={() => handleRemoveWallpaper(w.id)}
-                    hitSlop={6}
-                  >
-                    <Ionicons name="trash" size={12} color="#fff" />
-                  </PressableScale>
-                </View>
-              ))}
-            </View>
-          </>
-        )}
       </ScrollView>
       {ConfirmModal}
       </SafeAreaView>

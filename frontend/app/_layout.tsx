@@ -155,6 +155,60 @@ export default function RootLayout() {
     return () => document.removeEventListener("scroll", handleScroll, true);
   }, []);
 
+  // Web PWA — bug clavier iOS confirmé : Réglages/Santé/Profil → focus un
+  // TextInput ("Taille"...) → le clavier apparaît → l'app se décale (gauche
+  // ET haut) → fermeture du clavier → le décalage RESTE. Cause distincte du
+  // bug scrollLeft/scrollY ci-dessus : sur iOS Safari (y compris PWA
+  // standalone), amener un champ focus au-dessus du clavier peut déplacer le
+  // VISUAL VIEWPORT lui-même (`visualViewport.offsetLeft`/`offsetTop`) —
+  // invisible via `window.scrollX`/`scrollY`, qui restent à 0 pendant tout
+  // ce temps (vérifié : la garde ci-dessus ne peut donc rien détecter ici).
+  // `window.visualViewport` est le seul signal qui expose ce décalage réel,
+  // donc le seul point d'accroche fiable pour le détecter ET le corriger —
+  // jamais un recalage arbitraire : on revient exactement à l'état d'avant
+  // (viewport plein, scroll à l'origine) seulement quand le clavier vient
+  // réellement de se refermer (hauteur visuelle redevenue ≈ celle de la
+  // fenêtre), jamais pendant qu'il est ouvert ou pour une autre raison.
+  useEffect(() => {
+    if (Platform.OS !== "web") return;
+    const vv = window.visualViewport;
+    if (!vv) return;
+
+    let keyboardWasOpen = false;
+
+    const handleViewportChange = () => {
+      // Marge de 120px pour ne jamais confondre "clavier ouvert" avec une
+      // barre d'adresse qui se rétracte/déploie au scroll (variation
+      // typique de quelques dizaines de px, jamais plus).
+      const keyboardOpen = vv.height < window.innerHeight - 120;
+
+      if (keyboardOpen) {
+        // Garde le layout aligné sur la vraie zone visible pendant que le
+        // clavier est ouvert — `100dvh` seul ne suit pas toujours ce
+        // changement en PWA standalone iOS (voir la règle CSS correspondante
+        // dans `scripts/patch-web-build.js`).
+        document.documentElement.style.setProperty("--app-vh", `${vv.height}px`);
+      } else if (keyboardWasOpen) {
+        // Le clavier vient de se fermer : jamais pendant qu'il est ouvert,
+        // jamais pour une autre variation de taille. Retire la variable
+        // (repli sur `100dvh` statique) ET force la remise à zéro du
+        // scroll — iOS ne resynchronise pas toujours le visual viewport
+        // tout seul, remettre le scroll du viewport de mise en page à
+        // l'origine force ce recalage.
+        document.documentElement.style.removeProperty("--app-vh");
+        window.scrollTo(0, 0);
+      }
+      keyboardWasOpen = keyboardOpen;
+    };
+
+    vv.addEventListener("resize", handleViewportChange);
+    vv.addEventListener("scroll", handleViewportChange);
+    return () => {
+      vv.removeEventListener("resize", handleViewportChange);
+      vv.removeEventListener("scroll", handleViewportChange);
+    };
+  }, []);
+
   if (!loaded && !error) return null;
 
   return (
@@ -207,7 +261,6 @@ export default function RootLayout() {
           <Stack.Screen name="health-debug" options={MODAL_SCREEN_OPTIONS} />
           <Stack.Screen name="health-metric/[key]" options={MODAL_SCREEN_OPTIONS} />
           <Stack.Screen name="day-detail" options={MODAL_SCREEN_OPTIONS} />
-          <Stack.Screen name="stats" options={MODAL_SCREEN_OPTIONS} />
           <Stack.Screen name="goals" options={MODAL_SCREEN_OPTIONS} />
           <Stack.Screen name="photo-crop" options={MODAL_SCREEN_OPTIONS} />
           <Stack.Screen name="radio" options={MODAL_SCREEN_OPTIONS} />

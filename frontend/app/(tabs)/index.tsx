@@ -62,7 +62,6 @@ import { motivationMessage } from "@/src/data/motivation";
 import HabitTimerModal from "@/src/components/HabitTimerModal";
 import CalendarView, { DayEventDot } from "@/src/components/CalendarView";
 import WeekCalendarView from "@/src/components/WeekCalendarView";
-import { AppSettings, CalendarViewMode, getAppSettings } from "@/src/utils/app-settings";
 import { ActionChip, ActionsScroll, MinusButton, PresetCard, QuantityModal } from "@/src/components/HabitCard";
 import PressableScale from "@/src/components/ui/PressableScale";
 import RingChip from "@/src/components/ui/RingChip";
@@ -158,7 +157,6 @@ export default function TodayScreen() {
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [calendarMonthOffset, setCalendarMonthOffset] = useState(0);
   const [dayModalDate, setDayModalDate] = useState<string | null>(null);
-  const [appSettings, setAppSettings] = useState<AppSettings | null>(null);
   const [selectedWeekDate, setSelectedWeekDate] = useState(todayYYYYMMDD());
   const [dismissedReminders, setDismissedReminders] = useState<string[]>([]);
   const [mealPresets, setMealPresets] = useState<MealPreset[]>([]);
@@ -212,7 +210,6 @@ export default function TodayScreen() {
     setReminders(await getReminders());
     setDismissedReminders(await getDismissedReminderKeys());
     setMealPresets(await getMealPresets());
-    setAppSettings(await getAppSettings());
 
     // Restore an in-progress habit timer (e.g. the app was backgrounded or
     // reloaded mid-countdown) so it keeps running instead of silently
@@ -312,11 +309,10 @@ export default function TodayScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [today, workoutDoneToday, heroAggregateScore, stats.currentStreakDays, shortSleepToday]);
 
-  // Semaine par défaut (préférence explicite) — la vue mois reste un choix
-  // manuel via les réglages, plus de bascule automatique selon la largeur
-  // d'écran (contredisait la préférence "semaine par défaut" sur tablette/web).
-  const effectiveCalendarView: Exclude<CalendarViewMode, "auto"> =
-    appSettings?.calendarView === "month" ? "month" : "week";
+  // Calendrier hebdomadaire uniquement, en permanence — le choix
+  // semaine/mois a été retiré des réglages (POLISH V2), plus de dépendance
+  // à `appSettings.calendarView` ici.
+  const effectiveCalendarView: "week" = "week";
 
   const dueReminders = useMemo(
     () => computeDueReminders(reminders, calendarEvents, dismissedReminders),

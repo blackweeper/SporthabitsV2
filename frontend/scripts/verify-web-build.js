@@ -38,7 +38,10 @@ const missingFiles = REQUIRED_FILES.filter((f) => !fs.existsSync(path.join(distD
 const REQUIRED_CHECKS = [
   { label: "viewport-fit=cover", test: /viewport-fit=cover/ },
   { label: "fond global html/body", test: /html,\s*body\s*\{\s*background-color:\s*#0E0E0E/ },
-  { label: "min-height: 100dvh sur html/body/#root", test: /html,\s*body,\s*#root\s*\{\s*min-height:\s*100dvh/ },
+  {
+    label: "min-height: var(--app-vh, 100dvh) sur html/body/#root",
+    test: /html,\s*body,\s*#root\s*\{\s*min-height:\s*var\(--app-vh,\s*100dvh\)/,
+  },
   { label: "manifest PWA", test: /rel="manifest"/ },
   { label: "meta apple-mobile-web-app-capable", test: /apple-mobile-web-app-capable/ },
   { label: "enregistrement du service worker", test: /serviceWorker/ },

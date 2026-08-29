@@ -13,7 +13,6 @@ import { spacing } from "@/src/theme";
 import { useTheme } from "@/src/themes";
 import ThemedBackground from "@/src/themes/ThemedBackground";
 import {
-  getGoals,
   getMeasurements,
   getPRs,
   getProfile,
@@ -34,7 +33,6 @@ export default function ProfileTab() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [librarySubtitle, setLibrarySubtitle] = useState("Chargement…");
   const [levelState, setLevelState] = useState<LevelState | null>(null);
-  const [activeGoalsCount, setActiveGoalsCount] = useState(0);
   const [currentStreakDays, setCurrentStreakDays] = useState(0);
   const [bestStreakDays, setBestStreakDays] = useState(0);
   const [unlockedAchievements, setUnlockedAchievements] = useState(0);
@@ -44,13 +42,11 @@ export default function ProfileTab() {
     useCallback(() => {
       (async () => {
         setProfile(await getProfile());
-        const [sessions, prs, goals, measurements] = await Promise.all([
+        const [sessions, prs, measurements] = await Promise.all([
           getSessions(),
           getPRs(),
-          getGoals(),
           getMeasurements(),
         ]);
-        setActiveGoalsCount(goals.filter((g) => !g.achievedAt).length);
         const stats = computeAdvancedStats(sessions);
         setCurrentStreakDays(stats.currentStreakDays);
         setBestStreakDays(stats.bestStreakDays);
@@ -145,80 +141,16 @@ export default function ProfileTab() {
           </View>
         )}
 
-        <PressableScale
-          testID="profile-goals-pill"
-          style={styles.goalsPillSpacing}
-          onPress={() => router.push("/goals")}
-        >
-          <Card style={styles.statPill} padding={spacing.sm}>
-            <View style={[styles.statPillBadge, { backgroundColor: theme.colors.brand }]}>
-              <Ionicons name="flag" size={16} color="#fff" />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.statPillLabel, { color: theme.colors.onSurfaceTertiary }]}>OBJECTIFS</Text>
-              <Text style={[styles.statPillValue, { color: theme.colors.onSurface }]}>
-                {activeGoalsCount > 0
-                  ? `${activeGoalsCount} en cours`
-                  : "Aucun objectif"}
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={theme.colors.onSurfaceTertiary} />
-          </Card>
-        </PressableScale>
-
-        {/* Sections list */}
-        <Text style={[styles.sectionLabel, { color: theme.colors.onSurfaceTertiary }]}>SUIVI CORPOREL</Text>
-        <ListRow
-          icon="resize"
-          iconBg="#4FC3F7"
-          title="Mesures"
-          subtitle="Poids, taille, tour de bras, masse grasse…"
-          onPress={() => router.push("/sante" as any)}
-          testID="row-measurements"
-        />
-        <ListRow
-          icon="camera"
-          iconBg="#AB47BC"
-          title="Photos de progression"
-          subtitle="Comparateur avant/après"
-          onPress={() => router.push("/compare")}
-          testID="row-photos"
-        />
-
-        <Text style={[styles.sectionLabel, { color: theme.colors.onSurfaceTertiary }]}>PROGRESSION</Text>
-        <ListRow
-          icon="flag"
-          iconBg={theme.colors.progressSecondary}
-          title="Objectifs"
-          subtitle="Cibles personnelles"
-          onPress={() => router.push("/goals")}
-          testID="row-goals"
-        />
-        <ListRow
-          icon="stats-chart"
-          iconBg={theme.colors.success}
-          title="Statistiques avancées"
-          subtitle="Volume, streak, calendrier…"
-          onPress={() => router.push("/stats")}
-          testID="row-stats"
-        />
-
-        <Text style={[styles.sectionLabel, { color: theme.colors.onSurfaceTertiary }]}>ACTIVITÉ</Text>
-        <ListRow
-          icon="time"
-          iconBg={theme.colors.brand}
-          title="Historique des séances"
-          subtitle="Toutes tes séances passées"
-          onPress={() => router.push("/history")}
-          testID="row-history"
-        />
-
-        <Text style={[styles.sectionLabel, { color: theme.colors.onSurfaceTertiary }]}>PARAMÈTRES</Text>
+        {/* Sections list — 4 entrées claires plutôt qu'une longue liste
+            plate (POLISH V2). Mesures/Photos (déjà accessibles depuis
+            Santé) et Objectifs (système remplacé par Défis) sont retirés de
+            cette liste — leurs écrans/données restent intacts ailleurs. */}
+        <Text style={[styles.sectionLabel, { color: theme.colors.onSurfaceTertiary }]}>PROFIL & PRÉFÉRENCES</Text>
         <ListRow
           icon="color-palette"
           iconBg="#7E57C2"
           title="Apparence"
-          subtitle="Affichage du calendrier du Dashboard"
+          subtitle="Thème, fond d'écran"
           onPress={() => router.push("/settings" as any)}
           testID="row-settings"
         />
@@ -230,6 +162,18 @@ export default function ProfileTab() {
           onPress={() => router.push("/meal-presets" as any)}
           testID="row-meal-presets"
         />
+
+        <Text style={[styles.sectionLabel, { color: theme.colors.onSurfaceTertiary }]}>ENTRAÎNEMENT</Text>
+        <ListRow
+          icon="stats-chart"
+          iconBg={theme.colors.success}
+          title="Historique & statistiques"
+          subtitle="Séances passées, progression, évolution"
+          onPress={() => router.push("/history")}
+          testID="row-history"
+        />
+
+        <Text style={[styles.sectionLabel, { color: theme.colors.onSurfaceTertiary }]}>SANTÉ</Text>
         <ListRow
           icon="library"
           iconBg="#26A69A"
@@ -245,6 +189,24 @@ export default function ProfileTab() {
           subtitle="Fréquence cardiaque et séances Apple Health"
           onPress={() => router.push("/health-sync-settings" as any)}
           testID="row-health-sync"
+        />
+
+        <Text style={[styles.sectionLabel, { color: theme.colors.onSurfaceTertiary }]}>APPLICATION</Text>
+        <ListRow
+          icon="book"
+          iconBg="#8D6E63"
+          title="Journal"
+          subtitle="Note du jour et historique"
+          onPress={() => router.push("/journal-history" as any)}
+          testID="row-journal"
+        />
+        <ListRow
+          icon="alarm"
+          iconBg="#5C6BC0"
+          title="Rappels"
+          subtitle="Séances, hydratation, mesures…"
+          onPress={() => router.push("/reminders-list" as any)}
+          testID="row-reminders"
         />
 
         <View style={{ height: 40 }} />
@@ -321,31 +283,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 4,
   },
-  cockpitSpacing: { marginBottom: spacing.sm },
-  goalsPillSpacing: { marginBottom: spacing.md },
-  statPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-  },
-  statPillBadge: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  statPillBadgeNum: { color: "#fff", fontWeight: "800", fontSize: 15 },
-  statPillLabel: {
-    fontSize: 9,
-    fontWeight: "800",
-    letterSpacing: 0.6,
-  },
-  statPillValue: {
-    fontSize: 12,
-    fontWeight: "800",
-    marginTop: 1,
-  },
+  cockpitSpacing: { marginBottom: spacing.md },
   sectionLabel: {
     fontSize: 10,
     letterSpacing: 1.5,

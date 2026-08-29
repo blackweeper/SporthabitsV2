@@ -27,13 +27,18 @@ function buildItems(brandColor: string): QuickAddItem[] {
     testID: "qa-session",
   },
   {
-    id: "exercise",
-    title: "Nouvel exercice",
-    subtitle: "Ajouter à ma bibliothèque",
-    icon: "barbell",
-    color: "#FF7043",
-    path: "/library?create=1",
-    testID: "qa-exercise",
+    // La bibliothèque officielle (~300 exercices + Découvrir) couvre
+    // désormais l'essentiel des besoins — "Nouvel exercice" ici dupliquait
+    // le bouton "+" déjà présent dans la Bibliothèque elle-même. Cet
+    // emplacement sert maintenant l'accès le plus demandé qui manquait
+    // partout ailleurs qu'au Dashboard : les Réglages.
+    id: "settings",
+    title: "Réglages",
+    subtitle: "Apparence, entraînement, santé…",
+    icon: "settings",
+    color: "#78909C",
+    path: "/settings",
+    testID: "qa-settings",
   },
   {
     id: "habit",

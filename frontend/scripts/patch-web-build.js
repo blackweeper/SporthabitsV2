@@ -60,8 +60,13 @@ const injected = `
        viewport height) mesure la VRAIE surface visible, Home Indicator
        inclus. Ajouté en "min-height" (jamais en remplacement de "height")
        pour ne jamais RÉDUIRE la hauteur sur les navigateurs qui calculent
-       déjà "100%" correctement — seulement l'agrandir si besoin. */
-    html, body, #root { min-height: 100dvh; }
+       déjà "100%" correctement — seulement l'agrandir si besoin.
+       "var(--app-vh, 100dvh)" — la variable est posée/retirée par
+       app/_layout.tsx au show/hide du clavier (voir son commentaire) ;
+       absente (valeur par défaut, hors clavier), le repli "100dvh" donne un
+       résultat identique à avant — aucun changement de comportement en
+       dehors d'un clavier ouvert. */
+    html, body, #root { min-height: var(--app-vh, 100dvh); }
   </style>
   <script>
     if ('serviceWorker' in navigator) {
