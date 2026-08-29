@@ -5,6 +5,7 @@ Endpoints exposés (montés sous /api par server.py) :
 - POST /health-import              reçoit un payload {"data": {"metrics": [...], "workouts": [...]}}
 - GET  /health-import/metrics       pagination par curseur pour que l'app récupère les métriques importées
 - GET  /health-import/workouts      idem pour les séances
+- GET  /health-import/summary       diagnostic : compte réel des documents persistés (voir HealthDataDebugScreen côté app)
 
 Authentification : un seul token secret partagé (pas de comptes utilisateurs dans IronFlow — l'app
 est mono-utilisateur/local, voir gym-storage.ts côté frontend), vérifié via `Authorization: Bearer
@@ -14,6 +15,7 @@ est mono-utilisateur/local, voir gym-storage.ts côté frontend), vérifié via 
 le champ est déjà là pour ne jamais avoir à remodeler le schéma Mongo si de vrais comptes arrivent.
 """
 
+import logging
 import os
 import secrets
 from datetime import datetime, timezone
@@ -33,6 +35,7 @@ BATCH_SIZE = 500
 
 router = APIRouter(prefix="/health-import", tags=["health-import"])
 _bearer = HTTPBearer(auto_error=False)
+log = logging.getLogger("health_import")
 
 
 # ---------- Auth ----------
@@ -179,6 +182,14 @@ async def import_health_data(
     payload: HealthImportRequest,
     user_id: str = Depends(verify_token),
 ):
+    # Logs volontairement limités à des COMPTEURS et des noms de métriques —
+    # jamais une valeur de santé individuelle (voir §23 : pas de log de
+    # données personnelles/de santé complètes en production).
+    log.info(
+        "[HealthImport] payload received: metrics=%d groups, workouts=%d",
+        len(payload.data.metrics),
+        len(payload.data.workouts),
+    )
     metric_items: List[Dict[str, Any]] = []
     for metric in payload.data.metrics:
         for sample in metric.data:
@@ -210,6 +221,12 @@ async def import_health_data(
             }
         )
 
+    log.info(
+        "[HealthImport] samples parsed: metrics=%d, workouts=%d",
+        len(metric_items),
+        len(workout_items),
+    )
+
     metrics_result = await _upsert_items(
         db.health_metrics, metric_items, ("metric_name", "date"), ("units", "qty", "raw"), user_id
     )
@@ -219,6 +236,12 @@ async def import_health_data(
         ("name", "start"),
         ("end", "duration", "energy_kcal", "raw"),
         user_id,
+    )
+    log.info(
+        "[HealthImport] samples persisted: metrics inserted=%d updated=%d unchanged=%d | "
+        "workouts inserted=%d updated=%d unchanged=%d",
+        metrics_result["inserted"], metrics_result["updated"], metrics_result["unchanged"],
+        workouts_result["inserted"], workouts_result["updated"], workouts_result["unchanged"],
     )
 
     return {
@@ -308,6 +331,28 @@ async def list_workouts(
         limit,
         user_id,
     )
+
+
+@router.get("/summary")
+async def import_summary(user_id: str = Depends(verify_token)):
+    """Diagnostic — compte réel des documents persistés côté serveur, à
+    comparer avec le compte local de l'app (`HealthDataDebugScreen`). C'est
+    la seule façon de distinguer "le backend n'a rien reçu" de "le backend a
+    des données mais le frontend ne les a jamais récupérées" : le compteur
+    "Échantillons stockés" affiché par Health Auto Export ne prouve QUE la
+    tentative d'envoi côté iOS, jamais la persistance côté serveur."""
+    metrics_count = await db.health_metrics.count_documents({"user_id": user_id})
+    workouts_count = await db.health_workouts.count_documents({"user_id": user_id})
+    latest_metric = await db.health_metrics.find_one(
+        {"user_id": user_id}, sort=[("ingested_at", -1)]
+    )
+    return {
+        "metrics_count": metrics_count,
+        "workouts_count": workouts_count,
+        "latest_ingested_at": latest_metric["ingested_at"].isoformat() if latest_metric else None,
+        "latest_metric_name": latest_metric.get("metric_name") if latest_metric else None,
+        "latest_metric_date": latest_metric.get("date") if latest_metric else None,
+    }
 
 
 async def ensure_indexes() -> None:
