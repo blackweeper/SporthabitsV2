@@ -102,8 +102,23 @@ export default function GlassCard({
         },
       ]}
     >
-      {blur && <BlurView intensity={blurIntensity} tint="dark" style={StyleSheet.absoluteFillObject} />}
+      {/* `pointerEvents="none"` sur ces deux calques décoratifs — sans ça,
+          sur web, ces `View`/`BlurView` en `position:absolute` interceptent
+          les clics destinés au contenu réel en dessous (confirmé via
+          `document.elementFromPoint` : un `TextInput` à l'intérieur d'une
+          `GlassCard` ne recevait jamais le focus, le clic atterrissait sur
+          ce calque de teinte à la place — cause racine du bug "popup
+          opaque, impossible de taper" sur la modale calories). */}
+      {blur && (
+        <BlurView
+          intensity={blurIntensity}
+          tint="dark"
+          style={StyleSheet.absoluteFillObject}
+          pointerEvents="none"
+        />
+      )}
       <View
+        pointerEvents="none"
         style={[
           StyleSheet.absoluteFillObject,
           blur

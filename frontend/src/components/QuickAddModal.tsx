@@ -31,13 +31,16 @@ function buildItems(brandColor: string): QuickAddItem[] {
     // désormais l'essentiel des besoins — "Nouvel exercice" ici dupliquait
     // le bouton "+" déjà présent dans la Bibliothèque elle-même. Cet
     // emplacement sert maintenant l'accès le plus demandé qui manquait
-    // partout ailleurs qu'au Dashboard : les Réglages.
+    // partout ailleurs qu'au Dashboard : les Réglages. Pointe vers le hub
+    // Profil (`profile-tab`, sections Apparence/Entraînement/Santé/
+    // Application) — jamais directement vers Apparence, qui n'est qu'une
+    // des sous-pages de ce hub.
     id: "settings",
     title: "Réglages",
     subtitle: "Apparence, entraînement, santé…",
     icon: "settings",
     color: "#78909C",
-    path: "/settings",
+    path: "/profile-tab",
     testID: "qa-settings",
   },
   {

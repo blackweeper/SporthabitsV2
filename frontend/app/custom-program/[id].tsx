@@ -1202,7 +1202,13 @@ export default function CustomProgramEditor() {
         <Modal visible transparent animationType="slide" onRequestClose={() => setDuplicateSourceWeek(null)}>
           <View style={styles.sheetBackdrop}>
             <Pressable style={{ flex: 1 }} onPress={() => setDuplicateSourceWeek(null)} />
-            <GlassCard level="elevated" style={styles.sheet}>
+            {/* `blur={false}` — `Modal animationType="slide"` garde une
+                animation CSS (transform) active en continu sur son
+                conteneur tant que la feuille est ouverte, ce qui casse la
+                composition de `backdrop-filter` sur WebKit (même cause que
+                `Swipeable` — voir `ExerciseLinkModal`, vérifié en direct :
+                sans ce correctif la liste de semaines restait floutée). */}
+            <GlassCard level="elevated" blur={false} style={styles.sheet}>
               <View style={styles.sheetHandle} />
               <Text style={styles.sheetTitle}>Dupliquer la semaine {duplicateSourceWeek + 1}</Text>
               <Text style={styles.sheetHelp}>
@@ -1274,7 +1280,11 @@ function PlanPickerModal({
     >
       <View style={styles.sheetBackdrop}>
         <Pressable style={{ flex: 1 }} onPress={onClose} />
-        <GlassCard level="elevated" style={styles.sheet}>
+        {/* `blur={false}` — voir le commentaire détaillé sur la feuille
+            "Dupliquer la semaine" plus haut dans ce fichier : même cause
+            (transform permanent du `Modal animationType="slide"`), même
+            correctif. */}
+        <GlassCard level="elevated" blur={false} style={styles.sheet}>
           <View style={styles.sheetHandle} />
           <Text style={styles.sheetTitle}>Importer une séance</Text>
           <Text style={styles.sheetHelp}>

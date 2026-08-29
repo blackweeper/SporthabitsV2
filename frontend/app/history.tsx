@@ -15,6 +15,7 @@ import { spacing, withAlpha } from "@/src/theme";
 import { Theme, useTheme } from "@/src/themes";
 import ThemedBackground from "@/src/themes/ThemedBackground";
 import GlassCard from "@/src/components/ui/GlassCard";
+import PressableScale from "@/src/components/ui/PressableScale";
 import SegmentedTabRow from "@/src/components/ui/SegmentedTabRow";
 import {
   CARDIO_ACTIVITY_EMOJI,
@@ -124,7 +125,11 @@ export default function HistoryScreen() {
         edges={["top"]}
       >
       <View style={styles.header}>
+        <PressableScale testID="history-back" onPress={() => router.back()} hitSlop={12}>
+          <Ionicons name="chevron-back" size={24} color={theme.colors.onSurface} />
+        </PressableScale>
         <Text style={styles.title}>Historique & Statistiques</Text>
+        <View style={{ width: 24 }} />
       </View>
 
       <View style={styles.segmentWrap}>
@@ -366,10 +371,13 @@ function buildStyles(theme: Theme) {
   return StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.surface },
   header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
   },
-  title: { color: colors.onSurface, fontSize: 22, fontWeight: "800" },
+  title: { color: colors.onSurface, fontSize: 16, fontWeight: "700" },
   segmentWrap: {
     paddingHorizontal: spacing.lg,
   },

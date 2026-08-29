@@ -63,7 +63,14 @@ import { motivationMessage } from "@/src/data/motivation";
 import HabitTimerModal from "@/src/components/HabitTimerModal";
 import CalendarView, { DayEventDot } from "@/src/components/CalendarView";
 import WeekCalendarView from "@/src/components/WeekCalendarView";
-import { ActionChip, ActionsScroll, MinusButton, PresetCard, QuantityModal } from "@/src/components/HabitCard";
+import {
+  ActionChip,
+  ActionsScroll,
+  MinusButton,
+  PresetListLabel,
+  PresetRow,
+  QuantityModal,
+} from "@/src/components/HabitCard";
 import PressableScale from "@/src/components/ui/PressableScale";
 import RingChip from "@/src/components/ui/RingChip";
 import StatHero from "@/src/components/ui/StatHero";
@@ -97,7 +104,7 @@ import { Theme, useTheme } from "@/src/themes";
 import ThemedBackground from "@/src/themes/ThemedBackground";
 import GlassCard from "@/src/components/ui/GlassCard";
 import StatBadge from "@/src/components/dashboard/StatBadge";
-import ProgramActionCard from "@/src/components/dashboard/ProgramActionCard";
+import TrainingActionCard from "@/src/components/dashboard/TrainingActionCard";
 import { useHealthRecommendation } from "@/src/hooks/useHealthRecommendation";
 
 type ActiveWithProgram = { active: ActiveProgram; program: Program };
@@ -906,7 +913,7 @@ export default function TodayScreen() {
               const todayDay = program.days[di - 1];
               const todaySession = todayDay && !todayDay.rest ? todayDay.sessions[0] : null;
               return (
-                <ProgramActionCard
+                <TrainingActionCard
                   key={program.id}
                   testID={`active-program-${program.id}`}
                   icon={programIconFor(program.coverEmoji)}
@@ -981,25 +988,26 @@ export default function TodayScreen() {
               <ActionChip testID="widget-water-1000" label="+1 L" onPress={() => quickAdd("water_ml", 1000)} />
             </ActionsScroll>
           ) : quantityModal?.which === "calories" ? (
-            <ActionsScroll>
+            <>
+              <PresetListLabel label="RACCOURCIS" />
               {mealPresets.map((m) => (
-                <PresetCard
+                <PresetRow
                   key={m.id}
                   testID={`widget-calories-${m.id}`}
                   emoji={m.emoji}
-                  value={`+${m.kcal}`}
                   label={m.label}
+                  valueLabel={`+${m.kcal} kcal`}
                   onPress={() => quickAdd("calories_kcal", m.kcal)}
                 />
               ))}
-              <ActionChip
+              <PresetRow
                 testID="widget-calories-custom"
                 emoji="✏️"
-                label="Personnalisé"
-                color={solidRingColor(theme.colors.metricColors.caloriesBurn)}
+                label="Montant personnalisé"
+                valueLabel="Saisir"
                 onPress={() => setQuantityModal({ which: "calories", mode: "add" })}
               />
-            </ActionsScroll>
+            </>
           ) : quantityModal?.which === "steps" ? (
             <ActionsScroll>
               <MinusButton testID="widget-steps-minus" onPress={() => quickAdd("steps", -500)} />
@@ -1008,6 +1016,20 @@ export default function TodayScreen() {
               <ActionChip testID="widget-steps-2000" label="+2000" onPress={() => quickAdd("steps", 2000)} />
             </ActionsScroll>
           ) : null
+        }
+        // "Personnaliser" vit dans le header FIXE de la feuille (jamais dans
+        // la liste qui défile) — seule Calories a des raccourcis éditables
+        // (`/meal-presets`), donc ce bouton n'apparaît que pour cette
+        // habitude.
+        headerActionLabel={quantityModal?.which === "calories" ? "Personnaliser" : undefined}
+        headerActionTestID="widget-calories-customize"
+        onHeaderAction={
+          quantityModal?.which === "calories"
+            ? () => {
+                setQuantityModal(null);
+                router.push("/meal-presets" as any);
+              }
+            : undefined
         }
         onClose={() => setQuantityModal(null)}
         onSubmit={submitQuantityModal}

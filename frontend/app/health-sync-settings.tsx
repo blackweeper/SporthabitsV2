@@ -201,6 +201,20 @@ export default function HealthSyncSettingsScreen() {
           </View>
         )}
 
+        <Text style={styles.sectionLabel}>DIAGNOSTIC</Text>
+        <Pressable testID="health-sync-open-debug" onPress={() => router.push("/health-debug" as any)}>
+          <View style={styles.diagnosticRow}>
+            <View style={styles.diagnosticIcon}>
+              <Ionicons name="pulse" size={18} color={theme.colors.onSurfaceTertiary} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.diagnosticLabel}>Diagnostic santé</Text>
+              <Text style={styles.diagnosticHint}>Vérifie que l'import Apple Santé arrive bien jusqu'au Dashboard</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={theme.colors.onSurfaceTertiary} />
+          </View>
+        </Pressable>
+
         <View style={{ height: 40 }} />
       </ScrollView>
       </SafeAreaView>
@@ -289,5 +303,25 @@ function buildStyles(theme: Theme) {
   workoutName: { color: colors.onSurface, fontSize: 12, fontWeight: "600" },
   workoutSub: { color: colors.onSurfaceTertiary, fontSize: 10, marginTop: 2 },
   workoutKcal: { color: colors.onSurfaceSecondary, fontSize: 11, fontWeight: "700" },
+  diagnosticRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    backgroundColor: colors.surfaceSecondary,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md,
+  },
+  diagnosticIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: radius.md,
+    backgroundColor: colors.surfaceTertiary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  diagnosticLabel: { color: colors.onSurface, fontWeight: "800", fontSize: 14 },
+  diagnosticHint: { color: colors.onSurfaceTertiary, fontSize: 11, marginTop: 2 },
   });
 }

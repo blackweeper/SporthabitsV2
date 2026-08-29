@@ -209,36 +209,6 @@ export default function SettingsScreen() {
             </View>
           ))}
         </View>
-
-        <Text style={[styles.sectionLabel, { marginTop: spacing.lg }]}>SANTÉ</Text>
-        <Text style={styles.sectionHint}>Diagnostic temporaire de l'import Health Auto Export</Text>
-        <PressableScale testID="settings-health-debug" onPress={() => router.push("/health-debug" as any)}>
-          <Card style={styles.optionRow}>
-            <View style={styles.optionIcon}>
-              <Ionicons name="pulse" size={18} color={theme.colors.onSurfaceTertiary} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.optionLabel}>Diagnostic santé</Text>
-              <Text style={styles.optionHint}>Vérifie que l'import Apple Santé arrive bien jusqu'au Dashboard</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={theme.colors.onSurfaceTertiary} />
-          </Card>
-        </PressableScale>
-
-        <Text style={[styles.sectionLabel, { marginTop: spacing.lg }]}>RADIO</Text>
-        <Text style={styles.sectionHint}>Choisis les stations affichées dans le menu radio</Text>
-        <PressableScale testID="settings-radio-stations" onPress={() => router.push("/radio-stations-settings" as any)}>
-          <Card style={styles.optionRow}>
-            <View style={styles.optionIcon}>
-              <Ionicons name="radio" size={18} color={theme.colors.onSurfaceTertiary} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.optionLabel}>Stations radio</Text>
-              <Text style={styles.optionHint}>Stations "workout" triées par popularité, sélection libre</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={theme.colors.onSurfaceTertiary} />
-          </Card>
-        </PressableScale>
       </ScrollView>
       {ConfirmModal}
       </SafeAreaView>

@@ -66,6 +66,10 @@ export default function ProgramDayCardFull({
     return (
       <GlassCard
         level="subtle"
+        // `blur={false}` — voir le commentaire détaillé sur la carte
+        // principale ci-dessous : cette carte vit elle aussi toujours dans
+        // le même carrousel à défilement horizontal.
+        blur={false}
         style={[
           styles.card,
           { borderRadius: theme.radius.lg },
@@ -98,6 +102,21 @@ export default function ProgramDayCardFull({
     <GlassCard
       level="card"
       accent={isToday ? color : undefined}
+      // `blur={false}` — cause racine identifiée (pas une suppression
+      // globale du flou) : les deux seuls appelants de ce composant
+      // (`training.tsx` → `DayCardFullRow`, `program/[id].tsx` → vue
+      // Semaine) rendent TOUJOURS cette carte à l'intérieur d'un
+      // `ScrollView horizontal` avec `snapToInterval`/`snapToAlignment` —
+      // exactement la combinaison qui casse la composition de
+      // `backdrop-filter` sur WebKit (bug déjà rencontré et corrigé une
+      // fois pour `SwipeableRow`, cause différente — un ancêtre transformé
+      // en continu — mais même symptôme et même parade : le
+      // `BlurView` ne sait plus échantillonner le vrai fond pendant/après
+      // un scroll à ancrage ("snap"), et rend le contenu de la carte
+      // lui-même flouté/illisible au lieu du fond derrière elle). `level`
+      // garde son accent/sa teinte — seul le vrai flou temps réel saute, au
+      // profit du repli déjà prévu par `GlassCard` (fond teinté opaque).
+      blur={false}
       style={[
         styles.card,
         { borderRadius: theme.radius.lg },

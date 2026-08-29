@@ -8,7 +8,9 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  ScrollView as RNScrollView,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 // ScrollView de react-native-gesture-handler (pas celui de react-native) :
 // le ScrollView natif perdait la négociation de geste face aux
 // PressableScale enfants (chips) sur mobile — le rang ne défilait plus
@@ -38,6 +40,9 @@ export function QuantityModal({
   currentValue,
   color,
   quickActions,
+  headerActionLabel,
+  onHeaderAction,
+  headerActionTestID,
   onClose,
   onSubmit,
 }: {
@@ -46,14 +51,23 @@ export function QuantityModal({
   unit: string;
   currentValue: number;
   color: string;
-  /** Optional preset shortcuts (e.g. +250 ml, meal presets) shown above the
-   * manual input — moved in here from the Dashboard's rings so nothing that
-   * existed inline before is actually lost, just one tap deeper. */
+  /** Optional preset shortcuts (e.g. +250 ml, meal presets) — rendered
+   * inside the single scrollable body zone, ABOVE the manual input, never
+   * in a separate nested scroll view of their own (a vertical list inside a
+   * vertical ScrollView fights for gesture ownership and is exactly what
+   * caused the sheet's internal overlap bugs). */
   quickActions?: React.ReactNode;
+  /** Optional fixed-header action (ex. "Personnaliser" → gérer les
+   * raccourcis) — rendered next to the title, never scrolls away with the
+   * list. */
+  headerActionLabel?: string;
+  onHeaderAction?: () => void;
+  headerActionTestID?: string;
   onClose: () => void;
   onSubmit: (n: number) => void;
 }) {
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
   const isGlass = theme.card.mode === "glass";
   const [draft, setDraft] = useState("");
 
@@ -68,27 +82,67 @@ export function QuantityModal({
     onClose();
   };
 
+  // Bottom Sheet à 3 zones (header fixe / corps scrollable / footer fixe),
+  // même patron que `ExerciseLinkModal` — pas de hauteur fixe fragile :
+  // `KeyboardAvoidingView` remplit tout l'écran (`flex:1`) et pousse son
+  // contenu vers le haut à l'ouverture du clavier (padding/height natifs,
+  // jamais de décalage horizontal ni de zoom) ; la feuille elle-même est
+  // bornée par `maxHeight:"85%"` **relatif à cette même box**, recalculé à
+  // chaque layout — jamais un `Dimensions.get()` figé qui ignorerait la
+  // présence du clavier ou une rotation d'écran. À l'intérieur, seul le
+  // corps (`RNScrollView`, `flex:1`) est scrollable ; le header (poignée +
+  // titre + action) et le footer (Annuler/Ajouter, avec le padding de la
+  // safe-area) sont des frères de taille fixe dans la même colonne flex —
+  // ils ne peuvent donc structurellement jamais se chevaucher ni recouvrir
+  // la liste, quelle que soit la taille de l'écran.
   return (
     <Modal
       transparent
       visible={mode !== null}
-      animationType="fade"
+      animationType="slide"
       onRequestClose={onClose}
     >
-      <View style={styles.modalBackdrop}>
-        <Pressable style={{ flex: 1 }} onPress={onClose} />
-        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}>
-          <GlassCard
-            level="elevated"
-            style={[
-              styles.modalCard,
-              { borderRadius: theme.radius.lg },
-              !isGlass && { backgroundColor: theme.colors.surfaceSecondary, borderColor: theme.colors.border },
-            ]}
-          >
+      <KeyboardAvoidingView
+        style={[styles.modalBackdrop, { backgroundColor: theme.colors.overlay }]}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
+        <GlassCard
+          level="elevated"
+          style={[
+            styles.modalSheet,
+            { borderTopLeftRadius: theme.radius.lg, borderTopRightRadius: theme.radius.lg },
+            !isGlass && { backgroundColor: theme.colors.surfaceSecondary, borderColor: theme.colors.border },
+          ]}
+        >
+          {/* HEADER — fixe, jamais dans le flux qui défile. */}
+          <View style={[styles.modalHandle, { backgroundColor: theme.colors.border }]} />
+          <View style={styles.modalHeaderRow}>
             <Text style={[styles.modalTitle, { color: theme.colors.onSurface }]}>
               {mode === "add" ? `Ajouter ${label.toLowerCase()}` : `Saisir ${label.toLowerCase()}`}
             </Text>
+            {onHeaderAction && headerActionLabel && (
+              <PressableScale
+                testID={headerActionTestID}
+                onPress={onHeaderAction}
+                hitSlop={8}
+                style={styles.customizeBtn}
+              >
+                <Ionicons name="options-outline" size={13} color={theme.colors.brand} />
+                <Text style={[styles.customizeBtnText, { color: theme.colors.brand }]}>{headerActionLabel}</Text>
+              </PressableScale>
+            )}
+          </View>
+
+          {/* CORPS — seule zone scrollable, prend tout l'espace restant
+              entre header et footer (`flex:1`). Raccourcis + champ de
+              saisie personnalisée vivent ensemble ici, jamais séparés. */}
+          <RNScrollView
+            style={styles.modalBody}
+            contentContainerStyle={styles.modalBodyContent}
+            showsVerticalScrollIndicator
+            keyboardShouldPersistTaps="handled"
+          >
             {quickActions}
             <TextInput
               testID="quantity-modal-input"
@@ -108,37 +162,94 @@ export function QuantityModal({
               placeholderTextColor={theme.colors.onSurfaceTertiary}
               autoFocus
             />
-            <View style={styles.modalActions}>
-              <Pressable
-                onPress={onClose}
-                style={[styles.modalBtnGhost, { borderRadius: theme.radius.md, borderColor: theme.colors.border }]}
-              >
-                <Text style={[styles.modalBtnGhostText, { color: theme.colors.onSurfaceSecondary }]}>Annuler</Text>
-              </Pressable>
-              <Pressable
-                onPress={submit}
-                style={[
-                  styles.modalBtn,
-                  { borderRadius: theme.radius.md },
-                  isGlass
-                    ? [
-                        { backgroundColor: withAlpha(color, 20), borderWidth: 1, borderColor: withAlpha(color, 50) },
-                        coloredShadow(color, { offsetY: 0, opacity: 0.3, radius: 10, elevation: 3 }),
-                      ]
-                    : { backgroundColor: color },
-                ]}
-                testID="quantity-modal-save"
-              >
-                <Text style={[styles.modalBtnText, isGlass && { color }]}>
-                  {mode === "add" ? "Ajouter" : "Valider"}
-                </Text>
-              </Pressable>
-            </View>
-          </GlassCard>
-        </KeyboardAvoidingView>
-        <Pressable style={{ flex: 1 }} onPress={onClose} />
-      </View>
+          </RNScrollView>
+
+          {/* FOOTER — fixe, toujours visible, jamais recouvert par la
+              liste ; `insets.bottom` évite que les boutons se retrouvent
+              sous le home indicator / la barre système. */}
+          <View style={[styles.modalActions, { paddingBottom: Math.max(insets.bottom, spacing.sm) }]}>
+            <Pressable
+              onPress={onClose}
+              style={[styles.modalBtnGhost, { borderRadius: theme.radius.md, borderColor: theme.colors.border }]}
+            >
+              <Text style={[styles.modalBtnGhostText, { color: theme.colors.onSurfaceSecondary }]}>Annuler</Text>
+            </Pressable>
+            <Pressable
+              onPress={submit}
+              style={[
+                styles.modalBtn,
+                { borderRadius: theme.radius.md },
+                isGlass
+                  ? [
+                      { backgroundColor: withAlpha(color, 20), borderWidth: 1, borderColor: withAlpha(color, 50) },
+                      coloredShadow(color, { offsetY: 0, opacity: 0.3, radius: 10, elevation: 3 }),
+                    ]
+                  : { backgroundColor: color },
+              ]}
+              testID="quantity-modal-save"
+            >
+              <Text style={[styles.modalBtnText, isGlass && { color }]}>
+                {mode === "add" ? "Ajouter" : "Valider"}
+              </Text>
+            </Pressable>
+          </View>
+        </GlassCard>
+      </KeyboardAvoidingView>
     </Modal>
+  );
+}
+
+/** Petit libellé de section au-dessus de la liste de raccourcis (ex.
+ * "RACCOURCIS") — purement décoratif, l'action "Personnaliser" vit
+ * maintenant dans le header fixe de `QuantityModal` (`headerActionLabel`/
+ * `onHeaderAction`), jamais ici : un lien qui défilait avec la liste sortait
+ * de l'écran en même temps qu'elle, contrairement à un vrai header fixe. */
+export function PresetListLabel({ label }: { label: string }) {
+  const { theme } = useTheme();
+  return <Text style={[styles.presetListHeaderLabel, { color: theme.colors.onSurfaceTertiary }]}>{label}</Text>;
+}
+
+/** Ligne verticale d'un raccourci — nom + valeur toujours visibles (pas de
+ * troncature façon carte), toute la ligne est la cible de tap (ajout rapide
+ * + fermeture). Édition/suppression restent dans `/meal-presets`, ouvert
+ * depuis le bouton "Personnaliser" du header de `QuantityModal`. */
+export function PresetRow({
+  label,
+  valueLabel,
+  emoji,
+  onPress,
+  testID,
+}: {
+  label: string;
+  valueLabel: string;
+  emoji?: string;
+  onPress: () => void;
+  testID?: string;
+}) {
+  const { theme } = useTheme();
+  const isGlass = theme.card.mode === "glass";
+  return (
+    <PressableScale
+      testID={testID}
+      style={[
+        styles.presetRow,
+        {
+          backgroundColor: isGlass ? theme.glass.subtle.tint : theme.colors.surfaceTertiary,
+          borderRadius: theme.radius.md,
+          borderColor: theme.colors.border,
+        },
+      ]}
+      onPress={onPress}
+    >
+      <Text style={styles.presetRowEmoji}>{emoji ?? "🍽️"}</Text>
+      <Text style={[styles.presetRowLabel, { color: theme.colors.onSurface }]} numberOfLines={1}>
+        {label}
+      </Text>
+      <Text style={[styles.presetRowValue, { color: theme.colors.onSurfaceTertiary }]} numberOfLines={1}>
+        {valueLabel}
+      </Text>
+      <Ionicons name="add-circle" size={20} color={theme.colors.brand} />
+    </PressableScale>
   );
 }
 
@@ -196,50 +307,6 @@ export function ActionChip({
   );
 }
 
-/** Visual "carte défilante" preset — richer than `ActionChip`, for choices
- * that benefit from more presence (meal presets: emoji + value stand out at
- * a glance in a horizontal `ActionsScroll`, tap to add-and-close). Numeric
- * increments (water/steps) stay on the plainer `ActionChip` — a short
- * number doesn't need this much visual weight. */
-export function PresetCard({
-  label,
-  value,
-  emoji,
-  onPress,
-  testID,
-}: {
-  label: string;
-  value: string;
-  emoji?: string;
-  onPress: () => void;
-  testID?: string;
-}) {
-  const { theme } = useTheme();
-  const isGlass = theme.card.mode === "glass";
-  return (
-    <PressableScale
-      testID={testID}
-      style={[
-        styles.presetCard,
-        {
-          backgroundColor: isGlass ? theme.glass.subtle.tint : theme.colors.surfaceTertiary,
-          borderRadius: theme.radius.md,
-          borderColor: theme.colors.border,
-        },
-      ]}
-      onPress={onPress}
-    >
-      <Text style={styles.presetCardEmoji}>{emoji ?? "🍽️"}</Text>
-      <Text style={[styles.presetCardValue, { color: theme.colors.onSurface }]} numberOfLines={1}>
-        {value}
-      </Text>
-      <Text style={[styles.presetCardLabel, { color: theme.colors.onSurfaceTertiary }]} numberOfLines={1}>
-        {label}
-      </Text>
-    </PressableScale>
-  );
-}
-
 export function MinusButton({ onPress, testID }: { onPress: () => void; testID?: string }) {
   const { theme } = useTheme();
   const isGlass = theme.card.mode === "glass";
@@ -290,27 +357,48 @@ const styles = StyleSheet.create({
   },
   modalBackdrop: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.55)",
-    justifyContent: "center",
-    padding: spacing.lg,
+    justifyContent: "flex-end",
   },
-  modalCard: {
+  modalSheet: {
+    // Pourcentage relatif à la box `flex:1` du `KeyboardAvoidingView`
+    // parent — recalculé à chaque layout (jamais un `Dimensions.get()`
+    // figé), donc reste correct après une rotation d'écran ou à l'ouverture
+    // du clavier. Header et footer sont des frères de taille fixe dans
+    // cette même colonne ; seul le corps (`modalBody`, `flex:1`) se partage
+    // l'espace restant et défile si besoin — jamais de contenu coupé.
+    maxHeight: "85%",
     padding: spacing.lg,
     gap: spacing.md,
     borderWidth: 1,
     ...shadow.elevated,
   },
-  presetCard: {
-    width: 76,
-    alignItems: "center",
-    gap: 2,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: 6,
-    borderWidth: 1,
+  modalHandle: {
+    width: 48,
+    height: 5,
+    borderRadius: 3,
+    alignSelf: "center",
+    marginBottom: -spacing.xs,
   },
-  presetCardEmoji: { fontSize: 20 },
-  presetCardValue: { fontWeight: "800", fontSize: 13 },
-  presetCardLabel: { fontWeight: "600", fontSize: 10, textAlign: "center" },
+  modalHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: spacing.sm,
+  },
+  modalBody: {
+    // `flex:1` (pas de hauteur fixe) — le corps prend exactement l'espace
+    // restant entre le header et le footer, quelle que soit la taille de
+    // l'écran ou la présence du clavier ; défile en interne dès que son
+    // contenu dépasse cet espace.
+    flex: 1,
+  },
+  modalBodyContent: {
+    gap: 8,
+    // Marge basse — le dernier raccourci (ex. "Fruit") reste entièrement
+    // scrollable au-dessus du footer plutôt que de s'arrêter pile à son
+    // bord.
+    paddingBottom: spacing.sm,
+  },
   modalTitle: {
     fontWeight: "800",
     fontSize: 16,
@@ -344,4 +432,29 @@ const styles = StyleSheet.create({
   modalBtnGhostText: {
     fontWeight: "800",
   },
+  presetListHeaderLabel: {
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 1,
+  },
+  customizeBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  customizeBtnText: {
+    fontSize: 11.5,
+    fontWeight: "800",
+  },
+  presetRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 10,
+    borderWidth: 1,
+  },
+  presetRowEmoji: { fontSize: 18 },
+  presetRowLabel: { flex: 1, fontWeight: "700", fontSize: 13 },
+  presetRowValue: { fontWeight: "700", fontSize: 12.5 },
 });

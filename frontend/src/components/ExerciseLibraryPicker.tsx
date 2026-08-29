@@ -12,6 +12,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { coloredShadow, colors, radius, spacing, withAlpha } from "@/src/theme";
 import { useTheme } from "@/src/themes";
@@ -402,6 +403,7 @@ export function NewExerciseSheet({
   onDelete?: () => void;
 }) {
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
   const [draft, setDraft] = useState<CustomExercise | null>(null);
 
   useEffect(() => {
@@ -423,6 +425,17 @@ export function NewExerciseSheet({
     if (base64) set("imageBase64", base64);
   };
 
+  // Bottom Sheet à 3 zones (header fixe / corps scrollable / footer fixe) —
+  // même correctif que `QuantityModal` (HabitCard.tsx) : cette feuille avait
+  // le même bug de fond (`KeyboardAvoidingView` sans `flex:1`, `maxHeight`
+  // en pourcentage résolu contre un ancêtre à hauteur indéfinie), ce qui la
+  // laissait grandir sans borne fiable — "la popup devient trop grande" +
+  // décalages au clavier. `KeyboardAvoidingView` remplit tout l'écran et
+  // pousse son contenu au-dessus du clavier ; la feuille elle-même est
+  // bornée par `maxHeight:"88%"` **relatif à cette box pleine hauteur**,
+  // recalculé à chaque layout — jamais figé. Seul le corps (champs du
+  // formulaire) défile ; le footer (Enregistrer/Supprimer) reste fixe et
+  // toujours visible, jamais recouvert par le clavier ni par le contenu.
   return (
     <Modal
       visible={!!state}
@@ -430,22 +443,37 @@ export function NewExerciseSheet({
       transparent
       onRequestClose={onClose}
     >
-      <View style={styles.sheetBackdrop}>
-        <Pressable style={{ flex: 1 }} onPress={onClose} />
-        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined}>
-          <GlassCard
-            level="elevated"
-            style={[
-              styles.sheet,
-              { borderRadius: theme.radius.lg },
-              theme.card.mode !== "glass" && { backgroundColor: theme.colors.surfaceSecondary },
-            ]}
+      <KeyboardAvoidingView
+        style={[styles.sheetBackdrop, { backgroundColor: theme.colors.overlay }]}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
+        {/* `blur={false}` — cause racine confirmée (voir `ExerciseLinkModal`) :
+            le `Modal animationType="slide"` de React Native Web garde une
+            animation CSS active (transform en matrice, `animationPlayState:
+            "running"` en continu) sur son conteneur tant que la feuille est
+            ouverte — casse la composition de `backdrop-filter` sur WebKit,
+            même famille de bug que `Swipeable`. Vérifié en direct : sans ce
+            correctif, tout le formulaire (champs, labels) restait flouté et
+            illisible pendant toute l'ouverture de cette feuille. */}
+        <GlassCard
+          level="elevated"
+          blur={false}
+          style={[
+            styles.sheet,
+            { borderRadius: theme.radius.lg },
+            theme.card.mode !== "glass" && { backgroundColor: theme.colors.surfaceSecondary },
+          ]}
+        >
+          <View style={[styles.sheetHandle, { backgroundColor: theme.colors.border }]} />
+          <Text style={[styles.sheetTitle, { color: theme.colors.onSurface }]}>
+            {state.mode === "create" ? "Nouvel exercice" : "Modifier l'exercice"}
+          </Text>
+          <ScrollView
+            style={styles.sheetBody}
+            contentContainerStyle={styles.sheetBodyContent}
+            keyboardShouldPersistTaps="handled"
           >
-          <ScrollView style={{ maxHeight: "100%" }} contentContainerStyle={{ gap: spacing.sm }}>
-            <View style={[styles.sheetHandle, { backgroundColor: theme.colors.border }]} />
-            <Text style={[styles.sheetTitle, { color: theme.colors.onSurface }]}>
-              {state.mode === "create" ? "Nouvel exercice" : "Modifier l'exercice"}
-            </Text>
 
             <Text style={[styles.miniLabel, { color: theme.colors.onSurfaceTertiary }]}>Nom (français)</Text>
             <TextInput
@@ -609,47 +637,45 @@ export function NewExerciseSheet({
                 </Pressable>
               </View>
             )}
-
-            <View style={styles.sheetActions}>
-              {onDelete && (
-                <Pressable
-                  testID="new-ex-delete"
-                  style={[styles.deleteBtn, { borderRadius: theme.radius.md, borderColor: theme.colors.error }]}
-                  onPress={onDelete}
-                >
-                  <Ionicons name="trash" size={16} color={theme.colors.error} />
-                  <Text style={[styles.deleteBtnText, { color: theme.colors.error }]}>Supprimer</Text>
-                </Pressable>
-              )}
-              <Pressable
-                testID="new-ex-save"
-                style={[
-                  styles.saveBtn,
-                  { borderRadius: theme.radius.md, flex: onDelete ? 1 : undefined },
-                  theme.card.mode === "glass"
-                    ? [
-                        { backgroundColor: withAlpha(theme.colors.brand, 18), borderWidth: 1, borderColor: withAlpha(theme.colors.brand, 50) },
-                        coloredShadow(theme.colors.brand, { offsetY: 0, opacity: 0.3, radius: 10, elevation: 3 }),
-                      ]
-                    : { backgroundColor: theme.colors.brand },
-                ]}
-                onPress={() => draft.nameFr.trim() && onSave({ ...draft, nameFr: draft.nameFr.trim() })}
-              >
-                <Text
-                  style={[
-                    styles.saveBtnText,
-                    theme.card.mode === "glass" && { color: theme.colors.brand },
-                  ]}
-                >
-                  ENREGISTRER
-                </Text>
-              </Pressable>
-            </View>
-            <View style={{ height: 24 }} />
           </ScrollView>
-          </GlassCard>
-        </KeyboardAvoidingView>
-      </View>
+
+          <View style={[styles.sheetActions, { paddingBottom: Math.max(insets.bottom, spacing.sm) }]}>
+            {onDelete && (
+              <Pressable
+                testID="new-ex-delete"
+                style={[styles.deleteBtn, { borderRadius: theme.radius.md, borderColor: theme.colors.error }]}
+                onPress={onDelete}
+              >
+                <Ionicons name="trash" size={16} color={theme.colors.error} />
+                <Text style={[styles.deleteBtnText, { color: theme.colors.error }]}>Supprimer</Text>
+              </Pressable>
+            )}
+            <Pressable
+              testID="new-ex-save"
+              style={[
+                styles.saveBtn,
+                { borderRadius: theme.radius.md, flex: onDelete ? 1 : undefined },
+                theme.card.mode === "glass"
+                  ? [
+                      { backgroundColor: withAlpha(theme.colors.brand, 18), borderWidth: 1, borderColor: withAlpha(theme.colors.brand, 50) },
+                      coloredShadow(theme.colors.brand, { offsetY: 0, opacity: 0.3, radius: 10, elevation: 3 }),
+                    ]
+                  : { backgroundColor: theme.colors.brand },
+              ]}
+              onPress={() => draft.nameFr.trim() && onSave({ ...draft, nameFr: draft.nameFr.trim() })}
+            >
+              <Text
+                style={[
+                  styles.saveBtnText,
+                  theme.card.mode === "glass" && { color: theme.colors.brand },
+                ]}
+              >
+                ENREGISTRER
+              </Text>
+            </Pressable>
+          </View>
+        </GlassCard>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -799,15 +825,26 @@ const styles = StyleSheet.create({
   },
   sheetBackdrop: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.65)",
     justifyContent: "flex-end",
   },
   sheet: {
     backgroundColor: colors.surfaceSecondary,
     padding: spacing.lg,
+    gap: spacing.sm,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
+    // Pourcentage relatif à la box `flex:1` du `KeyboardAvoidingView`
+    // parent — recalculé à chaque layout (jamais un `Dimensions.get()`
+    // figé). Seul `sheetBody` (`flex:1`) se partage l'espace restant entre
+    // le header et le footer, tous deux de taille fixe.
     maxHeight: "88%",
+  },
+  sheetBody: {
+    flex: 1,
+  },
+  sheetBodyContent: {
+    gap: spacing.sm,
+    paddingBottom: spacing.sm,
   },
   sheetHandle: {
     width: 48,

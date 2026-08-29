@@ -64,8 +64,19 @@ export default function ExerciseLinkModal({
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+        {/* `blur={false}` — cause racine confirmée : le `Modal
+            animationType="slide"` de React Native Web garde une animation
+            CSS active (transform en matrice identité, mais bien présente et
+            `animationPlayState:"running"` en continu) sur son conteneur
+            pendant toute la durée d'ouverture de la feuille — exactement la
+            même famille de bug que `Swipeable` (un ancêtre transformé en
+            continu casse la composition de `backdrop-filter` sur WebKit),
+            juste une source différente. Confirmé en inspectant le DOM en
+            direct : le vrai flou en temps réel rendait le contenu de cette
+            feuille illisible tant que la modale restait ouverte. */}
         <GlassCard
           level="elevated"
+          blur={false}
           style={[
             styles.modalSheet,
             { borderTopLeftRadius: theme.radius.lg, borderTopRightRadius: theme.radius.lg },

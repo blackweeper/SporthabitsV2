@@ -110,10 +110,16 @@ export default function ExercisePicturePicker({
       transparent
       onRequestClose={onClose}
     >
-      <View style={styles.backdrop}>
+      <View style={[styles.backdrop, { backgroundColor: theme.colors.overlay }]}>
         <Pressable style={{ flex: 1 }} onPress={onClose} />
+        {/* `blur={false}` — `Modal animationType="slide"` garde une
+            animation CSS (transform) active en continu sur son conteneur
+            tant que la feuille est ouverte, ce qui casse la composition de
+            `backdrop-filter` sur WebKit (même cause que `Swipeable`, voir
+            `ExerciseLinkModal` — vérifié en direct). */}
         <GlassCard
           level="elevated"
+          blur={false}
           style={[
             styles.sheet,
             !isGlass && { backgroundColor: theme.colors.surfaceSecondary },

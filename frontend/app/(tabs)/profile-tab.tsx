@@ -154,14 +154,6 @@ export default function ProfileTab() {
           onPress={() => router.push("/settings" as any)}
           testID="row-settings"
         />
-        <ListRow
-          icon="fast-food"
-          iconBg="#F97316"
-          title="Raccourcis repas"
-          subtitle="Personnalise les raccourcis de la carte Calories"
-          onPress={() => router.push("/meal-presets" as any)}
-          testID="row-meal-presets"
-        />
 
         <Text style={[styles.sectionLabel, { color: theme.colors.onSurfaceTertiary }]}>ENTRAÎNEMENT</Text>
         <ListRow

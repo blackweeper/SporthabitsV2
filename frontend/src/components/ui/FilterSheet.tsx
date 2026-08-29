@@ -28,10 +28,16 @@ export default function FilterSheet({
   const insets = useSafeAreaInsets();
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-      <View style={styles.backdrop}>
+      <View style={[styles.backdrop, { backgroundColor: theme.colors.overlay }]}>
         <Pressable style={{ flex: 1 }} onPress={onClose} />
+        {/* `blur={false}` — le `Modal animationType="slide"` garde une
+            animation CSS active (transform) sur son conteneur tant que la
+            feuille est ouverte, ce qui casse la composition de
+            `backdrop-filter` sur WebKit (même cause que `Swipeable`, voir
+            `ExerciseLinkModal`/`NewExerciseSheet` — vérifié en direct). */}
         <GlassCard
           level="elevated"
+          blur={false}
           style={[styles.sheet, theme.card.mode !== "glass" && { backgroundColor: theme.colors.surfaceSecondary }]}
         >
           <View style={[styles.handle, { backgroundColor: theme.colors.border }]} />

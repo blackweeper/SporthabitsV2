@@ -24,9 +24,15 @@ import GlassCard from "@/src/components/ui/GlassCard";
 export default function ProgramBrowseList({
   category,
   router,
+  activeProgramIds,
 }: {
   category?: "cardio" | "stretch";
   router: any;
+  /** Programmes de cette catégorie actuellement suivis — affiche juste un
+   * badge "EN COURS" sur la bonne carte (jamais de hero/résumé embarqué ici :
+   * ouvrir Entraînements ne doit jamais atterrir directement dans le
+   * programme suivi, l'utilisateur choisit toujours d'ouvrir la carte). */
+  activeProgramIds?: Set<string>;
 }) {
   const { theme } = useTheme();
   const isGlass = theme.card.mode === "glass";
@@ -154,6 +160,7 @@ export default function ProgramBrowseList({
               key={p.id}
               program={p}
               recommended={topScore > 0 && scoreProgramForProfile(p, profile) === topScore}
+              active={activeProgramIds?.has(p.id)}
               onPress={() => router.push(`/program/${p.id}`)}
               onDelete={async () => {
                 await deleteCustomProgram(p.id);
@@ -200,11 +207,16 @@ function ProgramCard({
   onPress,
   onDelete,
   recommended = false,
+  active = false,
 }: {
   program: Program;
   onPress: () => void;
   onDelete?: () => void | Promise<void>;
   recommended?: boolean;
+  /** Ce programme est actuellement suivi (`getActivePrograms()`) — simple
+   * badge passif, jamais un raccourci qui ouvrirait autre chose que la
+   * fiche détail comme les autres cartes. */
+  active?: boolean;
 }) {
   const { theme } = useTheme();
   const isGlass = theme.card.mode === "glass";
@@ -241,6 +253,12 @@ function ProgramCard({
       )}
       <View style={{ flex: 1, gap: 4 }}>
         <View style={styles.tagRow}>
+          {active && (
+            <View style={[styles.recommendedTag, { borderRadius: theme.radius.sm, backgroundColor: theme.colors.success }]}>
+              <Ionicons name="play" size={9} color="#fff" />
+              <Text style={styles.tagText}>EN COURS</Text>
+            </View>
+          )}
           {recommended && (
             <View style={[styles.recommendedTag, { borderRadius: theme.radius.sm, backgroundColor: theme.colors.progress }]}>
               <Ionicons name="sparkles" size={9} color="#fff" />

@@ -10,7 +10,7 @@ import Animated, { FadeInDown } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { coloredShadow, motion, shadow, spacing, withAlpha } from "@/src/theme";
+import { coloredShadow, motion, spacing, withAlpha } from "@/src/theme";
 import { useTheme } from "@/src/themes";
 import { Theme } from "@/src/themes/types";
 import ThemedBackground from "@/src/themes/ThemedBackground";
@@ -37,13 +37,11 @@ function activeChipColor(theme: Theme, active: boolean, inactiveColor: string, a
 }
 import PressableScale from "@/src/components/ui/PressableScale";
 import CTAButton from "@/src/components/ui/CTAButton";
-import Card from "@/src/components/ui/Card";
 import ExerciseThumbnail from "@/src/components/ExerciseThumbnail";
 import SwipeableRow from "@/src/components/SwipeableRow";
 import { programIconFor } from "@/src/utils/program-goal-icon";
 import {
   ActiveProgram,
-  currentDayIndex,
   deletePlan,
   deleteSession,
   getActivePrograms,
@@ -52,25 +50,13 @@ import {
   Plan,
   WorkoutSession,
 } from "@/src/utils/gym-storage";
-import { launchProgramDay } from "@/src/utils/program-launch";
 import { pickRandomWod } from "@/src/utils/wod-random";
 import { findProgram } from "@/src/utils/programs";
-import { Program, ProgramDay, ProgramSession } from "@/src/data/programs";
+import { Program } from "@/src/data/programs";
 import { MUSCLE_GROUPS } from "@/src/utils/muscle-groups";
 import { ExerciseRecord, getExerciseRecords } from "@/src/utils/exercise-records";
-import { plannedDateForDayIndex } from "@/src/utils/session-estimate";
 import SegmentedTabRow from "@/src/components/ui/SegmentedTabRow";
 import FilterSheet, { FilterCountBadge } from "@/src/components/ui/FilterSheet";
-import ProgramWeekTabs from "@/src/components/ProgramWeekTabs";
-import ProgramDayCardFull, {
-  PROGRAM_DAY_CARD_FULL_GAP,
-  PROGRAM_DAY_CARD_FULL_WIDTH,
-} from "@/src/components/ProgramDayCardFull";
-import {
-  nonRestDaysInRange,
-  weekDayRange,
-  weekIndexForDay,
-} from "@/src/utils/program-week-grouping";
 import { getPlanTypeColors } from "@/src/utils/plan-type-colors";
 import ProgramBrowseList from "@/src/components/ProgramBrowseList";
 
@@ -152,23 +138,6 @@ export default function TrainingHub() {
         ? "Prêt·e pour ta prochaine séance ?"
         : "Choisis un programme pour commencer";
 
-  // Une carte-jour du hub lance toujours directement, quel que soit le jour
-  // — un programme n'est qu'un modèle, rien n'empêche de lancer la séance
-  // d'un autre jour à la demande (`findOrCreateProgramPlan` est déjà
-  // agnostique du jour). Corrige aussi le bug de l'ancien `DayColumnsRow`
-  // où chaque colonne menait systématiquement à la même page programme,
-  // quel que soit le jour tapé.
-  // Extrait dans `program-launch.ts` pour que le Dashboard réutilise
-  // exactement le même mécanisme de lancement, pas une réimplémentation.
-  const handlePressDay = (
-    program: Program,
-    active: ActiveProgram,
-    dayIndex: number,
-    day: ProgramDay,
-    sessionIndex: number,
-    session: ProgramSession,
-  ) => launchProgramDay(program, active, dayIndex, day, sessionIndex, session, router);
-
   return (
     <View style={{ flex: 1 }}>
       <ThemedBackground />
@@ -223,36 +192,9 @@ export default function TrainingHub() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll}>
-        {tab === "program" && (
-          <ProgramView
-            actives={workoutActives}
-            router={router}
-            records={exerciseRecords}
-            plans={plans}
-            sessions={sessions}
-            onPressDay={handlePressDay}
-          />
-        )}
-        {tab === "cardio" && (
-          <CardioView
-            actives={cardioActives}
-            router={router}
-            records={exerciseRecords}
-            plans={plans}
-            sessions={sessions}
-            onPressDay={handlePressDay}
-          />
-        )}
-        {tab === "mobility" && (
-          <MobilityView
-            actives={stretchActives}
-            router={router}
-            records={exerciseRecords}
-            plans={plans}
-            sessions={sessions}
-            onPressDay={handlePressDay}
-          />
-        )}
+        {tab === "program" && <ProgramView actives={workoutActives} router={router} />}
+        {tab === "cardio" && <CardioView actives={cardioActives} router={router} />}
+        {tab === "mobility" && <MobilityView actives={stretchActives} router={router} />}
         {tab === "sessions" && (
           <SessionsView
             sessions={sessions}
@@ -279,454 +221,27 @@ export default function TrainingHub() {
   );
 }
 
-/** Carte héroïque pour le programme actif — le vrai point focal de chaque
- * onglet, teintée de la couleur du programme, avec relief (`shadow.elevated`,
- * seule carte de l'écran à en avoir — c'est la carte "hero" que `theme.ts`
- * réserve à ce traitement). Affiche en plus une bande "Cette semaine" des
- * prochains jours réels du programme (voir `UpcomingDaysStrip`). */
-function ProgramHeroCard({
-  testID,
-  program,
-  active,
-  records,
-  today,
-  done,
-  total,
-  onPress,
-  onPressDay,
-  index = 0,
-  programSessions = [],
-  router,
-}: {
-  testID: string;
-  program: Program;
-  active?: ActiveProgram;
-  records: ExerciseRecord[];
-  today: number;
-  done?: number;
-  total?: number;
-  onPress: () => void;
-  onPressDay: PressDayHandler;
-  index?: number;
-  programSessions?: WorkoutSession[];
-  router?: any;
-}) {
-  const { theme } = useTheme();
-  const hasProgress = total !== undefined && total > 0;
-  const pct = hasProgress ? (done ?? 0) / total! : 0;
-  return (
-    <EnterItem index={index}>
-      <PressableScale
-        testID={testID}
-        style={[
-          styles.heroProgCard,
-          {
-            borderRadius: theme.radius.lg,
-            backgroundColor: withAlpha(program.color, 10),
-            borderColor: withAlpha(program.color, 33),
-          },
-        ]}
-        onPress={onPress}
-      >
-        <View style={styles.heroProgHead}>
-          {program.coverPhotoBase64 ? (
-            <Image
-              source={{ uri: `data:image/jpeg;base64,${program.coverPhotoBase64}` }}
-              style={[styles.heroProgEmoji, { borderRadius: theme.radius.md }]}
-            />
-          ) : (
-            <View
-              style={[
-                styles.heroProgEmoji,
-                { borderRadius: theme.radius.md, backgroundColor: withAlpha(program.color, 19) },
-              ]}
-            >
-              <Ionicons name={programIconFor(program.coverEmoji)} size={30} color={program.color} />
-            </View>
-          )}
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.heroProgTitle, { color: theme.colors.onSurface }]} numberOfLines={1}>
-              {program.title}
-            </Text>
-            <Text style={[styles.heroProgMeta, { color: theme.colors.onSurfaceSecondary }]}>
-              Jour {today}/{program.durationDays}
-              {hasProgress ? ` · ${done}/${total} séances` : ""}
-            </Text>
-          </View>
-          <Ionicons name="chevron-forward" size={20} color={theme.colors.onSurfaceTertiary} />
-        </View>
-        {hasProgress && (
-          <View style={styles.heroProgBarRow}>
-            <View style={[styles.heroProgBar, { backgroundColor: theme.colors.surfaceTertiary }]}>
-              <View
-                style={[
-                  styles.heroProgFill,
-                  { width: `${pct * 100}%`, backgroundColor: program.color },
-                ]}
-              />
-            </View>
-            <Text style={[styles.heroProgPct, { color: program.color }]}>
-              {Math.round(pct * 100)}%
-            </Text>
-          </View>
-        )}
-      </PressableScale>
-      {active && (
-        <ProgramSubTabs
-          program={program}
-          active={active}
-          records={records}
-          programSessions={programSessions}
-          onPressDay={(dayIndex, day, sessionIndex, session) =>
-            onPressDay(program, active, dayIndex, day, sessionIndex, session)
-          }
-          router={router}
-        />
-      )}
-    </EnterItem>
-  );
-}
-
-/** 3 sous-onglets sous la carte héros d'un programme actif : Cette
- * semaine (vrais prochains jours non-repos, esprit de la référence
- * visuelle fournie) / Semaines à venir (même présentation, paginée plus
- * loin dans le programme) / Historique (séances déjà faites pour CE
- * programme). `Program` n'a ni jour de semaine ni cadence hebdomadaire
- * fixe, donc jamais de libellé Lundi/Mercredi inventé — toujours de
- * vraies dates calculées. */
-function ProgramSubTabs({
-  program,
-  active,
-  records,
-  programSessions,
-  onPressDay,
-  router,
-}: {
-  program: Program;
-  active: ActiveProgram;
-  records: ExerciseRecord[];
-  programSessions: WorkoutSession[];
-  onPressDay: DayPressHandler;
-  router: any;
-}) {
-  const [subTab, setSubTab] = useState<"week" | "ahead" | "history">("week");
-  return (
-    <View style={styles.weekWrap}>
-      <SegmentedTabRow
-        testIDPrefix={`program-subtabs-${program.id}`}
-        options={[
-          { key: "week", label: "Cette semaine" },
-          { key: "ahead", label: "Semaines à venir" },
-          { key: "history", label: "Historique" },
-        ]}
-        value={subTab}
-        onChange={setSubTab}
-      />
-      <View style={{ marginTop: spacing.sm }}>
-        {subTab === "week" && (
-          <ThisWeekPanel program={program} active={active} records={records} onPressDay={onPressDay} router={router} />
-        )}
-        {subTab === "ahead" && (
-          <WeeksAheadPanel program={program} active={active} records={records} onPressDay={onPressDay} router={router} />
-        )}
-        {subTab === "history" && (
-          <ProgramHistoryPanel sessions={programSessions} records={records} router={router} />
-        )}
-      </View>
-    </View>
-  );
-}
-
-/** Rangée horizontale de cartes-jour pleines (mêmes composants que la vue
- * Semaine de program/[id].tsx) — "même visualisation partout où c'est
- * possible" dans les menus d'entraînements. */
-function DayCardFullRow({
-  columns,
-  program,
-  active,
-  records,
-  todayIndex,
-  onPressDay,
-  router,
-}: {
-  columns: { dayIndex: number; day: ProgramDay }[];
-  program: Program;
-  active: ActiveProgram;
-  records: ExerciseRecord[];
-  todayIndex: number;
-  onPressDay: DayPressHandler;
-  router: any;
-}) {
-  const { theme } = useTheme();
-  if (columns.length === 0) {
-    return <Text style={[styles.weekEmptyHint, { color: theme.colors.onSurfaceTertiary }]}>Aucun jour prévu.</Text>;
-  }
-  return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      snapToInterval={PROGRAM_DAY_CARD_FULL_WIDTH + PROGRAM_DAY_CARD_FULL_GAP}
-      snapToAlignment="start"
-      decelerationRate="fast"
-      contentContainerStyle={{ gap: PROGRAM_DAY_CARD_FULL_GAP, paddingRight: spacing.lg }}
-    >
-      {columns.map(({ dayIndex, day }) => {
-        const isToday = dayIndex === todayIndex;
-        const doneSessionIndices = new Set(
-          day.sessions
-            .map((_, si) => si)
-            .filter((si) =>
-              active.completedSessions.some((s) => s.dayIndex === dayIndex && s.sessionIndex === si),
-            ),
-        );
-        const done = day.sessions.length > 0 && day.sessions.every((_, si) => doneSessionIndices.has(si));
-        return (
-          <ProgramDayCardFull
-            key={dayIndex}
-            dayIndex={dayIndex}
-            day={day}
-            color={program.color}
-            records={records}
-            plannedDate={plannedDateForDayIndex(active.startedAt, dayIndex)}
-            isToday={isToday}
-            done={done}
-            doneSessionIndices={doneSessionIndices}
-            onLaunch={(si, s) => onPressDay(dayIndex, day, si, s)}
-            onPressExercise={(name) => router.push(`/exercise-detail/${encodeURIComponent(name)}`)}
-          />
-        );
-      })}
-    </ScrollView>
-  );
-}
-
-function ThisWeekPanel({
-  program,
-  active,
-  records,
-  onPressDay,
-  router,
-}: {
-  program: Program;
-  active: ActiveProgram;
-  records: ExerciseRecord[];
-  onPressDay: DayPressHandler;
-  router: any;
-}) {
-  const today = currentDayIndex(active, program.durationDays);
-  const columns = nonRestDaysInRange(program, today, today + 13).slice(0, 4);
-  return (
-    <DayCardFullRow
-      columns={columns}
-      program={program}
-      active={active}
-      records={records}
-      todayIndex={today}
-      onPressDay={onPressDay}
-      router={router}
-    />
-  );
-}
-
-/** Semaines suivant celle d'"aujourd'hui" (déjà couverte par l'onglet
- * "Cette semaine"), accès direct par onglet plutôt que chevrons — cohérent
- * avec la vue Semaine de program/[id].tsx. */
-function WeeksAheadPanel({
-  program,
-  active,
-  records,
-  onPressDay,
-  router,
-}: {
-  program: Program;
-  active: ActiveProgram;
-  records: ExerciseRecord[];
-  onPressDay: DayPressHandler;
-  router: any;
-}) {
-  const today = currentDayIndex(active, program.durationDays);
-  const currentWeekIdx = weekIndexForDay(today);
-  const totalWeeks = Math.ceil(program.durationDays / 7);
-  const aheadWeeks = Array.from(
-    { length: Math.max(0, totalWeeks - currentWeekIdx - 1) },
-    (_, i) => currentWeekIdx + 1 + i,
-  );
-  const { theme } = useTheme();
-  const [weekIdx, setWeekIdx] = useState(aheadWeeks[0] ?? currentWeekIdx + 1);
-
-  if (aheadWeeks.length === 0) {
-    return (
-      <Text style={[styles.weekEmptyHint, { color: theme.colors.onSurfaceTertiary }]}>
-        Aucune semaine supplémentaire — c&apos;est la dernière.
-      </Text>
-    );
-  }
-
-  const { start, end } = weekDayRange(weekIdx);
-  const columns = nonRestDaysInRange(program, start, end);
-
-  return (
-    <View style={{ gap: spacing.sm }}>
-      <ProgramWeekTabs
-        weeks={aheadWeeks}
-        activeWeek={weekIdx}
-        onSelectWeek={setWeekIdx}
-        color={program.color}
-      />
-      <DayCardFullRow
-        columns={columns}
-        program={program}
-        active={active}
-        records={records}
-        todayIndex={today}
-        onPressDay={onPressDay}
-        router={router}
-      />
-    </View>
-  );
-}
-
-function ProgramHistoryPanel({
-  sessions,
-  records,
-  router,
-}: {
-  sessions: WorkoutSession[];
-  records: ExerciseRecord[];
-  router: any;
-}) {
-  const { theme } = useTheme();
-  if (sessions.length === 0) {
-    return (
-      <Text style={[styles.weekEmptyHint, { color: theme.colors.onSurfaceTertiary }]}>
-        Aucune séance de ce programme terminée pour l&apos;instant.
-      </Text>
-    );
-  }
-  return (
-    <View style={{ gap: spacing.sm }}>
-      {sessions.slice(0, 5).map((s) => (
-        <PressableScale
-          key={s.id}
-          testID={`program-history-${s.id}`}
-          onPress={() => router.push(`/session/${s.id}`)}
-        >
-          <Card padding={spacing.sm}>
-            <View style={styles.historyRowInner}>
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.historyRowTitle, { color: theme.colors.onSurface }]} numberOfLines={1}>
-                  {s.planTitle}
-                </Text>
-                <Text style={[styles.historyRowDate, { color: theme.colors.onSurfaceTertiary }]}>
-                  {formatDate(s.startedAt)}
-                </Text>
-              </View>
-              {s.exercises.length > 0 && (
-                <View style={styles.sessionThumbRow}>
-                  {s.exercises.slice(0, 3).map((ex, i) => (
-                    <ExerciseThumbnail
-                      key={i}
-                      name={ex.name}
-                      records={records}
-                      exerciseRecordId={ex.libraryExerciseId}
-                      size={24}
-                      square
-                    />
-                  ))}
-                </View>
-              )}
-            </View>
-          </Card>
-        </PressableScale>
-      ))}
-    </View>
-  );
-}
-
-function getSessionsForProgram(
-  program: Program,
-  plans: Plan[],
-  sessions: WorkoutSession[],
-): WorkoutSession[] {
-  const planIds = new Set(
-    plans.filter((p) => p.programSource?.programId === program.id).map((p) => p.id),
-  );
-  return sessions
-    .filter((s) => planIds.has(s.planId))
-    .sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime());
-}
-
-type PressDayHandler = (
-  program: Program,
-  active: ActiveProgram,
-  dayIndex: number,
-  day: ProgramDay,
-  sessionIndex: number,
-  session: ProgramSession,
-) => void;
-type DayPressHandler = (
-  dayIndex: number,
-  day: ProgramDay,
-  sessionIndex: number,
-  session: ProgramSession,
-) => void;
-
+/** Toujours la liste neutre "parcourir/créer/importer" — jamais le hero
+ * d'un programme actif embarqué directement dans le hub. Retour explicite :
+ * ouvrir l'onglet Entraînements ne doit jamais "atterrir" dans le programme
+ * suivi, même s'il y en a un — l'utilisateur doit toujours choisir
+ * lui-même de l'ouvrir (`/program/[id]`, qui a déjà sa propre carte héros +
+ * barre de progression + vue Semaine/Vue complète — rien n'est perdu, ce
+ * contenu vit maintenant à un seul endroit au lieu d'être dupliqué ici).
+ * `activeProgramIds` alimente seulement un badge "EN COURS" sur la bonne
+ * carte de la liste — jamais de redirection automatique. */
 function ProgramView({
   actives,
   router,
-  records,
-  plans,
-  sessions,
-  onPressDay,
 }: {
   actives: { active: ActiveProgram; program: Program }[];
   router: any;
-  records: ExerciseRecord[];
-  plans: Plan[];
-  sessions: WorkoutSession[];
-  onPressDay: PressDayHandler;
 }) {
-  const { theme } = useTheme();
-  if (actives.length === 0) {
-    return <ProgramBrowseList router={router} />;
-  }
   return (
-    <>
-      {actives.map(({ active, program }, i) => {
-        const today = currentDayIndex(active, program.durationDays);
-        const done = active.completedSessions.length;
-        const total = program.days.reduce(
-          (a, d) => a + (d.rest ? 0 : d.sessions.length),
-          0,
-        );
-        return (
-          <ProgramHeroCard
-            key={program.id}
-            index={i}
-            testID={`training-prog-${program.id}`}
-            program={program}
-            active={active}
-            records={records}
-            today={today}
-            done={done}
-            total={total}
-            programSessions={getSessionsForProgram(program, plans, sessions)}
-            router={router}
-            onPress={() => router.push(`/program/${program.id}`)}
-            onPressDay={onPressDay}
-          />
-        );
-      })}
-      <PressableScale
-        style={[styles.linkBtn, { borderRadius: theme.radius.md, borderColor: theme.colors.border }]}
-        onPress={() => router.push("/programs")}
-        testID="all-programs"
-      >
-        <Ionicons name="library" size={14} color={theme.colors.brand} />
-        <Text style={[styles.linkBtnText, { color: theme.colors.brand }]}>Parcourir tous les programmes</Text>
-        <Ionicons name="chevron-forward" size={14} color={theme.colors.brand} />
-      </PressableScale>
-    </>
+    <ProgramBrowseList
+      router={router}
+      activeProgramIds={new Set(actives.map(({ program }) => program.id))}
+    />
   );
 }
 
@@ -1454,133 +969,46 @@ function planTypeLabel(t: Plan["type"]): string {
   }
 }
 
+/** Toujours la liste neutre "parcourir/créer/importer" — jamais le hero
+ * d'un programme actif, même si un programme cardio est en cours (voir
+ * `ProgramView` pour l'explication complète). `activeProgramIds` alimente
+ * seulement un badge "EN COURS" sur la bonne carte de la liste — jamais de
+ * redirection automatique. */
 function CardioView({
   actives,
   router,
-  records,
-  plans,
-  sessions,
-  onPressDay,
 }: {
   actives: { active: ActiveProgram; program: Program }[];
   router: any;
-  records: ExerciseRecord[];
-  plans: Plan[];
-  sessions: WorkoutSession[];
-  onPressDay: PressDayHandler;
 }) {
-  const { theme } = useTheme();
-  const CARDIO_COLOR = getPlanTypeColors(theme).cardio;
-  if (actives.length === 0) {
-    return <ProgramBrowseList category="cardio" router={router} />;
-  }
   return (
-    <>
-      {actives.map(({ active, program }, i) => {
-        const today = currentDayIndex(active, program.durationDays);
-        const done = active.completedSessions.length;
-        const total = program.days.reduce(
-          (a, d) => a + (d.rest ? 0 : d.sessions.length),
-          0,
-        );
-        return (
-          <ProgramHeroCard
-            key={program.id}
-            index={i}
-            testID={`cardio-${program.id}`}
-            program={program}
-            active={active}
-            records={records}
-            today={today}
-            done={done}
-            total={total}
-            programSessions={getSessionsForProgram(program, plans, sessions)}
-            router={router}
-            onPress={() => router.push(`/program/${program.id}`)}
-            onPressDay={onPressDay}
-          />
-        );
-      })}
-      <PressableScale
-        style={[styles.linkBtn, { borderRadius: theme.radius.md, borderColor: theme.colors.border }]}
-        onPress={() => router.push("/programs?category=cardio")}
-        testID="all-cardio"
-      >
-        <Ionicons name="library" size={14} color={CARDIO_COLOR} />
-        <Text style={[styles.linkBtnText, { color: CARDIO_COLOR }]}>
-          Parcourir les programmes cardio
-        </Text>
-        <Ionicons name="chevron-forward" size={14} color={CARDIO_COLOR} />
-      </PressableScale>
-      <CTAButton
-        testID="create-cardio-program-2"
-        variant="secondary"
-        tint={CARDIO_COLOR}
-        label="Créer mon programme cardio"
-        onPress={() => router.push("/custom-program/new?category=cardio")}
-      />
-    </>
+    <ProgramBrowseList
+      category="cardio"
+      router={router}
+      activeProgramIds={new Set(actives.map(({ program }) => program.id))}
+    />
   );
 }
 
+/** Toujours la liste neutre "parcourir/créer/importer" — jamais le hero
+ * d'un programme actif, même si un programme d'étirement est en cours (voir
+ * `ProgramView` pour l'explication complète : le hub Entraînements est un
+ * point de départ, jamais un raccourci implicite vers un programme
+ * précis). `activeProgramIds` alimente seulement un badge "EN COURS" sur la
+ * bonne carte de la liste — jamais de redirection automatique. */
 function MobilityView({
   actives,
   router,
-  records,
-  plans,
-  sessions,
-  onPressDay,
 }: {
   actives: { active: ActiveProgram; program: Program }[];
   router: any;
-  records: ExerciseRecord[];
-  plans: Plan[];
-  sessions: WorkoutSession[];
-  onPressDay: PressDayHandler;
 }) {
-  const { theme } = useTheme();
-  if (actives.length === 0) {
-    return <ProgramBrowseList category="stretch" router={router} />;
-  }
   return (
-    <>
-      {actives.map(({ active, program }, i) => {
-        const today = currentDayIndex(active, program.durationDays);
-        return (
-          <ProgramHeroCard
-            key={program.id}
-            index={i}
-            testID={`mobility-${program.id}`}
-            program={program}
-            active={active}
-            records={records}
-            today={today}
-            programSessions={getSessionsForProgram(program, plans, sessions)}
-            router={router}
-            onPress={() => router.push(`/program/${program.id}`)}
-            onPressDay={onPressDay}
-          />
-        );
-      })}
-      <PressableScale
-        style={[styles.linkBtn, { borderRadius: theme.radius.md, borderColor: theme.colors.border }]}
-        onPress={() => router.push("/programs?category=stretch")}
-        testID="all-mobility"
-      >
-        <Ionicons name="library" size={14} color={theme.colors.success} />
-        <Text style={[styles.linkBtnText, { color: theme.colors.success }]}>
-          Parcourir les étirements
-        </Text>
-        <Ionicons name="chevron-forward" size={14} color={theme.colors.success} />
-      </PressableScale>
-      <CTAButton
-        testID="create-mobility-program-2"
-        variant="secondary"
-        tint={theme.colors.success}
-        label="Créer mon programme"
-        onPress={() => router.push("/custom-program/new?category=stretch")}
-      />
-    </>
+    <ProgramBrowseList
+      category="stretch"
+      router={router}
+      activeProgramIds={new Set(actives.map(({ program }) => program.id))}
+    />
   );
 }
 
@@ -1656,39 +1084,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     lineHeight: 20,
   },
-  heroProgCard: {
-    borderWidth: 1.5,
-    padding: spacing.lg,
-    gap: spacing.md,
-    ...shadow.elevated,
-  },
-  weekWrap: { marginTop: spacing.sm, marginBottom: spacing.sm },
-  weekEmptyHint: {
-    fontSize: 12,
-    fontStyle: "italic",
-    paddingVertical: spacing.sm,
-  },
-  historyRowInner: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
-  historyRowTitle: { fontWeight: "800", fontSize: 12 },
-  historyRowDate: { fontSize: 10, marginTop: 2 },
-  heroProgHead: { flexDirection: "row", alignItems: "center", gap: spacing.md },
-  heroProgEmoji: {
-    width: 64,
-    height: 64,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  heroProgTitle: { fontSize: 18, fontWeight: "800" },
-  heroProgMeta: { fontSize: 12, marginTop: 3, fontWeight: "600" },
-  heroProgBarRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
-  heroProgBar: {
-    flex: 1,
-    height: 8,
-    borderRadius: 4,
-    overflow: "hidden",
-  },
-  heroProgFill: { height: "100%", borderRadius: 4 },
-  heroProgPct: { fontSize: 13, fontWeight: "800", width: 38, textAlign: "right" },
   linkBtn: {
     flexDirection: "row",
     alignItems: "center",
