@@ -9,7 +9,8 @@ import {
   Platform,
   Image,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useWebSafeAreaTopFallback } from "@/src/hooks/useWebSafeAreaTopFallback";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, { FadeInDown } from "react-native-reanimated";
@@ -139,6 +140,13 @@ export default function TodayScreen() {
   // plus bas seulement sous ce thème.
   const healthRec = useHealthRecommendation();
   const weather = useWeather();
+  // Filet de sécurité PWA — voir `useWebSafeAreaTopFallback` : corrige un
+  // inset haut resté bloqué à 0 (bug de mesure unique de
+  // `react-native-safe-area-context` sur web, jamais re-déclenchée) sans
+  // jamais réduire une valeur déjà correcte fournie par la bibliothèque.
+  const safeAreaInsets = useSafeAreaInsets();
+  const webSafeTopFallback = useWebSafeAreaTopFallback();
+  const safeAreaTop = Platform.OS === "web" ? Math.max(safeAreaInsets.top, webSafeTopFallback) : safeAreaInsets.top;
   const [sessions, setSessions] = useState<WorkoutSession[]>([]);
   const [habits, setHabits] = useState<Habit[]>([]);
   const [logs, setLogs] = useState<HabitLog[]>([]);
@@ -639,12 +647,12 @@ export default function TodayScreen() {
     // `SafeAreaView` garde son fond opaque habituel `theme.colors.surface`.
     <View style={{ flex: 1 }}>
       <ThemedBackground />
-      <SafeAreaView
+      <View
         style={[
           styles.container,
+          { paddingTop: safeAreaTop },
           { backgroundColor: theme.background.mode === "gradient" ? "transparent" : theme.colors.surface },
         ]}
-        edges={["top"]}
       >
       <ScrollView
         contentContainerStyle={styles.scroll}
@@ -878,14 +886,20 @@ export default function TodayScreen() {
           </>
         )}
 
-        {/* Programmes actifs — un widget par programme (jusqu'à 2 en
-            parallèle), toujours affiché s'il y en a au moins un : chacun
-            lance directement sa séance du jour via `launchProgramDay`, même
-            mécanisme que l'onglet Entraînements (pas de réimplémentation).
-            Grille de cartes (icône colorée en haut, titre, sous-texte,
-            flèche) regroupant programmes actifs ET le WOD aléatoire dans le
-            même format visuel — commune aux deux thèmes. */}
-        {(
+        {/* Bouton principal du Dashboard — remplace l'ancien CTA "Démarrer
+            une séance" : lance un WOD au hasard directement, un seul point
+            d'accès (avant : dupliqué avec la grille de programmes
+            ci-dessous). Rendu `null` en interne si aucun WOD sauvegardé. */}
+        <RandomWodWidget />
+
+        {/* Programmes actifs — une ligne compacte par programme (jusqu'à 2
+            en parallèle), toujours affichée s'il y en a au moins un :
+            chacune lance directement sa séance du jour via
+            `launchProgramDay`, même mécanisme que l'onglet Entraînements
+            (pas de réimplémentation). Liste verticale de lignes compactes
+            (pas une grille de cartes carrées) — avec 1-2 programmes, tient
+            sans scroll supplémentaire ; commune aux deux thèmes. */}
+        {actives.length > 0 && (
           <View style={styles.sunsetProgramsGrid}>
             {actives.map(({ active, program }) => {
               const di = currentDayIndex(active, program.durationDays);
@@ -904,11 +918,9 @@ export default function TodayScreen() {
                       ? launchProgramDay(program, active, di, todayDay, 0, todaySession, router)
                       : router.push(`/program/${program.id}`)
                   }
-                  style={styles.sunsetProgramCard}
                 />
               );
             })}
-            <RandomWodWidget style={styles.sunsetProgramCard} />
           </View>
         )}
 
@@ -1063,7 +1075,7 @@ export default function TodayScreen() {
           </View>
         </View>
       </Modal>
-      </SafeAreaView>
+      </View>
     </View>
   );
 }
@@ -1557,14 +1569,11 @@ function buildStyles(theme: Theme) {
     justifyContent: "space-between",
   },
   sunsetHabitsInCard: { gap: spacing.sm },
+  // Liste verticale de lignes compactes (~64px chacune) — remplace l'ancienne
+  // grille 2 colonnes de cartes carrées (~162px chacune) : retour explicite
+  // "les widgets de séances suivies prennent trop de place verticalement".
   sunsetProgramsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
     gap: spacing.sm,
   },
-  // Ratio assoupli de 1 (carré) à 1.4 (un peu plus large que haut) — retour
-  // utilisateur : les cartes carrées étaient trop imposantes/hautes ; garde
-  // la grille 2 colonnes mais réduit nettement l'emprise verticale.
-  sunsetProgramCard: { width: "48%", aspectRatio: 1.05 },
   });
 }

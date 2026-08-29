@@ -7,17 +7,16 @@ import GlassCard from "@/src/components/ui/GlassCard";
 import PressableScale from "@/src/components/ui/PressableScale";
 
 /**
- * Carte carrée "Ginásio/Cardio" de la capture de référence Sunset — grande
- * icône dans un carré arrondi coloré (dégradé discret dans la couleur du
- * thème de la carte), fine bordure assortie autour de toute la carte, titre
- * en gras puis sous-texte discret en dessous — utilisée pour chaque
- * programme actif ET pour le widget WOD aléatoire, exactement le même
- * format visuel (demande explicite : pas de style différent entre les
- * deux). `accent={iconColor}` sur `GlassCard` fournit la bordure fine +
- * léger halo assortis (même mécanisme "Active Glass" que le reste de
- * l'app) — pas de logique de bordure dupliquée ici. N'est montée que sous
- * le thème Sunset (voir call sites) ; ne gère donc pas de mode "flat"
- * particulier au-delà de ce que `GlassCard` fait déjà par défaut.
+ * Ligne compacte pour un programme actif — icône dans un petit carré coloré
+ * (dégradé discret dans la couleur du thème de la carte) à gauche, titre +
+ * sous-texte au centre, chevron à droite. Remplace l'ancienne carte carrée
+ * "Ginásio/Cardio" (icône 64px + texte centré en dessous, ~160px de haut) :
+ * retour explicite "les widgets de séances suivies prennent trop de place
+ * verticalement" — une ligne horizontale de ~64px tient le même contenu en
+ * bien moins de hauteur, sans réduire brutalement la taille du texte.
+ * `accent={iconColor}` sur `GlassCard` fournit la bordure fine + léger halo
+ * assortis (même mécanisme "Active Glass" que le reste de l'app) — pas de
+ * logique de bordure dupliquée ici.
  */
 export default function ProgramActionCard({
   testID,
@@ -47,10 +46,7 @@ export default function ProgramActionCard({
             end={{ x: 1, y: 1 }}
             style={StyleSheet.absoluteFillObject}
           />
-          <Ionicons name={icon} size={30} color={iconColor} />
-        </View>
-        <View style={[styles.chevronBadge, { backgroundColor: withAlpha("#000000", 30) }]}>
-          <Ionicons name="chevron-forward" size={12} color={theme.colors.onSurface} />
+          <Ionicons name={icon} size={22} color={iconColor} />
         </View>
         <View style={styles.textBlock}>
           <Text style={[styles.title, { color: theme.colors.onSurface }]} numberOfLines={1}>
@@ -62,45 +58,33 @@ export default function ProgramActionCard({
             </Text>
           ) : null}
         </View>
+        <Ionicons name="chevron-forward" size={16} color={theme.colors.onSurfaceTertiary} />
       </PressableScale>
     </GlassCard>
   );
 }
 
 const styles = StyleSheet.create({
-  // L'`aspectRatio` (fourni par l'appelant via `style`, ex. `width:"48%"`)
-  // dimensionne la carte — `inner` doit alors occuper `flex:1` pour remplir
-  // ce cadre plutôt que de se limiter à une `minHeight` fixe.
-  card: { minWidth: 140 },
+  card: { width: "100%" },
   inner: {
-    flex: 1,
-    padding: spacing.md,
-    justifyContent: "space-between",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.sm,
+    padding: spacing.sm,
   },
-  // Grand carré arrondi mettant l'icône en avant — taille fixe (pas
-  // `flex:1`) avec de la marge autour, façon "app icon", plutôt qu'un aplat
-  // occupant toute la carte : laisse le fond glass de la carte respirer
-  // autour, cohérent avec la capture de référence.
+  // Petit carré arrondi mettant l'icône en avant — assez compact pour une
+  // ligne de ~64px de haut au total (icône + padding), tout en gardant le
+  // traitement "app icon" (dégradé + bordure assortie) de la version carrée.
   iconSquare: {
-    width: 64,
-    height: 64,
-    borderRadius: 18,
+    width: 44,
+    height: 44,
+    borderRadius: 14,
     borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
   },
-  chevronBadge: {
-    position: "absolute",
-    top: spacing.sm,
-    right: spacing.sm,
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  textBlock: { alignItems: "center" },
-  title: { fontSize: 15, fontWeight: "800", textAlign: "center" },
-  subtitle: { fontSize: 11.5, fontWeight: "600", marginTop: 2, textAlign: "center" },
+  textBlock: { flex: 1, gap: 1 },
+  title: { fontSize: 14, fontWeight: "800" },
+  subtitle: { fontSize: 11.5, fontWeight: "600" },
 });
