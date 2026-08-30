@@ -117,7 +117,9 @@ export const sunsetTheme: Theme = {
       deep: "#2E2168",
       light: "#8B5CFF",
       rem: "#35D6E8",
-      awake: "#8CC8FF",
+      // Gris neutre froid — l'éveil pendant la nuit n'est ni un accent actif
+      // ni une donnée "chaude", juste une absence de sommeil.
+      awake: "#93A0B3",
     },
   },
   radius: { sm: 8, md: 16, lg: 26, pill: 999 },

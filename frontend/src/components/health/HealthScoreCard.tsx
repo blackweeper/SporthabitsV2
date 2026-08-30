@@ -2,7 +2,8 @@ import { View, Text, StyleSheet } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 import { coloredShadow, motion, solidColor, withAlpha } from "@/src/theme";
 import { useTheme } from "@/src/themes";
-import MultiRingGauge from "@/src/components/ui/MultiRingGauge";
+import MultiRingGauge, { innerContentDiameter } from "@/src/components/ui/MultiRingGauge";
+import StatHero from "@/src/components/ui/StatHero";
 import { RecoveryScoreResult } from "@/src/utils/health-recovery-score";
 
 /**
@@ -40,8 +41,16 @@ export default function HealthScoreCard({ recovery }: { recovery: RecoveryScoreR
           />
         )}
         <MultiRingGauge rings={[{ pct, color: ringColor }]} size={158} strokeWidth={12} ringFill={theme.ringFill}>
-          <Text style={[styles.scoreValue, { color: theme.colors.onSurface }]}>{recovery?.score ?? "—"}</Text>
-          <Text style={[styles.scoreOutOf, { color: theme.colors.onSurfaceTertiary }]}>/ 100</Text>
+          {/* `StatHero`+`fitDiameter` — jamais une taille de police fixe dans
+              un anneau (voir le correctif du bug de débordement) : le texte
+              reste toujours contenu quel que soit le score (0, 5, 68, 100). */}
+          <StatHero
+            value={recovery?.score ?? 0}
+            formatter={(v) => (recovery?.score != null ? String(Math.round(v)) : "—")}
+            unit="/ 100"
+            color={theme.colors.onSurface}
+            fitDiameter={innerContentDiameter(158, 12, 0, 1)}
+          />
         </MultiRingGauge>
       </View>
 
@@ -61,8 +70,6 @@ const styles = StyleSheet.create({
   eyebrow: { fontSize: 14, fontWeight: "800", letterSpacing: 1, marginBottom: 18 },
   ringZone: { alignItems: "center", justifyContent: "center" },
   glow: { position: "absolute", width: 130, height: 130, borderRadius: 65 },
-  scoreValue: { fontSize: 44, fontWeight: "800", letterSpacing: -1 },
-  scoreOutOf: { fontSize: 11, fontWeight: "600", marginTop: -2, letterSpacing: 0.5 },
   band: { fontSize: 15, fontWeight: "800", letterSpacing: 1.2, marginTop: 20 },
   advice: { fontSize: 13.5, lineHeight: 20, textAlign: "center", maxWidth: 300, marginTop: 8 },
   note: { fontSize: 10.5, fontStyle: "italic", marginTop: 8 },

@@ -94,7 +94,10 @@ export const classicTheme: Theme = {
       deep: "#4C1D95",
       light: "#8B5CF6",
       rem: "#3B82F6",
-      awake: "#FFC400",
+      // Gris neutre chaud (pas l'ambre `warning`, réservé à un tout autre
+      // sens sémantique ailleurs) — l'éveil pendant la nuit n'est ni une
+      // alerte ni une donnée "chaude", juste une absence de sommeil.
+      awake: "#9C948A",
     },
   },
   // Rayons alignés sur Sunset — le layout (dont les rayons de coin) est

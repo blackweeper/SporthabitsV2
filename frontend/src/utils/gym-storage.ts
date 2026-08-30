@@ -310,6 +310,10 @@ export type UserProfile = {
   training_minutes_target?: number | null;
   calories_burn_target_kcal?: number | null;
   sleep_target_hours?: number | null;
+  /** Objectif de distance quotidienne (km) — fiche détail Santé "Distance"
+   * (import Health Auto Export), même convention que les autres objectifs
+   * ci-dessus (défaut raisonnable, jamais une mesure réelle). */
+  distance_target_km?: number | null;
   /** Utilisés uniquement pour trier/recommander les programmes prédéfinis
    * par pertinence (voir `scoreProgramForProfile`) — jamais pour exclure
    * un programme. */
@@ -327,6 +331,7 @@ export const DEFAULT_STEPS_TARGET = 10000;
 export const DEFAULT_TRAINING_MINUTES_TARGET = 45;
 export const DEFAULT_CALORIES_BURN_TARGET_KCAL = 400;
 export const DEFAULT_SLEEP_TARGET_HOURS = 8;
+export const DEFAULT_DISTANCE_TARGET_KM = 5;
 
 export async function getProfile(): Promise<UserProfile> {
   const raw = await AsyncStorage.getItem(PROFILE_KEY);

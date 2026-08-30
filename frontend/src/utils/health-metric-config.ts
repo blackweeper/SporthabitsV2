@@ -179,6 +179,11 @@ export type MetricKpis = {
   today: number | null;
   average: number | null;
   best: number | null;
+  /** Minimum réel de la fenêtre — utilisé par les fiches FC repos/VFC/SpO2
+   * (min/max ont un sens pour une valeur physiologique ponctuelle ; pour
+   * Pas/Distance/Calories actives, "moins bon jour" n'est pas affiché mais
+   * reste calculé pour rester un seul point de calcul par fiche). */
+  worst: number | null;
   /** Somme des valeurs de la fenêtre — pertinent pour Pas/Distance/Calories
    * actives ("Cette semaine : 62 430 pas"), sans objet pour une moyenne
    * ponctuelle (VFC/FC repos/Respiration/SpO2) mais toujours calculé : c'est
@@ -186,23 +191,25 @@ export type MetricKpis = {
   total: number | null;
 };
 
-/** KPI d'une fiche métrique — "aujourd'hui"/"moyenne"/"meilleur"/"total" sur
- * la fenêtre demandée, calculés à partir de la même série que le graphique
- * (`loadHealthMetricSeries`), un seul fetch, jamais un second calcul. Une
- * valeur `null` (donnée absente) reste `null` — jamais un 0 fabriqué. */
+/** KPI d'une fiche métrique — "aujourd'hui"/"moyenne"/"meilleur"/"pire"/"total"
+ * sur la fenêtre demandée, calculés à partir de la même série que le
+ * graphique (`loadHealthMetricSeries`), un seul fetch, jamais un second
+ * calcul. Une valeur `null` (donnée absente) reste `null` — jamais un 0
+ * fabriqué. */
 export async function computeMetricKpis(
   key: HealthMetricKey,
   days: number,
   referenceDateYYYYMMDD: string,
 ): Promise<MetricKpis> {
   const series = await loadHealthMetricSeries(key, days, referenceDateYYYYMMDD);
-  if (series.length === 0) return { today: null, average: null, best: null, total: null };
+  if (series.length === 0) return { today: null, average: null, best: null, worst: null, total: null };
   const todayPoint = series.find((p) => p.date === referenceDateYYYYMMDD);
   const values = series.map((p) => p.value);
   const total = values.reduce((a, b) => a + b, 0);
   const average = total / values.length;
   const best = Math.max(...values);
-  return { today: todayPoint ? todayPoint.value : null, average, best, total };
+  const worst = Math.min(...values);
+  return { today: todayPoint ? todayPoint.value : null, average, best, worst, total };
 }
 
 export type YearlyAverage = { year: number; dailyAverage: number; daysWithData: number };

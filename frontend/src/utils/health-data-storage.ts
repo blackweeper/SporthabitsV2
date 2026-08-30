@@ -299,6 +299,59 @@ export async function getLatestSleepStageDetail(): Promise<{ detail: SleepStageD
   return null;
 }
 
+/** Efficacité de sommeil réelle (`totalSleep`/`inBed`) — jamais recalculée
+ * ailleurs, un seul endroit pour cette formule. `null` si l'un des deux
+ * champs manque (jamais un pourcentage fabriqué à partir d'une seule
+ * valeur). Plafonnée à 100% (un léger désaccord d'échantillonnage entre les
+ * deux champs source peut techniquement dépasser 100%, ce qui n'a pas de
+ * sens pour "part du temps au lit passée à dormir"). */
+export function sleepEfficiencyPercent(detail: SleepStageDetail): number | null {
+  if (detail.totalSleepHours == null || detail.inBedHours == null || detail.inBedHours <= 0) return null;
+  return Math.min(100, (detail.totalSleepHours / detail.inBedHours) * 100);
+}
+
+/** Parse le format d'horodatage réel envoyé par Health Auto Export dans les
+ * champs `raw` (ex. `sleepStart`/`inBedStart`) : "2026-08-29 01:37:00 +0200"
+ * — un simple `replace(" ", "T")` laisse un espace résiduel avant le fuseau
+ * que `Date` ne sait pas parser (confirmé en direct : retombe silencieusement
+ * sur `Invalid Date`). Centralisé ici (au lieu d'une copie locale par écran)
+ * pour que toute future consommation de ce format profite du même correctif. */
+export function parseHealthTimestamp(raw: string): Date | null {
+  const iso = raw.replace(" ", "T").replace(/\s+/g, "");
+  const d = new Date(iso);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+/** "01:37" — jamais le timestamp technique brut en repli (voir
+ * `parseHealthTimestamp`) : "—" si le format est inattendu/absent plutôt
+ * qu'une chaîne illisible pour l'utilisateur. */
+export function formatHealthTime(raw: string): string {
+  const d = parseHealthTimestamp(raw);
+  if (!d) return "—";
+  return d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
+}
+
+/** Échantillons SpO2 dont l'horodatage RÉEL tombe dans la fenêtre de sommeil
+ * de la nuit donnée (`nightStart`/`nightEnd`, champs `raw` de la même nuit —
+ * jamais une heure de nuit devinée) — distinct d'une moyenne journalière
+ * générale (voir §14 du brief Sommeil : ne jamais confondre les deux).
+ * `null`/tableau vide si la fenêtre ou les échantillons sont absents —
+ * jamais une estimation à partir d'une plage horaire arbitraire. */
+export async function getNocturnalSpo2Samples(
+  nightStart: string | null,
+  nightEnd: string | null,
+): Promise<HealthMetricSample[]> {
+  if (!nightStart || !nightEnd) return [];
+  const start = parseHealthTimestamp(nightStart);
+  const end = parseHealthTimestamp(nightEnd);
+  if (!start || !end) return [];
+  const samples = await getRawSamplesForMetric(SPO2_METRIC_NAMES);
+  return samples.filter((s) => {
+    const t = parseHealthTimestamp(s.date);
+    return t != null && t.getTime() >= start.getTime() && t.getTime() <= end.getTime() && s.qty != null;
+  });
+}
+
 function unitsToMinutesMultiplier(units: string | null): number {
   if (!units) return 1; // suppose déjà en minutes si l'unité est absente
   const u = units.toLowerCase();

@@ -8,7 +8,8 @@ import { spacing } from "@/src/theme";
 import { Theme, useTheme } from "@/src/themes";
 import ThemedBackground from "@/src/themes/ThemedBackground";
 import GlassCard from "@/src/components/ui/GlassCard";
-import MultiRingGauge from "@/src/components/ui/MultiRingGauge";
+import MultiRingGauge, { innerContentDiameter } from "@/src/components/ui/MultiRingGauge";
+import StatHero from "@/src/components/ui/StatHero";
 import {
   DEFAULT_CALORIES_BURN_TARGET_KCAL,
   DEFAULT_SLEEP_TARGET_HOURS,
@@ -190,8 +191,19 @@ export default function DayDetailScreen() {
                 { pct: ringPercents[3] / 100, color: theme.colors.metricColors.sleep },
               ]}
             >
-              <Text style={[styles.aggregateValue, { color: theme.colors.onSurface }]}>{aggregate}%</Text>
-              <Text style={[styles.aggregateLabel, { color: theme.colors.onSurfaceTertiary }]}>activité du jour</Text>
+              {/* Seul élément textuel central (voir la correction du bug de
+                  débordement) — l'ancien libellé "activité du jour" superposé
+                  au pourcentage est retiré, jamais réintroduit sur l'anneau
+                  lui-même. `StatHero`+`fitDiameter` dimensionne le texte à
+                  partir du diamètre réel plutôt qu'une taille fixe, seule
+                  garantie de non-débordement quel que soit le nombre de
+                  chiffres (0/5/9/10/68/99/100). */}
+              <StatHero
+                value={aggregate}
+                formatter={(v) => `${Math.round(v)}%`}
+                color={theme.colors.onSurface}
+                fitDiameter={innerContentDiameter(220, 14, 5, 4)}
+              />
             </MultiRingGauge>
           </View>
 
@@ -280,8 +292,6 @@ function buildStyles(theme: Theme) {
   title: { fontSize: 16, fontWeight: "700" },
   scroll: { padding: spacing.lg, gap: spacing.md },
   heroWrap: { alignItems: "center", paddingVertical: spacing.lg },
-  aggregateValue: { fontSize: 40, fontWeight: "800" },
-  aggregateLabel: { fontSize: 11, fontWeight: "600" },
   card: {
     backgroundColor: colors.surfaceSecondary,
     borderRadius: radius.md,
