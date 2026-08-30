@@ -42,6 +42,18 @@ export type DataColorSet = {
   workout: string;
 };
 
+/** Couleurs des 4 phases de sommeil (fiche `/health-metric/sleep`) — un badge
+ * par phase, jamais une couleur calculée à la volée dans le composant.
+ * Progression volontaire du plus sombre/froid (Profond) au plus clair
+ * (Éveil), REM tranchant sur une teinte distincte (voir `classic.ts`/
+ * `sunset.ts` pour les valeurs par thème). */
+export type SleepStageColorSet = {
+  deep: string;
+  light: string;
+  rem: string;
+  awake: string;
+};
+
 export type ThemeColors = {
   surface: string;
   surfaceSecondary: string;
@@ -70,8 +82,15 @@ export type ThemeColors = {
    * derrière elle plutôt qu'un disque sombre plein, sans quoi l'anneau
    * détonne (trop sombre) sur un fond lumineux. */
   ringTrack: string;
+  /** Accent dédié au rang "NOVICE" (le seul rang sans couleur vive, voir
+   * `rank-colors.ts`) — un vrai ton platine/argenté opaque, jamais
+   * `onSurfaceTertiary` (une couleur de TEXTE translucide ~40% jamais conçue
+   * pour servir de fond/bordure/glow de badge, qui y rendait un cercle terne
+   * et peu fini). */
+  rankNeutral: string;
   metricColors: MetricColorSet;
   data: DataColorSet;
+  sleepStages: SleepStageColorSet;
 };
 
 export type ThemeRadius = { sm: number; md: number; lg: number; pill: number };

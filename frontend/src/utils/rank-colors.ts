@@ -12,7 +12,7 @@ import { RankColorKey } from '@/src/utils/xp';
 export function rankAccentColor(theme: Theme, key: RankColorKey): string {
   switch (key) {
     case 'neutral':
-      return theme.colors.onSurfaceTertiary;
+      return theme.colors.rankNeutral;
     case 'cardio':
       return theme.colors.data.cardio;
     case 'strength':

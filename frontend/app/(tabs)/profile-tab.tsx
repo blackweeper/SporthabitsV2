@@ -35,8 +35,6 @@ export default function ProfileTab() {
   const [levelState, setLevelState] = useState<LevelState | null>(null);
   const [currentStreakDays, setCurrentStreakDays] = useState(0);
   const [bestStreakDays, setBestStreakDays] = useState(0);
-  const [unlockedAchievements, setUnlockedAchievements] = useState(0);
-  const [totalAchievements, setTotalAchievements] = useState(0);
 
   useFocusEffect(
     useCallback(() => {
@@ -50,9 +48,11 @@ export default function ProfileTab() {
         const stats = computeAdvancedStats(sessions);
         setCurrentStreakDays(stats.currentStreakDays);
         setBestStreakDays(stats.bestStreakDays);
+        // `computeAchievements` reste appelé : `syncXPLedger` en dépend pour
+        // créditer l'XP des défis débloqués (logique de calcul inchangée) —
+        // seul l'AFFICHAGE du compteur Trophées est retiré de ce panneau
+        // (hors périmètre PASSE 7, déjà consultable depuis Performance).
         const achievementsList = computeAchievements({ sessions, prs, measurements });
-        setUnlockedAchievements(achievementsList.filter((a) => a.unlocked).length);
-        setTotalAchievements(achievementsList.length);
         const ledger = await syncXPLedger({ sessions, prs, achievements: achievementsList });
         setLevelState(computeLevelState(ledger.reduce((sum, e) => sum + e.amount, 0)));
         const meta = await getLibraryMeta();
@@ -123,11 +123,12 @@ export default function ProfileTab() {
           </Card>
         </PressableScale>
 
-        {/* Niveau/XP/Streak/Trophées — le Profil est désormais la destination
+        {/* Niveau/XP/Streak — le Profil est désormais la destination
             permanente de ce résumé (retiré du Dashboard, qui reste un
             cockpit quotidien) : visible dès l'ouverture, pas seulement à un
-            tap de distance. Composant partagé avec le Dashboard le cas
-            échéant, pour un rendu identique partout où il apparaît. */}
+            tap de distance. Panneau Liquid Glass premium (PASSE 7) — les
+            Trophées/Défis ne sont plus résumés ici, déjà consultables depuis
+            Performance. */}
         {levelState && (
           <View style={styles.cockpitSpacing}>
             <CockpitCard
@@ -135,8 +136,6 @@ export default function ProfileTab() {
               levelState={levelState}
               currentStreakDays={currentStreakDays}
               bestStreakDays={bestStreakDays}
-              unlockedAchievements={unlockedAchievements}
-              totalAchievements={totalAchievements}
             />
           </View>
         )}

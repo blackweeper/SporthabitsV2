@@ -72,6 +72,10 @@ export const sunsetTheme: Theme = {
     // fond/l'effet glass à travers la piste plutôt qu'un simple
     // `surfaceTertiary` sombre, cohérent avec le reste du thème.
     ringTrack: "rgba(255,255,255,0.20)",
+    // Platine froid opaque — badge du rang NOVICE (voir le commentaire sur
+    // `rankNeutral` dans `types.ts`), cohérent avec la dominante Glacier
+    // Blue plutôt qu'un gris neutre.
+    rankNeutral: "#9FB8D9",
     metricColors: {
       // Calories reste orange (seule survivance légitime de l'orange, sur
       // demande explicite : "donnée", jamais "identité") — teinte assombrie
@@ -102,6 +106,18 @@ export const sunsetTheme: Theme = {
       // l'identité WOD emprunte une teinte chaude voisine mais distincte,
       // jamais confondue avec Calories ni avec `danger`.
       workout: "#FF6B4A",
+    },
+    // 4 phases de sommeil (fiche Sommeil) — du plus sombre/froid (Profond) au
+    // plus clair (Éveil), dans la famille Glacier déjà en place pour
+    // `metricColors.sleep` (violet). REM tranche sur le Cyan `info` (distinct
+    // de la famille violette) ; Éveil sur `brandSecondary` (bleu clair) plutôt
+    // que sur l'orange — réservé aux Calories sous ce thème (voir le
+    // commentaire sur `warning`/`data.energy` plus haut).
+    sleepStages: {
+      deep: "#2E2168",
+      light: "#8B5CFF",
+      rem: "#35D6E8",
+      awake: "#8CC8FF",
     },
   },
   radius: { sm: 8, md: 16, lg: 26, pill: 999 },

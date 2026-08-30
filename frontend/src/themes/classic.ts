@@ -56,6 +56,10 @@ export const classicTheme: Theme = {
     // valeur que Sunset, un track d'anneau est un élément neutre, pas une
     // couleur d'identité.
     ringTrack: "rgba(255,255,255,0.20)",
+    // Platine chaud opaque — badge du rang NOVICE (voir le commentaire sur
+    // `rankNeutral` dans `types.ts`), cohérent avec la dominante chaude de
+    // Classique plutôt qu'un gris neutre froid.
+    rankNeutral: "#C9C2B4",
     // Dégradés 2 tons (même structure que Sunset) construits UNIQUEMENT à
     // partir des teintes Classique déjà existantes — aucune nouvelle
     // couleur introduite, juste le même traitement "riche" que Sunset.
@@ -80,6 +84,17 @@ export const classicTheme: Theme = {
       // que l'identité WOD doit éviter. Premium, immédiatement identifiable,
       // jamais confondu avec une couleur d'erreur/avertissement/calories.
       workout: "#DB2777",
+    },
+    // 4 phases de sommeil (fiche Sommeil) — dérivées de la famille
+    // violette déjà utilisée pour `progress`/`metricColors.sleep`, du plus
+    // sombre/froid (Profond) au plus clair (Éveil) ; REM tranche sur le bleu
+    // `info` déjà existant plutôt qu'une nuance de violet supplémentaire, pour
+    // rester "distinctive" comme demandé.
+    sleepStages: {
+      deep: "#4C1D95",
+      light: "#8B5CF6",
+      rem: "#3B82F6",
+      awake: "#FFC400",
     },
   },
   // Rayons alignés sur Sunset — le layout (dont les rayons de coin) est

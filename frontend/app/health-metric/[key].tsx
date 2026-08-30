@@ -3,12 +3,12 @@ import { View, Text, Pressable, ScrollView, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { spacing } from "@/src/theme";
+import { spacing, withAlpha } from "@/src/theme";
 import { useTheme } from "@/src/themes";
 import { RingColor } from "@/src/themes/types";
 import ThemedBackground from "@/src/themes/ThemedBackground";
 import GlassCard from "@/src/components/ui/GlassCard";
-import HealthTrendChart from "@/src/components/health/HealthTrendChart";
+import InteractiveHealthChart from "@/src/components/health/InteractiveHealthChart";
 import { HealthMetricSample, localDateYYYYMMDD, sleepStageDetailFromRaw } from "@/src/utils/health-data-storage";
 import {
   computeMetricKpis,
@@ -26,16 +26,26 @@ import {
 
 const SUM_METRIC_KEYS: HealthMetricKey[] = ["steps", "walkingDistance", "activeCalories", "sleep"];
 
+// Sous 1h, "18 min" est plus lisible qu'un "0h18" pour un badge de phase de
+// sommeil (Éveil est presque toujours < 1h) — au-dessus, format `XhYY` usuel.
 function formatHoursMinutes(hours: number | null): string | null {
   if (hours == null) return null;
+  if (hours < 1) return `${Math.round(hours * 60)} min`;
   const h = Math.floor(hours);
   const m = Math.round((hours - h) * 60);
   return `${h}h${m.toString().padStart(2, "0")}`;
 }
 
+// Format réel Health Auto Export, confirmé sur un vrai payload :
+// "2026-08-29 01:37:00 +0200" — un simple replace(" ", "T") laisse un espace
+// avant le fuseau ("...T01:37:00 +0200"), que `Date` ne parse pas (résultat :
+// la chaîne technique brute renvoyée telle quelle, exactement le bug corrigé
+// ici). On isole le "T" puis on retire l'espace restant avant le fuseau.
+// Jamais de repli sur la chaîne brute — "—" plutôt qu'un timestamp technique.
 function formatTimeOnly(dateStr: string): string {
-  const d = new Date(dateStr.replace(" ", "T"));
-  if (isNaN(d.getTime())) return dateStr;
+  const iso = dateStr.replace(" ", "T").replace(/\s+/g, "");
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "—";
   return d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
 }
 
@@ -162,61 +172,96 @@ export default function HealthMetricDetailScreen() {
             </View>
           )}
 
-          {sleepStages && (sleepStages.deepHours != null || sleepStages.remHours != null || sleepStages.coreHours != null) && (
-            <View style={[styles.stagesCard, { borderColor: theme.colors.divider }]}>
-              {sleepStages.inBedStart && sleepStages.sleepEnd && (
-                <View style={styles.stagesTimesRow}>
-                  <View>
-                    <Text style={[styles.stagesTimeLabel, { color: theme.colors.onSurfaceTertiary }]}>Coucher</Text>
-                    <Text style={[styles.stagesTimeValue, { color: theme.colors.onSurface }]}>
-                      {formatTimeOnly(sleepStages.inBedStart)}
-                    </Text>
-                  </View>
-                  <Ionicons name="arrow-forward" size={14} color={theme.colors.onSurfaceTertiary} />
-                  <View>
-                    <Text style={[styles.stagesTimeLabel, { color: theme.colors.onSurfaceTertiary }]}>Réveil</Text>
-                    <Text style={[styles.stagesTimeValue, { color: theme.colors.onSurface }]}>
-                      {formatTimeOnly(sleepStages.sleepEnd)}
-                    </Text>
-                  </View>
+          {sleepStages &&
+            (sleepStages.totalSleepHours != null ||
+              sleepStages.deepHours != null ||
+              sleepStages.coreHours != null ||
+              sleepStages.remHours != null ||
+              sleepStages.awakeHours != null) &&
+            (() => {
+              // Jamais l'horodatage brut Health Auto Export — "Coucher"/
+              // "Réveil" restent l'heure de sommeil réel (`sleepStart`/
+              // `sleepEnd`) en priorité, avec repli sur l'heure au lit
+              // (`inBedStart`/`inBedEnd`) seulement si l'échantillon ne porte
+              // pas l'heure de sommeil réel.
+              const bedTime = sleepStages.sleepStart ?? sleepStages.inBedStart;
+              const wakeTime = sleepStages.sleepEnd ?? sleepStages.inBedEnd;
+              const rawStages: { key: keyof typeof theme.colors.sleepStages; label: string; hours: number | null; icon: keyof typeof Ionicons.glyphMap }[] = [
+                { key: "deep", label: "Profond", hours: sleepStages.deepHours, icon: "moon" },
+                { key: "light", label: "Léger", hours: sleepStages.coreHours, icon: "cloud-outline" },
+                { key: "rem", label: "REM", hours: sleepStages.remHours, icon: "eye-outline" },
+                { key: "awake", label: "Éveil", hours: sleepStages.awakeHours, icon: "sunny-outline" },
+              ];
+              const stages = rawStages.filter((s) => s.hours != null);
+
+              return (
+                <View style={styles.sleepSummaryWrap}>
+                  <GlassCard level="card" style={styles.sleepSummaryCard}>
+                    <Text style={[styles.sleepEyebrow, { color: theme.colors.onSurfaceTertiary }]}>SOMMEIL</Text>
+                    <View style={styles.sleepSummaryRow}>
+                      <View>
+                        <Text style={[styles.sleepDurationValue, { color: theme.colors.onSurface }]}>
+                          {sleepStages.totalSleepHours != null ? formatHoursMinutes(sleepStages.totalSleepHours) : "—"}
+                        </Text>
+                        <Text style={[styles.sleepDurationLabel, { color: theme.colors.onSurfaceTertiary }]}>Durée totale</Text>
+                      </View>
+                      {(bedTime || wakeTime) && (
+                        <View style={styles.sleepTimesCol}>
+                          {bedTime && (
+                            <View style={styles.sleepTimeRow}>
+                              <Ionicons name="moon-outline" size={12} color={theme.colors.onSurfaceTertiary} />
+                              <Text style={[styles.sleepTimeValue, { color: theme.colors.onSurface }]}>{formatTimeOnly(bedTime)}</Text>
+                              <Text style={[styles.sleepTimeLabel, { color: theme.colors.onSurfaceTertiary }]}>Coucher</Text>
+                            </View>
+                          )}
+                          {wakeTime && (
+                            <View style={styles.sleepTimeRow}>
+                              <Ionicons name="sunny-outline" size={12} color={theme.colors.onSurfaceTertiary} />
+                              <Text style={[styles.sleepTimeValue, { color: theme.colors.onSurface }]}>{formatTimeOnly(wakeTime)}</Text>
+                              <Text style={[styles.sleepTimeLabel, { color: theme.colors.onSurfaceTertiary }]}>Réveil</Text>
+                            </View>
+                          )}
+                        </View>
+                      )}
+                    </View>
+                  </GlassCard>
+
+                  {stages.length > 0 && (
+                    <View style={styles.stageBadgeGrid}>
+                      {stages.map((s) => {
+                        const color = theme.colors.sleepStages[s.key];
+                        return (
+                          <View
+                            key={s.key}
+                            style={[
+                              styles.stageBadge,
+                              { backgroundColor: withAlpha(color, 14), borderColor: withAlpha(color, 32) },
+                            ]}
+                          >
+                            <View style={styles.stageBadgeHeader}>
+                              <Ionicons name={s.icon} size={13} color={color} />
+                              <Text style={[styles.stageBadgeLabel, { color }]}>{s.label}</Text>
+                            </View>
+                            <Text style={[styles.stageBadgeValue, { color: theme.colors.onSurface }]}>
+                              {formatHoursMinutes(s.hours)}
+                            </Text>
+                          </View>
+                        );
+                      })}
+                    </View>
+                  )}
                 </View>
-              )}
-              <View style={styles.stagesGrid}>
-                {sleepStages.deepHours != null && (
-                  <View style={styles.stageItem}>
-                    <Text style={[styles.stageValue, { color: theme.colors.progress }]}>{formatHoursMinutes(sleepStages.deepHours)}</Text>
-                    <Text style={[styles.stageLabel, { color: theme.colors.onSurfaceTertiary }]}>Profond</Text>
-                  </View>
-                )}
-                {sleepStages.coreHours != null && (
-                  <View style={styles.stageItem}>
-                    <Text style={[styles.stageValue, { color: theme.colors.brand }]}>{formatHoursMinutes(sleepStages.coreHours)}</Text>
-                    <Text style={[styles.stageLabel, { color: theme.colors.onSurfaceTertiary }]}>Léger</Text>
-                  </View>
-                )}
-                {sleepStages.remHours != null && (
-                  <View style={styles.stageItem}>
-                    <Text style={[styles.stageValue, { color: theme.colors.info }]}>{formatHoursMinutes(sleepStages.remHours)}</Text>
-                    <Text style={[styles.stageLabel, { color: theme.colors.onSurfaceTertiary }]}>REM</Text>
-                  </View>
-                )}
-                {sleepStages.awakeHours != null && (
-                  <View style={styles.stageItem}>
-                    <Text style={[styles.stageValue, { color: theme.colors.onSurfaceSecondary }]}>{formatHoursMinutes(sleepStages.awakeHours)}</Text>
-                    <Text style={[styles.stageLabel, { color: theme.colors.onSurfaceTertiary }]}>Éveil</Text>
-                  </View>
-                )}
-              </View>
-            </View>
-          )}
+              );
+            })()}
 
           <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>ÉVOLUTION</Text>
-          <HealthTrendChart
+          <InteractiveHealthChart
             color={colorByKey[key]}
             loadSeries={(days) => loadHealthMetricSeries(key, days, today)}
             indent={false}
             periods={["week", "30d", "6m", "1y"]}
             defaultPeriod="week"
+            formatValue={(v) => formatHealthMetricValue(key, v)}
           />
 
           {yearly.length >= 2 && (
@@ -274,19 +319,27 @@ const styles = StyleSheet.create({
   kpiCard: { flex: 1, padding: spacing.md, alignItems: "flex-start", gap: 2 },
   kpiValue: { fontSize: 20, fontWeight: "800" },
   kpiLabel: { fontSize: 11, letterSpacing: 0.2 },
-  stagesCard: {
-    borderWidth: StyleSheet.hairlineWidth,
+  sleepSummaryWrap: { gap: spacing.md },
+  sleepSummaryCard: { padding: spacing.lg, gap: spacing.sm },
+  sleepEyebrow: { fontSize: 11, fontWeight: "800", letterSpacing: 1.2 },
+  sleepSummaryRow: { flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between" },
+  sleepDurationValue: { fontSize: 30, fontWeight: "800" },
+  sleepDurationLabel: { fontSize: 12, fontWeight: "600", marginTop: 2 },
+  sleepTimesCol: { gap: 6, alignItems: "flex-end" },
+  sleepTimeRow: { flexDirection: "row", alignItems: "center", gap: 5 },
+  sleepTimeValue: { fontSize: 14, fontWeight: "800" },
+  sleepTimeLabel: { fontSize: 11, fontWeight: "600" },
+  stageBadgeGrid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", rowGap: spacing.sm },
+  stageBadge: {
+    width: "48%",
+    borderWidth: 1,
     borderRadius: 16,
-    padding: spacing.md,
-    gap: spacing.md,
+    padding: spacing.sm,
+    gap: 6,
   },
-  stagesTimesRow: { flexDirection: "row", alignItems: "center", gap: spacing.md },
-  stagesTimeLabel: { fontSize: 10.5, fontWeight: "700", letterSpacing: 0.3 },
-  stagesTimeValue: { fontSize: 15, fontWeight: "800", marginTop: 2 },
-  stagesGrid: { flexDirection: "row", flexWrap: "wrap", gap: spacing.md },
-  stageItem: { minWidth: 64 },
-  stageValue: { fontSize: 15, fontWeight: "800" },
-  stageLabel: { fontSize: 10, fontWeight: "700", letterSpacing: 0.3, marginTop: 1 },
+  stageBadgeHeader: { flexDirection: "row", alignItems: "center", gap: 5 },
+  stageBadgeLabel: { fontSize: 10.5, fontWeight: "800", letterSpacing: 0.4, textTransform: "uppercase" },
+  stageBadgeValue: { fontSize: 17, fontWeight: "800" },
   sectionTitle: { fontSize: 12, fontWeight: "800", letterSpacing: 1 },
   empty: { fontSize: 13, fontStyle: "italic" },
   yearlyCard: { padding: spacing.md },

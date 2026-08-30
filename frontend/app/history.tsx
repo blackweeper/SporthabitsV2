@@ -75,7 +75,7 @@ export default function HistoryScreen() {
   const router = useRouter();
   const [sessions, setSessions] = useState<WorkoutSession[]>([]);
   const [wodPlansById, setWodPlansById] = useState<Map<string, Plan>>(new Map());
-  const [tab, setTab] = useState<"history" | "stats">("history");
+  const [tab, setTab] = useState<"history" | "stats">("stats");
   const [period, setPeriod] = useState<EvolutionPeriod>("week");
   const [metric, setMetric] = useState<EvolutionMetric>("sessions");
 
@@ -136,8 +136,8 @@ export default function HistoryScreen() {
         <SegmentedTabRow
           testIDPrefix="tab"
           options={[
-            { key: "history", label: "SÉANCES" },
             { key: "stats", label: "STATS" },
+            { key: "history", label: "SÉANCES" },
           ]}
           value={tab}
           onChange={setTab}

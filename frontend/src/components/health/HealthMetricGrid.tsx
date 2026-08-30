@@ -6,7 +6,7 @@ import Animated, { FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming
 import { motion, solidColor, withAlpha } from "@/src/theme";
 import { useTheme } from "@/src/themes";
 import { RingColor } from "@/src/themes/types";
-import HealthTrendChart from "./HealthTrendChart";
+import InteractiveHealthChart from "./InteractiveHealthChart";
 import {
   getDailyMetricSeries,
   localDateYYYYMMDD,
@@ -218,7 +218,11 @@ export default function HealthMetricGrid({
 
             {open && (
               <Animated.View entering={FadeIn.duration(motion.fast)} exiting={FadeOut.duration(motion.fast)}>
-                <HealthTrendChart color={row.color} loadSeries={loadSeriesFor(row.key)} />
+                <InteractiveHealthChart
+                  color={row.color}
+                  loadSeries={loadSeriesFor(row.key)}
+                  formatValue={(v) => formatWithUnit(row.key, v)}
+                />
                 <Pressable
                   testID={`health-metric-detail-${row.key}`}
                   onPress={() => router.push({ pathname: "/health-metric/[key]", params: { key: row.key } })}
