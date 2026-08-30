@@ -134,6 +134,9 @@ function formatValueOnly(key: HealthMetricKey, v: number): string {
   if (key === "steps") return Math.round(v).toLocaleString("fr-FR");
   if (key === "walkingDistance") return v.toLocaleString("fr-FR", { maximumFractionDigits: 2 });
   if (key === "sleep") return formatHealthMetricValue(key, v);
+  if (key === "weight" || key === "bmi" || key === "bodyFatPercentage") {
+    return v.toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  }
   return String(Math.round(v));
 }
 
@@ -146,6 +149,12 @@ const FAMILY: Record<HealthMetricKey, Family> = {
   restingHr: "vital",
   respiratoryRate: "vital",
   spo2: "ring",
+  // Poids/IMC/Masse grasse n'ont pas d'objectif quotidien ("goal") ni de
+  // sémantique 0-100% ("ring") — même famille "vital" que VFC/FC repos/
+  // Respiration (valeur du jour + moyenne/min/max + courbe).
+  weight: "vital",
+  bmi: "vital",
+  bodyFatPercentage: "vital",
 };
 
 const METRIC_META: Record<HealthMetricKey, { icon: keyof typeof Ionicons.glyphMap; unit: string; note?: string }> = {
@@ -157,13 +166,18 @@ const METRIC_META: Record<HealthMetricKey, { icon: keyof typeof Ionicons.glyphMa
   restingHr: { icon: "heart", unit: "bpm" },
   respiratoryRate: { icon: "body", unit: "rpm", note: "Plage habituelle chez l'adulte au repos : 12 à 20 rpm." },
   spo2: { icon: "water", unit: "%" },
+  weight: { icon: "scale-outline", unit: "kg" },
+  bmi: { icon: "body-outline", unit: "" },
+  bodyFatPercentage: { icon: "flame-outline", unit: "%" },
 };
 
 /** Une seule couleur d'accent par métrique — toujours un token `theme.*`,
  * jamais une teinte en dur (voir §2/§9 du brief) : FC en rouge/corail
  * (`error`), VFC/Respiration/SpO2 dans la famille cyan/bleu (`info`,
  * cohérente Classique/Sunset), Distance en bleu (`info`), Calories/Pas dans
- * leurs dégradés déjà établis pour tout le Dashboard. */
+ * leurs dégradés déjà établis pour tout le Dashboard. Poids/IMC/Masse grasse
+ * réutilisent `brand`/`info`/`progress` (pas de nouveau token
+ * `metricColors`, même précédent que VFC/FC repos/Respiration ci-dessus). */
 function resolveColor(theme: ReturnType<typeof useTheme>["theme"], key: HealthMetricKey): RingColor {
   switch (key) {
     case "steps":
@@ -182,6 +196,12 @@ function resolveColor(theme: ReturnType<typeof useTheme>["theme"], key: HealthMe
       return theme.colors.info;
     case "sleep":
       return theme.colors.metricColors.sleep;
+    case "weight":
+      return theme.colors.brand;
+    case "bmi":
+      return theme.colors.info;
+    case "bodyFatPercentage":
+      return theme.colors.progress;
   }
 }
 

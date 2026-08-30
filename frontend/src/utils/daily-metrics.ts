@@ -35,6 +35,17 @@ export function sumTrainingMinutesForDate(sessions: WorkoutSession[], dateStr: s
   return Math.round(seconds / 60);
 }
 
+/** "45 min" sous l'heure, "1h12" au-dessus — partagé par `/day-detail` et
+ * `DailyFlowCard` (auparavant dupliqué localement dans `day-detail.tsx`,
+ * jamais une 3ᵉ copie). */
+export function formatTrainingDuration(minutes: number): string {
+  const m = Math.round(minutes);
+  if (m < 60) return `${m} min`;
+  const h = Math.floor(m / 60);
+  const rem = m % 60;
+  return `${h}h${rem.toString().padStart(2, "0")}`;
+}
+
 export type WeekTrainingSummary = { count: number; totalMinutes: number };
 
 /** Séances des 7 jours se terminant à `referenceDate` inclus. */

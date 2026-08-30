@@ -56,7 +56,15 @@ export default function StatHero({
     const widthBound = safeWidth / (text.length * 0.62);
     const heightBound = safeHeight / 1.05;
     adjustedNum = Math.max(10, Math.floor(Math.min(widthBound, heightBound)));
-    adjustedUnitSize = Math.max(8, Math.round(adjustedNum * 0.42));
+    // Bug corrigé : `adjustedUnitSize` ne dérivait auparavant QUE de la
+    // taille du nombre (42% de `adjustedNum`), jamais de la longueur réelle
+    // du texte d'unité — un mot plus long que le nombre (ex. "de l'objectif"
+    // vs "100%") pouvait donc déborder du cercle intérieur même quand le
+    // nombre, lui, tenait parfaitement (confirmé en direct : dernier
+    // caractère chevauchant l'anneau). Bornée ici, comme le nombre, par sa
+    // propre largeur de texte disponible.
+    const unitWidthBound = unit ? safeWidth / (unit.length * 0.62) : Infinity;
+    adjustedUnitSize = Math.max(8, Math.min(Math.round(adjustedNum * 0.42), Math.floor(unitWidthBound)));
   } else {
     // Shrinks the number as its digit count grows so it never overflows a
     // fixed-size container — only kicks in at 3+ digits, so every existing
@@ -79,6 +87,11 @@ export default function StatHero({
       />
       {unit ? (
         <Text
+          // Filet de sécurité en plus du calcul ci-dessus : si l'estimation
+          // de largeur par caractère s'avère malgré tout légèrement
+          // optimiste pour une police/un navigateur donné, un retour à la
+          // ligne reste toujours préférable à un débordement sur l'anneau.
+          numberOfLines={fitDiameter ? 2 : 1}
           style={{
             color: theme.colors.onSurfaceTertiary,
             fontSize: adjustedUnitSize,
@@ -86,6 +99,8 @@ export default function StatHero({
             letterSpacing: 0.6,
             marginTop: 2,
             textTransform: "uppercase",
+            textAlign: "center",
+            ...(fitDiameter ? { maxWidth: fitDiameter * 0.8 } : null),
           }}
         >
           {unit}

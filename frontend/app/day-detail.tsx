@@ -1,15 +1,16 @@
 import { useCallback, useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { BarChart } from "react-native-gifted-charts";
-import { spacing } from "@/src/theme";
+import { solidColor, spacing } from "@/src/theme";
 import { Theme, useTheme } from "@/src/themes";
 import ThemedBackground from "@/src/themes/ThemedBackground";
 import GlassCard from "@/src/components/ui/GlassCard";
 import MultiRingGauge, { innerContentDiameter } from "@/src/components/ui/MultiRingGauge";
 import StatHero from "@/src/components/ui/StatHero";
+import MetricGoalCard from "@/src/components/health/detail/MetricGoalCard";
+import { formatHealthMetricValue } from "@/src/utils/health-metric-config";
 import {
   DEFAULT_CALORIES_BURN_TARGET_KCAL,
   DEFAULT_SLEEP_TARGET_HOURS,
@@ -28,6 +29,7 @@ import {
   getImportedStepsForDates,
 } from "@/src/utils/health-data-storage";
 import {
+  formatTrainingDuration,
   last7DatesEndingAt,
   sumCaloriesBurnedForDate,
   sumTrainingMinutesForDate,
@@ -36,22 +38,38 @@ import {
 import { computeDailyAggregateScore } from "@/src/utils/daily-aggregate-score";
 import { progressionHref } from "@/src/utils/progression-nav";
 
-const WEEKDAY_LETTERS = ["L", "M", "M", "J", "V", "S", "D"];
-
-function formatDayLabel(dateStr: string): string {
-  const d = new Date(`${dateStr}T00:00:00Z`);
-  return WEEKDAY_LETTERS[(d.getUTCDay() + 6) % 7];
+function formatCalories(v: number): string {
+  return `${Math.round(v)} kcal`;
+}
+function formatStepsMain(v: number): string {
+  return Math.round(v).toLocaleString("fr-FR");
+}
+function formatStepsFull(v: number): string {
+  return formatStepsMain(v);
+}
+// Même formateur "7h42" que la fiche Santé Sommeil dédiée
+// (`formatHealthMetricValue`) — jamais une seconde logique de formatage de
+// durée de sommeil.
+function formatSleepDuration(v: number): string {
+  return formatHealthMetricValue("sleep", v);
 }
 
-function formatSleepDuration(hours: number): string {
-  const h = Math.floor(hours);
-  const m = Math.round((hours - h) * 60);
-  return `${h}h${String(m).padStart(2, "0")}`;
-}
-
+/**
+ * Page « Aujourd'hui » — ouverte en tapant le grand rectangle des anneaux du
+ * Dashboard, PAS une page intermédiaire par métrique. Les 4 grandes cartes
+ * (Calories brûlées/Pas/Temps d'entraînement/Sommeil) sont affichées
+ * directement les unes sous les autres, graphique inclus — aucun clic
+ * supplémentaire nécessaire pour voir un historique. Réutilise
+ * `MetricGoalCard` (déjà construit pour les fiches Santé, structure
+ * objectif+barres identique à ce que demande cette page pour les 3
+ * premières métriques) et les composants Sommeil déjà existants
+ * (`SleepHero`/`SleepDistribution`/`SleepStagesChart`) plutôt que de
+ * réinventer un second système de cartes.
+ */
 export default function DayDetailScreen() {
   const router = useRouter();
   const { theme } = useTheme();
+  const insets = useSafeAreaInsets();
   const styles = useMemo(() => buildStyles(theme), [theme]);
   const [sessions, setSessions] = useState<WorkoutSession[]>([]);
   const [wellnessLogs, setWellnessLogs] = useState<WellnessLog[]>([]);
@@ -103,59 +121,18 @@ export default function DayDetailScreen() {
   const aggregate = computeDailyAggregateScore(ringPercents);
   const weekSummary = trainingsThisWeekSummary(sessions, today);
 
-  // Pour l'affichage du graphique en barres (couleur plate), on prend le
-  // premier ton d'un dégradé le cas échéant — `BarChart` ne sait pas peindre
-  // un dégradé par barre.
-  const solid = (c: string | readonly [string, string]) => (Array.isArray(c) ? c[0] : (c as string));
+  const avgOf = (arr: number[]) => arr.reduce((a, b) => a + b, 0) / arr.length;
+  const bestOf = (arr: number[]) => Math.max(...arr);
 
-  const cards: {
-    key: string;
-    label: string;
-    unit: string;
-    color: string;
-    value: number;
-    target: number;
-    history: number[];
-    formatValue?: (n: number) => string;
-  }[] = [
-    {
-      key: "calories",
-      label: "Calories brûlées",
-      unit: "kcal",
-      color: solid(theme.colors.metricColors.caloriesBurn),
-      value: todayMetrics.caloriesBurned,
-      target: caloriesTarget,
-      history: perDateMetrics.map((m) => m.caloriesBurned),
-    },
-    {
-      key: "steps",
-      label: "Pas",
-      unit: "",
-      color: solid(theme.colors.metricColors.steps),
-      value: todayMetrics.steps,
-      target: stepsTarget,
-      history: perDateMetrics.map((m) => m.steps),
-    },
-    {
-      key: "minutes",
-      label: "Temps d'entraînement",
-      unit: "min",
-      color: solid(theme.colors.metricColors.training),
-      value: todayMetrics.trainingMinutes,
-      target: minutesTarget,
-      history: perDateMetrics.map((m) => m.trainingMinutes),
-    },
-    {
-      key: "sleep",
-      label: "Sommeil",
-      unit: "",
-      color: solid(theme.colors.metricColors.sleep),
-      value: todayMetrics.sleepHours,
-      target: sleepTarget,
-      history: perDateMetrics.map((m) => m.sleepHours),
-      formatValue: formatSleepDuration,
-    },
-  ];
+  const caloriesHistory = perDateMetrics.map((m) => ({ date: m.date, value: m.caloriesBurned }));
+  const stepsHistory = perDateMetrics.map((m) => ({ date: m.date, value: m.steps }));
+  const minutesHistory = perDateMetrics.map((m) => ({ date: m.date, value: m.trainingMinutes }));
+  const sleepHistory = perDateMetrics.map((m) => ({ date: m.date, value: m.sleepHours }));
+
+  const caloriesColor = solidColor(theme.colors.metricColors.caloriesBurn);
+  const stepsColor = solidColor(theme.colors.metricColors.steps);
+  const trainingColor = solidColor(theme.colors.metricColors.training);
+  const sleepColor = solidColor(theme.colors.metricColors.sleep);
 
   return (
     // `ThemedBackground` monté ici comme premier enfant de cet écran (voir
@@ -167,21 +144,24 @@ export default function DayDetailScreen() {
           styles.container,
           { backgroundColor: theme.background.mode === "gradient" ? "transparent" : theme.colors.surface },
         ]}
-        edges={["top", "bottom"]}
+        edges={["top"]}
       >
         <View style={[styles.header, { borderBottomColor: theme.colors.border }]}>
           <Pressable testID="close-day-detail" onPress={() => router.back()} hitSlop={12}>
             <Ionicons name="chevron-back" size={24} color={theme.colors.onSurface} />
           </Pressable>
-          <Text style={[styles.title, { color: theme.colors.onSurface }]}>Aujourd&apos;hui en détail</Text>
+          <Text style={[styles.title, { color: theme.colors.onSurface }]}>Aujourd&apos;hui</Text>
           <View style={{ width: 24 }} />
         </View>
 
-        <ScrollView contentContainerStyle={styles.scroll}>
+        <ScrollView
+          contentContainerStyle={[styles.scroll, { paddingBottom: spacing.xl3 + insets.bottom }]}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.heroWrap}>
             <MultiRingGauge
-              size={220}
-              strokeWidth={14}
+              size={188}
+              strokeWidth={13}
               gap={5}
               ringFill={theme.ringFill}
               rings={[
@@ -202,55 +182,68 @@ export default function DayDetailScreen() {
                 value={aggregate}
                 formatter={(v) => `${Math.round(v)}%`}
                 color={theme.colors.onSurface}
-                fitDiameter={innerContentDiameter(220, 14, 5, 4)}
+                fitDiameter={innerContentDiameter(188, 13, 5, 4)}
               />
             </MultiRingGauge>
           </View>
 
-          {cards.map((c) => {
-            const rawAvg = c.history.reduce((a, b) => a + b, 0) / c.history.length;
-            const avg = c.formatValue ? rawAvg : Math.round(rawAvg);
-            return (
-              <GlassCard key={c.key} style={styles.card} testID={`day-detail-card-${c.key}`}>
-                <View style={styles.cardHead}>
-                  <Text style={[styles.cardLabel, { color: theme.colors.onSurfaceTertiary }]}>
-                    {c.label.toUpperCase()}
-                  </Text>
-                  <Text style={[styles.cardValue, { color: c.color }]}>
-                    {c.formatValue ? c.formatValue(c.value) : Math.round(c.value)}
-                    {c.unit ? ` ${c.unit}` : ""}
-                    {c.target
-                      ? ` / ${c.formatValue ? c.formatValue(c.target) : Math.round(c.target)}${c.unit ? ` ${c.unit}` : ""}`
-                      : ""}
-                  </Text>
-                </View>
-                <Text style={[styles.cardAvg, { color: theme.colors.onSurfaceSecondary }]}>
-                  Moyenne 7 jours : {c.formatValue ? c.formatValue(avg) : avg}
-                  {c.unit ? ` ${c.unit}` : ""}
-                </Text>
-                <BarChart
-                  data={dates.map((d, i) => ({
-                    value: c.history[i],
-                    label: formatDayLabel(d),
-                    frontColor: c.color,
-                  }))}
-                  height={110}
-                  barWidth={18}
-                  spacing={16}
-                  barBorderRadius={4}
-                  hideRules
-                  yAxisThickness={0}
-                  xAxisThickness={0}
-                  yAxisTextStyle={{ color: theme.colors.onSurfaceTertiary, fontSize: 10 }}
-                  xAxisLabelTextStyle={{ color: theme.colors.onSurfaceTertiary, fontSize: 9 }}
-                  noOfSections={3}
-                  isAnimated
-                />
-              </GlassCard>
-            );
-          })}
+          <MetricGoalCard
+            icon="flame"
+            label="Calories brûlées"
+            color={caloriesColor}
+            todayValue={todayMetrics.caloriesBurned}
+            target={caloriesTarget}
+            unit="kcal"
+            formatValue={formatCalories}
+            formatMainValue={(v) => String(Math.round(v))}
+            average={avgOf(caloriesHistory.map((h) => h.value))}
+            best={bestOf(caloriesHistory.map((h) => h.value))}
+            history={caloriesHistory}
+          />
 
-          <GlassCard style={styles.card} testID="day-detail-week-summary">
+          <MetricGoalCard
+            icon="footsteps"
+            label="Pas"
+            color={stepsColor}
+            todayValue={todayMetrics.steps}
+            target={stepsTarget}
+            unit="pas"
+            formatValue={formatStepsFull}
+            formatMainValue={formatStepsMain}
+            average={avgOf(stepsHistory.map((h) => h.value))}
+            best={bestOf(stepsHistory.map((h) => h.value))}
+            history={stepsHistory}
+          />
+
+          <MetricGoalCard
+            icon="barbell"
+            label="Temps d'entraînement"
+            color={trainingColor}
+            todayValue={todayMetrics.trainingMinutes}
+            target={minutesTarget}
+            unit=""
+            formatValue={formatTrainingDuration}
+            formatMainValue={formatTrainingDuration}
+            average={avgOf(minutesHistory.map((h) => h.value))}
+            best={bestOf(minutesHistory.map((h) => h.value))}
+            history={minutesHistory}
+          />
+
+          <MetricGoalCard
+            icon="moon"
+            label="Sommeil"
+            color={sleepColor}
+            todayValue={todayMetrics.sleepHours}
+            target={sleepTarget}
+            unit=""
+            formatValue={formatSleepDuration}
+            formatMainValue={formatSleepDuration}
+            average={avgOf(sleepHistory.map((h) => h.value))}
+            best={bestOf(sleepHistory.map((h) => h.value))}
+            history={sleepHistory}
+          />
+
+          <GlassCard style={styles.weekCard} testID="day-detail-week-summary">
             <Text style={[styles.cardLabel, { color: theme.colors.onSurfaceTertiary }]}>
               ENTRAÎNEMENTS DE LA SEMAINE
             </Text>
@@ -269,8 +262,6 @@ export default function DayDetailScreen() {
             </Text>
             <Ionicons name="chevron-forward" size={14} color={theme.colors.onSurfaceTertiary} />
           </Pressable>
-
-          <View style={{ height: 40 }} />
         </ScrollView>
       </SafeAreaView>
     </View>
@@ -280,38 +271,35 @@ export default function DayDetailScreen() {
 function buildStyles(theme: Theme) {
   const { colors, radius } = theme;
   return StyleSheet.create({
-  container: { flex: 1 },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-  },
-  title: { fontSize: 16, fontWeight: "700" },
-  scroll: { padding: spacing.lg, gap: spacing.md },
-  heroWrap: { alignItems: "center", paddingVertical: spacing.lg },
-  card: {
-    backgroundColor: colors.surfaceSecondary,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.md,
-    gap: 4,
-  },
-  cardHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  cardLabel: { fontSize: 10, fontWeight: "800", letterSpacing: 1 },
-  cardValue: { fontSize: 15, fontWeight: "800" },
-  cardAvg: { fontSize: 11, marginBottom: 4 },
-  weekSummary: { fontSize: 16, fontWeight: "800", marginTop: 4 },
-  progressionLink: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-    padding: spacing.sm,
-  },
-  progressionLinkText: { fontSize: 12, fontWeight: "700" },
+    container: { flex: 1 },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.md,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+    },
+    title: { fontSize: 16, fontWeight: "800" },
+    scroll: { padding: spacing.lg, gap: spacing.lg },
+    heroWrap: { alignItems: "center", paddingVertical: spacing.sm },
+    weekCard: {
+      backgroundColor: colors.surfaceSecondary,
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: spacing.md,
+      gap: 4,
+    },
+    cardLabel: { fontSize: 10, fontWeight: "800", letterSpacing: 1 },
+    weekSummary: { fontSize: 16, fontWeight: "800", marginTop: 4 },
+    progressionLink: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 6,
+      padding: spacing.sm,
+    },
+    progressionLinkText: { fontSize: 12, fontWeight: "700" },
   });
 }

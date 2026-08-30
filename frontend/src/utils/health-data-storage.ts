@@ -216,6 +216,18 @@ const EXERCISE_TIME_METRIC_NAMES = new Set(["appleexercisetime", "exercisetime",
 // widget dédié si besoin.
 const ACTIVE_ENERGY_METRIC_NAMES = new Set(["activeenergyburned", "activeenergy", "activecalories"]);
 
+// Poids / IMC / Masse grasse — noms non confirmés contre un vrai payload
+// Health Auto Export pour CES métriques précises (contrairement à
+// sommeil/FC repos/VFC/SpO2/distance/temps d'exercice ci-dessus, jamais
+// encore inspectées en direct) ; alias posés sur la convention de nommage
+// HealthKit habituelle (`weight_body_mass`, `body_mass_index`,
+// `body_fat_percentage`), avec le même filet tolérant que le reste de ce
+// fichier — jamais d'exception, un état "pas encore de données" propre si le
+// nom réel diffère. À ajuster une fois un vrai payload confirmé.
+const WEIGHT_METRIC_NAMES = new Set(["weightbodymass", "bodyweight", "weight", "bodymass"]);
+const BMI_METRIC_NAMES = new Set(["bodymassindex", "bmi"]);
+const BODY_FAT_METRIC_NAMES = new Set(["bodyfatpercentage", "bodyfat", "percentagebodyfat"]);
+
 export function unitsToHoursMultiplier(units: string | null): number {
   if (!units) return 1; // suppose déjà en heures si l'unité est absente
   const u = units.toLowerCase();
@@ -230,6 +242,17 @@ function unitsToKmMultiplier(units: string | null): number {
   if (u.includes("mi")) return 1.60934;
   if (u === "m" || u.includes("meter") || u.includes("metre")) return 0.001;
   return 1; // "km"/inconnu → suppose déjà en km
+}
+
+/** Health Auto Export peut envoyer le poids en `lb` selon les réglages
+ * régionaux de l'iPhone (jamais vérifié en direct pour cette métrique
+ * précise) — conversion posée par prudence, même patron que distance/
+ * calories ci-dessus. */
+function unitsToKgMultiplier(units: string | null): number {
+  if (!units) return 1; // suppose déjà en kg si l'unité est absente
+  const u = units.toLowerCase();
+  if (u.includes("lb") || u.includes("pound")) return 0.453592;
+  return 1; // "kg"/inconnu → suppose déjà en kg
 }
 
 /** Health Auto Export envoie `active_energy`/`basal_energy_burned` en `kJ`
@@ -581,9 +604,13 @@ export {
   EXERCISE_TIME_METRIC_NAMES,
   ACTIVE_ENERGY_METRIC_NAMES,
   STEP_METRIC_NAMES,
+  WEIGHT_METRIC_NAMES,
+  BMI_METRIC_NAMES,
+  BODY_FAT_METRIC_NAMES,
   normalizeMetricName,
   unitsToKcalMultiplier,
   unitsToKmMultiplier,
+  unitsToKgMultiplier,
   sleepHoursFromRaw,
 };
 

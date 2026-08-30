@@ -8,6 +8,7 @@ import ThemedBackground from "@/src/themes/ThemedBackground";
 import { tabBarSafeBottomOffset } from "@/src/utils/tab-bar-metrics";
 import GlassCard from "@/src/components/ui/GlassCard";
 import { getMeasurements, getProfile, Measurement, UserProfile } from "@/src/utils/gym-storage";
+import { syncHealthDerivedMeasurements } from "@/src/utils/health-measurements-sync";
 import { useHealthDashboardData } from "@/src/hooks/useHealthDashboardData";
 import HealthScoreCard from "@/src/components/health/HealthScoreCard";
 import HealthMetricGrid from "@/src/components/health/HealthMetricGrid";
@@ -19,11 +20,17 @@ import MeasurementsCard from "@/src/components/health/MeasurementsCard";
  * Évolution dans la barre d'onglets. `HealthScoreCard` (anneau + bande
  * qualitative + conseil) est un bloc visuel autonome posé directement sur
  * l'Aurora — jamais dans une carte — pour rester le point focal de l'écran.
- * Le rectangle Glass juste en dessous ne porte lui QUE les 5 données
- * vitales (`HealthMetricGrid`), aucun texte de recommandation. Ordre :
- * Récupération → Aujourd'hui → Mesurations. Fond global partagé
- * (`ThemedBackground`, pas de fond spécifique à cet écran), même patron de
- * montage par écran que Dashboard/`/day-detail`/Mon évolution.
+ * Ordre : Récupération → Aujourd'hui → Mesurations. `MeasurementsCard`
+ * reste le système de mensurations de l'utilisateur (chest/waist/hips/etc.)
+ * — désormais alimenté aussi automatiquement par Poids/IMC/Masse grasse
+ * importés (voir `syncHealthDerivedMeasurements`, appelée avant chaque
+ * `reload()` ci-dessous), en plus des saisies manuelles existantes qui
+ * restent intactes et prioritaires par date réelle, jamais par source. Un
+ * bloc "Mesures corporelles" séparé avait été ajouté en tête d'écran dans
+ * une passe précédente puis retiré (doublon exact de ces mêmes 3 métriques,
+ * déjà couvertes par `MeasurementsCard`) — ne pas le réintroduire. Fond
+ * global partagé (`ThemedBackground`, pas de fond spécifique à cet écran),
+ * même patron de montage par écran que Dashboard/`/day-detail`/Mon évolution.
  */
 export default function SanteScreen() {
   const { theme } = useTheme();
@@ -33,6 +40,10 @@ export default function SanteScreen() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
 
   const reload = useCallback(async () => {
+    // Fusionne les mesures Santé récemment importées dans le système de
+    // Mensurations AVANT de le lire — idempotent (voir la fonction), donc
+    // sans risque à rappeler à chaque fois que l'onglet reprend le focus.
+    await syncHealthDerivedMeasurements();
     const [m, p] = await Promise.all([getMeasurements(), getProfile()]);
     setMeasurements(m);
     setProfile(p);

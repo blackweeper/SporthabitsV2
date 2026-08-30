@@ -400,6 +400,22 @@ export type Measurement = {
   calf_cm?: number | null;
   waist_navel_cm?: number | null;
   body_fat_pct?: number | null;
+  /** IMC réellement rapporté par la source Santé (Health Auto Export) —
+   * distinct de l'IMC calculé côté client à partir de `weight_kg`/taille du
+   * profil (voir `statValue()` dans `MeasurementsCard.tsx`) : quand cette
+   * valeur existe, elle est prioritaire (jamais recalculée par-dessus une
+   * vraie donnée mesurée). `undefined`/`null` = repli sur le calcul
+   * classique, comme avant l'ajout de ce champ. */
+  bmi?: number | null;
+  /** Origine du relevé — `"health"` pour les mesures importées automatiquement
+   * depuis Health Auto Export (voir `health-measurements-sync.ts`),
+   * `undefined`/`"manual"` pour une saisie utilisateur classique (repli
+   * implicite : toutes les mesures existantes avant ce champ restent
+   * "manual" sans migration nécessaire). Ne sert jamais à écraser/prioriser
+   * une source sur l'autre pour la valeur "actuelle" — seule la date réelle
+   * du relevé décide (voir `seriesForStat`), uniquement pour un indice
+   * visuel discret ("· Santé"). */
+  source?: "manual" | "health";
   photoBase64: string | null;
   notes: string | null;
 };

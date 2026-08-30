@@ -24,15 +24,19 @@ type StatKey =
   | "calf_cm";
 
 // Toutes les icônes reprennent le pictogramme "tour de mensuration"
-// générique (`resize`) sauf le Poids, qui garde sa propre icône balance —
-// demande explicite (le Poids est la seule vraie donnée de bascule, les 10
-// autres sont toutes des tours de mesure au ruban, d'où l'icône partagée).
+// générique (`resize`) sauf Poids/IMC/Masse grasse, qui gardent chacune leur
+// propre icône — les mêmes exactement que sur leur fiche détail respective
+// (`MetricDetailScreen.tsx`'s `METRIC_META`, `/health-metric/weight|bmi|
+// bodyFatPercentage`) : cohérence visuelle délibérée, la même métrique
+// affiche toujours la même icône partout dans l'app. Les 8 autres tours de
+// mensuration restent de vraies circonférences interchangeables (même
+// nature de mesure), d'où l'icône partagée entre elles uniquement.
 const MEASURE_ICON = "resize" as const;
 
 const STAT_META: Record<StatKey, { label: string; unit: string; icon: keyof typeof Ionicons.glyphMap }> = {
   weight_kg: { label: "Poids", unit: "kg", icon: "scale" },
-  body_fat_pct: { label: "Masse grasse", unit: "%", icon: MEASURE_ICON },
-  imc: { label: "IMC", unit: "", icon: MEASURE_ICON },
+  imc: { label: "IMC", unit: "", icon: "body-outline" },
+  body_fat_pct: { label: "Masse grasse", unit: "%", icon: "flame-outline" },
   waist_cm: { label: "Tour de taille", unit: "cm", icon: MEASURE_ICON },
   chest_cm: { label: "Poitrine", unit: "cm", icon: MEASURE_ICON },
   hips_cm: { label: "Hanches", unit: "cm", icon: MEASURE_ICON },
@@ -42,6 +46,19 @@ const STAT_META: Record<StatKey, { label: string; unit: string; icon: keyof type
   forearm_cm: { label: "Avant-bras", unit: "cm", icon: MEASURE_ICON },
   calf_cm: { label: "Mollets", unit: "cm", icon: MEASURE_ICON },
 };
+
+/** Couleur d'accent par métrique — même principe que `HealthMetricGrid`
+ * (chaque ligne a sa propre teinte, jamais un badge uniforme) et mêmes
+ * couleurs exactement que `MetricDetailScreen.tsx`'s `resolveColor` pour
+ * Poids/IMC/Masse grasse (la fiche détail de chaque métrique utilise déjà
+ * `brand`/`info`/`progress`) — cohérence inter-écrans, pas une nouvelle
+ * palette inventée pour ce composant. Les circonférences restent toutes sur
+ * `brand` (le générique de l'app), cohérent avec leur icône partagée. */
+function colorForStat(key: StatKey, theme: ReturnType<typeof useTheme>["theme"]): string {
+  if (key === "imc") return theme.colors.info;
+  if (key === "body_fat_pct") return theme.colors.progress;
+  return theme.colors.brand;
+}
 
 /** Sens de la "bonne" variation par métrique — voir l'en-tête du composant
  * pour le raisonnement complet. Taille/hanches/masse grasse : toujours une
@@ -59,17 +76,28 @@ function directionForStat(key: StatKey, primaryGoal: UserProfile["primaryGoal"])
   return "neutral";
 }
 
-// Poids/Poitrine/Taille/Hanches/Masse grasse toujours visibles (les 5
-// mises en avant demandées) ; le reste se replie derrière le chevron — n'y
+// Poids → IMC → Masse grasse toujours en tête, dans cet ordre impératif
+// (alimentés automatiquement par Health Auto Export quand disponibles, voir
+// `health-measurements-sync.ts`), puis Poitrine/Taille/Hanches — déjà
+// toujours visibles avant cet ajout, simplement repoussés après les 3
+// premiers plutôt que retirés. Le reste se replie derrière le chevron — n'y
 // apparaît de toute façon que si l'utilisateur a réellement suivi ce tour
 // de mensuration, jamais une ligne vide.
-const ALWAYS_VISIBLE_STATS: StatKey[] = ["weight_kg", "chest_cm", "waist_cm", "hips_cm", "body_fat_pct"];
-const COLLAPSIBLE_STATS: StatKey[] = ["imc", "arm_cm", "thigh_cm", "neck_cm", "forearm_cm", "calf_cm"];
+const ALWAYS_VISIBLE_STATS: StatKey[] = ["weight_kg", "imc", "body_fat_pct", "chest_cm", "waist_cm", "hips_cm"];
+const COLLAPSIBLE_STATS: StatKey[] = ["arm_cm", "thigh_cm", "neck_cm", "forearm_cm", "calf_cm"];
 
-type Point = { date: string; value: number };
+type Point = { date: string; value: number; source?: Measurement["source"] };
 
 function statValue(m: Measurement, key: StatKey, heightM: number | null): number | null {
-  if (key === "imc") return m.weight_kg != null && heightM ? m.weight_kg / (heightM * heightM) : null;
+  // `m.bmi` = IMC réellement rapporté par Health Auto Export (jamais
+  // recalculé par-dessus une vraie donnée mesurée, voir le commentaire sur
+  // le champ dans `gym-storage.ts`) — repli sur le calcul poids/taille
+  // classique pour toute mesure qui n'en a pas (le cas de toutes les
+  // mesures manuelles aujourd'hui).
+  if (key === "imc") {
+    if (m.bmi != null) return m.bmi;
+    return m.weight_kg != null && heightM ? m.weight_kg / (heightM * heightM) : null;
+  }
   // Le formulaire de saisie (`app/measurement/[id].tsx`, `CORE_FIELDS`) n'a
   // qu'un seul champ "Tour de taille", écrit dans `waist_navel_cm` (mesure
   // au nombril, utilisée aussi pour l'estimation de masse grasse) — il n'y
@@ -87,9 +115,9 @@ function statValue(m: Measurement, key: StatKey, heightM: number | null): number
 
 function seriesForStat(measurements: Measurement[], key: StatKey, heightM: number | null): Point[] {
   return measurements
-    .map((m) => {
+    .map((m): Point | null => {
       const v = statValue(m, key, heightM);
-      return v != null ? { date: m.date, value: v } : null;
+      return v != null ? { date: m.date, value: v, source: m.source } : null;
     })
     .filter((p): p is Point => p != null)
     .sort((a, b) => (a.date < b.date ? -1 : 1));
@@ -97,7 +125,16 @@ function seriesForStat(measurements: Measurement[], key: StatKey, heightM: numbe
 
 function formatStatValue(key: StatKey, value: number): string {
   const unit = STAT_META[key].unit;
-  const rounded = key === "imc" ? value.toFixed(1) : key === "body_fat_pct" ? value.toFixed(1) : `${value}`;
+  // Une décimale, virgule française — cohérent avec le reste de l'app
+  // (`health-metric-config.ts`), au lieu de `toFixed(1)` (point anglo-saxon).
+  // Le poids est inclus depuis l'ajout de l'import Santé : un relevé importé
+  // peut arriver en flottant imprécis (conversion lb→kg en amont), jamais
+  // affiché tel quel avant arrondi — les tours de mensuration en cm restent
+  // des entiers, jamais alimentés par Santé, donc inchangés.
+  const rounded =
+    key === "imc" || key === "body_fat_pct" || key === "weight_kg"
+      ? value.toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+      : `${value}`;
   return unit ? `${rounded} ${unit}` : rounded;
 }
 
@@ -211,17 +248,19 @@ function StatRow({
   const points = series.filter((p) => new Date(p.date).getTime() >= cutoff);
   const chartData = points.map((p) => ({ value: Math.round(p.value * 100) / 100, label: formatDateShort(p.date) }));
   const chartW = Dimensions.get("window").width - spacing.lg * 2 - 78;
+  const accent = colorForStat(statKey, theme);
 
   return (
     <View>
       <Pressable testID={`measurement-stat-${statKey}`} onPress={onToggle} style={styles.row}>
-        <View style={[styles.iconBadge, { backgroundColor: withAlpha(theme.colors.brand, 12) }]}>
-          <Ionicons name={meta.icon} size={13} color={theme.colors.brand} />
+        <View style={[styles.iconBadge, { backgroundColor: withAlpha(accent, 12) }]}>
+          <Ionicons name={meta.icon} size={13} color={accent} />
         </View>
         <View style={styles.rowText}>
           <Text style={[styles.rowLabel, { color: theme.colors.onSurface }]}>{meta.label}</Text>
           <Text style={[styles.rowSub, { color: theme.colors.onSurfaceTertiary }]} numberOfLines={1}>
             {previous ? `précédent · ${formatStatValue(statKey, previous.value)}` : "premier relevé"}
+            {current?.source === "health" ? " · Santé" : ""}
           </Text>
         </View>
         <View style={styles.rowRight}>
@@ -232,7 +271,7 @@ function StatRow({
             <View style={[styles.trendPill, isGood != null && { backgroundColor: withAlpha(trendColor, 14) }]}>
               <Ionicons name={delta > 0 ? "arrow-up" : "arrow-down"} size={9} color={trendColor} />
               <Text style={[styles.trendText, { color: trendColor }]}>
-                {Math.abs(delta).toFixed(1)} {meta.unit}
+                {Math.abs(delta).toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} {meta.unit}
               </Text>
             </View>
           )}
@@ -249,10 +288,10 @@ function StatRow({
               const active = p === period;
               return (
                 <Pressable key={p} onPress={() => setPeriod(p)} style={styles.periodChip}>
-                  <Text style={[styles.periodChipText, { color: active ? theme.colors.brand : theme.colors.onSurfaceTertiary }]}>
+                  <Text style={[styles.periodChipText, { color: active ? accent : theme.colors.onSurfaceTertiary }]}>
                     {PERIOD_LABEL[p]}
                   </Text>
-                  {active && <View style={[styles.periodUnderline, { backgroundColor: theme.colors.brand }]} />}
+                  {active && <View style={[styles.periodUnderline, { backgroundColor: accent }]} />}
                 </Pressable>
               );
             })}
@@ -260,12 +299,12 @@ function StatRow({
           {chartData.length >= 2 ? (
             <LineChart
               data={chartData}
-              color={theme.colors.brand}
+              color={accent}
               thickness={2}
               areaChart
-              startFillColor={theme.colors.brand}
+              startFillColor={accent}
               startOpacity={0.2}
-              endFillColor={theme.colors.brand}
+              endFillColor={accent}
               endOpacity={0.01}
               yAxisThickness={0}
               xAxisThickness={0}
@@ -276,7 +315,7 @@ function StatRow({
               isAnimated
               animationDuration={500}
               curved
-              dataPointsColor={theme.colors.brand}
+              dataPointsColor={accent}
               dataPointsRadius={2.5}
               initialSpacing={6}
             />
@@ -455,7 +494,10 @@ export default function MeasurementsCard({
                         <Pressable testID={`measurement-history-row-${m.id}`} style={styles.historyRow} onPress={() => router.push(`/measurement/${m.id}`)}>
                           <Text style={[styles.historyDate, { color: theme.colors.onSurfaceSecondary }]}>{formatDate(m.date)}</Text>
                           <Text style={[styles.historyChips, { color: theme.colors.onSurfaceTertiary }]} numberOfLines={1}>
-                            {[m.weight_kg != null ? `${m.weight_kg} kg` : null, m.body_fat_pct != null ? `${m.body_fat_pct}% MG` : null]
+                            {[
+                              m.weight_kg != null ? formatStatValue("weight_kg", m.weight_kg) : null,
+                              m.body_fat_pct != null ? `${formatStatValue("body_fat_pct", m.body_fat_pct)} MG` : null,
+                            ]
                               .filter(Boolean)
                               .join(" · ") || "—"}
                           </Text>

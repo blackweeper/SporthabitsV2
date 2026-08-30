@@ -3,10 +3,13 @@ import {
   getRawSamplesForMetric,
   sleepHoursFromRaw,
   unitsToKcalMultiplier,
+  unitsToKgMultiplier,
   unitsToKmMultiplier,
   DailyMetricPoint,
   HealthMetricSample,
   ACTIVE_ENERGY_METRIC_NAMES,
+  BMI_METRIC_NAMES,
+  BODY_FAT_METRIC_NAMES,
   DISTANCE_METRIC_NAMES,
   HRV_METRIC_NAMES,
   RESPIRATORY_RATE_METRIC_NAMES,
@@ -14,6 +17,7 @@ import {
   SLEEP_METRIC_NAMES,
   SPO2_METRIC_NAMES,
   STEP_METRIC_NAMES,
+  WEIGHT_METRIC_NAMES,
 } from "@/src/utils/health-data-storage";
 
 // Étendu (V2) : couvre aussi Pas/Distance/Calories actives — auparavant
@@ -31,7 +35,10 @@ export type HealthMetricKey =
   | "hrv"
   | "restingHr"
   | "respiratoryRate"
-  | "spo2";
+  | "spo2"
+  | "weight"
+  | "bmi"
+  | "bodyFatPercentage";
 
 export const HEALTH_METRIC_LABEL: Record<HealthMetricKey, string> = {
   steps: "Pas",
@@ -42,6 +49,9 @@ export const HEALTH_METRIC_LABEL: Record<HealthMetricKey, string> = {
   restingHr: "FC repos",
   respiratoryRate: "Respiration",
   spo2: "SpO2",
+  weight: "Poids",
+  bmi: "IMC",
+  bodyFatPercentage: "Masse grasse",
 };
 
 export const HEALTH_METRIC_UNIT: Record<HealthMetricKey, string> = {
@@ -53,6 +63,9 @@ export const HEALTH_METRIC_UNIT: Record<HealthMetricKey, string> = {
   restingHr: "bpm",
   respiratoryRate: "rpm",
   spo2: "%",
+  weight: "kg",
+  bmi: "",
+  bodyFatPercentage: "%",
 };
 
 const ALIAS_SETS: Record<HealthMetricKey, Set<string>> = {
@@ -64,11 +77,15 @@ const ALIAS_SETS: Record<HealthMetricKey, Set<string>> = {
   restingHr: RESTING_HR_METRIC_NAMES,
   respiratoryRate: RESPIRATORY_RATE_METRIC_NAMES,
   spo2: SPO2_METRIC_NAMES,
+  weight: WEIGHT_METRIC_NAMES,
+  bmi: BMI_METRIC_NAMES,
+  bodyFatPercentage: BODY_FAT_METRIC_NAMES,
 };
 
 /** "sum" pour les métriques réparties en plusieurs échantillons/jour à
  * additionner (pas, distance, calories, sommeil) ; "avg" pour une métrique
- * ponctuelle (VFC/FC repos/Respiration/SpO2, ~1 échantillon/jour). */
+ * ponctuelle (VFC/FC repos/Respiration/SpO2/Poids/IMC/Masse grasse, ~1
+ * échantillon/jour). */
 const AGGREGATION: Record<HealthMetricKey, "sum" | "avg"> = {
   steps: "sum",
   walkingDistance: "sum",
@@ -78,12 +95,15 @@ const AGGREGATION: Record<HealthMetricKey, "sum" | "avg"> = {
   restingHr: "avg",
   respiratoryRate: "avg",
   spo2: "avg",
+  weight: "avg",
+  bmi: "avg",
+  bodyFatPercentage: "avg",
 };
 
 function normalizeValue(key: HealthMetricKey, value: number): number {
-  // SpO2 est parfois envoyé en fraction (0.97) plutôt qu'en pourcentage —
-  // voir `useHealthDashboardData.ts`, même normalisation.
-  if (key === "spo2" && value <= 1) return value * 100;
+  // SpO2 et masse grasse sont parfois envoyés en fraction (0.97/0.20) plutôt
+  // qu'en pourcentage — voir `useHealthDashboardData.ts`, même normalisation.
+  if ((key === "spo2" || key === "bodyFatPercentage") && value <= 1) return value * 100;
   return value;
 }
 
@@ -95,6 +115,13 @@ export function formatHealthMetricValue(key: HealthMetricKey, value: number): st
   }
   if (key === "steps") return Math.round(value).toLocaleString("fr-FR");
   if (key === "walkingDistance") return `${value.toLocaleString("fr-FR", { maximumFractionDigits: 2 })} km`;
+  if (key === "weight" || key === "bmi" || key === "bodyFatPercentage") {
+    // Une décimale, jamais plus (brief : "95,0 kg"/"30,3"/"20,0 %", pas
+    // "95,04 kg") — décimale française (virgule) comme le reste de l'app.
+    const decimals = normalizeValue(key, value).toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    const unit = HEALTH_METRIC_UNIT[key];
+    return unit ? `${decimals} ${unit}` : decimals;
+  }
   const unit = HEALTH_METRIC_UNIT[key];
   return unit ? `${Math.round(normalizeValue(key, value))} ${unit}` : `${Math.round(normalizeValue(key, value))}`;
 }
@@ -105,6 +132,7 @@ export function formatHealthMetricValue(key: HealthMetricKey, value: number): st
 function unitsConvertFor(key: HealthMetricKey): ((units: string | null) => number) | undefined {
   if (key === "walkingDistance") return unitsToKmMultiplier;
   if (key === "activeCalories") return unitsToKcalMultiplier;
+  if (key === "weight") return unitsToKgMultiplier;
   return undefined;
 }
 
@@ -150,7 +178,9 @@ export async function loadHealthMetricSeries(
     unitsConvertFor(key),
     true,
   );
-  return key === "spo2" ? series.map((p) => ({ ...p, value: normalizeValue(key, p.value) })) : series;
+  return key === "spo2" || key === "bodyFatPercentage"
+    ? series.map((p) => ({ ...p, value: normalizeValue(key, p.value) }))
+    : series;
 }
 
 /** Tous les échantillons individuellement reçus pour cette métrique, triés
@@ -169,6 +199,9 @@ const ALL_KEYS: HealthMetricKey[] = [
   "restingHr",
   "respiratoryRate",
   "spo2",
+  "weight",
+  "bmi",
+  "bodyFatPercentage",
 ];
 
 export function isHealthMetricKey(v: string | undefined): v is HealthMetricKey {
