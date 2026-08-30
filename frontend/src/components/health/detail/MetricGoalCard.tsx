@@ -8,11 +8,25 @@ import { useTheme } from "@/src/themes";
 import GlassCard from "@/src/components/ui/GlassCard";
 import AnimatedNumber from "@/src/components/ui/AnimatedNumber";
 import { DailyMetricPoint } from "@/src/utils/health-data-storage";
+import { SelectedDot, PointerLabel } from "@/src/components/health/InteractiveHealthChart";
 
 function shortDay(dateStr: string): string {
   const d = new Date(`${dateStr}T00:00:00Z`);
   return d.toLocaleDateString("fr-FR", { weekday: "short", timeZone: "UTC" }).slice(0, 1).toUpperCase();
 }
+
+// Barres nettement plus grandes qu'avant (retour utilisateur : "trop
+// petites") + espacement recalculé en conséquence, avec une marge de
+// sécurité généreuse — jamais de `width`/`yAxisLabelWidth` forcés sur le
+// `BarChart` (essayé puis abandonné) : la colonne d'étiquettes Y de la
+// librairie s'auto-dimensionne selon le nombre de chiffres affichés
+// (largeur non exposée de façon fiable), donc contraindre `width` à une
+// valeur calculée à la main pouvait pousser la dernière barre hors de la
+// zone réellement dessinée — bug confirmé (barre du jour manquante malgré
+// une vraie valeur). Laisser la librairie se dimensionner elle-même avec un
+// espacement volontairement un peu généreux est plus sûr qu'un calage exact.
+const BAR_WIDTH = 28;
+const INITIAL_SPACING = 10;
 
 function Bar({ pct, color }: { pct: number; color: string }) {
   const { theme } = useTheme();
@@ -40,6 +54,18 @@ function Bar({ pct, color }: { pct: number; color: string }) {
  * l'orange de la référence). Toutes les valeurs viennent de
  * `computeMetricKpis`/`loadHealthMetricSeries` (aucune seconde source) ;
  * masquée section par section quand une donnée est absente.
+ *
+ * Historique en barres — habillage inspiré d'une référence vidéo fournie
+ * (barres arrondies façon pilule, glissé tactile avec point rond agrandi +
+ * badge daté, jamais de ligne verticale/croix — retirées sur retour
+ * utilisateur, trop chargées) : même point/badge que `InteractiveHealthChart`
+ * (`SelectedDot`/`PointerLabel`, réutilisés tels quels), jamais une deuxième
+ * implémentation de tooltip. Couleur toujours celle propre à la métrique
+ * appelante, jamais une teinte neutre. La pastille de jour glissant sous
+ * l'axe (vue dans la référence) n'a pas pu être reproduite de façon fiable —
+ * sa position dépend d'une largeur de colonne d'axe interne à la librairie
+ * non exposée de façon stable d'un environnement de rendu à l'autre ; même
+ * limite déjà rencontrée et documentée sur le graphique à courbe.
  */
 export default function MetricGoalCard({
   icon,
@@ -73,6 +99,52 @@ export default function MetricGoalCard({
   const pct = hasToday ? Math.max(0, Math.min(1, todayValue! / target)) : 0;
   const pctLabel = hasToday ? `${Math.round(pct * 100)}%` : "—";
   const chartW = Dimensions.get("window").width - spacing.lg * 2 - spacing.lg * 2;
+
+  // Bug trouvé en vérifiant cette carte en direct : `history` arrive du
+  // parent déjà à longueur 7 dès le premier rendu, mais avec des valeurs
+  // TOUTES à 0 tant que l'import Santé async (steps/sommeil) n'a pas résolu
+  // — le `BarChart` (animé, `isAnimated`) montait donc une première fois sur
+  // des données vides, jouait son animation de croissance vers 0 (donc
+  // rien), puis ne la rejouait jamais quand les vraies valeurs arrivaient
+  // ensuite (confirmé en inspectant le DOM : le calque de remplissage
+  // interne restait figé à une hauteur de 0.1px malgré un conteneur
+  // correctement dimensionné). La clé ci-dessous force UN SEUL remontage au
+  // moment précis où une vraie donnée non nulle apparaît pour la première
+  // fois — l'animation de croissance rejoue alors correctement vers les
+  // vraies valeurs. Sans effet sur une semaine réellement à 0 partout
+  // (aucun remontage, jamais de bug à corriger dans ce cas).
+  const hasRealData = history.some((h) => h.value > 0);
+  // `overflowTop` (essayé d'abord) s'est révélé être un simple booléen en
+  // interne dans cette version de la librairie pour `BarChart` (toute valeur
+  // non nulle retombe sur la même constante fixe, jamais la valeur passée —
+  // confirmé en mesurant la position réelle du badge dans le DOM, identique
+  // à 70 et à 110) — inutilisable pour réserver une vraie marge. La barre la
+  // plus haute touchait donc le plafond du graphique, ne laissant aucune
+  // place pour le badge daté au-dessus d'elle. Fixé à la place par une
+  // marge de 25% au-dessus du maximum réel (`maxValue`, un prop qui, lui,
+  // fonctionne réellement) — pratique de représentation graphique courante
+  // (la barre la plus haute ne doit jamais toucher le plafond), pas une
+  // donnée modifiée : les valeurs et proportions relatives entre barres
+  // restent exactement les mêmes, seule l'échelle gagne de l'air en haut.
+  const dataMax = Math.max(...history.map((h) => h.value), 1);
+  const maxValue = dataMax * 1.25;
+  const barCount = Math.max(1, history.length);
+  // Marge de sécurité (-12) volontaire : la colonne d'étiquettes Y auto-
+  // dimensionnée par la librairie mange une partie de `chartW` non connue à
+  // l'avance — mieux vaut des barres légèrement plus resserrées que risquer
+  // de pousser la dernière hors de la zone visible (voir le commentaire plus haut).
+  const barSpacing = Math.max(8, (chartW - INITIAL_SPACING) / barCount - BAR_WIDTH - 12);
+  // `autoAdjustPointerLabelPosition` place TOUJOURS le badge au-dessus du
+  // point pour ce `BarChart` (jamais en dessous, quelle que soit la barre
+  // sélectionnée — vérifié en mesurant le DOM : le badge rend exactement à
+  // la même position, qu'on sélectionne la barre la plus haute ou une
+  // barre quasi vide), et cette position est systématiquement ~40-45px
+  // au-dessus du haut réel de la zone de dessin du graphique. `maxValue`
+  // (au-dessus) évite que la barre touche le plafond, mais ne change rien
+  // à CE décalage-là. Compensé ici par un simple `marginTop` sur le
+  // contenu du badge (dans `pointerLabelComponent` ci-dessous) plutôt que
+  // par une nouvelle tentative sur un prop de la librairie.
+  const POINTER_LABEL_SHIFT = 52;
 
   return (
     <GlassCard level="elevated" accent={color} style={styles.card}>
@@ -111,18 +183,39 @@ export default function MetricGoalCard({
       {history.length >= 2 && (
         <View style={styles.chartWrap}>
           <BarChart
-            data={history.map((h) => ({ value: h.value, label: shortDay(h.date), frontColor: color }))}
-            height={100}
-            barWidth={18}
-            spacing={Math.max(14, chartW / history.length - 30)}
-            barBorderRadius={4}
-            hideRules
+            key={hasRealData ? "data" : "empty"}
+            data={history.map((h) => ({ value: h.value, label: shortDay(h.date), date: h.date, frontColor: color }))}
+            height={110}
+            barWidth={BAR_WIDTH}
+            spacing={barSpacing}
+            initialSpacing={INITIAL_SPACING}
+            barBorderRadius={BAR_WIDTH / 2}
+            rulesType="dashed"
+            rulesColor={withAlpha(theme.colors.onSurface, 8)}
+            rulesThickness={1}
             yAxisThickness={0}
             xAxisThickness={0}
             yAxisTextStyle={{ color: theme.colors.onSurfaceTertiary, fontSize: 9 }}
             xAxisLabelTextStyle={{ color: theme.colors.onSurfaceTertiary, fontSize: 9 }}
-            noOfSections={3}
+            noOfSections={5}
+            maxValue={maxValue}
             isAnimated
+            pointerConfig={{
+              showPointerStrip: false,
+              pointerColor: color,
+              radius: 5,
+              activatePointersInstantlyOnTouch: true,
+              persistPointer: true,
+              autoAdjustPointerLabelPosition: true,
+              pointerLabelWidth: 140,
+              pointerLabelHeight: 60,
+              pointerComponent: () => <SelectedDot color={color} />,
+              pointerLabelComponent: (items: { value: number; label: string; date: string }[]) => (
+                <View style={{ marginTop: POINTER_LABEL_SHIFT }}>
+                  <PointerLabel items={items} color={color} formatValue={formatValue} />
+                </View>
+              ),
+            }}
           />
         </View>
       )}

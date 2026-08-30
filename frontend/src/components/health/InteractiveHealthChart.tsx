@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { View, Text, Pressable, StyleSheet, Dimensions } from "react-native";
+import { View, Text, Pressable, StyleSheet, Dimensions, Platform } from "react-native";
 import { LineChart } from "react-native-gifted-charts";
 import { coloredShadow, solidColor, spacing, withAlpha } from "@/src/theme";
 import { useTheme } from "@/src/themes";
@@ -24,25 +24,53 @@ function shortDate(dateStr: string): string {
   return `${d.getUTCDate()}/${d.getUTCMonth() + 1}`;
 }
 
-/** "29 août" — date absolue et complète (jamais "Hier"/"Demain", qui n'ont
- * pas de sens en parcourant un historique de plusieurs mois). */
-function longDate(dateStr: string): string {
+/** "mar. 4 août" — jour + date absolue et complète (jamais "Hier"/"Demain",
+ * qui n'ont pas de sens en parcourant un historique de plusieurs mois). */
+function weekdayDate(dateStr: string): string {
   const d = new Date(`${dateStr}T00:00:00Z`);
-  return d.toLocaleDateString("fr-FR", { day: "numeric", month: "long", timeZone: "UTC" });
+  const text = d.toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "long", timeZone: "UTC" });
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
-type ChartPoint = { value: number; label: string; date: string };
+export type ChartPoint = { value: number; label: string; date: string };
+
+/** Point rond agrandi au point sélectionné — remplace `pointerConfig.
+ * pointerColor`/`radius` par défaut de la librairie (`react-native-gifted-
+ * charts` positionne ce composant lui-même via `pointerComponent`, déjà
+ * exactement centré sur le point). Anneau "découpe" (couleur de fond de
+ * carte) autour du disque coloré pour qu'il se détache nettement de la
+ * courbe/barre derrière lui. Exporté pour être réutilisé tel quel par
+ * `MetricGoalCard` (graphiques en barres) — même langage visuel de
+ * sélection sur les deux types de graphique. */
+export function SelectedDot({ color }: { color: string }) {
+  const { theme } = useTheme();
+  return (
+    <View
+      style={{
+        width: 14,
+        height: 14,
+        borderRadius: 7,
+        backgroundColor: color,
+        borderWidth: 3,
+        borderColor: theme.colors.surface,
+      }}
+    />
+  );
+}
 
 /**
- * Badge flottant affiché au point sélectionné — "29 août / 10 245" (voir le
- * brief, style visuel en petites capitales). Fond opaque plutôt qu'un vrai
- * flou temps réel : ce composant est positionné par
+ * Badge flottant affiché au point sélectionné — jour+date en tête, puis
+ * point coloré + valeur en gros, cohérent avec la couleur propre du
+ * graphique appelant (jamais une teinte neutre unique pour tous). Fond
+ * opaque plutôt qu'un vrai flou temps réel : ce composant est positionné par
  * `react-native-gifted-charts` en dehors de la hiérarchie normale de cartes
  * (un `BlurView` y serait plus fragile qu'utile pour un badge aussi petit) —
  * un fond teinté uni suffit à la lisibilité, cohérent avec le reste du
- * design (rayon, ombre colorée) sans ce risque.
+ * design (rayon, ombre colorée) sans ce risque. Exporté pour être réutilisé
+ * tel quel par `MetricGoalCard` (graphiques en barres) — un seul composant
+ * de badge daté pour tout IronFlow, jamais une deuxième implémentation.
  */
-function PointerLabel({
+export function PointerLabel({
   items,
   color,
   formatValue,
@@ -57,17 +85,20 @@ function PointerLabel({
   return (
     <View
       style={[
-        styles.pointerBadge,
+        styles.pointerCard,
         {
           backgroundColor: theme.colors.surfaceSecondary,
-          borderColor: withAlpha(color, 55),
+          borderColor: withAlpha(color, 35),
           borderRadius: theme.radius.md,
         },
-        coloredShadow(color, { offsetY: 2, opacity: 0.28, radius: 8, elevation: 4 }),
+        coloredShadow(color, { offsetY: 4, opacity: 0.32, radius: 14, elevation: 6 }),
       ]}
     >
-      <Text style={[styles.pointerDate, { color: theme.colors.onSurfaceTertiary }]}>{longDate(item.date)}</Text>
-      <Text style={[styles.pointerValue, { color }]}>{formatValue(item.value)}</Text>
+      <Text style={[styles.pointerDate, { color: theme.colors.onSurfaceTertiary }]}>{weekdayDate(item.date)}</Text>
+      <View style={styles.pointerRow}>
+        <View style={[styles.pointerDot, { backgroundColor: color }]} />
+        <Text style={[styles.pointerValue, { color: theme.colors.onSurface }]}>{formatValue(item.value)}</Text>
+      </View>
     </View>
   );
 }
@@ -82,11 +113,18 @@ function PointerLabel({
  * inventée : un point manquant est simplement absent de la série, jamais
  * interpolé ou mis à zéro.
  *
+ * Habillage visuel inspiré d'une référence fournie (courbe éditoriale,
+ * grille minimale en pointillés, point rond agrandi de sélection + badge
+ * daté, jamais de ligne verticale/croix — retirées sur retour utilisateur,
+ * jugées trop chargées) — MAIS chaque graphique garde sa propre couleur
+ * d'accent (`color`), jamais une palette neutre unique comme la référence :
+ * c'est la seule chose qui change d'un appel à l'autre.
+ *
  * Interaction (voir `pointerConfig` de `react-native-gifted-charts` — la
  * fonctionnalité native de la librairie, pas un geste réécrit à la main) :
- * glisser le doigt sur le graphique fait apparaître une ligne verticale + un
- * point + le badge `PointerLabel` au jour le plus proche, qui suit le doigt
- * en continu pendant tout le glissé — un seul geste satisfait à la fois
+ * glisser le doigt sur le graphique fait apparaître le point `SelectedDot`
+ * + le badge `PointerLabel` au jour le plus proche, qui suivent le doigt en
+ * continu pendant tout le glissé — un seul geste satisfait à la fois
  * "sélectionner un jour" et "swipe pour voir les jours voisins" (tous les
  * jours de la période sont déjà tracés sur l'axe ; le glissé ne fait que
  * déplacer la sélection dessus, rien à charger en plus). La zone tactile de
@@ -147,6 +185,7 @@ export default function InteractiveHealthChart({
     label: shortDate(p.date),
     date: p.date,
   }));
+  const gridColor = withAlpha(theme.colors.onSurface, 8);
 
   // Moyenne réelle de la période affichée, recalculée depuis les points
   // effectivement chargés — jamais une valeur à part figée sur 7 jours :
@@ -179,45 +218,64 @@ export default function InteractiveHealthChart({
         )}
       </View>
       {!loading && chartData.length >= 2 ? (
-        <LineChart
-          data={chartData}
-          color={lineColor}
-          thickness={2}
-          areaChart
-          startFillColor={lineColor}
-          startOpacity={0.2}
-          endFillColor={lineColor}
-          endOpacity={0.01}
-          yAxisThickness={0}
-          xAxisThickness={0}
-          yAxisTextStyle={{ color: theme.colors.onSurfaceTertiary, fontSize: 9 }}
-          xAxisLabelTextStyle={{ color: theme.colors.onSurfaceTertiary, fontSize: 8 }}
-          hideRules
-          width={chartW}
-          isAnimated
-          animationDuration={500}
-          curved
-          dataPointsColor={lineColor}
-          dataPointsRadius={2.5}
-          initialSpacing={6}
-          pointerConfig={{
-            pointerStripUptoDataPoint: true,
-            pointerStripColor: lineColor,
-            pointerStripWidth: 1.5,
-            strokeDashArray: [4, 4],
-            pointerColor: lineColor,
-            radius: 5,
-            activatePointersInstantlyOnTouch: true,
-            persistPointer: true,
-            resetPointerOnDataChange: true,
-            autoAdjustPointerLabelPosition: true,
-            pointerLabelWidth: 130,
-            pointerLabelHeight: 54,
-            pointerLabelComponent: (items: ChartPoint[]) => (
-              <PointerLabel items={items} color={lineColor} formatValue={fmt} />
-            ),
-          }}
-        />
+        <View
+          // Léger halo autour de la courbe (web uniquement — `filter` n'est
+          // pas une propriété RN standard, sans effet natif, purement un
+          // rehaussement visuel du PWA) : la même courbe SVG sans ce calque
+          // reste identique en cas d'absence de support.
+          style={Platform.OS === "web" ? ({ filter: `drop-shadow(0 0 5px ${withAlpha(lineColor, 55)})` } as never) : undefined}
+        >
+          <LineChart
+            data={chartData}
+            color={lineColor}
+            thickness={2.5}
+            areaChart
+            startFillColor={lineColor}
+            startOpacity={0.16}
+            endFillColor={lineColor}
+            endOpacity={0.01}
+            yAxisThickness={0}
+            xAxisThickness={0}
+            yAxisTextStyle={{ color: theme.colors.onSurfaceTertiary, fontSize: 9 }}
+            xAxisLabelTextStyle={{ color: theme.colors.onSurfaceTertiary, fontSize: 8 }}
+            rulesType="dashed"
+            rulesColor={gridColor}
+            rulesThickness={1}
+            noOfSections={5}
+            showVerticalLines
+            verticalLinesColor={gridColor}
+            verticalLinesThickness={1}
+            verticalLinesStrokeDashArray={[4, 4]}
+            width={chartW}
+            // Réserve de la place au-dessus du tracé pour le badge daté
+            // (`pointerLabelHeight`) — sans ça, sélectionner un point proche
+            // du haut du graphique fait déborder le badge hors de la zone
+            // rendue par la librairie (coupé net), quel que soit le padding
+            // de la carte englobante (le clip a lieu à l'intérieur du
+            // graphique lui-même, pas au niveau de `GlassCard`).
+            overflowTop={110}
+            isAnimated
+            animationDuration={500}
+            curved
+            hideDataPoints
+            initialSpacing={6}
+            pointerConfig={{
+              showPointerStrip: false,
+              pointerColor: lineColor,
+              radius: 5,
+              pointerComponent: () => <SelectedDot color={lineColor} />,
+              activatePointersInstantlyOnTouch: true,
+              persistPointer: true,
+              resetPointerOnDataChange: true,
+              autoAdjustPointerLabelPosition: true,
+              pointerLabelWidth: 140,
+              pointerLabelHeight: 60,
+              pointerLabelComponent: (items: ChartPoint[]) => (
+                <PointerLabel items={items} color={lineColor} formatValue={fmt} />
+              ),
+            }}
+          />
+        </View>
       ) : (
         <Text style={[styles.hint, { color: theme.colors.onSurfaceTertiary }]}>
           {loading
@@ -240,13 +298,14 @@ const styles = StyleSheet.create({
   periodUnderline: { height: 2, width: 14, borderRadius: 1 },
   averageText: { fontSize: 11, fontWeight: "600" },
   hint: { fontSize: 11, fontStyle: "italic", paddingVertical: 10 },
-  pointerBadge: {
+  pointerCard: {
     borderWidth: 1,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    alignItems: "center",
-    gap: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    gap: 5,
   },
-  pointerDate: { fontSize: 9, fontWeight: "800", letterSpacing: 0.4, textTransform: "uppercase" },
-  pointerValue: { fontSize: 14, fontWeight: "800", textTransform: "uppercase" },
+  pointerDate: { fontSize: 10, fontWeight: "700", letterSpacing: 0.2 },
+  pointerRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  pointerDot: { width: 7, height: 7, borderRadius: 3.5 },
+  pointerValue: { fontSize: 16, fontWeight: "800" },
 });
