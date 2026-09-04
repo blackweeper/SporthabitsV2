@@ -22,14 +22,14 @@ class GroqProvider(AIProvider):
     Configuration via variables d'environnement :
     - GROQ_API_KEY : clé API (obligatoire, commence par 'gsk_')
     - GROQ_BASE_URL : base URL (défaut: https://api.groq.com/openai/v1)
-    - GROQ_MODEL : modèle à utiliser (défaut: llama-3.3-70b-versatile)
+    - GROQ_MODEL : modèle à utiliser (défaut: openai/gpt-oss-120b)
     - GROQ_TIMEOUT : timeout en secondes (défaut: 120)
     """
 
     def __init__(self):
         self.api_key = os.getenv("GROQ_API_KEY")
         self.base_url = os.getenv("GROQ_BASE_URL", "https://api.groq.com/openai/v1")
-        self.model = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+        self.model = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
         self.timeout = int(os.getenv("GROQ_TIMEOUT", "120"))
 
         self.validate_config()

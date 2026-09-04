@@ -37,7 +37,7 @@ def _mock_response(status_code: int, json_data: dict | None = None, text: str = 
 def groq(monkeypatch):
     """Instance GroqProvider configurée via les variables d'environnement."""
     monkeypatch.setenv("GROQ_API_KEY", "gsk_test_key")
-    monkeypatch.setenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+    monkeypatch.setenv("GROQ_MODEL", "openai/gpt-oss-120b")
     monkeypatch.setenv("GROQ_TIMEOUT", "5")
     return GroqProvider()
 
@@ -47,7 +47,7 @@ async def test_chat_completion_ok(groq):
     mock_resp = _mock_response(200, {
         "choices": [{"message": {"content": "Bonjour !"}}],
         "usage": {"total_tokens": 15},
-        "model": "llama-3.3-70b-versatile",
+        "model": "openai/gpt-oss-120b",
     })
     with patch("httpx.AsyncClient.post", new_callable=AsyncMock, return_value=mock_resp):
         result = await groq.chat_completion(messages=[{"role": "user", "content": "Dis bonjour"}])
@@ -60,7 +60,7 @@ async def test_chat_completion_json_payload(groq):
     mock_resp = _mock_response(200, {
         "choices": [{"message": {"content": '{"exercises": [{"name": "Squat"}]}'}}],
         "usage": {"total_tokens": 25},
-        "model": "llama-3.3-70b-versatile",
+        "model": "openai/gpt-oss-120b",
     })
     with patch("httpx.AsyncClient.post", new_callable=AsyncMock, return_value=mock_resp):
         result = await groq.chat_completion(messages=[{"role": "user", "content": "Extrais les exercices"}])
