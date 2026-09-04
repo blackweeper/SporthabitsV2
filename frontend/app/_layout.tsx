@@ -288,6 +288,7 @@ export default function RootLayout() {
           <Stack.Screen name="photo-crop" options={MODAL_SCREEN_OPTIONS} />
           <Stack.Screen name="radio" options={MODAL_SCREEN_OPTIONS} />
           <Stack.Screen name="radio-stations-settings" options={MODAL_SCREEN_OPTIONS} />
+          <Stack.Screen name="ai-pdf-import" />
         </Stack>
         <MiniRadioPlayer />
         </NavigationThemeProvider>

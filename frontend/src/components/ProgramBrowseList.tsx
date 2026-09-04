@@ -130,6 +130,28 @@ export default function ProgramBrowseList({
         </GlassCard>
       </Pressable>
 
+      <Pressable testID="import-program-pdf" onPress={() => router.push("/ai-pdf-import" as any)}>
+        <GlassCard
+          level="subtle"
+          style={[
+            styles.importCard,
+            { borderRadius: theme.radius.md },
+            !isGlass && { backgroundColor: theme.colors.surfaceSecondary, borderColor: theme.colors.border },
+          ]}
+        >
+          <View style={[styles.importIcon, { borderRadius: theme.radius.md, backgroundColor: theme.colors.brandTertiary }]}>
+            <Ionicons name="document-text-outline" size={22} color={theme.colors.brand} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.createTitle, { color: theme.colors.onSurface }]}>Importer un PDF</Text>
+            <Text style={[styles.createSub, { color: theme.colors.onSurfaceTertiary }]}>
+              Analyse par IA — extrait séances et exercices d&apos;un PDF de programme
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={theme.colors.brand} />
+        </GlassCard>
+      </Pressable>
+
       <Pressable testID="import-program" onPress={() => router.push("/program-import" as any)}>
         <GlassCard
           level="subtle"

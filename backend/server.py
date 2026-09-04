@@ -4,6 +4,8 @@ import logging
 
 from database import client
 from health_import import router as health_import_router, ensure_indexes
+from routers.ai import router as ai_router
+from routers.pdf_import import router as pdf_import_router
 
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
@@ -21,6 +23,8 @@ async def health():
 
 
 api_router.include_router(health_import_router)
+api_router.include_router(ai_router)
+api_router.include_router(pdf_import_router)
 app.include_router(api_router)
 
 app.add_middleware(

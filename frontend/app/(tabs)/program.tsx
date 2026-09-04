@@ -192,6 +192,14 @@ function EmptyState({ router }: { router: any }) {
           <Ionicons name="add-circle" size={18} color={theme.colors.brand} />
           <Text style={styles.ctaTextSecondary}>CRÉER MON PROGRAMME</Text>
         </Pressable>
+        <Pressable
+          testID="empty-import-pdf"
+          style={styles.ctaBtnSecondary}
+          onPress={() => router.push("/ai-pdf-import")}
+        >
+          <Ionicons name="document-text-outline" size={18} color={theme.colors.brand} />
+          <Text style={styles.ctaTextSecondary}>IMPORTER UN PROGRAMME PDF</Text>
+        </Pressable>
       </ScrollView>
       </SafeAreaView>
     </View>
