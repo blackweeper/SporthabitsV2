@@ -32,8 +32,13 @@ ABSOLUTE RULES — DO NOT VIOLATE:
 7. Mark ambiguous exercises with ambiguous=true.
 8. Missing information should be listed in missing_info[].
 9. NEVER respond with anything other than VALID JSON. No markdown, no explanation, no code blocks.
+10. Output MINIFIED JSON: no line breaks, no indentation, no extra spaces. Every token you save on
+    formatting is a token available for actual program content — your output has a hard length limit,
+    so pretty-printing can cause the response to be cut off mid-program. This is critical on long programs.
+11. Only include a field when it differs from null (e.g. skip "distance" entirely on a strength exercise
+    instead of writing "distance":null) — shorter output, same information, less risk of truncation.
 
-JSON FORMAT (strict):
+JSON FORMAT (shown indented here ONLY for readability — your actual output must be minified, see rule 10):
 {
   "program": {
     "name": "string (required)",
@@ -77,7 +82,7 @@ JSON FORMAT (strict):
   "warnings": ["string"]
 }
 
-RESPOND WITH ONLY THE JSON OBJECT. NO OTHER TEXT."""
+RESPOND WITH ONLY ONE LINE OF MINIFIED JSON. NO OTHER TEXT, NO LINE BREAKS."""
 
 
 def build_pdf_analysis_prompt(pdf_text: str) -> str:
