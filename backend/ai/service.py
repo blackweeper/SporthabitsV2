@@ -6,7 +6,7 @@ Gère le provider configuré et expose une interface simple pour l'application.
 import os
 import logging
 from typing import Dict, Optional, Any
-from .providers import AIProvider, AIResponse, NVIDIAProvider
+from .providers import AIProvider, AIResponse, NVIDIAProvider, GroqProvider
 
 logger = logging.getLogger(__name__)
 
@@ -41,10 +41,12 @@ class AIService:
 
         if provider_name == "nvidia":
             self.provider: AIProvider = NVIDIAProvider()
+        elif provider_name == "groq":
+            self.provider: AIProvider = GroqProvider()
         else:
             raise ValueError(
                 f"Provider IA inconnu : {provider_name}. "
-                f"Providers supportés : nvidia"
+                f"Providers supportés : nvidia, groq"
             )
 
         self.provider_name = provider_name
