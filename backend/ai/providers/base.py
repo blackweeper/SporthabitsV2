@@ -18,7 +18,11 @@ class AIResponse(BaseModel):
     """Réponse normalisée d'un provider IA."""
     content: str
     model: str
-    usage: Optional[Dict[str, int]] = None
+    # Dict[str, Any] et non Dict[str, int] : certains providers (Groq) renvoient
+    # des champs d'usage non-entiers (queue_time/prompt_time/... en float,
+    # completion_tokens_details en objet imbriqué). On ne consomme ici que
+    # usage.get("total_tokens"), donc pas besoin de typer strictement le reste.
+    usage: Optional[Dict[str, Any]] = None
     raw_response: Optional[Dict[str, Any]] = None
 
 
