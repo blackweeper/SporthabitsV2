@@ -188,8 +188,39 @@ async def analyze_draft(request: AnalyzeRequest, user_id: str = Depends(verify_t
             prompt=user_prompt,
             system_prompt=system_prompt,
             temperature=0.1,
-            max_tokens=4096,
+            max_tokens=8192,
         )
+
+        # Détecte une réponse coupée par la limite de tokens du modèle AVANT
+        # même d'essayer de parser le JSON — un JSON tronqué produit une
+        # erreur de parsing peu parlante ("Expecting ',' delimiter...") alors
+        # que la vraie cause (programme trop long pour la sortie du modèle)
+        # est explicite via finish_reason côté API (format OpenAI-compatible).
+        finish_reason = None
+        if response.raw_response:
+            choices = response.raw_response.get("choices") or []
+            if choices:
+                finish_reason = choices[0].get("finish_reason")
+
+        if finish_reason == "length":
+            logger.error(f"Réponse IA tronquée (finish_reason=length) pour draft {request.draft_id}")
+
+            await drafts_store.update_draft_status(
+                db=db,
+                draft_id=request.draft_id,
+                status="failed",
+                error="Réponse IA tronquée : programme trop long pour une seule analyse.",
+            )
+
+            raise HTTPException(
+                status_code=422,
+                detail=(
+                    "Ce PDF est trop long pour être analysé en une seule fois "
+                    "(le modèle IA a atteint sa limite de sortie avant la fin). "
+                    "Essaie avec un PDF plus court, ou scinde le programme en "
+                    "plusieurs fichiers (par exemple une semaine à la fois)."
+                ),
+            )
 
         # Parser et valider le JSON
         try:
@@ -205,7 +236,7 @@ async def analyze_draft(request: AnalyzeRequest, user_id: str = Depends(verify_t
             analysis_data = json.loads(content)
         except json.JSONDecodeError as e:
             logger.error(f"JSON invalide de l'IA : {e}")
-            logger.error(f"Contenu reçu : {response.content[:500]}")
+            logger.error(f"Contenu reçu (longueur={len(response.content)}) : {response.content[:2000]}")
 
             await drafts_store.update_draft_status(
                 db=db,
