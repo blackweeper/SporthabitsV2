@@ -39,6 +39,21 @@ router = APIRouter(prefix="/pdf-import", tags=["pdf-import"])
 MAX_ANALYSIS_ATTEMPTS = 2
 
 
+TOO_LONG_MESSAGE = (
+    "Ce PDF est trop long pour être analysé en une seule fois "
+    "(le modèle IA a atteint sa limite de sortie avant la fin). "
+    "Essaie avec un PDF plus court, ou scinde le programme en "
+    "plusieurs fichiers (par exemple une semaine à la fois)."
+)
+
+# openai/gpt-oss-120b (Groq) accepte jusqu'à 65536 tokens de sortie —
+# largement au-dessus, pour garder de la marge en coût/latence sur un usage
+# personnel occasionnel tout en évitant de recouper un programme dense.
+# Avant ce réglage (8192), un programme de seulement 4 jours suffisait à
+# dépasser la limite (constaté en prod).
+MAX_ANALYSIS_OUTPUT_TOKENS = 24576
+
+
 class _AnalysisGenerationError(Exception):
     """Échec de génération IA jugé "retentable" — JSON cassé, structure
     invalide, réponse tronquée, ou rejet strict côté provider (ex. Groq
@@ -65,17 +80,34 @@ async def _analyze_once(ai_service, system_prompt: str, user_prompt: str, respon
             prompt=user_prompt,
             system_prompt=system_prompt,
             temperature=0.1,
-            max_tokens=8192,
+            max_tokens=MAX_ANALYSIS_OUTPUT_TOKENS,
             response_format=response_format,
         )
     except httpx.HTTPStatusError as e:
         # 401/429 sont déjà convertis en ValueError par les providers avant
         # d'arriver ici (voir ai/providers/*.py) — un HTTPStatusError à ce
-        # niveau est donc un autre code (ex. 400 json_validate_failed côté
-        # Groq quand son JSON mode rejette sa propre génération).
+        # niveau est donc un autre code.
+        #
+        # Cas particulier confirmé en prod : en JSON mode (response_format),
+        # quand la génération est coupée par max_tokens avant la fin d'un
+        # JSON valide, Groq ne renvoie PAS une réponse tronquée normale
+        # (finish_reason=length, détecté plus bas) — il renvoie une erreur
+        # 400 "json_validate_failed" à la place, AVANT même qu'on ait un
+        # objet `response` à inspecter. C'est donc la même cause (programme
+        # trop long pour la sortie du modèle) que finish_reason=length,
+        # juste signalée différemment : même message utilisateur.
+        body_text = e.response.text
+        is_truncation_rejected_as_invalid = '"code":"json_validate_failed"' in body_text
+        if is_truncation_rejected_as_invalid:
+            raise _AnalysisGenerationError(
+                TOO_LONG_MESSAGE,
+                f"Génération tronquée rejetée par le JSON mode du provider (json_validate_failed) : {body_text[:2000]}",
+                status_code=422,
+            ) from e
+
         raise _AnalysisGenerationError(
             "L'IA a rejeté la génération. Réessaie.",
-            f"Erreur HTTP provider (retentable) : {e} — {e.response.text[:1000]}",
+            f"Erreur HTTP provider (retentable) : {e} — {body_text[:1000]}",
         ) from e
 
     # Détecte une réponse coupée par la limite de tokens du modèle AVANT
@@ -91,10 +123,7 @@ async def _analyze_once(ai_service, system_prompt: str, user_prompt: str, respon
 
     if finish_reason == "length":
         raise _AnalysisGenerationError(
-            "Ce PDF est trop long pour être analysé en une seule fois "
-            "(le modèle IA a atteint sa limite de sortie avant la fin). "
-            "Essaie avec un PDF plus court, ou scinde le programme en "
-            "plusieurs fichiers (par exemple une semaine à la fois).",
+            TOO_LONG_MESSAGE,
             "Réponse IA tronquée (finish_reason=length)",
             status_code=422,
         )
