@@ -58,6 +58,7 @@ class AIService:
         system_prompt: Optional[str] = None,
         temperature: float = 0.1,
         max_tokens: Optional[int] = None,
+        response_format: Optional[Dict[str, Any]] = None,
     ) -> AIResponse:
         """Appel IA simple avec un prompt."""
         messages = []
@@ -69,6 +70,7 @@ class AIService:
             messages=messages,
             temperature=temperature,
             max_tokens=max_tokens,
+            response_format=response_format,
         )
 
     async def chat_with_messages(

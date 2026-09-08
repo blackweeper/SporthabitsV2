@@ -65,6 +65,7 @@ class NVIDIAProvider(AIProvider):
         messages: list[Dict[str, str]],
         temperature: float = 0.1,
         max_tokens: Optional[int] = None,
+        response_format: Optional[Dict[str, Any]] = None,
         **kwargs
     ) -> AIResponse:
         """
@@ -74,6 +75,10 @@ class NVIDIAProvider(AIProvider):
             messages: Liste de messages au format OpenAI
             temperature: Température (0.0-1.0)
             max_tokens: Limite de tokens de sortie
+            response_format: Ex. {"type": "json_object"} pour forcer un JSON
+                syntaxiquement valide côté décodage du modèle (tous les
+                modèles NIM ne le supportent pas forcément — voir
+                routers/pdf_import.py).
             **kwargs: Paramètres supplémentaires (ignorés pour l'instant)
 
         Returns:
@@ -99,6 +104,9 @@ class NVIDIAProvider(AIProvider):
 
         if max_tokens:
             payload["max_tokens"] = max_tokens
+
+        if response_format:
+            payload["response_format"] = response_format
 
         logger.info(f"Appel NVIDIA API : modèle={self.model}, messages={len(messages)}")
 

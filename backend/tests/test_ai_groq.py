@@ -56,6 +56,23 @@ async def test_chat_completion_ok(groq):
 
 
 @pytest.mark.asyncio
+async def test_chat_completion_forwards_response_format(groq):
+    """response_format (JSON mode natif) doit arriver dans le payload envoyé à Groq."""
+    mock_resp = _mock_response(200, {
+        "choices": [{"message": {"content": "{}"}}],
+        "usage": {"total_tokens": 5},
+        "model": "openai/gpt-oss-120b",
+    })
+    with patch("httpx.AsyncClient.post", new_callable=AsyncMock, return_value=mock_resp) as mock_post:
+        await groq.chat_completion(
+            messages=[{"role": "user", "content": "Réponds en JSON"}],
+            response_format={"type": "json_object"},
+        )
+        sent_payload = mock_post.call_args.kwargs["json"]
+        assert sent_payload["response_format"] == {"type": "json_object"}
+
+
+@pytest.mark.asyncio
 async def test_chat_completion_json_payload(groq):
     mock_resp = _mock_response(200, {
         "choices": [{"message": {"content": '{"exercises": [{"name": "Squat"}]}'}}],

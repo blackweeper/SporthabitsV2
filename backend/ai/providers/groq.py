@@ -67,6 +67,7 @@ class GroqProvider(AIProvider):
         messages: list[Dict[str, str]],
         temperature: float = 0.1,
         max_tokens: Optional[int] = None,
+        response_format: Optional[Dict[str, Any]] = None,
         **kwargs
     ) -> AIResponse:
         """
@@ -76,6 +77,10 @@ class GroqProvider(AIProvider):
             messages: Liste de messages au format OpenAI
             temperature: Température (0.0-1.0)
             max_tokens: Limite de tokens de sortie
+            response_format: Ex. {"type": "json_object"} pour forcer un JSON
+                syntaxiquement valide côté décodage du modèle (le prompt doit
+                alors mentionner explicitement "JSON", sinon l'API Groq
+                refuse la requête). Voir routers/pdf_import.py.
             **kwargs: Paramètres supplémentaires (ignorés pour l'instant)
 
         Returns:
@@ -101,6 +106,9 @@ class GroqProvider(AIProvider):
 
         if max_tokens:
             payload["max_tokens"] = max_tokens
+
+        if response_format:
+            payload["response_format"] = response_format
 
         logger.info(f"Appel Groq API : modèle={self.model}, messages={len(messages)}")
 

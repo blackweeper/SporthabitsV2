@@ -184,11 +184,21 @@ async def analyze_draft(request: AnalyzeRequest, user_id: str = Depends(verify_t
         system_prompt = build_pdf_system_prompt()
         user_prompt = build_pdf_analysis_prompt(draft["extracted_text"])
 
+        # JSON mode natif : force une syntaxe JSON valide au niveau du
+        # décodage du modèle plutôt que de compter uniquement sur la
+        # consigne du prompt (constaté en prod : le modèle peut produire un
+        # JSON syntaxiquement cassé — guillemet manquant, etc. — malgré des
+        # instructions explicites). Activé seulement pour les providers
+        # confirmés compatibles ; NVIDIA NIM ne le supporte pas forcément
+        # selon le modèle configuré, donc laissé à None dans ce cas.
+        response_format = {"type": "json_object"} if ai_service.provider_name == "groq" else None
+
         response = await ai_service.chat(
             prompt=user_prompt,
             system_prompt=system_prompt,
             temperature=0.1,
             max_tokens=8192,
+            response_format=response_format,
         )
 
         # Détecte une réponse coupée par la limite de tokens du modèle AVANT
