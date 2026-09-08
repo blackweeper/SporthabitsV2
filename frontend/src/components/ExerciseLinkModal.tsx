@@ -10,10 +10,8 @@ import { ExerciseRecord } from "@/src/utils/exercise-records";
 import { normalize, similarity } from "@/src/utils/exercise-library-merge";
 import { matchScoreBand } from "@/src/utils/exercise-matching";
 import { guessCategory, guessEquipment } from "@/src/utils/exercise-guess";
-import { EXERCISE_RECORD_CATEGORY_LABEL, ExerciseRecordCategory } from "@/src/utils/exercise-record-category";
+import { ExerciseRecordCategory } from "@/src/utils/exercise-record-category";
 import { EXERCISE_EQUIPMENT_LABEL, ExerciseEquipment } from "@/src/utils/exercise-equipment";
-
-const CATEGORY_OPTIONS = Object.keys(EXERCISE_RECORD_CATEGORY_LABEL) as ExerciseRecordCategory[];
 
 function bandColor(theme: Theme, band: ReturnType<typeof matchScoreBand>): string {
   if (band.color === "success") return theme.colors.success;
@@ -45,7 +43,10 @@ export default function ExerciseLinkModal({
 }) {
   const { theme } = useTheme();
   const [query, setQuery] = useState(rawName);
-  const [category, setCategory] = useState<ExerciseRecordCategory>(() => guessCategory(rawName));
+  // Catégorie devinée automatiquement, sans widget de sélection visible ici
+  // (retiré pour désencombrer cette modale de résolution rapide — une
+  // catégorie erronée reste corrigible plus tard dans l'éditeur d'exercice).
+  const category: ExerciseRecordCategory = useMemo(() => guessCategory(rawName), [rawName]);
   const [equipment, setEquipment] = useState<ExerciseEquipment | null>(() => guessEquipment(rawName));
 
   const results = useMemo(() => {
@@ -59,22 +60,29 @@ export default function ExerciseLinkModal({
   }, [query, records]);
 
   return (
-    <Modal visible animationType="slide" transparent onRequestClose={onClose}>
+    <Modal
+      visible
+      animationType={Platform.OS === "web" ? "fade" : "slide"}
+      transparent
+      onRequestClose={onClose}
+    >
       <KeyboardAvoidingView
         style={[styles.modalBackdrop, { backgroundColor: theme.colors.overlay }]}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
-        {/* `blur={false}` — cause racine confirmée : le `Modal
-            animationType="slide"` de React Native Web garde une animation
-            CSS active (transform en matrice identité, mais bien présente et
-            `animationPlayState:"running"` en continu) sur son conteneur
-            pendant toute la durée d'ouverture de la feuille — exactement la
-            même famille de bug que `Swipeable` (un ancêtre transformé en
-            continu casse la composition de `backdrop-filter` sur WebKit),
-            juste une source différente. Confirmé en inspectant le DOM en
-            direct : le vrai flou en temps réel rendait le contenu de cette
-            feuille illisible tant que la modale restait ouverte. */}
+        {/* `blur={false}` + `animationType="fade"` sur web — cause racine
+            confirmée : le `Modal animationType="slide"` de React Native Web
+            garde une animation CSS active (transform en matrice identité,
+            mais bien présente et `animationPlayState:"running"` en continu)
+            sur son conteneur pendant toute la durée d'ouverture de la
+            feuille. Ne casse pas QUE `backdrop-filter` (même famille de bug
+            que `Swipeable`, un ancêtre transformé en continu) : confirmé que
+            ça rend aussi le `TextInput` de recherche invisible (texte tapé
+            jamais peint, bien qu'il fonctionne — valeur/résultats corrects)
+            sur certains moteurs de rendu. "fade" n'anime pas via une
+            animation CSS continue sur le conteneur, donc évite toute la
+            famille de bug plutôt que de rustiner un symptôme à la fois. */}
         <GlassCard
           level="elevated"
           blur={false}
@@ -134,39 +142,6 @@ export default function ExerciseLinkModal({
                 Aucun résultat — crée-le directement.
               </Text>
             )}
-          </ScrollView>
-
-          <Text style={[styles.modalSectionLabel, { color: theme.colors.onSurfaceTertiary }]}>
-            Nouvel exercice — catégorie
-          </Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryRow}>
-            {CATEGORY_OPTIONS.map((c) => {
-              const active = c === category;
-              return (
-                <Pressable
-                  key={c}
-                  testID={`exercise-link-category-${c}`}
-                  style={[
-                    styles.categoryChip,
-                    {
-                      borderRadius: theme.radius.pill,
-                      backgroundColor: active ? theme.colors.brand : theme.colors.surfaceTertiary,
-                      borderColor: active ? theme.colors.brand : theme.colors.border,
-                    },
-                  ]}
-                  onPress={() => setCategory(c)}
-                >
-                  <Text
-                    style={[
-                      styles.categoryChipText,
-                      { color: active ? "#fff" : theme.colors.onSurfaceSecondary },
-                    ]}
-                  >
-                    {EXERCISE_RECORD_CATEGORY_LABEL[c]}
-                  </Text>
-                </Pressable>
-              );
-            })}
           </ScrollView>
 
           {equipment && (
@@ -244,19 +219,6 @@ const styles = StyleSheet.create({
   scoreBadge: { paddingHorizontal: 8, paddingVertical: 3 },
   scoreBadgeText: { fontSize: 10, fontWeight: "800" },
   modalEmpty: { fontSize: 12, textAlign: "center", padding: spacing.md },
-  modalSectionLabel: {
-    fontSize: 10,
-    fontWeight: "800",
-    letterSpacing: 0.6,
-    marginTop: spacing.xs,
-  },
-  categoryRow: { gap: 6, paddingVertical: 4 },
-  categoryChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderWidth: 1,
-  },
-  categoryChipText: { fontSize: 11, fontWeight: "700" },
   equipmentHint: {
     flexDirection: "row",
     alignItems: "center",
