@@ -9,7 +9,7 @@
 //   incompatible avec un nouveau HTML.
 // CACHE_VERSION est le seul endroit à changer pour forcer une purge complète
 // du cache d'assets lors d'un futur incident (ex. mauvais déploiement).
-const CACHE_VERSION = "ironflow-v1";
+const CACHE_VERSION = "ironflow-v2";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 
 const SHELL_URLS = ["/", "/manifest.json", "/icons/icon-192.png", "/icons/icon-512.png"];
