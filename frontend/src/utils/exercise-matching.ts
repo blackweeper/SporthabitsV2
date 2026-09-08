@@ -88,7 +88,17 @@ export function matchExercise(rawName: string, index: ExerciseIndex): MatchResul
   }
 
   const suggestions = index.records
-    .map((r) => ({ id: r.id, name: r.nameFr, score: similarity(rawName, r.nameFr) }))
+    .map((r) => {
+      // Compare au nom français ET au nom anglais (quand présent) — un
+      // exercice importé en anglais ("Incline Dumbbell Press") doit pouvoir
+      // matcher un ExerciseRecord dont seul nameEn est proche, même si son
+      // nameFr ("Développé incliné haltères") n'a aucune ressemblance
+      // textuelle. Le nom AFFICHÉ reste toujours nameFr (cohérence UI),
+      // seul le score retenu prend le meilleur des deux comparaisons.
+      const scoreFr = similarity(rawName, r.nameFr);
+      const scoreEn = r.nameEn ? similarity(rawName, r.nameEn) : 0;
+      return { id: r.id, name: r.nameFr, score: Math.max(scoreFr, scoreEn) };
+    })
     .filter((s) => s.score >= FUZZY_MATCH_THRESHOLD)
     .sort((a, b) => b.score - a.score)
     .slice(0, MAX_SUGGESTIONS);
