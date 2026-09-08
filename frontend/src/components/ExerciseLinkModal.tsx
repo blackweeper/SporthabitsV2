@@ -60,29 +60,22 @@ export default function ExerciseLinkModal({
   }, [query, records]);
 
   return (
-    <Modal
-      visible
-      animationType={Platform.OS === "web" ? "fade" : "slide"}
-      transparent
-      onRequestClose={onClose}
-    >
+    <Modal visible animationType="slide" transparent onRequestClose={onClose}>
       <KeyboardAvoidingView
         style={[styles.modalBackdrop, { backgroundColor: theme.colors.overlay }]}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
-        {/* `blur={false}` + `animationType="fade"` sur web — cause racine
-            confirmée : le `Modal animationType="slide"` de React Native Web
-            garde une animation CSS active (transform en matrice identité,
-            mais bien présente et `animationPlayState:"running"` en continu)
-            sur son conteneur pendant toute la durée d'ouverture de la
-            feuille. Ne casse pas QUE `backdrop-filter` (même famille de bug
-            que `Swipeable`, un ancêtre transformé en continu) : confirmé que
-            ça rend aussi le `TextInput` de recherche invisible (texte tapé
-            jamais peint, bien qu'il fonctionne — valeur/résultats corrects)
-            sur certains moteurs de rendu. "fade" n'anime pas via une
-            animation CSS continue sur le conteneur, donc évite toute la
-            famille de bug plutôt que de rustiner un symptôme à la fois. */}
+        {/* `blur={false}` — cause racine confirmée : le `Modal
+            animationType="slide"` de React Native Web garde une animation
+            CSS active (transform en matrice identité, mais bien présente et
+            `animationPlayState:"running"` en continu) sur son conteneur
+            pendant toute la durée d'ouverture de la feuille — même famille
+            de bug que `Swipeable` (un ancêtre transformé en continu casse
+            la composition de `backdrop-filter` sur WebKit). Confirmé en
+            inspectant le DOM en direct : le vrai flou en temps réel rendait
+            le contenu de cette feuille illisible tant que la modale restait
+            ouverte. */}
         <GlassCard
           level="elevated"
           blur={false}
@@ -103,6 +96,21 @@ export default function ExerciseLinkModal({
                 borderRadius: theme.radius.md,
                 color: theme.colors.onSurface,
                 borderColor: theme.colors.border,
+                // `position: relative` — cause racine confirmée en direct
+                // (DOM inspecté pendant l'exécution) : les calques décoratifs
+                // de GlassCard (teinte/reflet) sont en `position: absolute`,
+                // qui peint TOUJOURS au-dessus des éléments en flux normal
+                // en CSS, quel que soit l'ordre DOM. Les `View`/`Text` de
+                // l'app héritent d'un positionnement qui les place dans la
+                // même couche que ces calques (donc peints par-dessus, dans
+                // l'ordre DOM, comme attendu) ; un `<input>` natif reste en
+                // position statique par défaut sous React Native Web et
+                // retombe donc DERRIÈRE la teinte — invisible bien que
+                // fonctionnel (valeur/résultats corrects). `position:
+                // relative` fait entrer ce `TextInput` dans la même couche
+                // de peinture positionnée que ses voisins.
+                position: "relative",
+                zIndex: 1,
               },
             ]}
             value={query}
