@@ -5,6 +5,7 @@ import { coloredShadow, spacing, withAlpha } from "@/src/theme";
 import { useTheme } from "@/src/themes";
 import { Theme } from "@/src/themes/types";
 import GlassCard from "@/src/components/ui/GlassCard";
+import ExerciseThumbnail from "@/src/components/ExerciseThumbnail";
 import { ExerciseRecord } from "@/src/utils/exercise-records";
 import { normalize, similarity } from "@/src/utils/exercise-library-merge";
 import { matchScoreBand } from "@/src/utils/exercise-matching";
@@ -113,6 +114,7 @@ export default function ExerciseLinkModal({
                   style={[styles.modalRow, { borderBottomColor: theme.colors.border }]}
                   onPress={() => onPickRecord(record)}
                 >
+                  <ExerciseThumbnail name={record.nameFr} records={records} exerciseRecordId={record.id} size={36} />
                   <Text style={[styles.modalRowName, { color: theme.colors.onSurface }]} numberOfLines={1}>
                     {record.nameFr}
                   </Text>
@@ -234,6 +236,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    gap: 10,
     paddingVertical: 10,
     borderBottomWidth: 1,
   },

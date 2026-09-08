@@ -10,6 +10,7 @@ import Card from "@/src/components/ui/Card";
 import CTAButton from "@/src/components/ui/CTAButton";
 import PressableScale from "@/src/components/ui/PressableScale";
 import ExerciseLinkModal from "@/src/components/ExerciseLinkModal";
+import ExerciseThumbnail from "@/src/components/ExerciseThumbnail";
 import { getCustomPrograms, saveCustomProgram, uid } from "@/src/utils/gym-storage";
 import type { Program } from "@/src/data/programs";
 import { ExerciseRecord, getExerciseRecords, saveExerciseRecord } from "@/src/utils/exercise-records";
@@ -224,7 +225,7 @@ export default function ImportReviewScreen() {
                     if (record) applyResolution(result.rawName, record, false);
                   }}
                 >
-                  <Ionicons name="link" size={14} color={theme.colors.brand} />
+                  <ExerciseThumbnail name={s.name} records={records} exerciseRecordId={s.id} size={32} />
                   <Text style={styles.suggestionName} numberOfLines={1}>
                     {s.name}
                   </Text>
