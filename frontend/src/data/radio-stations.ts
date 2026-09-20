@@ -33,6 +33,15 @@
  * les "~30" visées, mais c'est la population réelle de flux fonctionnels
  * pour ce tag précis, pas un choix arbitraire de curation.
  *
+ * HTTPS : la PWA est servie en https, or un navigateur bloque (ou tente de
+ * mettre à niveau vers https) un flux `http://` chargé depuis une page https
+ * ("contenu mixte"). Les flux dont la version https a été vérifiée (200 +
+ * `audio/*` + CORS) utilisent donc https. Restent en `http://`, non vérifiés
+ * en https faute d'accès réseau depuis la machine de test (filtre web
+ * bloquant la catégorie "Internet Radio") : FFH Workout, Antenne Bayern (x2),
+ * 1A Fitness Hits (x2), RPR1. Workout — à tester sur iPhone, et à passer en
+ * https si leur hôte le propose.
+ *
  * `stationuuid` est l'identifiant radio-browser.info correspondant
  * (vérifié contre l'annuaire réel), réutilisé par `radio-browser.ts` pour
  * rafraîchir le statut en ligne à l'usage sans jamais dépendre de l'annuaire
@@ -59,7 +68,7 @@ export const RADIO_STATIONS: RadioStation[] = [
   {
     stationuuid: "962f863e-0601-11e8-ae97-52543be04c81",
     name: "Radios 100FM",
-    streamUrl: "http://gb25.streamgates.net/radios-audio/100Workout/icecast.audio",
+    streamUrl: "https://gb25.streamgates.net/radios-audio/100Workout/icecast.audio",
     favicon: "https://digital.100fm.co.il/logo192.png",
     homepage: "http://digital.100fm.co.il/#100fm",
     tags: "workout",
@@ -96,7 +105,7 @@ export const RADIO_STATIONS: RadioStation[] = [
     stationuuid: "98d0e6a9-4919-11e8-b1b0-52543be04c81",
     name: "Sunshine Live - Workout",
     streamUrl:
-      "http://sunsl.streamabc.net/sunsl-workout-mp3-192-3330865?sABC=5nr16rqq%230%23q40266oo6p321s1695o82262nq851ppo%23Jroenqvb-Cynlre&amsparams=playerid:Webradio-Player;skey:1524723421",
+      "https://sunsl.streamabc.net/sunsl-workout-mp3-192-3330865?sABC=5nr16rqq%230%23q40266oo6p321s1695o82262nq851ppo%23Jroenqvb-Cynlre&amsparams=playerid:Webradio-Player;skey:1524723421",
     favicon: null,
     homepage: "http://www.sunshine-live.de/#",
     tags: "hot hits, workout",
@@ -168,7 +177,7 @@ export const RADIO_STATIONS: RadioStation[] = [
   {
     stationuuid: "96456555-0601-11e8-ae97-52543be04c81",
     name: "Radio SAW - Fitness",
-    streamUrl: "http://stream.saw-musikwelt.de/saw-fitness/mp3-128/radio-browser/stream.mp3",
+    streamUrl: "https://stream.saw-musikwelt.de/saw-fitness/mp3-128/radio-browser/stream.mp3",
     favicon: null,
     homepage: "http://www.saw-musikwelt.de/",
     tags: "dance, fitness, sport, workout",
