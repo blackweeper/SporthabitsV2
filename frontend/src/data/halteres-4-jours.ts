@@ -1,5 +1,5 @@
-import type { ExerciseTemplate, Program, ProgramDay, ProgramSession } from './programs';
-import type { ExerciseMatchConfidence } from '@/src/utils/gym-storage';
+import type { Program, ProgramDay, ProgramSession } from './programs';
+import { buildExercises, type BuilderBlock } from './program-builder';
 
 /**
  * "Haltères 4 jours — 12 semaines" — transcrit depuis le PDF "Programme
@@ -14,11 +14,8 @@ import type { ExerciseMatchConfidence } from '@/src/utils/gym-storage';
  * l'effort, en RIR, par mois) : seule la ligne d'effort ajoutée aux consignes
  * change d'un mois à l'autre (`MONTH_EFFORT`).
  *
- * Supersets (A1 → A2 sans repos) : encodés en `RoundBlock` (une séquence de 2
- * exercices répétée N fois, `sets:1` chacun), pas en `sets:N` sur un seul
- * exercice — même convention que les circuits de `the-comeback`, pour que le
- * moteur de séance alterne réellement A1/A2 au lieu d'enchaîner N séries du
- * même mouvement.
+ * Supersets (A1 → A2 sans repos) : encodés en `RoundBlock` — voir
+ * `program-builder.ts`.
  *
  * Liens bibliothèque : chaque exercice porte un `exerciseRecordId` réel de la
  * bibliothèque officielle v3 (vérifié présent dans la version publiée), sauf le
@@ -53,37 +50,7 @@ const LIB = {
   hipThrustSureleveUnilateral: 'if_0117',
 } as const;
 
-type Item = {
-  name: string;
-  libId: string;
-  reps: string;
-  rest: number;
-  notes: string;
-  /** 'exact' = rapprochement évident ; 'manual' = variante validée à la main. */
-  confidence?: ExerciseMatchConfidence;
-};
-
-type Block =
-  | { kind: 'single'; sets: number; item: Item }
-  | { kind: 'superset'; letter: string; rounds: number; items: [Item, Item] };
-
-type SessionTemplate = { label: string; title: string; blocks: Block[] };
-
-function toExercise(item: Item, month: 1 | 2 | 3, extra: Partial<ExerciseTemplate>): ExerciseTemplate {
-  return {
-    name: item.name,
-    mode: 'reps',
-    sets: 1,
-    reps: item.reps,
-    weight: null,
-    rest_seconds: item.rest,
-    duration_seconds: null,
-    notes: `${item.notes} ${MONTH_EFFORT[month]}`,
-    exerciseRecordId: item.libId,
-    matchConfidence: item.confidence ?? 'exact',
-    ...extra,
-  };
-}
+type SessionTemplate = { label: string; title: string; blocks: BuilderBlock[] };
 
 const MONTH_EFFORT: Record<1 | 2 | 3, string> = {
   1: 'Effort : 2-3 RIR, descente en 3 s.',
@@ -191,31 +158,7 @@ const SESSION_TEMPLATES: Record<'haut' | 'bas' | 'fullIntensif' | 'fullHypertrop
 function buildSession(week: number, key: keyof typeof SESSION_TEMPLATES): ProgramSession {
   const tpl = SESSION_TEMPLATES[key];
   const month = (week <= 4 ? 1 : week <= 8 ? 2 : 3) as 1 | 2 | 3;
-  const exercises: ExerciseTemplate[] = [];
-
-  for (const block of tpl.blocks) {
-    if (block.kind === 'single') {
-      exercises.push(toExercise(block.item, month, { sets: block.sets }));
-      continue;
-    }
-    const blockId = `halteres-w${week}-${key}-${block.letter}`;
-    for (let round = 0; round < block.rounds; round++) {
-      block.items.forEach((item, sequenceIndex) => {
-        exercises.push(
-          toExercise(item, month, {
-            roundBlock: {
-              blockId,
-              roundIndex: round,
-              totalRounds: block.rounds,
-              sequenceIndex,
-              sequenceLength: block.items.length,
-              title: `Superset ${block.letter}`,
-            },
-          }),
-        );
-      });
-    }
-  }
+  const exercises = buildExercises(tpl.blocks, `halteres-w${week}-${key}`, MONTH_EFFORT[month]);
   return { label: tpl.label, title: tpl.title, exercises };
 }
 

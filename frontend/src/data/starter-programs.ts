@@ -1,5 +1,6 @@
 import { Program } from './programs';
 import { HALTERES_4_JOURS_PROGRAM } from './halteres-4-jours';
+import { PUSH_PULL_LEGS_90_JOURS_PROGRAM } from './push-pull-legs-90-jours';
 
 /**
  * 6 programmes de mobilité/flexibilité :
@@ -36349,5 +36350,6 @@ export const STARTER_PROGRAMS: Program[] = [
     "isCustom": true,
     "category": "workout"
   },
-  HALTERES_4_JOURS_PROGRAM
+  HALTERES_4_JOURS_PROGRAM,
+  PUSH_PULL_LEGS_90_JOURS_PROGRAM
 ];
