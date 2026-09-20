@@ -43,7 +43,8 @@
         {
           "locationWhenInUsePermission": "IronFlow utilise ta position pour afficher la météo du jour à côté du calendrier."
         }
-      ]
+      ],
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true
