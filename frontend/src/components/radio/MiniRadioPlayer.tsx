@@ -7,6 +7,7 @@ import { useTheme } from "@/src/themes";
 import { tabBarSafeBottomOffset } from "@/src/utils/tab-bar-metrics";
 import GlassCard from "@/src/components/ui/GlassCard";
 import PressableScale from "@/src/components/ui/PressableScale";
+import RadioLogo from "@/src/components/radio/RadioLogo";
 import { useRadioPlayer } from "@/src/hooks/useRadioPlayer";
 
 /**
@@ -39,13 +40,7 @@ export default function MiniRadioPlayer() {
       style={[styles.wrap, { bottom, left: spacing.md, right: spacing.md }]}
     >
       <View style={styles.inner}>
-        <View style={[styles.iconChip, { backgroundColor: withAlpha(theme.colors.brand, 20) }]}>
-          <Ionicons
-            name={isError ? "warning" : "radio"}
-            size={16}
-            color={isError ? theme.colors.error : theme.colors.brand}
-          />
-        </View>
+        <RadioLogo size={32} />
         <View style={{ flex: 1 }}>
           <Text style={[styles.name, { color: theme.colors.onSurface }]} numberOfLines={1}>
             {station.name}
@@ -92,13 +87,6 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.sm,
-  },
-  iconChip: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
   },
   name: { fontSize: 13, fontWeight: "800" },
   status: { fontSize: 10.5, fontWeight: "600", marginTop: 1 },

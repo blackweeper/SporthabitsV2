@@ -1,12 +1,13 @@
 import { useCallback, useMemo, useState } from "react";
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { spacing, withAlpha } from "@/src/theme";
+import { spacing } from "@/src/theme";
 import { Theme, useTheme } from "@/src/themes";
 import ThemedBackground from "@/src/themes/ThemedBackground";
 import GlassCard from "@/src/components/ui/GlassCard";
+import RadioLogo from "@/src/components/radio/RadioLogo";
 import PressableScale from "@/src/components/ui/PressableScale";
 import { RADIO_STATIONS } from "@/src/data/radio-stations";
 import { getEnabledStationUuids, toggleStationEnabled } from "@/src/utils/radio-preferences";
@@ -80,13 +81,7 @@ export default function RadioStationsSettingsScreen() {
                 onPress={() => toggle(s.stationuuid)}
               >
                 <GlassCard style={styles.row} accent={isEnabled ? theme.colors.brand : undefined}>
-                  <View style={[styles.artwork, { backgroundColor: withAlpha(theme.colors.brand, 16) }]}>
-                    {s.favicon ? (
-                      <Image source={{ uri: s.favicon }} style={styles.artworkImage} resizeMode="contain" />
-                    ) : (
-                      <Ionicons name="radio" size={18} color={theme.colors.brand} />
-                    )}
-                  </View>
+                  <RadioLogo size={40} />
                   <View style={{ flex: 1 }}>
                     <Text style={[styles.stationName, { color: theme.colors.onSurface }]} numberOfLines={1}>
                       {s.name}
@@ -143,15 +138,6 @@ function buildStyles(theme: Theme) {
       gap: spacing.sm,
       padding: spacing.md,
     },
-    artwork: {
-      width: 40,
-      height: 40,
-      borderRadius: 12,
-      alignItems: "center",
-      justifyContent: "center",
-      overflow: "hidden",
-    },
-    artworkImage: { width: 26, height: 26 },
     stationName: { fontSize: 14, fontWeight: "800" },
     stationMeta: { fontSize: 10.5, fontWeight: "600", marginTop: 2 },
     checkbox: {

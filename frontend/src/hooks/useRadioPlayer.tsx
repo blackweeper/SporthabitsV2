@@ -2,6 +2,7 @@ import { createContext, ReactNode, useCallback, useContext, useEffect, useRef, u
 import { createAudioPlayer, setAudioModeAsync, type AudioPlayer } from "expo-audio";
 import { RadioStation } from "@/src/data/radio-stations";
 import { registerStationClick } from "@/src/utils/radio-browser";
+import { isVolumeAdjustable } from "@/src/utils/audio-volume-support";
 
 /**
  * Lecteur radio global — un seul `AudioPlayer` (expo-audio, déjà utilisé pour
@@ -25,6 +26,8 @@ type RadioPlayerContextValue = {
   station: RadioStation | null;
   status: RadioPlayerStatus;
   volume: number;
+  /** false sur iPhone/iPad web : le volume n'y est réglable que par les boutons physiques. */
+  volumeAdjustable: boolean;
   errorMessage: string | null;
   play: (station: RadioStation) => void;
   pause: () => void;
@@ -214,7 +217,18 @@ export function RadioPlayerProvider({ children }: { children: ReactNode }) {
 
   return (
     <RadioPlayerContext.Provider
-      value={{ station, status, volume, errorMessage, play, pause, resume, stop, setVolume }}
+      value={{
+        station,
+        status,
+        volume,
+        volumeAdjustable: isVolumeAdjustable(),
+        errorMessage,
+        play,
+        pause,
+        resume,
+        stop,
+        setVolume,
+      }}
     >
       {children}
     </RadioPlayerContext.Provider>

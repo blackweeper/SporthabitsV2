@@ -1,7 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import {
   GestureResponderEvent,
-  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -16,6 +15,7 @@ import { Theme, useTheme } from "@/src/themes";
 import ThemedBackground from "@/src/themes/ThemedBackground";
 import GlassCard from "@/src/components/ui/GlassCard";
 import PressableScale from "@/src/components/ui/PressableScale";
+import RadioLogo from "@/src/components/radio/RadioLogo";
 import { RADIO_STATIONS, RadioStation } from "@/src/data/radio-stations";
 import { fetchStationsLiveInfo, StationLiveInfo } from "@/src/utils/radio-browser";
 import { getEnabledStationUuids } from "@/src/utils/radio-preferences";
@@ -37,7 +37,8 @@ export default function RadioScreen() {
   const router = useRouter();
   const { theme } = useTheme();
   const styles = useMemo(() => buildStyles(theme), [theme]);
-  const { station, status, errorMessage, volume, play, pause, resume, stop, setVolume } = useRadioPlayer();
+  const { station, status, errorMessage, volume, volumeAdjustable, play, pause, resume, stop, setVolume } =
+    useRadioPlayer();
   const [liveInfo, setLiveInfo] = useState<Record<string, StationLiveInfo>>({});
   const [enabledUuids, setEnabledUuids] = useState<Set<string> | null>(null);
 
@@ -128,13 +129,7 @@ export default function RadioScreen() {
                 style={styles.card}
               >
                 <PressableScale style={styles.cardInner} onPress={() => onPressStation(s)}>
-                  <View style={[styles.artwork, { backgroundColor: withAlpha(theme.colors.brand, 16) }]}>
-                    {s.favicon ? (
-                      <Image source={{ uri: s.favicon }} style={styles.artworkImage} resizeMode="contain" />
-                    ) : (
-                      <Ionicons name="radio" size={22} color={theme.colors.brand} />
-                    )}
-                  </View>
+                  <RadioLogo size={48} />
                   <View style={{ flex: 1 }}>
                     <Text style={[styles.stationName, { color: theme.colors.onSurface }]} numberOfLines={1}>
                       {s.name}
@@ -173,9 +168,23 @@ export default function RadioScreen() {
 
                 {current && !currentlyError && (
                   <View style={styles.volumeRow}>
-                    <Ionicons name="volume-low" size={14} color={theme.colors.onSurfaceTertiary} />
-                    <VolumeBar value={volume} onChange={setVolume} tint={theme.colors.brand} track={theme.colors.surfaceTertiary} />
-                    <Ionicons name="volume-high" size={14} color={theme.colors.onSurfaceTertiary} />
+                    {volumeAdjustable ? (
+                      <>
+                        <Ionicons name="volume-low" size={14} color={theme.colors.onSurfaceTertiary} />
+                        <VolumeBar value={volume} onChange={setVolume} tint={theme.colors.brand} track={theme.colors.surfaceTertiary} />
+                        <Ionicons name="volume-high" size={14} color={theme.colors.onSurfaceTertiary} />
+                      </>
+                    ) : (
+                      <>
+                        <Ionicons name="volume-medium" size={14} color={theme.colors.onSurfaceTertiary} />
+                        <Text
+                          testID="radio-volume-hint"
+                          style={[styles.volumeHint, { color: theme.colors.onSurfaceTertiary }]}
+                        >
+                          Volume : utilise les boutons de ton téléphone
+                        </Text>
+                      </>
+                    )}
                   </View>
                 )}
               </GlassCard>
@@ -195,9 +204,12 @@ export default function RadioScreen() {
   );
 }
 
-/** Barre de volume "basique" — tap n'importe où sur la piste pour fixer le
- * volume proportionnellement à la position, pas de bibliothèque de slider
- * (aucune n'est déjà une dépendance de ce projet). */
+/** Barre de volume "basique" — tap ou glisser n'importe où sur la piste pour
+ * fixer le volume proportionnellement à la position, pas de bibliothèque de
+ * slider (aucune n'est déjà une dépendance de ce projet). La zone tactile
+ * (28 px) est plus haute que la piste visible (6 px) pour rester utilisable au
+ * doigt ; la piste ne reçoit aucun événement pour que `locationX` reste
+ * toujours relatif à la zone tactile. */
 function VolumeBar({
   value,
   onChange,
@@ -211,30 +223,40 @@ function VolumeBar({
 }) {
   const [width, setWidth] = useState(0);
 
-  const handlePress = (e: GestureResponderEvent) => {
+  const update = (e: GestureResponderEvent) => {
     if (width <= 0) return;
-    const x = e.nativeEvent.locationX;
-    onChange(Math.max(0, Math.min(1, x / width)));
+    onChange(Math.max(0, Math.min(1, e.nativeEvent.locationX / width)));
   };
 
   return (
-    <Pressable
+    <View
       testID="radio-volume-bar"
-      style={[styles.volumeTrack, { backgroundColor: track }]}
+      style={styles.volumeTouch}
       onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
-      onPress={handlePress}
+      onStartShouldSetResponder={() => true}
+      onMoveShouldSetResponder={() => true}
+      onResponderTerminationRequest={() => false}
+      onResponderGrant={update}
+      onResponderMove={update}
     >
-      <View style={[styles.volumeFill, { width: `${value * 100}%`, backgroundColor: tint }]} />
-    </Pressable>
+      <View style={[styles.volumeTrack, { backgroundColor: track }]}>
+        <View style={[styles.volumeFill, { width: `${value * 100}%`, backgroundColor: tint }]} />
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  volumeTrack: {
+  volumeTouch: {
     flex: 1,
+    height: 28,
+    justifyContent: "center",
+  },
+  volumeTrack: {
     height: 6,
     borderRadius: 3,
     overflow: "hidden",
+    pointerEvents: "none",
   },
   volumeFill: { height: "100%", borderRadius: 3 },
 });
@@ -267,15 +289,6 @@ function buildStyles(theme: Theme) {
       alignItems: "center",
       gap: spacing.sm,
     },
-    artwork: {
-      width: 48,
-      height: 48,
-      borderRadius: 14,
-      alignItems: "center",
-      justifyContent: "center",
-      overflow: "hidden",
-    },
-    artworkImage: { width: 32, height: 32 },
     stationName: { fontSize: 14.5, fontWeight: "800" },
     stationMeta: { fontSize: 11, fontWeight: "600", marginTop: 2 },
     errorText: { fontSize: 11, fontWeight: "700", marginTop: 4 },
@@ -295,6 +308,7 @@ function buildStyles(theme: Theme) {
       borderTopWidth: StyleSheet.hairlineWidth,
       borderTopColor: theme.colors.border,
     },
+    volumeHint: { flex: 1, fontSize: 11.5, fontWeight: "600" },
     stopAll: {
       flexDirection: "row",
       alignItems: "center",
