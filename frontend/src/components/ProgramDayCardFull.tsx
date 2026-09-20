@@ -59,7 +59,7 @@ export default function ProgramDayCardFull({
   done: boolean;
   doneSessionIndices?: Set<number>;
   onLaunch: (sessionIndex: number, session: ProgramSession) => void;
-  onPressExercise: (name: string) => void;
+  onPressExercise: (name: string, exerciseRecordId?: string | null) => void;
 }) {
   const { theme } = useTheme();
   if (day.rest) {
@@ -209,7 +209,7 @@ export default function ProgramDayCardFull({
                           theme.card.mode === "glass" ? theme.glass.subtle.tint : theme.colors.surface,
                       },
                     ]}
-                    onPress={() => onPressExercise(ex.name)}
+                    onPress={() => onPressExercise(ex.name, ex.exerciseRecordId)}
                   >
                     <ExerciseThumbnail
                       name={ex.name}

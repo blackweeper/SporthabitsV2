@@ -405,6 +405,16 @@ export default function ExerciseDetailFiche() {
   const adviceHasLevel = !!(enrichment?.levelGuidance && Object.keys(enrichment.levelGuidance).length > 0);
   const hasMoreInfo = usage.length > 0 || !!enrichment?.tags?.length || !!enrichment?.equipmentLevel;
 
+  // Sans illustration, le GIF est affiché d'office (jamais un emoji tant
+  // qu'un média existe) — même règle que `ExerciseCard`. Le bouton de bascule
+  // n'a de sens que s'il y a un vrai choix entre les deux.
+  const staticHeroSource =
+    heroImageSource ?? (item.imageBase64 ? { uri: `data:image/webp;base64,${item.imageBase64}` } : null);
+  const gifHeroSource = workoutxUri ? { uri: workoutxUri } : null;
+  const canToggleHeroGif = !!staticHeroSource && !!gifHeroSource;
+  const heroSource = heroMediaMode === "gif" && canToggleHeroGif ? gifHeroSource : (staticHeroSource ?? gifHeroSource);
+  const heroShowsGif = !!gifHeroSource && heroSource === gifHeroSource;
+
   return (
     <View style={{ flex: 1 }}>
       <ThemedBackground />
@@ -441,20 +451,16 @@ export default function ExerciseDetailFiche() {
           <Card elevated style={styles.mediaCard} padding={spacing.sm}>
             <ExerciseMediaFrame
               testID="ex-detail-hero-media"
-              source={
-                heroMediaMode === "gif" && workoutxUri
-                  ? { uri: workoutxUri }
-                  : (heroImageSource ?? (item.imageBase64 ? { uri: `data:image/webp;base64,${item.imageBase64}` } : null))
-              }
+              source={heroSource}
               fallbackEmoji={item.emoji ?? iconEmojiForExercise(item.name, null)}
               fallbackTint={color}
               fallbackHint="Illustration bientôt disponible"
               minHeight={240}
               maxHeight={340}
-              badgeIcon={heroMediaMode === "gif" ? "play" : undefined}
-              badgeLabel={heroMediaMode === "gif" ? "Exécution" : undefined}
+              badgeIcon={heroShowsGif ? "play" : undefined}
+              badgeLabel={heroShowsGif ? "Exécution" : undefined}
             />
-            {workoutxUri && (
+            {canToggleHeroGif && (
               <Pressable
                 testID="ex-detail-media-toggle"
                 hitSlop={8}

@@ -28,6 +28,7 @@ import { matchExerciseRecord } from "@/src/utils/exercise-record-match";
 import { parseCompositeExerciseName, parseCompositePrefix } from "@/src/utils/composite-exercise";
 import CompositeExerciseImage from "@/src/components/CompositeExerciseImage";
 import { iconEmojiForExercise } from "@/src/data/exercise-icons";
+import { exerciseDetailPath } from "@/src/utils/exercise-detail-path";
 import { useConfirmDialog } from "@/src/hooks/use-confirm-dialog";
 import {
   speak,
@@ -602,6 +603,11 @@ export default function WorkoutScreen() {
       ? { uri: `data:image/jpeg;base64,${planEx.photoBase64}` }
       : bundledIllustration ?? (ironflowUri ? { uri: ironflowUri } : null);
   const gifSource = workoutxUri ? { uri: workoutxUri } : null;
+  // Sans illustration, le GIF est affiché d'office (jamais un emoji tant qu'un
+  // média existe) — même règle que `ExerciseCard`. Le bouton de bascule n'a de
+  // sens que s'il y a un vrai choix entre les deux.
+  const photoSource = illustrationSource ?? gifSource;
+  const canToggleGif = !!illustrationSource && !!gifSource;
 
   if (!plan || !currentEx) {
     return (
@@ -789,7 +795,7 @@ export default function WorkoutScreen() {
                 testID="media-open-fiche"
                 hitSlop={4}
                 style={styles.mediaBtn}
-                onPress={() => router.push(`/exercise-detail/${encodeURIComponent(currentEx.name)}` as any)}
+                onPress={() => router.push(exerciseDetailPath(currentEx.name, currentEx.libraryExerciseId, allRecords) as any)}
               >
                 <Ionicons name="information-circle" size={16} color="#fff" />
               </Pressable>
@@ -799,7 +805,7 @@ export default function WorkoutScreen() {
           <View style={styles.mediaWrap}>
             <ExerciseMediaFrame
               testID="workout-media-frame"
-              source={mediaMode === "gif" ? (gifSource ?? illustrationSource) : illustrationSource}
+              source={mediaMode === "gif" && canToggleGif ? gifSource : photoSource}
               fallbackEmoji={iconEmojiForExercise(currentEx.name, planEx?.iconKey)}
               fallbackTint={theme.colors.brand}
               minHeight={200}
@@ -811,7 +817,7 @@ export default function WorkoutScreen() {
               pointerEvents="none"
             />
             <View style={styles.mediaControls}>
-              {gifSource && (
+              {canToggleGif && (
                 <Pressable
                   testID="media-toggle-gif"
                   hitSlop={4}
@@ -825,7 +831,7 @@ export default function WorkoutScreen() {
                 testID="media-open-fiche"
                 hitSlop={4}
                 style={styles.mediaBtn}
-                onPress={() => router.push(`/exercise-detail/${encodeURIComponent(currentEx.name)}` as any)}
+                onPress={() => router.push(exerciseDetailPath(currentEx.name, currentEx.libraryExerciseId, allRecords) as any)}
               >
                 <Ionicons name="information-circle" size={16} color="#fff" />
               </Pressable>
@@ -1036,7 +1042,7 @@ export default function WorkoutScreen() {
                 notes={currentEx.notes}
                 remaining={overlayRemaining}
                 total={overlayTotal}
-                thumbnailSource={illustrationSource}
+                thumbnailSource={photoSource}
                 compositeItems={compositeItems}
                 records={allRecords}
                 stepper={liveOverlayStepper}

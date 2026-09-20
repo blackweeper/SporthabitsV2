@@ -40,6 +40,7 @@ import {
   plannedDateForDayIndex,
 } from "@/src/utils/session-estimate";
 import { ExerciseRecord, getExerciseRecords } from "@/src/utils/exercise-records";
+import { exerciseDetailPath } from "@/src/utils/exercise-detail-path";
 import ExerciseThumbnail from "@/src/components/ExerciseThumbnail";
 import { groupRoundRobinExercises } from "@/src/utils/exercise-round-grouping";
 import SegmentedTabRow from "@/src/components/ui/SegmentedTabRow";
@@ -456,8 +457,8 @@ function ProgramWeekView({
                 done={done}
                 doneSessionIndices={doneSessionIndices}
                 onLaunch={(si, s) => onLaunch(dayIndex, si, s)}
-                onPressExercise={(name) =>
-                  router.push(`/exercise-detail/${encodeURIComponent(name)}`)
+                onPressExercise={(name, exerciseRecordId) =>
+                  router.push(exerciseDetailPath(name, exerciseRecordId, records) as any)
                 }
               />
             );
