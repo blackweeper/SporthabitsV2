@@ -8,6 +8,18 @@
  * lancement de la séance : l'entrée reste un seul `Exercise`/
  * `SessionExerciseLog`, un seul jeu de séries, exactement comme avant.
  */
+// Quantité en tête d'un segment : "15", "250m", "20 cal", "10+ cal", "30/20 cal",
+// "1 min", "5-10-15-20-25 cal" (échelle). L'unité collée ("250m") ou séparée
+// ("cal", "min", "sec") fait partie de la quantité, jamais du nom du mouvement —
+// avant, "20 cal Rameur" donnait un mouvement "cal Rameur" introuvable dans la
+// bibliothèque. Doit rester alignée sur `scripts/lib/wod-normalize.js` (QTY).
+const NUM = "\\d+(?:[.,]\\d+)?";
+const QUANTITY = `${NUM}(?:[-–/+]${NUM})*\\+?[a-zA-Zàéèê]*(?:\\s+(?:cal|min|sec)\\b)?`;
+const QUANTITY_PREFIX = new RegExp(`^${QUANTITY}\\s+`, "i");
+const QUANTITY_SPLIT = new RegExp(`^(${QUANTITY})\\s+(.+)$`, "i");
+// "(20/14 lb)", "(24/16 kg)", "(2x24/12 kg)", "(2/1.5 pood)", "(36/30 in)".
+const LOAD_SPEC_PAREN = new RegExp(`\\(\\s*(?:\\d+\\s*x\\s*)?${NUM}(?:\\s*/\\s*${NUM})?\\s*(?:lbs?|kg|pood|in)\\s*\\)`, "gi");
+
 export function parseCompositeExerciseName(name: string): string[] | null {
   if (!name.includes("→")) return null;
   const segments = name
@@ -53,8 +65,13 @@ export function parseCompositePrefix(name: string): string | null {
 
 export function cleanCompositeItemLabel(item: string): string {
   let s = item.trim();
+  // Charge/hauteur de boîte au milieu du segment ("15 (20/14 lb) Wall Balls") —
+  // ne concerne que les données antérieures à la normalisation des WODs (voir
+  // `scripts/lib/wod-normalize.js`) et les circuits créés à la main.
+  s = s.replace(LOAD_SPEC_PAREN, " ").replace(/\s{2,}/g, " ").trim();
   s = s.replace(/\s*\([^)]*\)\s*$/, "").trim();
-  s = s.replace(/^\d+[a-zA-Zàéèê]*\s+/, "").trim();
+  s = s.replace(QUANTITY_PREFIX, "").trim();
+  s = s.replace(/^max\s+/i, "").trim();
   return s;
 }
 
@@ -70,7 +87,7 @@ export function cleanCompositeItemLabel(item: string): string {
  */
 export function splitCompositeItemQuantity(item: string): { reps: string; name: string } {
   const trimmed = item.trim();
-  const match = trimmed.match(/^(\d+[a-zA-Zàéèê]*)\s+(.+)$/);
+  const match = trimmed.match(QUANTITY_SPLIT);
   if (match) {
     return { reps: match[1], name: match[2].trim() };
   }

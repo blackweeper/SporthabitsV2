@@ -1,7 +1,12 @@
 const fs = require('fs');
 const path = require('path');
 
-const plans = require('./output/wod-library-generated.json');
+const { normalizeWodPlans } = require('./lib/wod-normalize');
+
+// Charges/hauteurs de boîte retirées des noms et `reps`, reportées en kg/cm dans
+// les consignes (voir `lib/wod-normalize.js`) — évite qu'une régénération depuis
+// la source JSON ne les réintroduise.
+const plans = normalizeWodPlans(require('./output/wod-library-generated.json'));
 
 const header = `import { Plan } from '@/src/utils/gym-storage';
 
@@ -31,6 +36,13 @@ const header = `import { Plan } from '@/src/utils/gym-storage';
  * \`air_squat\`, "Dumbbell Rows" tagué \`rowing\`, "Sandbag Lunges" tagué
  * \`alternating_lunge\`...) — corrigées manuellement en se basant sur le nom
  * réel du mouvement, jamais sur l'id fourni par la source.
+ *
+ * Normalisation (\`scripts/lib/wod-normalize.js\`) : ni le nom d'un exercice ni son
+ * \`reps\` ne portent de charge ou de hauteur de boîte — elles sont reportées dans
+ * les consignes (\`notes\`), converties en kg/cm ("Charge : 9/6 kg.", "Hauteur :
+ * 60/50 cm."), pour que le nom corresponde à l'exercice de la bibliothèque. Un
+ * "max" devant un mouvement ("max Traction") est retiré du nom (consigne
+ * "maximum de répétitions").
  *
  * Régénéré via \`scripts/build-wod-library.js\` (+ \`import-wod-json.js\`,
  * \`write-wod-library.js\`) — à relancer si une nouvelle liste de WODs arrive.

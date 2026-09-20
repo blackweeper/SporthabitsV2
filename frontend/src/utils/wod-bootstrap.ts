@@ -29,7 +29,14 @@ const WOD_PURGE_2026_08_KEY = '@ironflow/wodLibraryPurged_2026_08';
 // see `gym-storage.ts`), so those installs never got the real relink despite
 // the flag being set. Bumping forces one more pass; a `_v1`-only install
 // converges to the same correct state as a fresh install.
-const WOD_RELINK_FIX_KEY = '@ironflow/wodExerciseRelinkApplied_v2';
+// Bumped to `_v3`: normalisation des WODs (`scripts/lib/wod-normalize.js`) — les
+// charges/hauteurs de boîte ne figurent plus dans les noms ni les `reps`
+// ("15 (20/14 lb) Wall Balls" -> "15 Wall Balls", consigne "Charges : Wall Balls
+// 9/6 kg."), "max Traction" devient "Traction", l'échelle de Holly n'utilise plus
+// "→" comme séparateur. Même mécanisme : les WODs déjà semés sont remplacés une
+// fois par la version corrigée (les séances enregistrées gardent leur propre
+// snapshot de nom/données, rien n'est perdu).
+const WOD_RELINK_FIX_KEY = '@ironflow/wodExerciseRelinkApplied_v3';
 
 /**
  * Amorce la bibliothèque de WODs curés (`WOD_LIBRARY`) dans le stockage
