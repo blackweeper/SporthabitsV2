@@ -29,18 +29,22 @@
  *   `.m3u8` (HLS) demanderaient un vrai lecteur HLS (hors dépendances de ce
  *   projet), donc également exclues.
  *
- * Résultat : 18 stations réellement jouables sur les 30 du tag — moins que
+ * Résultat : 16 stations réellement jouables sur les 30 du tag — moins que
  * les "~30" visées, mais c'est la population réelle de flux fonctionnels
  * pour ce tag précis, pas un choix arbitraire de curation.
  *
  * HTTPS : la PWA est servie en https, or un navigateur bloque (ou tente de
  * mettre à niveau vers https) un flux `http://` chargé depuis une page https
- * ("contenu mixte"). Les flux dont la version https a été vérifiée (200 +
- * `audio/*` + CORS) utilisent donc https. Restent en `http://`, non vérifiés
- * en https faute d'accès réseau depuis la machine de test (filtre web
- * bloquant la catégorie "Internet Radio") : FFH Workout, Antenne Bayern (x2),
- * 1A Fitness Hits (x2), RPR1. Workout — à tester sur iPhone, et à passer en
- * https si leur hôte le propose.
+ * ("contenu mixte"). Tout flux doit donc être en https. Constaté sur iPhone :
+ * les 6 flux restés en `http://` ("Cette station ne répond pas") ne marchaient
+ * pas.
+ * - "1A Fitness Hits" (x2) retirées : même flux `saw-fitness` que "Radio SAW -
+ *   Fitness", déjà présente et fonctionnelle.
+ * - FFH Workout, Antenne Bayern (mp3 et AAC), RPR1. Workout : passées en
+ *   https en changeant seulement le schéma de l'URL — NON vérifié depuis la
+ *   machine de test (filtre web bloquant la catégorie "Internet Radio"), à
+ *   confirmer sur iPhone. Toute station qui ne répond toujours pas doit être
+ *   retirée plutôt que laissée cassée.
  *
  * `stationuuid` est l'identifiant radio-browser.info correspondant
  * (vérifié contre l'annuaire réel), réutilisé par `radio-browser.ts` pour
@@ -77,7 +81,7 @@ export const RADIO_STATIONS: RadioStation[] = [
   {
     stationuuid: "2c6e2132-2f82-11e9-8f31-52543be04c81",
     name: "FFH Workout",
-    streamUrl: "http://streams.ffh.de/ffhchannels/mp3/hqworkout.mp3",
+    streamUrl: "https://streams.ffh.de/ffhchannels/mp3/hqworkout.mp3",
     favicon: null,
     homepage: "https://webradio.ffh.de/workout",
     tags: "workout",
@@ -86,7 +90,7 @@ export const RADIO_STATIONS: RadioStation[] = [
   {
     stationuuid: "9615dd74-0601-11e8-ae97-52543be04c81",
     name: "Antenne Bayern - Workout Hits",
-    streamUrl: "http://mp3channels.webradio.antenne.de/workout-hits",
+    streamUrl: "https://mp3channels.webradio.antenne.de/workout-hits",
     favicon: "http://www.antenne.de/logos/antenne-bayern/apple-touch-icon.png",
     homepage: "http://www.antenne.de/programm/empfang/antenne-bayern-hoeren-internet",
     tags: "workout",
@@ -157,18 +161,9 @@ export const RADIO_STATIONS: RadioStation[] = [
     country: "Moldavie",
   },
   {
-    stationuuid: "9642530a-0601-11e8-ae97-52543be04c81",
-    name: "1A Fitness Hits",
-    streamUrl: "http://stream.1a-webradio.de/saw-fitness/mp3-128/radio-browser-1a/stream.mp3",
-    favicon: null,
-    homepage: "http://www.1a-webradio.de/",
-    tags: "dance, sport, workout",
-    country: "Allemagne",
-  },
-  {
     stationuuid: "559f27cb-371f-11e8-bb9b-52543be04c81",
     name: "RPR1. Workout",
-    streamUrl: "http://streams.rpr1.de/rpr-fitfun-64-aac?usid=0-0-L-A-D-20",
+    streamUrl: "https://streams.rpr1.de/rpr-fitfun-64-aac?usid=0-0-L-A-D-20",
     favicon: null,
     homepage: "https://www.rpr1.de/",
     tags: "dance, gym, workout",
@@ -186,7 +181,7 @@ export const RADIO_STATIONS: RadioStation[] = [
   {
     stationuuid: "7087394d-ba03-11e9-acb2-52543be04c81",
     name: "Antenne Bayern Workout (AAC)",
-    streamUrl: "http://mp3channels.webradio.antenne.de/workout-hits.aac",
+    streamUrl: "https://mp3channels.webradio.antenne.de/workout-hits.aac",
     favicon: "https://www.antenne.de/logos/station-antenne-bayern/apple-touch-icon.png",
     homepage: "https://www.antenne.de/",
     tags: "workout",
@@ -208,15 +203,6 @@ export const RADIO_STATIONS: RadioStation[] = [
     favicon: "https://gongfm.s3-cdn.welocal.cloud/sources/5fb569ee0335d.svg",
     homepage: "https://www.gongfm.de/webchannels-2/",
     tags: "pop, workout",
-    country: "Allemagne",
-  },
-  {
-    stationuuid: "5fc4222e-5816-11e8-b0ce-52543be04c81",
-    name: "1A Fitness Hits (AAC)",
-    streamUrl: "http://stream.1a-webradio.de/saw-fitness/aac-48/radiosure-1a/stream.mp3",
-    favicon: null,
-    homepage: "http://www.1a-webradio.de/",
-    tags: "dance, sport, workout",
     country: "Allemagne",
   },
   {

@@ -2,12 +2,12 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { RADIO_STATIONS } from "@/src/data/radio-stations";
 
 /**
- * Quelles stations du catalogue (18, `radio-stations.ts`, tag `workout`
+ * Quelles stations du catalogue (16, `radio-stations.ts`, tag `workout`
  * trié par popularité) apparaissent dans le menu radio principal — même
  * patron que `theme-settings.ts`/`app-settings.ts` (clé AsyncStorage
  * dédiée, lecture tolérante, jamais d'exception). Par défaut, les 10
  * stations les plus populaires (les premières du tableau, déjà trié par
- * `clickcount` décroissant) restent cochées ; les 8 restantes sont
+ * `clickcount` décroissant) restent cochées ; les 6 restantes sont
  * disponibles en un tap depuis l'écran de gestion.
  */
 
