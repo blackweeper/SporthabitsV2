@@ -194295,5 +194295,192 @@
       "templateVersion": 3,
       "updatedAt": "2026-09-20T19:34:39.000Z"
     }
+  },
+  {
+    "id": "if_0118",
+    "source": "system",
+    "nameFr": "Hip thrust doublement surélevé",
+    "nameEn": "Double Elevated Hip Thrust",
+    "category": "musculation",
+    "primaryMuscle": "glutes",
+    "secondaryMuscles": [
+      "hamstrings",
+      "quads"
+    ],
+    "equipment": "barbell",
+    "description": "Hip thrust à deux jambes avec le haut du dos appuyé sur un banc ET les pieds posés sur un second appui (banc bas, plateforme ou disques). Cette double surélévation augmente l'amplitude de la poussée de hanches et met le grand fessier en étirement complet en bas, avec une charge (barre ou haltère) posée sur le bassin.",
+    "musclesWorkedNote": "Cible le grand fessier avec un fort étirement en position basse. Les ischio-jambiers et les quadriceps aident à l'extension de hanche, les abdominaux et le moyen fessier stabilisent le bassin.",
+    "instructions": [
+      "Installe le haut du dos (sous les omoplates) contre le bord d'un banc stable, et pose tes pieds sur un second appui surélevé, un peu plus large que les hanches.",
+      "Place la charge (barre avec un coussin, ou haltère) à plat sur le bas du ventre, en la maintenant des deux mains.",
+      "Rentre légèrement le menton et les côtes, puis pousse dans les talons pour monter le bassin jusqu'à aligner épaules, hanches et genoux.",
+      "Marque 1 seconde de contraction en haut en serrant fort les fessiers, sans cambrer le bas du dos.",
+      "Redescends le bassin sous contrôle, aussi bas que ton amplitude le permet, puis enchaîne les répétitions."
+    ],
+    "tips": [
+      "Pose un coussin ou une serviette sous la barre pour protéger les os du bassin.",
+      "Garde le regard vers l'avant et le menton rentré : c'est ce qui évite de cambrer le bas du dos."
+    ],
+    "commonMistakes": [
+      "Cambrer le bas du dos en haut du mouvement au lieu de contracter les fessiers.",
+      "Pousser sur la pointe des pieds ou laisser les genoux partir vers l'intérieur.",
+      "Raccourcir l'amplitude en bas, alors que la surélévation sert justement à étirer le fessier."
+    ],
+    "difficulty": "intermediate",
+    "media": null,
+    "movementPattern": "hinge",
+    "parentExerciseId": null,
+    "variantLabel": null,
+    "aliases": [
+      "Dual Elevated Hip Thrust",
+      "Hip thrust doublement élevé",
+      "Hip thrust doublement surélevé (barre)",
+      "Hip thrust pieds surélevés",
+      "Hip thrust bilatéral surélevé",
+      "Double elevated hip thrust",
+      "Hip thrust à deux jambes surélevé"
+    ],
+    "exerciseTier": "official_core",
+    "collections": [
+      "bodybuilding",
+      "home_gym"
+    ],
+    "favoritedAt": null,
+    "createdAt": "2026-09-20T20:08:34.000Z",
+    "updatedAt": "2026-09-20T20:08:34.000Z",
+    "raw": null,
+    "enrichment": {
+      "translations": {
+        "fr": {
+          "name": "Hip thrust doublement surélevé",
+          "description": "Hip thrust avec haut du dos et pieds surélevés : plus d'amplitude et un étirement maximal du fessier en bas du mouvement.",
+          "instructions": [
+            "Cale le haut du dos contre un banc et pose les pieds sur un second appui surélevé.",
+            "Charge le bassin (barre avec coussin ou haltère) et pousse dans les talons pour monter.",
+            "Contracte les fessiers 1 seconde en haut, sans cambrer.",
+            "Redescends lentement, aussi bas que ton amplitude le permet."
+          ],
+          "executionTips": [
+            "Pense à « pousser le sol loin de toi » avec les talons plutôt qu'à lever les hanches.",
+            "Garde les côtes basses pour que le travail reste dans les fessiers, pas dans le bas du dos."
+          ],
+          "commonMistakes": [
+            "Cambrer le bas du dos pour gagner en amplitude.",
+            "Pousser sur l'avant du pied, ce qui déplace le travail vers les quadriceps.",
+            "Laisser les genoux rentrer vers l'intérieur."
+          ],
+          "breathingTips": "Inspire en bas, expire en poussant le bassin vers le haut et bloque brièvement en contraction.",
+          "precautions": "Commence avec une charge légère : l'amplitude accrue sollicite davantage les hanches. Évite ce mouvement en cas de douleur à la hanche ou au bas du dos.",
+          "rationale": "La double surélévation allonge la course du mouvement : le fessier travaille sur une plus grande amplitude, avec un fort étirement en bas, ce qui favorise l'hypertrophie.",
+          "warmupSuggestion": "1 série de 12 ponts fessiers au poids du corps, puis 1 série légère de 10 répétitions avec la charge.",
+          "mistakeCorrections": [
+            {
+              "mistake": "Le bas du dos se creuse en haut du mouvement.",
+              "correction": "Rentre les côtes, serre les fessiers et arrête la montée dès que hanches, épaules et genoux sont alignés."
+            },
+            {
+              "mistake": "Les genoux s'écartent ou rentrent vers l'intérieur.",
+              "correction": "Garde les genoux dans l'axe des pieds et allège la charge jusqu'à contrôler la trajectoire."
+            }
+          ]
+        }
+      },
+      "verifiedPrimaryMuscle": "glutes",
+      "verifiedSecondaryMuscles": [
+        "hamstrings",
+        "quads"
+      ],
+      "stabilizerMuscles": [
+        "abs"
+      ],
+      "alternativeExerciseIds": [
+        "wx_3562",
+        "if_0117"
+      ],
+      "exerciseType": "compound",
+      "tags": [
+        "glutes",
+        "hypertrophy",
+        "barbell",
+        "hinge"
+      ],
+      "qualityScore": null,
+      "reviewStatus": null,
+      "verifiedBy": null,
+      "difficulty": "intermediate",
+      "technicalLevel": "medium",
+      "levelGuidance": {
+        "beginner": {
+          "note": "Commence par le pont fessier sur banc, sans double surélévation.",
+          "prerequisites": []
+        },
+        "intermediate": {
+          "note": "3 séries de 8 à 15 répétitions avec une charge modérée.",
+          "prerequisites": []
+        },
+        "advanced": {
+          "note": "Ajoute une pause de 2 secondes en haut et une charge plus lourde.",
+          "prerequisites": []
+        }
+      },
+      "muscleActivation": {
+        "primary": [
+          "glutes"
+        ],
+        "secondary": [
+          "hamstrings",
+          "quads"
+        ],
+        "activationScore": {
+          "glutes": 5,
+          "hamstrings": 3,
+          "quads": 2
+        }
+      },
+      "equipmentLevel": "basic",
+      "trainingGoals": [
+        "hypertrophy",
+        "strength"
+      ],
+      "fatigueLevel": "medium",
+      "restTimeByGoal": {
+        "strength": "90-120s",
+        "hypertrophy": "60-90s"
+      },
+      "alternativeEquipment": [
+        "dumbbell",
+        "kettlebell"
+      ],
+      "disciplines": [
+        "musculation"
+      ],
+      "movementPatterns": [
+        "hinge"
+      ],
+      "progressionExercises": [
+        {
+          "name": "Hip thrust doublement surélevé avec pause de 2 secondes en haut"
+        }
+      ],
+      "regressionExercises": [
+        {
+          "name": "Pont fessier à deux jambes sur banc"
+        }
+      ],
+      "coachNotes": {
+        "execution": [
+          "Marque un temps d'arrêt d'une seconde en contraction maximale."
+        ],
+        "programming": [
+          "Bon exercice principal ou secondaire d'une séance ischios/fessiers, 2 à 3 séries."
+        ],
+        "safety": [
+          "Vérifie que les deux appuis sont stables et ne glissent pas avant de charger."
+        ]
+      },
+      "coachScores": null,
+      "templateVersion": 3,
+      "updatedAt": "2026-09-20T20:08:34.000Z"
+    }
   }
 ]
